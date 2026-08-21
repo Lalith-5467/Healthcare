@@ -131,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <header className="sticky top-0 z-[1000] w-full transition-all duration-300">
       {/* MAIN NAVBAR */}
       <div
         className={`bg-white dark:bg-[#0b1120] transition-all duration-300 border-b ${

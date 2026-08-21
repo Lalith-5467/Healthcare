@@ -87,7 +87,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
   const IconComponent = activeCard.icon;
 
   return (
-    <section id="home" className="relative w-full min-h-[90vh] lg:min-h-screen pt-28 pb-20 lg:pt-36 lg:pb-24 flex items-center overflow-hidden bg-slate-900">
+    <section id="home" className="relative w-full min-h-[calc(100vh-5rem)] py-16 lg:py-24 flex items-center overflow-hidden bg-slate-900 z-1">
       
       {/* 1. HERO VIDEO CONTAINER (DUAL-LAYER UNCROPPED DISPLAY SYSTEM) */}
       <div className="hero-video-container absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
@@ -188,7 +188,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
           {/* RIGHT COLUMN: SINGLE-CARD HORIZONTAL SWAPPING GLASS CAROUSEL (FURTHER DOWNWARD) */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-end py-2 w-full">
             
-            <div className="w-full max-w-[275px] flex flex-col items-center gap-3.5 relative lg:mt-44 sm:mt-24 mt-10 translate-y-4 lg:translate-y-12">
+            <div className="w-full max-w-[275px] flex flex-col items-center gap-3.5 relative lg:mt-16 sm:mt-8 mt-6">
               
               {/* HORIZONTAL SLIDING CARD CONTAINER */}
               <div className="w-full overflow-hidden py-1">
