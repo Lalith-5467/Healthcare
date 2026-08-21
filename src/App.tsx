@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { Header } from './components/landing/Header';
 import { Hero } from './components/landing/Hero';
-import { TrustBar } from './components/landing/TrustBar';
 import { AboutHospital } from './components/landing/AboutHospital';
 import { FeaturesSection } from './components/landing/FeaturesSection';
 import { DoctorSection } from './components/landing/DoctorSection';
@@ -10,6 +9,7 @@ import { AppointmentSection } from './components/landing/AppointmentSection';
 import { ABHASection } from './components/landing/ABHASection';
 import { FinalCTA } from './components/landing/FinalCTA';
 import { Footer } from './components/landing/Footer';
+import { AboutUsPage } from './pages/AboutUsPage';
 
 // MODALS
 import { ABHAModal } from './components/modals/ABHAModal';
@@ -18,7 +18,8 @@ import { EmergencyQRModal } from './components/modals/EmergencyQRModal';
 import { AuthModal } from './components/modals/AuthModal';
 
 export const App: React.FC = () => {
-  // Modal States
+  // Page & Modal States
+  const [currentPage, setCurrentPage] = useState<'home' | 'about'>('home');
   const [authModal, setAuthModal] = useState<{ open: boolean; mode: 'login' | 'signup' }>({
     open: false,
     mode: 'signup',
@@ -26,6 +27,28 @@ export const App: React.FC = () => {
   const [abhaModalOpen, setAbhaModalOpen] = useState(false);
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
+
+  const handleNavigate = (id: string) => {
+    if (id === 'about') {
+      setCurrentPage('about');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+
+    if (currentPage === 'about') {
+      setCurrentPage('home');
+      setTimeout(() => {
+        if (id === 'home') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          scrollToSection(id);
+        }
+      }, 50);
+      return;
+    }
+
+    scrollToSection(id);
+  };
 
   const scrollToSection = (id: string) => {
     if (id === 'home') {
@@ -63,50 +86,55 @@ export const App: React.FC = () => {
         {/* HEADER & TOP BAR */}
         <Header 
           onOpenAuth={handleOpenAuth} 
-          onNavigate={scrollToSection} 
+          onNavigate={handleNavigate} 
         />
 
-        {/* MAIN LANDING CONTENT */}
-        <main>
-          {/* HERO SECTION */}
-          <Hero 
-            onStartJourney={() => scrollToSection('services')} 
-            onSeeHowItWorks={() => scrollToSection('about')} 
+        {/* DEDICATED ABOUT US PAGE OR LANDING PAGE */}
+        {currentPage === 'about' ? (
+          <AboutUsPage 
+            onNavigateHome={() => handleNavigate('home')}
+            onStartJourney={() => handleOpenAuth('signup')}
+            onExploreFeatures={() => handleNavigate('features')}
           />
+        ) : (
+          <main>
+            {/* HERO SECTION */}
+            <Hero 
+              onStartJourney={() => handleNavigate('features')} 
+              onSeeHowItWorks={() => handleNavigate('about')} 
+            />
 
-          {/* TRUST BENEFIT BAR */}
-          <TrustBar />
+            {/* ABOUT US PREVIEW */}
+            <AboutHospital 
+              onLearnMore={() => handleNavigate('about')} 
+            />
 
-          {/* ABOUT US */}
-          <AboutHospital 
-            onLearnMore={() => scrollToSection('services')} 
-          />
+            {/* FEATURES SECTION */}
+            <FeaturesSection 
+              onExploreFeature={() => handleNavigate('abha')} 
+            />
 
-          {/* FEATURES SECTION */}
-          <FeaturesSection 
-            onExploreFeature={() => scrollToSection('abha')} 
-          />
+            {/* MEET OUR DOCTORS */}
+            <DoctorSection 
+              onOpenDoctorPortal={() => handleOpenAuth('login')} 
+            />
 
-          {/* MEET OUR DOCTORS */}
-          <DoctorSection 
-            onOpenDoctorPortal={() => handleOpenAuth('login')} 
-          />
+            {/* ABHA DIGITAL HEALTH CONNECTION */}
+            <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
 
-          {/* ABHA DIGITAL HEALTH CONNECTION */}
-          <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
+            {/* APPOINTMENT FORM & HEALTH PACKAGES */}
+            <AppointmentSection />
 
-          {/* APPOINTMENT FORM & HEALTH PACKAGES */}
-          <AppointmentSection />
-
-          {/* FINAL HIGH-CONVERSION CTA */}
-          <FinalCTA 
-            onStartJourney={() => handleOpenAuth('signup')} 
-            onExploreFeatures={() => scrollToSection('services')} 
-          />
-        </main>
+            {/* FINAL HIGH-CONVERSION CTA */}
+            <FinalCTA 
+              onStartJourney={() => handleOpenAuth('signup')} 
+              onExploreFeatures={() => handleNavigate('features')} 
+            />
+          </main>
+        )}
 
         {/* FOOTER */}
-        <Footer onNavigate={scrollToSection} />
+        <Footer onNavigate={handleNavigate} />
 
         {/* MODALS */}
         <ABHAModal 

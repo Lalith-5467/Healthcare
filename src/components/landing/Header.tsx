@@ -135,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
 
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
+    { id: 'about', label: 'About Us' },
     { id: 'services', label: 'Services', isMega: true },
     { id: 'features', label: 'Features' },
     { id: 'doctors', label: 'Doctors' },
