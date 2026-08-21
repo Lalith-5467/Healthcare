@@ -87,22 +87,10 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
   const IconComponent = activeCard.icon;
 
   return (
-    <section id="home" className="relative w-full min-h-[90vh] lg:min-h-screen pt-28 pb-20 lg:pt-36 lg:pb-24 flex items-center overflow-hidden bg-slate-900">
-      
-      {/* 1. HERO VIDEO CONTAINER (DUAL-LAYER UNCROPPED DISPLAY SYSTEM) */}
-      <div className="hero-video-container absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        
-        {/* LAYER A: BLURRED AMBIENT VIDEO BACKDROP (SEAMLESS FILL WITHOUT CROPPING FOREGROUND) */}
-        <video
-          src="/Digital_Health_Record_For_Project.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="video-backdrop absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-35"
-        />
+    <section id="home" className="relative w-full min-h-[calc(100vh-5rem)] py-12 sm:py-16 flex items-center overflow-hidden bg-slate-900">
 
-        {/* LAYER B: FOREGROUND MAIN VIDEO (100% COMPLETE UNCROPPED ORIGINAL FRAME) */}
+      {/* 1. BACKGROUND VIDEO LAYER (100% STABLE, UNTOUCHED BY CARDS) */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <video
           ref={videoRef}
           src="/Digital_Health_Record_For_Project.mp4"
@@ -110,14 +98,15 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
           muted={isMuted}
           loop
           playsInline
-          className="video-main absolute inset-0 w-full h-full object-contain object-center"
+          className="w-full h-full object-cover object-top"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
         />
 
-        {/* 2. SUBTLE READABILITY OVERLAY */}
-        <div className="absolute inset-0 bg-slate-950/20 dark:bg-slate-950/35 bg-gradient-to-r from-slate-950/70 via-slate-950/30 to-transparent pointer-events-none" />
+        {/* 2. VIDEO OVERLAY LAYER */}
+        <div className="absolute inset-0 bg-slate-950/30 dark:bg-slate-950/45 bg-gradient-to-r from-slate-950/55 via-slate-950/20 to-transparent" />
 
         {/* AMBIENT GLOW DECORATIONS */}
-        <div className="absolute top-1/4 left-10 w-96 h-96 bg-teal-500/10 dark:bg-teal-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-10 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 left-1/3 w-[500px] h-[500px] bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
       </div>
 
@@ -180,15 +169,15 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
                 className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-slate-900/80 hover:bg-slate-900 border border-slate-700/80 backdrop-blur-md rounded-xl transition-all shadow-md gap-2 cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-[#00a896]" />
-                <span>Explore Health Records</span>
+                <span>Connect ABHA</span>
               </button>
             </div>
           </motion.div>
 
-          {/* RIGHT COLUMN: SINGLE-CARD HORIZONTAL SWAPPING GLASS CAROUSEL (FURTHER DOWNWARD) */}
-          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-end py-2 w-full">
+          {/* RIGHT COLUMN: SINGLE-CARD HORIZONTAL SWAPPING GLASS CAROUSEL */}
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center py-4 w-full">
             
-            <div className="w-full max-w-[275px] flex flex-col items-center gap-3.5 relative lg:mt-44 sm:mt-24 mt-10 translate-y-4 lg:translate-y-12">
+            <div className="w-full max-w-[275px] flex flex-col items-center gap-3.5 relative lg:mt-16 sm:mt-8 mt-4">
               
               {/* HORIZONTAL SLIDING CARD CONTAINER */}
               <div className="w-full overflow-hidden py-1">

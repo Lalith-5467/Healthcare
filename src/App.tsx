@@ -3,16 +3,10 @@ import { ThemeProvider } from './components/theme/ThemeProvider';
 import { Header } from './components/landing/Header';
 import { Hero } from './components/landing/Hero';
 import { TrustBar } from './components/landing/TrustBar';
-import { MedicalServices } from './components/landing/MedicalServices';
-import { EmergencyCard } from './components/landing/EmergencyCard';
-import { CareCircle } from './components/landing/CareCircle';
-import { AccessibilitySection } from './components/landing/AccessibilitySection';
-import { FutureRoadmap } from './components/landing/FutureRoadmap';
 import { AboutHospital } from './components/landing/AboutHospital';
+import { FeaturesSection } from './components/landing/FeaturesSection';
 import { DoctorSection } from './components/landing/DoctorSection';
-import { QuickActionCards } from './components/landing/QuickActionCards';
 import { AppointmentSection } from './components/landing/AppointmentSection';
-import { TestimonialsArticlesFAQ } from './components/landing/TestimonialsArticlesFAQ';
 import { ABHASection } from './components/landing/ABHASection';
 import { FinalCTA } from './components/landing/FinalCTA';
 import { Footer } from './components/landing/Footer';
@@ -34,8 +28,11 @@ export const App: React.FC = () => {
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
+    if (id === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (id === 'abha') {
-      setAbhaModalOpen(true);
       const element = document.getElementById('abha');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -80,30 +77,14 @@ export const App: React.FC = () => {
           {/* TRUST BENEFIT BAR */}
           <TrustBar />
 
-          {/* MEDICAL SERVICES & CAPABILITIES GRID */}
-          <MedicalServices 
-            onSelectService={(serviceId) => scrollToSection(serviceId || 'services')} 
-          />
-
-          {/* CAREGIVER & FAMILY COMPANION */}
-          <CareCircle 
-            onManageConsent={() => setConsentModalOpen(true)} 
-          />
-
-          {/* EMERGENCY SOS CARD */}
-          <EmergencyCard 
-            onScanQR={() => setEmergencyModalOpen(true)} 
-          />
-
-          {/* ACCESSIBILITY & ELDER CARE */}
-          <AccessibilitySection />
-
-          {/* FUTURE PRODUCT INNOVATION ROADMAP */}
-          <FutureRoadmap />
-
-          {/* ABOUT OUR PLATFORM */}
+          {/* ABOUT US */}
           <AboutHospital 
             onLearnMore={() => scrollToSection('services')} 
+          />
+
+          {/* FEATURES SECTION */}
+          <FeaturesSection 
+            onExploreFeature={() => scrollToSection('abha')} 
           />
 
           {/* MEET OUR DOCTORS */}
@@ -111,19 +92,11 @@ export const App: React.FC = () => {
             onOpenDoctorPortal={() => handleOpenAuth('login')} 
           />
 
-          {/* 3-CARD QUICK ACTIONS */}
-          <QuickActionCards 
-            onNavigate={scrollToSection} 
-          />
+          {/* ABHA DIGITAL HEALTH CONNECTION */}
+          <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
 
           {/* APPOINTMENT FORM & HEALTH PACKAGES */}
           <AppointmentSection />
-
-          {/* TESTIMONIALS, ARTICLES & FAQ */}
-          <TestimonialsArticlesFAQ />
-
-          {/* ABHA DIGITAL HEALTH CONNECTION */}
-          <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
 
           {/* FINAL HIGH-CONVERSION CTA */}
           <FinalCTA 

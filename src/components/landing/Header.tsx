@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { 
   Menu, 
   X, 
   Calendar, 
-  ChevronDown, 
   Activity, 
   Search,
   FileText,
@@ -36,8 +36,27 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      // SCROLL-SPY ACTIVE NAV TAB DETECTION
+      const sectionIds = ['home', 'about', 'features', 'doctors', 'abha'];
+      const scrollPosition = window.scrollY + 140;
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const sectionId = sectionIds[i];
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const top = element.offsetTop;
+          const height = element.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveTab(sectionId);
+            break;
+          }
+        }
+      }
     };
+
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -118,10 +137,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'services', label: 'Services', isMega: true },
-    { id: 'records', label: 'Health Records' },
-    { id: 'caregiver', label: 'Caregiver' },
-    { id: 'appointment', label: 'Contact' },
+    { id: 'features', label: 'Features' },
+    { id: 'doctors', label: 'Doctors' },
+    { id: 'abha', label: 'ABHA' },
   ];
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   const handleNavClick = (id: string) => {
     setActiveTab(id);
@@ -131,11 +157,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <header className="sticky top-0 left-0 right-0 z-50 transition-all duration-300">
+      {/* ANIMATED SCROLL PROGRESS BAR */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 origin-left z-50 shadow-[0_0_12px_#00a896]"
+        style={{ scaleX }}
+      />
+
       {/* MAIN NAVBAR */}
       <div
-        className={`bg-white dark:bg-[#0b1120] transition-all duration-300 border-b ${
-          scrolled ? 'shadow-md border-slate-200 dark:border-slate-800' : 'border-slate-100 dark:border-slate-800/80'
+        className={`transition-all duration-300 ${
+          scrolled
+            ? 'bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-lg shadow-sm border-b border-slate-200/80 dark:border-slate-800'
+            : 'bg-white dark:bg-[#0b1120] border-b border-slate-100 dark:border-slate-800'
         }`}
       >
         <div className="w-full px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
@@ -180,7 +214,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth, onNavigate }) => {
                       }`}
                     >
                       <span>{item.label}</span>
-                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${servicesMenuOpen ? 'rotate-180 text-[#00a896]' : 'opacity-60'}`} />
                     </button>
 
                     {/* SERVICES MEGA MENU */}
