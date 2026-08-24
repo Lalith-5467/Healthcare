@@ -27,28 +27,28 @@ export const HealthScoreCard: React.FC = () => {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-between group"
+      className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-between group font-sans text-slate-900 dark:text-white"
     >
       {/* BACKGROUND AMBIENT GLOW */}
-      <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/25 transition-all" />
+      <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
 
       {/* TOP LABEL */}
       <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-2xl bg-teal-500/10 text-cyan-400 border border-teal-500/20">
+          <div className="p-2.5 rounded-2xl bg-teal-500/15 text-[#00a896] dark:text-cyan-400 border border-teal-500/30">
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-white tracking-tight">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Your Health Score
             </h3>
-            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>● Excellent Vitals</span>
             </span>
           </div>
         </div>
-        <span className="px-3 py-1 text-[11px] font-bold rounded-full bg-slate-800 text-cyan-300 border border-slate-700 font-mono">
+        <span className="px-3 py-1 text-[11px] font-extrabold rounded-full bg-slate-100 dark:bg-slate-800 text-[#00a896] dark:text-cyan-300 border border-slate-300 dark:border-slate-700 font-mono">
           Weekly Sync
         </span>
       </div>
@@ -62,7 +62,7 @@ export const HealthScoreCard: React.FC = () => {
               cx="72"
               cy="72"
               r="42"
-              className="stroke-slate-800"
+              className="stroke-slate-200 dark:stroke-slate-800"
               strokeWidth="10"
               fill="transparent"
             />
@@ -71,7 +71,7 @@ export const HealthScoreCard: React.FC = () => {
               cx="72"
               cy="72"
               r="42"
-              className="stroke-emerald-400 transition-all duration-500 ease-out"
+              className="stroke-[#00a896] dark:stroke-emerald-400 transition-all duration-500 ease-out"
               strokeWidth="10"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -81,21 +81,21 @@ export const HealthScoreCard: React.FC = () => {
           </svg>
           {/* CENTER TEXT */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-4xl font-black text-white tracking-tight leading-none">
+            <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
               {score}
             </span>
-            <span className="text-[11px] font-bold text-slate-300 mt-1 font-mono">out of 100</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-1 font-mono">out of 100</span>
           </div>
         </div>
       </div>
 
       {/* FOOTER TREND */}
-      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs relative z-10 font-mono">
-        <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+      <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs relative z-10 font-mono">
+        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-bold">
           <TrendingUp className="w-4 h-4" />
           <span>+4 points from last week</span>
         </div>
-        <span className="text-xs text-slate-300 font-bold">Target: 90+</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300 font-bold">Target: 90+</span>
       </div>
     </motion.div>
   );
