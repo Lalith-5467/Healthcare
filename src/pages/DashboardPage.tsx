@@ -314,7 +314,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {/* 1. TOP HEADER */}
             <DashboardHeader
               userName={user.name}
-              onOpenNotifications={() => showToast('Opening Notifications drawer')}
+              onNavigate={handleSelectNav}
+              onShowToast={showToast}
               onOpenProfile={() => handleSelectNav('profile')}
             />
 

@@ -2,19 +2,24 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Bell, Sparkles } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface DashboardHeaderProps {
   userName?: string;
-  onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
+  onNavigate?: (page: string) => void;
+  onShowToast?: (msg: string) => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName = 'Samson',
-  onOpenNotifications,
-  onOpenProfile
+  onOpenProfile,
+  onNavigate = () => {},
+  onShowToast = () => {},
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
   const todayDateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
@@ -27,7 +32,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/90 dark:border-slate-800/80"
+      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/90 dark:border-slate-800/80 relative"
     >
       {/* LEFT GREETING */}
       <div className="space-y-1">
@@ -50,7 +55,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       </div>
 
       {/* RIGHT SEARCH, THEME TOGGLE, NOTIFICATIONS & PROFILE */}
-      <div className="flex items-center gap-3 self-end md:self-auto w-full md:w-auto">
+      <div className="flex items-center gap-3 self-end md:self-auto w-full md:w-auto relative">
         {/* SEARCH BAR */}
         <div className="relative flex-1 md:w-72">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#00a896] dark:text-cyan-400" />
@@ -66,17 +71,27 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* DARK / LIGHT MODE THEME TOGGLE BUTTON */}
         <ThemeToggle className="shrink-0" />
 
-        {/* NOTIFICATION BUTTON */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onOpenNotifications}
-          className="relative p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer shrink-0"
-          title="Notifications"
-        >
-          <Bell className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-950 animate-pulse" />
-        </motion.button>
+        {/* NOTIFICATION BUTTON WITH POPPER DROPDOWN */}
+        <div className="relative shrink-0">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setNotificationsOpen(!notificationsOpen)}
+            className="relative p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer shrink-0"
+            title="Real-Time Notifications"
+          >
+            <Bell className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-950 animate-pulse" />
+          </motion.button>
+
+          {/* REAL-TIME NOTIFICATIONS POPUP DROPDOWN */}
+          <NotificationsDropdown
+            isOpen={notificationsOpen}
+            onClose={() => setNotificationsOpen(false)}
+            onNavigate={onNavigate}
+            onShowToast={onShowToast}
+          />
+        </div>
 
         {/* PROFILE AVATAR */}
         <motion.button
