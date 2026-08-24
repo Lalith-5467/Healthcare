@@ -62,7 +62,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle Capture Action with realistic multi-step simulation
+  // CAPTURE SIMULATION SEQUENCE
   const handleTriggerCapture = () => {
     if (capturingState !== 'idle') return;
 
@@ -70,83 +70,86 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
     setTimeout(() => {
       setCapturingState('detected');
-    }, 800);
+    }, 600);
 
     setTimeout(() => {
       setCapturingState('processing');
-    }, 1600);
+    }, 1200);
 
     setTimeout(() => {
       setCapturingState('ready');
-
-      // Generate captured image (either real video canvas snapshot or high-res mock document canvas)
-      const canvas = document.createElement('canvas');
-      canvas.width = 800;
-      canvas.height = 1100;
-      const ctx = canvas.getContext('2d');
-
-      if (ctx) {
-        if (permissionState === 'granted' && videoRef.current) {
-          try {
-            ctx.drawImage(videoRef.current, 0, 0, 800, 1100);
-          } catch (e) {
-            console.error(e);
-            drawMockDocument(ctx);
-          }
-        } else {
-          drawMockDocument(ctx);
-        }
-      }
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setTimeout(() => {
-        onCapture(dataUrl);
-      }, 500);
-    }, 2400);
+      generateScannedCanvas();
+    }, 1800);
   };
 
-  // Canvas drawing helper for demo document view
-  const drawMockDocument = (ctx: CanvasRenderingContext2D) => {
-    // Paper background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 800, 1100);
+  // GENERATE DYNAMIC HIGH RES CANVAS IMAGE
+  const generateScannedCanvas = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 1000;
+    const ctx = canvas.getContext('2d');
 
-    // Header bar
+    if (!ctx) {
+      onCapture('data:image/png;base64,placeholder');
+      return;
+    }
+
+    // Clean white document background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 800, 1000);
+
+    // Outer subtle border
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(20, 20, 760, 960);
+
+    // Header logo area
     ctx.fillStyle = '#00a896';
-    ctx.fillRect(0, 0, 800, 120);
+    ctx.fillRect(50, 50, 60, 60);
 
-    // Hospital logo text
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 32px sans-serif';
-    ctx.fillText('APOLLO HEALTHCARE SERVICES', 50, 70);
+    ctx.font = 'extrabold 32px sans-serif';
+    ctx.fillText('✚', 65, 92);
 
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('CLINICAL LABORATORY & DIAGNOSTIC CENTER', 50, 100);
-
-    // Patient Info Line
-    ctx.fillStyle = '#f1f5f9';
-    ctx.fillRect(40, 150, 720, 80);
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('PATIENT: Lalith Patel', 60, 195);
-    ctx.fillText('AGE / SEX: 34 Y / M', 380, 195);
-    ctx.fillText('DATE: 23-AUG-2026', 600, 195);
-
-    // Report Title
     ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 26px sans-serif';
-    ctx.fillText('COMPLETE BLOOD COUNT (CBC) REPORT', 50, 280);
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('APOLLO HEALTHCARE SERVICES', 130, 80);
+
+    ctx.fillStyle = '#00a896';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('CLINICAL PATHOLOGY LABORATORY REPORT', 130, 102);
+
+    // Divider
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(50, 130, 700, 2);
+
+    // Patient info banner
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(50, 150, 700, 80);
+
+    ctx.fillStyle = '#334155';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Patient Name: Lalith Patel', 70, 185);
+    ctx.fillText('Age / Gender: 34 Y / Male', 70, 210);
+
+    ctx.fillText('Report ID: LAB-2026-9481', 450, 185);
+    ctx.fillText('Date: 23 Aug 2026', 450, 210);
+
+    // Title
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('COMPLETE BLOOD COUNT (CBC)', 50, 275);
 
     // Table Header
     ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(50, 310, 700, 45);
-    ctx.fillStyle = '#334155';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('TEST PARAMETER', 70, 340);
-    ctx.fillText('RESULT', 350, 340);
-    ctx.fillText('REFERENCE RANGE', 520, 340);
+    ctx.fillRect(50, 295, 700, 35);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('TEST DESCRIPTION', 70, 318);
+    ctx.fillText('RESULT VALUE', 350, 318);
+    ctx.fillText('REFERENCE INTERVAL', 520, 318);
 
-    // Table rows
+    // Table Rows
     const rows = [
       { name: 'Hemoglobin (Hb)', result: '14.2 g/dL', range: '13.0 - 17.0 g/dL' },
       { name: 'Total WBC Count', result: '7,200 /µL', range: '4,000 - 11,000 /µL' },
@@ -181,10 +184,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     ctx.font = '15px sans-serif';
     ctx.fillText('Senior Pathologist', 500, 905);
     ctx.fillText('Reg No: MCI-84920', 500, 925);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    onCapture(dataUrl);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-950 dark:bg-slate-950 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200 font-sans">
       {/* 1. TOP CONTROL BAR */}
       <div className="relative z-20 flex items-center justify-between px-6 py-4 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
         <button
@@ -403,7 +409,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           aria-label="Capture Document"
         >
           <div className="w-20 h-20 rounded-full border-4 border-cyan-400 flex items-center justify-center p-1 bg-slate-900 shadow-[0_0_25px_rgba(0,168,150,0.4)]">
-            <div className="w-full h-full rounded-full bg-gradient-to-r from-[#00a896] to-cyan-500 flex items-center justify-center text-white shadow-inner">
+            <div className="w-full h-full rounded-full bg-[#00a896] hover:bg-[#00897b] flex items-center justify-center text-white shadow-inner">
               {capturingState === 'idle' ? (
                 <Camera className="w-8 h-8" />
               ) : (
