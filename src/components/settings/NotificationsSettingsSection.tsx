@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Moon, Mail, MessageSquare, Smartphone, Check } from 'lucide-react';
+import { Mail, MessageSquare, Smartphone } from 'lucide-react';
 import type { NotificationSettingsState } from './settingsData';
 
 interface NotificationsSettingsSectionProps {
@@ -19,18 +19,18 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl text-xs">
+    <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl text-xs font-sans">
       {/* HEADER */}
-      <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h3 className="text-lg font-extrabold text-white">Notification Preferences</h3>
-          <p className="text-xs text-slate-400">Configure alert categories, delivery channels, and quiet hours</p>
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Notification Preferences</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Configure alert categories, delivery channels, and quiet hours</p>
         </div>
       </div>
 
       {/* CATEGORY TOGGLES */}
       <div className="space-y-3">
-        <h4 className="font-extrabold text-white text-xs uppercase tracking-wider">Alert Categories</h4>
+        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Alert Categories</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
           {[
             { key: 'appointments' as const, label: 'Appointment Reminders', desc: 'Alerts before upcoming specialist visits' },
@@ -42,15 +42,15 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
           ].map((cat) => {
             const active = settings[cat.key];
             return (
-              <div key={cat.key} className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between gap-3">
+              <div key={cat.key} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm">
                 <div>
-                  <h5 className="font-bold text-white font-sans text-xs">{cat.label}</h5>
-                  <p className="text-[10px] text-slate-400 font-sans">{cat.desc}</p>
+                  <h5 className="font-bold text-slate-900 dark:text-white font-sans text-xs">{cat.label}</h5>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-sans font-medium">{cat.desc}</p>
                 </div>
                 <button
                   onClick={() => toggleKey(cat.key)}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    active ? 'bg-purple-600' : 'bg-slate-800 border border-slate-700'
+                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -63,47 +63,50 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
         </div>
       </div>
 
-      {/* CHANNELS */}
-      <div className="space-y-3 border-t border-slate-800 pt-4">
-        <h4 className="font-extrabold text-white text-xs uppercase tracking-wider">Delivery Channels</h4>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
+      {/* DELIVERY CHANNELS */}
+      <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Delivery Channels</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
           {[
-            { key: 'channelInApp' as const, label: 'In-App Alerts' },
-            { key: 'channelEmail' as const, label: 'Email Notices' },
-            { key: 'channelSMS' as const, label: 'SMS Messages' },
-            { key: 'channelPush' as const, label: 'Push Notifications' }
+            { key: 'emailNotifications' as const, label: 'Email Notifications', icon: Mail },
+            { key: 'smsAlerts' as const, label: 'SMS Alerts', icon: MessageSquare },
+            { key: 'pushNotifications' as const, label: 'App Push Alerts', icon: Smartphone }
           ].map((ch) => {
+            const Icon = ch.icon;
             const active = settings[ch.key];
             return (
-              <button
-                key={ch.key}
-                onClick={() => toggleKey(ch.key)}
-                className={`p-3 rounded-2xl border font-bold text-left transition-all cursor-pointer ${
-                  active ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-slate-950 text-slate-400 border-slate-800'
-                }`}
-              >
-                <span>{ch.label}</span>
-                <span className="block text-[10px] text-slate-400 mt-1">{active ? '✓ Enabled' : 'Disabled'}</span>
-              </button>
+              <div key={ch.key} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-sans font-bold text-slate-900 dark:text-white text-xs">
+                  <Icon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span>{ch.label}</span>
+                </div>
+                <button
+                  onClick={() => toggleKey(ch.key)}
+                  className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
+                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                  }`}
+                >
+                  <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                    active ? 'right-1' : 'left-1'
+                  }`} />
+                </button>
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* QUIET HOURS */}
-      <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 font-mono">
+      <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 font-medium">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Moon className="w-5 h-5 text-purple-400" />
-            <div>
-              <h4 className="font-extrabold text-white text-sm font-sans">Quiet Hours</h4>
-              <p className="text-[10px] text-slate-400 font-sans">Mute non-emergency notifications during sleep hours</p>
-            </div>
+          <div>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Quiet Hours (Do Not Disturb)</h4>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400">Mute non-critical health notifications during sleep hours</p>
           </div>
           <button
             onClick={() => toggleKey('quietHoursEnabled')}
             className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-              settings.quietHoursEnabled ? 'bg-purple-600' : 'bg-slate-800 border border-slate-700'
+              settings.quietHoursEnabled ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
             }`}
           >
             <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -113,23 +116,23 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
         </div>
 
         {settings.quietHoursEnabled && (
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+          <div className="flex items-center gap-4 pt-2 border-t border-slate-200 dark:border-slate-800 font-mono text-xs">
             <div>
-              <label className="block text-slate-400 text-[10px] font-bold uppercase mb-1">Start Time</label>
+              <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold font-sans">Start Time</label>
               <input
-                type="time"
-                value={settings.quietHoursStart}
-                onChange={(e) => onUpdateSettings({ ...settings, quietHoursStart: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white"
+                type="text"
+                value={settings.quietStart}
+                onChange={(e) => onUpdateSettings({ ...settings, quietStart: e.target.value })}
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
               />
             </div>
             <div>
-              <label className="block text-slate-400 text-[10px] font-bold uppercase mb-1">End Time</label>
+              <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold font-sans">End Time</label>
               <input
-                type="time"
-                value={settings.quietHoursEnd}
-                onChange={(e) => onUpdateSettings({ ...settings, quietHoursEnd: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white"
+                type="text"
+                value={settings.quietEnd}
+                onChange={(e) => onUpdateSettings({ ...settings, quietEnd: e.target.value })}
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
               />
             </div>
           </div>
