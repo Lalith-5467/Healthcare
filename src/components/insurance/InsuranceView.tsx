@@ -6,17 +6,9 @@ import {
   Plus,
   FileText,
   CheckCircle2,
-  Calendar,
-  CreditCard,
-  QrCode,
   Users,
-  Search,
-  SlidersHorizontal,
   HelpCircle,
-  Activity,
-  Building2,
-  Bell,
-  Sparkles
+  Building2
 } from 'lucide-react';
 import type {
   InsurancePolicy,
@@ -80,8 +72,8 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [payments, setPayments] = useState<PremiumPaymentRecord[]>(INITIAL_PAYMENTS);
 
   // SEARCH & FILTERS
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [_searchQuery] = useState('');
+  const [_filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<InsuranceFilterState>({
     policyStatus: 'All',
     claimStatus: 'All',
@@ -165,7 +157,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -208,24 +200,24 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
       {/* 3. FOUR SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Active Policies</span>
-          <strong className="text-2xl font-extrabold text-white">{policies.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Active Policies</span>
+          <strong className="text-2xl font-extrabold text-slate-900 dark:text-white">{policies.length}</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Total Coverage</span>
-          <strong className="text-2xl font-extrabold text-purple-300">₹{(primaryPolicy.coverageAmount / 100000).toFixed(0)} Lakhs</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Total Coverage</span>
+          <strong className="text-2xl font-extrabold text-purple-700 dark:text-purple-300">₹{(primaryPolicy.coverageAmount / 100000).toFixed(0)} Lakhs</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Claims This Year</span>
-          <strong className="text-2xl font-extrabold text-teal-400">{claims.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Claims This Year</span>
+          <strong className="text-2xl font-extrabold text-[#00a896] dark:text-teal-400">{claims.length}</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Documents Stored</span>
-          <strong className="text-2xl font-extrabold text-cyan-300">{documents.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Documents Stored</span>
+          <strong className="text-2xl font-extrabold text-[#00a896] dark:text-cyan-300">{documents.length}</strong>
         </div>
       </div>
 
@@ -236,12 +228,12 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       />
 
       {/* 5. MY POLICIES LIST */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
-        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-          <h3 className="text-base font-extrabold text-white">My Insurance Policies ({policies.length})</h3>
+      <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
+        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">My Insurance Policies ({policies.length})</h3>
           <button
             onClick={() => setPlanExplorerOpen(true)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold border border-slate-700 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-extrabold border border-slate-300 dark:border-slate-700 cursor-pointer shadow-sm"
           >
             Explore Plans Marketplace
           </button>
@@ -249,21 +241,21 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {policies.map((pol) => (
-            <div key={pol.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 shadow-sm">
+            <div key={pol.id} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-[10px] font-bold text-purple-400 uppercase font-mono">{pol.policyType}</span>
-                  <h4 className="font-extrabold text-white text-sm">{pol.planName}</h4>
-                  <p className="text-slate-400 text-xs">{pol.providerName}</p>
+                  <span className="text-[10px] font-extrabold text-purple-700 dark:text-purple-400 uppercase font-mono">{pol.policyType}</span>
+                  <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{pol.planName}</h4>
+                  <p className="text-slate-600 dark:text-slate-400 text-xs font-medium">{pol.providerName}</p>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono">
                   {pol.status}
                 </span>
               </div>
 
-              <div className="flex justify-between font-mono text-[11px] pt-2 border-t border-slate-800">
-                <span className="text-slate-400">Coverage: <strong className="text-white">₹{pol.coverageAmount.toLocaleString()}</strong></span>
-                <span className="text-slate-400">Expires: <strong className="text-teal-300">{pol.expiryDate}</strong></span>
+              <div className="flex justify-between font-mono text-[11px] pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Coverage: <strong className="text-slate-900 dark:text-white">₹{pol.coverageAmount.toLocaleString()}</strong></span>
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Expires: <strong className="text-[#00a896] dark:text-teal-300">{pol.expiryDate}</strong></span>
               </div>
             </div>
           ))}
@@ -319,38 +311,38 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
         <button
           onClick={() => onNavigate('records')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <FileText className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Medical Records</h4>
-          <p className="text-[11px] text-slate-400">View linked hospital bills & lab reports →</p>
+          <FileText className="w-5 h-5 text-[#00a896] dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Medical Records</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">View linked hospital bills & lab reports →</p>
         </button>
 
         <button
           onClick={() => onNavigate('family')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Users className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Family Connect</h4>
-          <p className="text-[11px] text-slate-400">Share policy cards with dependents →</p>
+          <Users className="w-5 h-5 text-[#00a896] dark:text-teal-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Family Connect</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Share policy cards with dependents →</p>
         </button>
 
         <button
           onClick={() => onNavigate('hospitals')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Building2 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Empanelled Hospitals</h4>
-          <p className="text-[11px] text-slate-400">Find 24x7 cashless network hospitals →</p>
+          <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Empanelled Hospitals</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Find 24x7 cashless network hospitals →</p>
         </button>
 
         <button
           onClick={() => setSupportModalOpen(true)}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <HelpCircle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Insurance Support Desk</h4>
-          <p className="text-[11px] text-slate-400">Submit claim & policy assistance tickets →</p>
+          <HelpCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Insurance Support Desk</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Submit claim & policy assistance tickets →</p>
         </button>
       </div>
 
@@ -411,22 +403,29 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <InsuranceSupportModal
         isOpen={supportModalOpen}
         onClose={() => setSupportModalOpen(false)}
-        onSubmitSupport={(t, m) => showToast(`✓ Support ticket submitted: ${t}`)}
+        onSubmitSupport={(t, _m) => showToast(`✓ Support ticket submitted: ${t}`)}
+      />
+
+      <InsuranceFilterDrawer
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        filters={filters}
+        onApplyFilters={(updated) => setFilters(updated)}
       />
 
       {/* DEMO PAY MODAL */}
       {payModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs">
-            <h3 className="font-extrabold text-white text-base">Pay Policy Premium</h3>
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 font-mono space-y-2">
-              <div className="flex justify-between"><span className="text-slate-400">Plan:</span><strong className="text-white">{primaryPolicy.planName}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Premium Due:</span><strong className="text-emerald-400 text-sm">₹{primaryPolicy.premiumAmount}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Due Date:</span><strong className="text-amber-300">01 Sep 2026</strong></div>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Pay Policy Premium</h3>
+            <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono space-y-2">
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Plan:</span><strong className="text-slate-900 dark:text-white">{primaryPolicy.planName}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Premium Due:</span><strong className="text-emerald-700 dark:text-emerald-400 text-sm font-extrabold">₹{primaryPolicy.premiumAmount}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Due Date:</span><strong className="text-amber-700 dark:text-amber-300">01 Sep 2026</strong></div>
             </div>
-            <div className="pt-3 border-t border-slate-800 flex justify-between gap-3">
-              <button onClick={() => setPayModalOpen(false)} className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer">Cancel</button>
-              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer text-center">Confirm Demo Payment (₹2,450)</button>
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between gap-3 font-sans">
+              <button onClick={() => setPayModalOpen(false)} className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 font-bold cursor-pointer border border-slate-300 dark:border-slate-700">Cancel</button>
+              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold cursor-pointer text-center shadow-md">Confirm Payment (₹2,450)</button>
             </div>
           </div>
         </div>
