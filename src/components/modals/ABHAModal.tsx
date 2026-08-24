@@ -60,7 +60,7 @@ export const ABHAModal: React.FC<ABHAModalProps> = ({ isOpen, onClose }) => {
           <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-xs space-y-1">
             <p className="font-bold text-[#FF5B22]">Security Assurance</p>
             <p className="text-slate-600 dark:text-slate-300">
-              PulseCare does not store raw medical records. Data is fetched on-demand using encrypted ABDM gateway sessions.
+              MediCare does not store raw medical records. Data is fetched on-demand using encrypted ABDM gateway sessions.
             </p>
           </div>
 
