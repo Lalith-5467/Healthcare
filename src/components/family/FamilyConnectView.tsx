@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Users,
   UserPlus,
@@ -233,38 +234,31 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Family Connect</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full font-mono">
-              {members.length} Members Connected
-            </span>
+      <PageHeader
+        title="Family Connect Network"
+        subtitle="Manage dependent profiles, shared health records & emergency contacts."
+        badgeText={`${members.length} Members Connected`}
+        badgeIcon={<Users className="w-3.5 h-3.5" />}
+        rightElement={
+          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+            <button
+              onClick={() => setPermissionsModalTarget(members[0] || null)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+            >
+              <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <span>Manage Permissions</span>
+            </button>
+
+            <button
+              onClick={() => setAddMemberModalOpen(true)}
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Add Family Member</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Stay connected with your family and coordinate healthcare together.
-          </p>
-        </div>
-
-        {/* HEADER ACTIONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
-          <button
-            onClick={() => setPermissionsModalTarget(members[0] || null)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
-          >
-            <Shield className="w-4 h-4 text-purple-400" />
-            <span>Manage Permissions</span>
-          </button>
-
-          <button
-            onClick={() => setAddMemberModalOpen(true)}
-            className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>+ Add Family Member</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. FAMILY OVERVIEW SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

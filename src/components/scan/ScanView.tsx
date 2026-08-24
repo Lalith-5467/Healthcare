@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Upload,
   Camera,
@@ -240,47 +241,31 @@ export const ScanView: React.FC<ScanViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Scan & Upload</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-[#00a896]/20 text-cyan-300 border border-teal-500/30 rounded-full">
-              Smart Digitizer
-            </span>
+      <PageHeader
+        title="Scan & Upload Health Records"
+        subtitle="Digitize physical prescriptions, lab reports and diagnostic scans into your ABDM Vault."
+        badgeText="Smart Digitizer"
+        badgeIcon={<Camera className="w-3.5 h-3.5" />}
+        rightElement={
+          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+            >
+              <Upload className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
+              <span>Upload Document</span>
+            </button>
+
+            <button
+              onClick={() => setScannerOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Camera className="w-4 h-4" />
+              <span>Scan Document</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Digitize your medical documents and keep your health records organized.
-          </p>
-        </div>
-
-        {/* TOP RIGHT ACTION BUTTONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
-          <button
-            onClick={() => setMultiScanOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold transition-colors cursor-pointer"
-            title="Scan Multiple Pages"
-          >
-            <Layers className="w-4 h-4 text-cyan-400" />
-            <span>Multi-Scan</span>
-          </button>
-
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
-          >
-            <Upload className="w-4 h-4 text-teal-400" />
-            <span>Upload Document</span>
-          </button>
-
-          <button
-            onClick={() => setScannerOpen(true)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md hover:shadow-cyan-500/20 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Camera className="w-4 h-4" />
-            <span>Scan Document</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* HIDDEN FILE INPUT */}
       <input

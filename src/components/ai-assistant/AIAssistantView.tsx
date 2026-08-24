@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import type {
   ChatMessage,
@@ -221,24 +222,17 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER & DISCLAIMER */}
-      <div className="space-y-3 border-b border-slate-800 pb-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">AI Health Assistant</h1>
-              <span className="px-3 py-1 text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-mono">
-                🤖 Demo Assistant Mode
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Your smart healthcare companion for everyday health guidance.
-            </p>
-          </div>
-        </div>
+      <div className="space-y-3 pb-2">
+        <PageHeader
+          title="AI Health Assistant"
+          subtitle="Your smart healthcare companion for everyday health guidance and appointment prep."
+          badgeText="Demo Assistant Mode"
+          badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
+        />
 
         {/* DISCLAIMER BANNER */}
-        <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl text-[11px] text-slate-300 flex items-center gap-2 font-mono">
-          <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
+        <div className="p-3 bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-2 font-mono shadow-sm">
+          <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
           <span>This AI assistant provides general health information and is not a substitute for a qualified healthcare professional.</span>
         </div>
       </div>

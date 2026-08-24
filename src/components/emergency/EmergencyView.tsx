@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Building2,
   Users,
@@ -204,19 +205,12 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">SOS & Emergency</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-mono">
-              🚨 24x7 Safety Desk
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Quickly access emergency options and important contacts when you need them.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="SOS & Emergency Care"
+        subtitle="Quickly access emergency options and important contacts when you need them."
+        badgeText="24x7 Safety Desk"
+        badgeIcon={<AlertTriangle className="w-3.5 h-3.5" />}
+      />
 
       {/* 2. EMERGENCY HEADER STATUS AREA */}
       <EmergencyHeaderStatus onOpenSettings={() => setPreferencesModalOpen(true)} />

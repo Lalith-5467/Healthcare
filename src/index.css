@@ -82,6 +82,18 @@
   border-color: var(--border-color);
 }
 
+/* Global Page Header Theme Classes */
+.page-title {
+  color: var(--text-main);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
