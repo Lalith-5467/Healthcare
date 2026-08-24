@@ -10,7 +10,7 @@ export const RecentActivityTimeline: React.FC = () => {
       time: '10 mins ago',
       category: 'Appointment',
       icon: Calendar,
-      iconColor: 'text-blue-400 bg-blue-500/10 border-blue-500/30'
+      iconColor: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/30'
     },
     {
       id: 2,
@@ -18,7 +18,7 @@ export const RecentActivityTimeline: React.FC = () => {
       time: '1 hour ago',
       category: 'Medication',
       icon: Pill,
-      iconColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+      iconColor: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30'
     },
     {
       id: 3,
@@ -26,7 +26,7 @@ export const RecentActivityTimeline: React.FC = () => {
       time: '3 hours ago',
       category: 'Records',
       icon: FileText,
-      iconColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+      iconColor: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
     },
     {
       id: 4,
@@ -34,7 +34,7 @@ export const RecentActivityTimeline: React.FC = () => {
       time: 'Yesterday',
       category: 'Insurance',
       icon: ShieldCheck,
-      iconColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
+      iconColor: 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/30'
     }
   ];
 
@@ -47,7 +47,7 @@ export const RecentActivityTimeline: React.FC = () => {
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
             <Activity className="w-5 h-5" />
           </div>
           <div>
@@ -58,7 +58,7 @@ export const RecentActivityTimeline: React.FC = () => {
           </div>
         </div>
 
-        <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-300 font-mono">● Live Feed</span>
+        <span className="text-[10px] font-bold text-[#00a896] dark:text-cyan-300 font-mono">● Live Feed</span>
       </div>
 
       {/* TIMELINE ITEMS */}
@@ -80,9 +80,9 @@ export const RecentActivityTimeline: React.FC = () => {
               <div className="flex-1 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-0.5 font-sans">
                 <div className="flex items-center justify-between">
                   <h4 className="font-extrabold text-slate-900 dark:text-white text-xs leading-snug">{act.title}</h4>
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-mono shrink-0 ml-2">{act.time}</span>
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 font-mono shrink-0 ml-2">{act.time}</span>
                 </div>
-                <span className="text-[10px] text-cyan-600 dark:text-cyan-300 font-mono font-bold">{act.category}</span>
+                <span className="text-[10px] text-[#00a896] dark:text-cyan-400 font-mono font-extrabold">{act.category}</span>
               </div>
             </motion.div>
           );

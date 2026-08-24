@@ -27,7 +27,7 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
           </div>
         </div>
 
-        <span className="px-3 py-1 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 rounded-full border border-emerald-500/30 font-mono">
+        <span className="px-3 py-1 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-500/30 font-mono">
           ● Active Coverage
         </span>
       </div>
@@ -41,21 +41,21 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
 
         <div className="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-0.5">
           <span className="text-[10px] text-slate-600 dark:text-slate-300 uppercase font-sans font-bold block">Policy Expiry</span>
-          <strong className="text-sm font-bold text-amber-600 dark:text-amber-300">31 Dec 2026</strong>
+          <strong className="text-sm font-extrabold text-amber-700 dark:text-amber-300">31 Dec 2026</strong>
         </div>
       </div>
 
       {/* FOOTER LINK */}
-      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
         <button
           onClick={() => onNavigate('insurance')}
-          className="inline-flex items-center gap-1.5 font-extrabold text-cyan-300 hover:text-white transition-colors cursor-pointer font-sans"
+          className="inline-flex items-center gap-1.5 font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-sans"
         >
           <span>View Insurance Module</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] text-slate-300 font-bold">100% Cashless</span>
+        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">100% Cashless</span>
       </div>
     </motion.div>
   );
