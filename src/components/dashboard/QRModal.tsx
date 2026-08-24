@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { QrCode, X, Copy, Check, ShieldCheck } from 'lucide-react';
+import { X, Copy, Check, ShieldCheck } from 'lucide-react';
+import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const QRModal: React.FC<QRModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white space-y-6 relative overflow-hidden text-center"
+          className="w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white space-y-5 relative overflow-hidden text-center"
         >
           {/* CLOSE BUTTON */}
           <button
@@ -52,18 +53,18 @@ export const QRModal: React.FC<QRModalProps> = ({
             <p className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">{abhaId}</p>
           </div>
 
-          {/* QR CODE CONTAINER WITH SCANNING ANIMATION */}
-          <div className="relative p-6 rounded-2xl bg-slate-50 dark:bg-white border border-slate-200 dark:border-transparent mx-auto w-48 h-48 flex items-center justify-center shadow-inner group">
-            {/* SCANNING LINE */}
+          {/* REAL VECTOR QR CODE CONTAINER WITH SCANNING ANIMATION */}
+          <div className="relative p-4 rounded-2xl bg-white border border-slate-200/90 dark:border-slate-700 shadow-md mx-auto w-56 h-56 flex items-center justify-center group overflow-hidden">
+            {/* SCANNING LASER BEAM */}
             <motion.div
-              animate={{ y: [-70, 70, -70] }}
+              animate={{ y: [-90, 90, -90] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-              className="absolute w-40 h-0.5 bg-[#00a896] shadow-[0_0_12px_#00a896] z-10 pointer-events-none"
+              className="absolute w-48 h-0.5 bg-[#00a896] shadow-[0_0_12px_#00a896] z-20 pointer-events-none"
             />
-            <QrCode className="w-32 h-32 text-slate-900" />
+            <ABDMQRCodeSVG value={abhaId} size={185} />
           </div>
 
-          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
             Scan with any ABDM-compliant health app to instantly link and access medical records.
           </p>
 
