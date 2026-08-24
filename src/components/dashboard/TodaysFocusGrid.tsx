@@ -19,10 +19,10 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
     <section className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white tracking-tight">
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
             Today's Focus
           </h2>
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
             Your high-priority health tasks & scheduled activities for today.
           </p>
         </div>
@@ -34,20 +34,20 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -4, scale: 1.02 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-amber-500/30 transition-all flex flex-col justify-between group"
+          className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-amber-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
               <Pill className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-mono">
               12:00 PM
             </span>
           </div>
 
           <div className="my-3 space-y-1">
-            <h4 className="text-xs font-extrabold text-white line-clamp-1">Amoxicillin 500mg</h4>
-            <p className="text-[11px] text-slate-300 font-medium">1 Capsule after lunch</p>
+            <h4 className="text-xs font-extrabold text-slate-900 dark:text-white line-clamp-1">Amoxicillin 500mg</h4>
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">1 Capsule after lunch</p>
           </div>
 
           <button
@@ -74,20 +74,20 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -4, scale: 1.02 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-blue-500/30 transition-all flex flex-col justify-between group"
+          className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-blue-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
               <Calendar className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/30 font-mono">
               10:30 AM
             </span>
           </div>
 
           <div className="my-3 space-y-1">
-            <h4 className="text-xs font-extrabold text-white line-clamp-1">Dr. Rajesh Kumar</h4>
-            <p className="text-[11px] text-slate-300 font-medium">Cardiology Tele-Consult</p>
+            <h4 className="text-xs font-extrabold text-slate-900 dark:text-white line-clamp-1">Dr. Rajesh Kumar</h4>
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">Cardiology Tele-Consult</p>
           </div>
 
           <button
@@ -102,20 +102,20 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -4, scale: 1.02 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-emerald-500/30 transition-all flex flex-col justify-between group"
+          className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-emerald-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
               <FileText className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">
               New Report
             </span>
           </div>
 
           <div className="my-3 space-y-1">
-            <h4 className="text-xs font-extrabold text-white line-clamp-1">CBC & Blood Panel</h4>
-            <p className="text-[11px] text-slate-300 font-medium">Lab Results Ready to View</p>
+            <h4 className="text-xs font-extrabold text-slate-900 dark:text-white line-clamp-1">CBC & Blood Panel</h4>
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">Lab Results Ready to View</p>
           </div>
 
           <button

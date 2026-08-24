@@ -70,10 +70,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     <section className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white tracking-tight">
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
             Today's Health Biometrics
           </h2>
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
             Real-time vitals, sleep, and physical activity snapshot.
           </p>
         </div>
@@ -89,22 +89,22 @@ export const HealthSnapshotGrid: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
               whileHover={{ y: -3, scale: 1.02 }}
-              className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-slate-700 transition-all space-y-2.5 group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all space-y-2.5 group"
             >
               <div className="flex items-center justify-between">
                 <div className={`p-2 rounded-xl border ${m.iconColor}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] font-bold text-slate-300 font-mono">
+                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 font-mono">
                   {m.status}
                 </span>
               </div>
 
               <div>
-                <span className="text-xs font-semibold text-slate-300 block line-clamp-1">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 block line-clamp-1">
                   {m.label}
                 </span>
-                <span className="text-lg sm:text-xl font-black text-white tracking-tight font-sans">
+                <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight font-sans">
                   {m.value}
                 </span>
               </div>

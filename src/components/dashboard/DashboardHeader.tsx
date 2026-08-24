@@ -26,23 +26,23 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80"
+      className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800/80"
     >
       {/* LEFT GREETING */}
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Good Morning, {userName}! 👋
           </h1>
-          <span className="px-3 py-1 text-xs font-black uppercase bg-gradient-to-r from-[#00a896]/20 to-cyan-500/20 text-cyan-300 rounded-full border border-cyan-500/30 flex items-center gap-1.5 shadow-sm font-mono">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="px-3 py-1 text-xs font-black uppercase bg-gradient-to-r from-[#00a896]/20 to-cyan-500/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 flex items-center gap-1.5 shadow-sm font-mono">
+            <Sparkles className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
             <span>Patient Portal</span>
           </span>
         </div>
-        <p className="text-xs sm:text-sm text-slate-300 flex items-center gap-2 font-medium">
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2 font-medium">
           <span>Here's your comprehensive health overview for today.</span>
-          <span className="hidden sm:inline-block text-slate-500">•</span>
-          <span className="hidden sm:inline-block font-bold text-cyan-300 font-mono">
+          <span className="hidden sm:inline-block text-slate-400 dark:text-slate-500">•</span>
+          <span className="hidden sm:inline-block font-bold text-[#00a896] dark:text-cyan-300 font-mono">
             {todayDateStr}
           </span>
         </p>

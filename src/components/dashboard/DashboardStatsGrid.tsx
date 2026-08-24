@@ -72,27 +72,27 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
               whileHover={{ y: -3, scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onNavigate(s.id)}
-              className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 shadow-lg hover:shadow-xl transition-all space-y-2 cursor-pointer group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-md hover:shadow-xl transition-all space-y-2 cursor-pointer group"
             >
               <div className="flex items-center justify-between">
                 <div className={`p-2 rounded-xl border ${s.color}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] font-bold text-slate-300 font-mono">
+                <span className="text-[10px] font-bold text-[#00a896] dark:text-cyan-300 font-mono">
                   View →
                 </span>
               </div>
 
               <div>
-                <span className="text-xs font-semibold text-slate-300 block line-clamp-1">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 block line-clamp-1">
                   {s.title}
                 </span>
-                <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {s.value}
                 </span>
               </div>
 
-              <p className="text-[10px] font-bold text-slate-400 line-clamp-1 border-t border-slate-800/80 pt-1.5 font-mono">
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 line-clamp-1 border-t border-slate-100 dark:border-slate-800/80 pt-1.5 font-mono">
                 {s.subtitle}
               </p>
             </motion.div>
