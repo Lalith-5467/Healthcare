@@ -34,19 +34,19 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+          <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
             <Pill className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Today's Medicines
             </h3>
-            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">Pill Tracker & Daily Reminders</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">Pill Tracker & Daily Reminders</span>
           </div>
         </div>
 
         {/* ADHERENCE BADGE */}
-        <div className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold font-mono shadow-sm">
+        <div className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-extrabold font-mono shadow-sm">
           <span>Adherence: {adherencePercent}%</span>
         </div>
       </div>
@@ -59,7 +59,7 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
             className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 transition-all"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className={`p-2 rounded-xl border shrink-0 ${m.taken ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700'}`}>
+              <div className={`p-2 rounded-xl border shrink-0 ${m.taken ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'}`}>
                 <Pill className="w-4 h-4" />
               </div>
               <div className="min-w-0">
@@ -69,13 +69,13 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
                 <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium flex items-center gap-2">
                   <span>{m.dosage}</span>
                   <span>•</span>
-                  <span className="font-bold text-amber-300 font-mono">{m.time}</span>
+                  <span className="font-extrabold text-amber-700 dark:text-amber-300 font-mono">{m.time}</span>
                 </p>
               </div>
             </div>
 
             {m.taken ? (
-              <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 shrink-0 font-mono">
+              <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 shrink-0 font-mono">
                 <Check className="w-4 h-4" />
                 <span>Taken {m.takenTime}</span>
               </span>
@@ -94,14 +94,14 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
       </div>
 
       {/* FOOTER LINK */}
-      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
+      <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
         <button
           onClick={() => onNavigate('medicines')}
           className="font-extrabold text-[#00a896] hover:underline cursor-pointer font-sans"
         >
           Manage All Medicines →
         </button>
-        <span className="text-xs text-slate-300 font-bold">3 Doses Scheduled</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300 font-bold">3 Doses Scheduled</span>
       </div>
     </motion.div>
   );
