@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   BarChart3,
   Activity,
@@ -145,46 +146,38 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Health Analytics</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full">
-              Demo Workspace
-            </span>
+      <PageHeader
+        title="Health Analytics & Biometric Insights"
+        subtitle="Understand your health activity, trend analytics and biometrics in one place."
+        badgeText="Analytics Workspace"
+        badgeIcon={<BarChart3 className="w-3.5 h-3.5" />}
+        rightElement={
+          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+            <select
+              value={globalDateRange}
+              onChange={(e) => {
+                setGlobalDateRange(e.target.value);
+                showToast(`Updated timeframe to ${e.target.value}`);
+              }}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-white font-bold text-xs focus:outline-none focus:border-cyan-500 cursor-pointer shadow-sm"
+            >
+              <option value="7 Days">7 Days</option>
+              <option value="30 Days">30 Days</option>
+              <option value="3 Months">3 Months</option>
+              <option value="6 Months">6 Months</option>
+              <option value="1 Year">1 Year</option>
+            </select>
+
+            <button
+              onClick={() => setReportModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Report</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Understand your health activity and trends in one place.
-          </p>
-        </div>
-
-        {/* HEADER CONTROLS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
-          {/* DATE RANGE SELECTOR */}
-          <select
-            value={globalDateRange}
-            onChange={(e) => {
-              setGlobalDateRange(e.target.value);
-              showToast(`Updated timeframe to ${e.target.value}`);
-            }}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-bold text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
-          >
-            <option value="7 Days">7 Days</option>
-            <option value="30 Days">30 Days</option>
-            <option value="3 Months">3 Months</option>
-            <option value="6 Months">6 Months</option>
-            <option value="1 Year">1 Year</option>
-          </select>
-
-          <button
-            onClick={() => setReportModalOpen(true)}
-            className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Report</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. HEALTH OVERVIEW HERO SECTION */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">

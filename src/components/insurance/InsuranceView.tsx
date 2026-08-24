@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   ShieldCheck,
   Plus,
@@ -181,30 +182,21 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Insurance</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-mono">
-              🛡 Active Coverage
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage your health insurance, coverage breakdown and claims in one place.
-          </p>
-        </div>
-
-        {/* HEADER ACTIONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
+      <PageHeader
+        title="Insurance & Policy Portal"
+        subtitle="Manage your health insurance, coverage breakdown and claims in one place."
+        badgeText="Active Coverage"
+        badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
+        rightElement={
           <button
             onClick={() => setAddPolicyOpen(true)}
-            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Insurance</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. HERO PRIMARY POLICY CARD */}
       <PrimaryPolicyHeroCard
