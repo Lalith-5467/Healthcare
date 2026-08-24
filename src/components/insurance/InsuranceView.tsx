@@ -73,7 +73,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
   // SEARCH & FILTERS
   const [_searchQuery] = useState('');
-  const [_filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<InsuranceFilterState>({
     policyStatus: 'All',
     claimStatus: 'All',
@@ -94,27 +94,30 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
   // Load from localStorage on mount
   useEffect(() => {
-    const savedPolicies = localStorage.getItem('user_insurance_policies');
-    if (savedPolicies) {
-      try {
+    try {
+      const savedPolicies = localStorage.getItem('user_insurance_policies');
+      if (savedPolicies && savedPolicies !== 'undefined') {
         const parsed = JSON.parse(savedPolicies);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setPolicies(parsed);
         }
-      } catch (e) {
-        console.error(e);
       }
+    } catch (e) {
+      console.error(e);
+      localStorage.removeItem('user_insurance_policies');
     }
-    const savedClaims = localStorage.getItem('user_insurance_claims');
-    if (savedClaims) {
-      try {
+
+    try {
+      const savedClaims = localStorage.getItem('user_insurance_claims');
+      if (savedClaims && savedClaims !== 'undefined') {
         const parsed = JSON.parse(savedClaims);
         if (Array.isArray(parsed)) {
           setClaims(parsed);
         }
-      } catch (e) {
-        console.error(e);
       }
+    } catch (e) {
+      console.error(e);
+      localStorage.removeItem('user_insurance_claims');
     }
   }, []);
 
@@ -123,7 +126,8 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const primaryPolicy = policies.find((p) => p.isPrimary) || policies[0] || INITIAL_POLICIES[0];
+  const safePolicies = (policies && policies.length > 0) ? policies : INITIAL_POLICIES;
+  const primaryPolicy = safePolicies.find((p) => p.isPrimary) || safePolicies[0] || INITIAL_POLICIES[0];
 
   const handleAddPolicy = (newPol: InsurancePolicy) => {
     const updated = [newPol, ...policies];
@@ -218,7 +222,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Active Policies</span>
-          <strong className="text-2xl font-extrabold text-slate-900 dark:text-white">{policies.length}</strong>
+          <strong className="text-2xl font-extrabold text-slate-900 dark:text-white">{safePolicies.length}</strong>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
@@ -248,7 +252,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {/* 5. MY POLICIES LIST */}
       <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
         <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">My Insurance Policies ({policies.length})</h3>
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">My Insurance Policies ({safePolicies.length})</h3>
           <button
             onClick={() => setPlanExplorerOpen(true)}
             className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-extrabold border border-slate-300 dark:border-slate-700 cursor-pointer shadow-sm"
@@ -258,7 +262,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {policies.map((pol) => (
+          {safePolicies.map((pol) => (
             <div key={pol.id} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>

@@ -7,12 +7,20 @@ interface CoverageOverviewSectionProps {
   onOpenDetails: () => void;
 }
 
+const DEFAULT_CATEGORIES = [
+  { name: 'Inpatient Hospitalization', limit: 500000, copay: '10%' },
+  { name: 'Outpatient Consultations', limit: 35000, copay: '20%' },
+  { name: 'Diagnostic Imaging & Labs', limit: 25000, copay: '15%' },
+  { name: 'Emergency & ICU Care', limit: 200000, copay: '0%' }
+];
+
 export const CoverageOverviewSection: React.FC<CoverageOverviewSectionProps> = ({
   policy,
   onOpenDetails,
 }) => {
   const usedPercent = Math.round((policy.usedAmount / policy.coverageAmount) * 100);
   const remainingPercent = 100 - usedPercent;
+  const categories = (policy as any).coverageCategories || DEFAULT_CATEGORIES;
 
   return (
     <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl font-sans">
@@ -66,11 +74,11 @@ export const CoverageOverviewSection: React.FC<CoverageOverviewSectionProps> = (
       <div className="space-y-3 pt-2">
         <h4 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Category Limits Breakdown</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
-          {policy.coverageCategories.map((cat, idx) => (
+          {categories.map((cat: any, idx: number) => (
             <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 space-y-1">
               <span className="text-slate-600 dark:text-slate-400 font-bold block font-sans truncate">{cat.name}</span>
               <strong className="text-slate-900 dark:text-white text-sm block font-extrabold">₹{cat.limit.toLocaleString()}</strong>
-              <span className="text-[10px] text-[#00a896] dark:text-cyan-400 block">Co-pay: {cat.copay}</span>
+              <span className="text-[10px] text-[#00a896] dark:text-cyan-400 block font-bold">Co-pay: {cat.copay}</span>
             </div>
           ))}
         </div>
