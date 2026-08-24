@@ -106,23 +106,8 @@ const getInitialAppState = () => {
     page = savedPage;
   }
 
-  let loggedIn = true;
-  if (savedLoggedIn !== null) {
-    try {
-      loggedIn = JSON.parse(savedLoggedIn);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  let userData = DEFAULT_PATIENT_USER;
-  if (savedUser) {
-    try {
-      userData = JSON.parse(savedUser) || DEFAULT_PATIENT_USER;
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : (page === 'dashboard');
+  const userData = savedUser ? JSON.parse(savedUser) : (loggedIn ? DEFAULT_PATIENT_USER : null);
 
   return { page, nav, loggedIn, userData };
 };
