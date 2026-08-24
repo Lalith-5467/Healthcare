@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, User, Settings, ShieldCheck, LogOut } from 'lucide-react';
+import { ChevronDown, User, Settings, ShieldCheck, LogOut, Sun, Moon } from 'lucide-react';
 import type { UserProfile } from './types';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface SidebarProfileProps {
   user?: UserProfile;
@@ -25,6 +26,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isDark, toggleTheme } = useTheme();
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -68,6 +70,21 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
           >
             <Settings className="w-4 h-4 text-purple-400" />
             <span>Settings</span>
+          </button>
+
+          {/* THEME TOGGLE OPTION */}
+          <button
+            onClick={() => {
+              toggleTheme();
+              setMenuOpen(false);
+            }}
+            className="w-full px-3 py-2 rounded-xl text-left text-slate-300 hover:bg-slate-800 hover:text-white flex items-center justify-between gap-2 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
+              <span>{isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
+            </div>
+            <span className="text-[10px] font-mono text-teal-400 font-extrabold uppercase">{isDark ? 'Light' : 'Dark'}</span>
           </button>
 
           <button
