@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, CameraOff, Mic, MicOff, Volume2, VolumeX, Settings, Video, CheckCircle2, User, Sparkles } from 'lucide-react';
+import { Camera, CameraOff, Mic, MicOff, Volume2, VolumeX, Settings, Video, User, Sparkles } from 'lucide-react';
 import type { ConsultationAppointment } from './consultationData';
 
 interface PreCallScreenProps {
@@ -69,12 +69,12 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
         <div>
           <button
             onClick={onNavigateAppointments}
-            className="text-xs font-bold text-[#00a896] dark:text-cyan-400 hover:underline mb-1 flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-xs font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline mb-1 flex items-center gap-1 transition-colors cursor-pointer"
           >
             ← Back to Appointments
           </button>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Prepare for your consultation</h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
             Test your camera, microphone & speakers before joining the consultation room.
           </p>
         </div>
@@ -115,7 +115,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
       {/* VIDEO PREVIEW BOX & DEVICE TOGGLES */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
         {/* CAMERA FEED PREVIEW (8 COLS) */}
-        <div className="md:col-span-8 bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden relative min-h-[320px] flex items-center justify-center shadow-2xl">
+        <div className="md:col-span-8 bg-slate-900 dark:bg-slate-950 rounded-3xl border border-slate-300 dark:border-slate-800 overflow-hidden relative min-h-[320px] flex items-center justify-center shadow-2xl">
           {cameraEnabled ? (
             <video
               ref={videoRef}
@@ -126,11 +126,11 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
             />
           ) : (
             <div className="text-center space-y-3 p-8">
-              <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mx-auto">
+              <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 mx-auto">
                 <User className="w-8 h-8" />
               </div>
-              <p className="text-xs font-bold text-slate-400">Camera Off</p>
-              <p className="text-[11px] text-slate-500 max-w-xs">Enable camera to preview your video before entering the call room.</p>
+              <p className="text-xs font-bold text-slate-300">Camera Off</p>
+              <p className="text-[11px] text-slate-400 max-w-xs font-medium">Enable camera to preview your video before entering the call room.</p>
             </div>
           )}
 
@@ -170,21 +170,21 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
             <div className="space-y-2.5 text-xs font-semibold">
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-700 dark:text-slate-300">Camera Feed</span>
-                <span className={`text-[10px] font-extrabold ${cameraEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                <span className={`text-[10px] font-extrabold ${cameraEnabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                   {cameraEnabled ? 'Ready ✓' : 'Disabled'}
                 </span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-700 dark:text-slate-300">Microphone</span>
-                <span className={`text-[10px] font-extrabold ${micEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                <span className={`text-[10px] font-extrabold ${micEnabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                   {micEnabled ? 'Active ✓' : 'Muted'}
                 </span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-700 dark:text-slate-300">Audio Output</span>
-                <span className={`text-[10px] font-extrabold ${speakerEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                <span className={`text-[10px] font-extrabold ${speakerEnabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                   {speakerEnabled ? 'Connected ✓' : 'Muted'}
                 </span>
               </div>

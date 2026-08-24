@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Star, FileText, Calendar, ArrowRight, Sparkles, Building2 } from 'lucide-react';
+import { CheckCircle2, Star, FileText, Calendar, ArrowRight, Building2 } from 'lucide-react';
 import type { ConsultationAppointment } from './consultationData';
 
 interface ConsultationEndedScreenProps {
@@ -36,110 +35,110 @@ export const ConsultationEndedScreen: React.FC<ConsultationEndedScreenProps> = (
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300 py-6 text-center">
+    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300 py-6 text-center font-sans">
       {/* SUCCESS HERO BANNER */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden">
-        <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto text-emerald-400">
+      <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden text-slate-900 dark:text-white">
+        <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
         <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-mono">
             {appointment.id} • Completed
           </span>
-          <h2 className="text-2xl font-extrabold text-white mt-1">Consultation Completed</h2>
-          <p className="text-xs text-slate-300 mt-1">
-            Thank you for completing your video consultation with <strong className="text-white">{appointment.doctor.name}</strong>.
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Consultation Completed</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+            Thank you for completing your video consultation with <strong className="text-slate-900 dark:text-white">{appointment.doctor.name}</strong>.
           </p>
         </div>
 
         {/* METRICS GRID */}
-        <div className="grid grid-cols-3 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
+        <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-mono">
           <div>
-            <span className="text-slate-400 text-[10px] block">Duration</span>
-            <span className="font-mono font-extrabold text-cyan-400">{formatDurationText(durationSeconds)}</span>
+            <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-sans font-bold">Duration</span>
+            <span className="font-extrabold text-[#00a896] dark:text-cyan-400">{formatDurationText(durationSeconds)}</span>
           </div>
           <div>
-            <span className="text-slate-400 text-[10px] block">Date</span>
-            <span className="font-bold text-white">{appointment.date}</span>
+            <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-sans font-bold">Type</span>
+            <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-sans">HD Video</span>
           </div>
           <div>
-            <span className="text-slate-400 text-[10px] block">Prescription</span>
-            <span className="font-bold text-emerald-400">Available</span>
+            <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-sans font-bold">Record</span>
+            <span className="font-extrabold text-purple-700 dark:text-purple-300 font-sans">Saved ✓</span>
           </div>
         </div>
 
-        {/* RATING & FEEDBACK */}
-        <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-4 text-xs text-left">
-          <h4 className="font-extrabold text-white text-center text-sm">How was your consultation?</h4>
+        {/* CONSULTATION SUMMARY / NOTES BOX */}
+        {notesText && (
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left space-y-1 text-xs">
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase font-mono">Consultation Notes</span>
+            <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">{notesText}</p>
+          </div>
+        )}
 
-          {feedbackSubmitted ? (
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-center space-y-1">
-              <Sparkles className="w-5 h-5 mx-auto text-emerald-400" />
-              <p className="font-bold">Thank you for your feedback!</p>
-              <p className="text-[11px] text-slate-400">Your response helps improve healthcare delivery.</p>
+        {/* RATING & FEEDBACK FORM */}
+        {!feedbackSubmitted ? (
+          <form onSubmit={handleFeedbackSubmit} className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+            <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">Rate your consultation experience</h4>
+            <div className="flex items-center justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className="p-1 cursor-pointer transition-transform hover:scale-125"
+                >
+                  <Star className={`w-6 h-6 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'}`} />
+                </button>
+              ))}
             </div>
-          ) : (
-            <form onSubmit={handleFeedbackSubmit} className="space-y-3">
-              <div className="flex items-center justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    className="p-1 cursor-pointer transition-transform hover:scale-110"
-                  >
-                    <Star
-                      className={`w-6 h-6 ${
-                        star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
 
-              <textarea
-                rows={3}
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Share your experience (Optional)..."
-                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-400 resize-none"
-              />
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Add optional notes or feedback about your doctor consultation..."
+              rows={2}
+              className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896] font-medium"
+            />
 
-              <button
-                type="submit"
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs transition-colors cursor-pointer border border-slate-700"
-              >
-                Submit Feedback
-              </button>
-            </form>
-          )}
-        </div>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-all shadow-md cursor-pointer"
+            >
+              Submit Feedback
+            </button>
+          </form>
+        ) : (
+          <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold">
+            ✓ Thank you for your feedback!
+          </div>
+        )}
 
-        {/* SUMMARY NAVIGATION BUTTONS */}
-        <div className="pt-2 space-y-2">
+        {/* CROSS MODULE CTAs */}
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-sans">
           <button
             onClick={onNavigateRecords}
-            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#00a896] dark:text-cyan-300 font-extrabold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
           >
             <FileText className="w-4 h-4" />
-            <span>View Consultation Record & Prescription</span>
+            <span>View Record</span>
           </button>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={onNavigateAppointments}
-              className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-700"
-            >
-              Back to Appointments
-            </button>
-            <button
-              onClick={onNavigateDashboard}
-              className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-700"
-            >
-              Go to Dashboard
-            </button>
-          </div>
+          <button
+            onClick={onNavigateAppointments}
+            className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-extrabold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Book Follow-up</span>
+          </button>
+
+          <button
+            onClick={onNavigateDashboard}
+            className="p-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold border border-teal-500/30 flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+          >
+            <span>Return to Dashboard</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
