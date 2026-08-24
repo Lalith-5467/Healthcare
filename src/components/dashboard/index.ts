@@ -1,4 +1,5 @@
 export * from './DashboardHeader';
+export * from './DashboardStatsGrid';
 export * from './HealthScoreCard';
 export * from './HealthAccessCard';
 export * from './TodaysFocusGrid';
@@ -11,5 +12,10 @@ export * from './HealthProgressChart';
 export * from './EmergencyQuickCard';
 export * from './QuickActionsGrid';
 export * from './PremiumDashboardCard';
+export * from './AIAssistantDashboardCard';
+export * from './InsuranceSummaryCard';
+export * from './FamilyConnectCard';
+export * from './NearbyHospitalsCard';
+export * from './RecentActivityTimeline';
 export * from './DashboardSkeleton';
 export * from './QRModal';

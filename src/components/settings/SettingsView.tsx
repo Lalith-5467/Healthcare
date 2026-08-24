@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
+import { Settings } from 'lucide-react';
 import { CheckCircle2 } from 'lucide-react';
 import type {
   UserProfileSettings,
@@ -200,19 +202,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Settings</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-mono">
-              ⚙ Preference Center
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage your account, preferences, privacy and healthcare experience.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings & Preferences"
+        subtitle="Manage your account, preferences, privacy and healthcare experience."
+        badgeText="Preference Center"
+        badgeIcon={<Settings className="w-3.5 h-3.5" />}
+      />
 
       {/* 2. SEARCH BAR */}
       <SettingsSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />

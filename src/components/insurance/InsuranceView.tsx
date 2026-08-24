@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   ShieldCheck,
   Plus,
   FileText,
   CheckCircle2,
-  Calendar,
-  CreditCard,
-  QrCode,
   Users,
-  Search,
-  SlidersHorizontal,
   HelpCircle,
-  Activity,
-  Building2,
-  Bell,
-  Sparkles
+  Building2
 } from 'lucide-react';
 import type {
   InsurancePolicy,
@@ -79,7 +72,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [payments, setPayments] = useState<PremiumPaymentRecord[]>(INITIAL_PAYMENTS);
 
   // SEARCH & FILTERS
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_searchQuery] = useState('');
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState<InsuranceFilterState>({
     policyStatus: 'All',
@@ -101,13 +94,30 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
   // Load from localStorage on mount
   useEffect(() => {
-    const savedPolicies = localStorage.getItem('user_insurance_policies');
-    if (savedPolicies) {
-      try { setPolicies(JSON.parse(savedPolicies)); } catch (e) { console.error(e); }
+    try {
+      const savedPolicies = localStorage.getItem('user_insurance_policies');
+      if (savedPolicies && savedPolicies !== 'undefined') {
+        const parsed = JSON.parse(savedPolicies);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPolicies(parsed);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      localStorage.removeItem('user_insurance_policies');
     }
-    const savedClaims = localStorage.getItem('user_insurance_claims');
-    if (savedClaims) {
-      try { setClaims(JSON.parse(savedClaims)); } catch (e) { console.error(e); }
+
+    try {
+      const savedClaims = localStorage.getItem('user_insurance_claims');
+      if (savedClaims && savedClaims !== 'undefined') {
+        const parsed = JSON.parse(savedClaims);
+        if (Array.isArray(parsed)) {
+          setClaims(parsed);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      localStorage.removeItem('user_insurance_claims');
     }
   }, []);
 
@@ -116,7 +126,8 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const primaryPolicy = policies.find((p) => p.isPrimary) || policies[0];
+  const safePolicies = (policies && policies.length > 0) ? policies : INITIAL_POLICIES;
+  const primaryPolicy = safePolicies.find((p) => p.isPrimary) || safePolicies[0] || INITIAL_POLICIES[0];
 
   const handleAddPolicy = (newPol: InsurancePolicy) => {
     const updated = [newPol, ...policies];
@@ -153,18 +164,18 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     const newPay: PremiumPaymentRecord = {
       id: `PAY-${Date.now().toString().slice(-4)}`,
       monthYear: 'Sep 2026',
-      amount: primaryPolicy.premiumAmount,
+      amount: primaryPolicy ? primaryPolicy.premiumAmount : 2450,
       paymentDate: '24 Aug 2026',
       status: 'Paid',
       receiptNumber: `REC-${Math.floor(1000 + Math.random() * 9000)}-SEP`
     };
     setPayments([newPay, ...payments]);
     setPayModalOpen(false);
-    showToast(`✓ Payment of ₹${primaryPolicy.premiumAmount} successful for Sep 2026`);
+    showToast(`✓ Payment of ₹${newPay.amount} successful for Sep 2026`);
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -181,97 +192,92 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Insurance</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-full font-mono">
-              🛡 Active Coverage
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage your health insurance, coverage breakdown and claims in one place.
-          </p>
-        </div>
-
-        {/* HEADER ACTIONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
+      <PageHeader
+        title="Insurance & Policy Portal"
+        subtitle="Manage your health insurance, coverage breakdown and claims in one place."
+        badgeText="Active Coverage"
+        badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
+        rightElement={
           <button
             onClick={() => setAddPolicyOpen(true)}
-            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Insurance</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. HERO PRIMARY POLICY CARD */}
-      <PrimaryPolicyHeroCard
-        policy={primaryPolicy}
-        onOpenDigitalCard={() => setDigitalCardOpen(true)}
-        onOpenEditPolicy={(p) => setEditPolicyTarget(p)}
-        onOpenCoverageDetails={() => setCoverageDetailsOpen(true)}
-      />
+      {primaryPolicy && (
+        <PrimaryPolicyHeroCard
+          policy={primaryPolicy}
+          onOpenDigitalCard={() => setDigitalCardOpen(true)}
+          onOpenEditPolicy={(p) => setEditPolicyTarget(p)}
+          onOpenCoverageDetails={() => setCoverageDetailsOpen(true)}
+        />
+      )}
 
       {/* 3. FOUR SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Active Policies</span>
-          <strong className="text-2xl font-extrabold text-white">{policies.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Active Policies</span>
+          <strong className="text-2xl font-extrabold text-slate-900 dark:text-white">{safePolicies.length}</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Total Coverage</span>
-          <strong className="text-2xl font-extrabold text-purple-300">₹{(primaryPolicy.coverageAmount / 100000).toFixed(0)} Lakhs</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Total Coverage</span>
+          <strong className="text-2xl font-extrabold text-purple-700 dark:text-purple-300">₹{((primaryPolicy?.coverageAmount || 1000000) / 100000).toFixed(0)} Lakhs</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Claims This Year</span>
-          <strong className="text-2xl font-extrabold text-teal-400">{claims.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Claims This Year</span>
+          <strong className="text-2xl font-extrabold text-[#00a896] dark:text-teal-400">{claims.length}</strong>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
-          <span className="text-xs font-bold text-slate-400 block font-sans">Documents Stored</span>
-          <strong className="text-2xl font-extrabold text-cyan-300">{documents.length}</strong>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Documents Stored</span>
+          <strong className="text-2xl font-extrabold text-[#00a896] dark:text-cyan-300">{documents.length}</strong>
         </div>
       </div>
 
       {/* 4. COVERAGE OVERVIEW SECTION */}
-      <CoverageOverviewSection
-        policy={primaryPolicy}
-        onOpenDetails={() => setCoverageDetailsOpen(true)}
-      />
+      {primaryPolicy && (
+        <CoverageOverviewSection
+          policy={primaryPolicy}
+          onOpenDetails={() => setCoverageDetailsOpen(true)}
+        />
+      )}
 
       {/* 5. MY POLICIES LIST */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
-        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-          <h3 className="text-base font-extrabold text-white">My Insurance Policies ({policies.length})</h3>
+      <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
+        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">My Insurance Policies ({safePolicies.length})</h3>
           <button
             onClick={() => setPlanExplorerOpen(true)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold border border-slate-700 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-extrabold border border-slate-300 dark:border-slate-700 cursor-pointer shadow-sm"
           >
             Explore Plans Marketplace
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {policies.map((pol) => (
-            <div key={pol.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 shadow-sm">
+          {safePolicies.map((pol) => (
+            <div key={pol.id} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-[10px] font-bold text-purple-400 uppercase font-mono">{pol.policyType}</span>
-                  <h4 className="font-extrabold text-white text-sm">{pol.planName}</h4>
-                  <p className="text-slate-400 text-xs">{pol.providerName}</p>
+                  <span className="text-[10px] font-extrabold text-purple-700 dark:text-purple-400 uppercase font-mono">{pol.policyType}</span>
+                  <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{pol.planName}</h4>
+                  <p className="text-slate-600 dark:text-slate-400 text-xs font-medium">{pol.providerName}</p>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono">
                   {pol.status}
                 </span>
               </div>
 
-              <div className="flex justify-between font-mono text-[11px] pt-2 border-t border-slate-800">
-                <span className="text-slate-400">Coverage: <strong className="text-white">₹{pol.coverageAmount.toLocaleString()}</strong></span>
-                <span className="text-slate-400">Expires: <strong className="text-teal-300">{pol.expiryDate}</strong></span>
+              <div className="flex justify-between font-mono text-[11px] pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Coverage: <strong className="text-slate-900 dark:text-white">₹{pol.coverageAmount.toLocaleString()}</strong></span>
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Expires: <strong className="text-[#00a896] dark:text-teal-300">{pol.expiryDate}</strong></span>
               </div>
             </div>
           ))}
@@ -279,14 +285,16 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       </div>
 
       {/* 6. RENEWAL COUNTDOWN CARD */}
-      <PolicyRenewalCard
-        policy={primaryPolicy}
-        onRenewClick={() => showToast('✓ Demo policy renewal request submitted')}
-        onSetReminderClick={() => {
-          showToast('Navigating to Reminders & Notifications');
-          onNavigate('reminders');
-        }}
-      />
+      {primaryPolicy && (
+        <PolicyRenewalCard
+          policy={primaryPolicy}
+          onRenewClick={() => showToast('✓ Demo policy renewal request submitted')}
+          onSetReminderClick={() => {
+            showToast('Navigating to Reminders & Notifications');
+            onNavigate('reminders');
+          }}
+        />
+      )}
 
       {/* 7. CLAIMS OVERVIEW SECTION */}
       <ClaimsOverviewSection
@@ -324,41 +332,41 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <InsuranceFAQSection />
 
       {/* 12. CROSS-MODULE CTAs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-sans">
         <button
           onClick={() => onNavigate('records')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <FileText className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Medical Records</h4>
-          <p className="text-[11px] text-slate-400">View linked hospital bills & lab reports →</p>
+          <FileText className="w-5 h-5 text-[#00a896] dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Medical Records</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">View linked hospital bills & lab reports →</p>
         </button>
 
         <button
           onClick={() => onNavigate('family')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Users className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Family Connect</h4>
-          <p className="text-[11px] text-slate-400">Share policy cards with dependents →</p>
+          <Users className="w-5 h-5 text-[#00a896] dark:text-teal-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Family Connect</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Share policy cards with dependents →</p>
         </button>
 
         <button
           onClick={() => onNavigate('hospitals')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Building2 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Empanelled Hospitals</h4>
-          <p className="text-[11px] text-slate-400">Find 24x7 cashless network hospitals →</p>
+          <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Empanelled Hospitals</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Find 24x7 cashless network hospitals →</p>
         </button>
 
         <button
           onClick={() => setSupportModalOpen(true)}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <HelpCircle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Insurance Support Desk</h4>
-          <p className="text-[11px] text-slate-400">Submit claim & policy assistance tickets →</p>
+          <HelpCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Insurance Support Desk</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Submit claim & policy assistance tickets →</p>
         </button>
       </div>
 
@@ -419,22 +427,29 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <InsuranceSupportModal
         isOpen={supportModalOpen}
         onClose={() => setSupportModalOpen(false)}
-        onSubmitSupport={(t, m) => showToast(`✓ Support ticket submitted: ${t}`)}
+        onSubmitSupport={(t, _m) => showToast(`✓ Support ticket submitted: ${t}`)}
+      />
+
+      <InsuranceFilterDrawer
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        filters={filters}
+        onApplyFilters={(updated) => setFilters(updated)}
       />
 
       {/* DEMO PAY MODAL */}
-      {payModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs">
-            <h3 className="font-extrabold text-white text-base">Pay Policy Premium</h3>
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 font-mono space-y-2">
-              <div className="flex justify-between"><span className="text-slate-400">Plan:</span><strong className="text-white">{primaryPolicy.planName}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Premium Due:</span><strong className="text-emerald-400 text-sm">₹{primaryPolicy.premiumAmount}</strong></div>
-              <div className="flex justify-between"><span className="text-slate-400">Due Date:</span><strong className="text-amber-300">01 Sep 2026</strong></div>
+      {payModalOpen && primaryPolicy && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Pay Policy Premium</h3>
+            <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono space-y-2">
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Plan:</span><strong className="text-slate-900 dark:text-white">{primaryPolicy.planName}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Premium Due:</span><strong className="text-emerald-700 dark:text-emerald-400 text-sm font-extrabold">₹{primaryPolicy.premiumAmount}</strong></div>
+              <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Due Date:</span><strong className="text-amber-700 dark:text-amber-300">01 Sep 2026</strong></div>
             </div>
-            <div className="pt-3 border-t border-slate-800 flex justify-between gap-3">
-              <button onClick={() => setPayModalOpen(false)} className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer">Cancel</button>
-              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer text-center">Confirm Demo Payment (₹2,450)</button>
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between gap-3 font-sans">
+              <button onClick={() => setPayModalOpen(false)} className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 font-bold cursor-pointer border border-slate-300 dark:border-slate-700">Cancel</button>
+              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold cursor-pointer text-center shadow-md">Confirm Payment (₹{primaryPolicy.premiumAmount})</button>
             </div>
           </div>
         </div>

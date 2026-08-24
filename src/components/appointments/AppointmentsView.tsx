@@ -1,25 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Calendar,
   Clock,
   Video,
-  Building2,
   Plus,
   Search,
-  Filter,
   CheckCircle2,
-  AlertCircle,
   XCircle,
   Eye,
   RefreshCw,
-  Trash2,
   Bell,
-  Star,
-  ArrowRight,
-  Sparkles,
-  ExternalLink,
-  ChevronRight
+  Star
 } from 'lucide-react';
 import type { Appointment, Doctor } from './appointmentsData';
 import { INITIAL_APPOINTMENTS, MOCK_DOCTORS } from './appointmentsData';
@@ -46,10 +39,10 @@ interface AppointmentsViewProps {
 }
 
 export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
-  user,
+  user: _user,
   onNavigate,
 }) => {
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // APPOINTMENTS STATE (Persisted in localStorage)
@@ -62,7 +55,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   // MODAL & DRAWER STATES
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
-  const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState<Doctor | null>(null);
+  const [_selectedDoctorForBooking, setSelectedDoctorForBooking] = useState<Doctor | null>(null);
   const [doctorDrawerTarget, setDoctorDrawerTarget] = useState<Doctor | null>(null);
   const [detailDrawerTarget, setDetailDrawerTarget] = useState<Appointment | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
@@ -206,7 +199,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   const nextAppointment = appointments.find((a) => a.status === 'Confirmed' || a.status === 'Starting Soon' || a.status === 'Ready to Join');
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -223,45 +216,38 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Appointments</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-full">
-              Live Care
-            </span>
+      <PageHeader
+        title="Appointments"
+        subtitle="Manage doctor consultations, tele-health sessions & clinic visits."
+        badgeText="Live Care"
+        badgeIcon={<Calendar className="w-3.5 h-3.5" />}
+        rightElement={
+          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+            <button
+              onClick={() => setCalendarModalOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+            >
+              <Calendar className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
+              <span>View Calendar</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedDoctorForBooking(null);
+                setBookingModalOpen(true);
+              }}
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Book Appointment</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Book, manage and keep track of your healthcare appointments.
-          </p>
-        </div>
-
-        {/* HEADER ACTIONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
-          <button
-            onClick={() => setCalendarModalOpen(true)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
-          >
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            <span>View Calendar</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setSelectedDoctorForBooking(null);
-              setBookingModalOpen(true);
-            }}
-            className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Book Appointment</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. NEXT APPOINTMENT HIGHLIGHT CARD WITH LIVE COUNTDOWN TIMER */}
       {nextAppointment && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-teal-950/40 border border-teal-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 border border-teal-200 dark:border-teal-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <img
               src={nextAppointment.doctorPhoto}
@@ -274,23 +260,23 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             />
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 text-[10px] font-bold bg-teal-500/20 text-cyan-300 border border-teal-500/30 rounded-full">
+                <span className="px-2.5 py-0.5 text-[10px] font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 rounded-full font-mono">
                   Next Appointment
                 </span>
-                <span className="text-[10px] font-mono font-bold text-slate-400">
+                <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">
                   {nextAppointment.type} Consultation
                 </span>
               </div>
-              <h3 className="text-xl font-extrabold text-white">{nextAppointment.doctorName}</h3>
-              <p className="text-xs font-bold text-[#00a896]">{nextAppointment.speciality}</p>
-              <div className="flex items-center gap-3 text-xs text-slate-300 pt-1 font-semibold">
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">{nextAppointment.doctorName}</h3>
+              <p className="text-xs font-bold text-[#00a896] dark:text-teal-400">{nextAppointment.speciality}</p>
+              <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 pt-1 font-semibold">
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                  <Calendar className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                   {nextAppointment.date}
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1 font-mono text-cyan-300 font-bold">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="flex items-center gap-1 font-mono text-[#00a896] dark:text-cyan-300 font-bold">
+                  <Clock className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                   {nextAppointment.time}
                 </span>
               </div>
@@ -298,12 +284,12 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           {/* COUNTDOWN & ACTIONS */}
-          <div className="self-stretch md:self-auto flex flex-col sm:flex-row md:flex-col items-end justify-between gap-4 border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
+          <div className="self-stretch md:self-auto flex flex-col sm:flex-row md:flex-col items-end justify-between gap-4 border-t md:border-t-0 border-slate-200 dark:border-slate-800 pt-4 md:pt-0">
             {/* LIVE COUNTDOWN DISPLAY */}
-            <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3 text-center self-stretch sm:self-auto justify-center">
+            <div className="bg-white/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3 text-center self-stretch sm:self-auto justify-center shadow-inner">
               <div>
-                <span className="text-[9px] uppercase font-bold text-slate-400 block">Starts In</span>
-                <div className="font-mono text-base font-extrabold text-cyan-400">
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block font-mono">Starts In</span>
+                <div className="font-mono text-base font-extrabold text-[#00a896] dark:text-cyan-400">
                   {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
                 </div>
               </div>
@@ -314,7 +300,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               {nextAppointment.type === 'Video' && (
                 <button
                   onClick={() => onNavigate('video-consultation')}
-                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-teal-600 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
                 >
                   <Video className="w-4 h-4" />
                   <span>Join Consultation</span>
@@ -322,7 +308,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               )}
               <button
                 onClick={() => setDetailDrawerTarget(nextAppointment)}
-                className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
+                className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-300 dark:border-slate-700"
               >
                 View Details
               </button>
@@ -333,51 +319,51 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
       {/* 3. APPOINTMENT SUMMARY CARDS (4 COMPACT CARDS) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Upcoming</span>
-            <span className="text-2xl font-extrabold text-white mt-1 block">{upcomingCount}</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block font-mono">Upcoming</span>
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1 block font-mono">{upcomingCount}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-[#00a896] dark:text-cyan-400">
             <Calendar className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Completed</span>
-            <span className="text-2xl font-extrabold text-white mt-1 block">{completedCount}</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block font-mono">Completed</span>
+            <span className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-1 block font-mono">{completedCount}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cancelled</span>
-            <span className="text-2xl font-extrabold text-white mt-1 block">{cancelledCount}</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block font-mono">Cancelled</span>
+            <span className="text-2xl font-extrabold text-rose-700 dark:text-rose-400 mt-1 block font-mono">{cancelledCount}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <XCircle className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">This Month</span>
-            <span className="text-2xl font-extrabold text-white mt-1 block">5</span>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block font-mono">This Month</span>
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1 block font-mono">5</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
             <Clock className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 4. APPOINTMENT TABS & SEARCH BAR */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/80 border border-slate-800 p-4 rounded-3xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-3xl shadow-xl">
         {/* TABS */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-2xl border border-slate-800 w-full sm:w-auto">
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto font-mono">
           {[
             { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
             { id: 'past', label: 'Past', count: completedCount },
@@ -386,15 +372,15 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 font-sans ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-[#00a896] to-cyan-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#00a896] text-white shadow-md'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <span>{tab.label}</span>
               <span className={`px-2 py-0.2 rounded-full text-[10px] font-mono ${
-                activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400'
               }`}>
                 {tab.count}
               </span>
@@ -410,7 +396,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             placeholder="Search doctor or speciality..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-[#00a896]"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
           />
         </div>
       </div>
@@ -420,7 +406,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         {filteredAppointments.map((apt) => (
           <div
             key={apt.id}
-            className="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 p-5 rounded-3xl transition-all shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group"
+            className="bg-white dark:bg-slate-900/80 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 p-5 rounded-3xl transition-all shadow-md hover:shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group"
           >
             <div className="flex items-center gap-4">
               <img
@@ -439,152 +425,156 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                       const doc = MOCK_DOCTORS.find((d) => d.id === apt.doctorId) || MOCK_DOCTORS[0];
                       setDoctorDrawerTarget(doc);
                     }}
-                    className="text-base font-extrabold text-white group-hover:text-cyan-300 transition-colors cursor-pointer"
+                    className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors cursor-pointer"
                   >
                     {apt.doctorName}
                   </h4>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                     apt.status === 'Completed'
-                      ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                       : apt.status === 'Cancelled'
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
+                      : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                   }`}>
                     {apt.status}
                   </span>
                 </div>
 
-                <p className="text-xs font-bold text-[#00a896] mt-0.5">{apt.speciality}</p>
-
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-2 font-medium">
+                <p className="text-xs font-bold text-[#00a896] dark:text-teal-400 mt-0.5">{apt.speciality} • {apt.hospital}</p>
+                <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium font-mono">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <Calendar className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                     {apt.date}
                   </span>
                   <span>•</span>
-                  <span className="flex items-center gap-1 font-mono text-cyan-300">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="flex items-center gap-1 font-bold text-slate-900 dark:text-slate-200">
+                    <Clock className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                     {apt.time}
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    {apt.type === 'Video' ? <Video className="w-3.5 h-3.5 text-cyan-400" /> : <Building2 className="w-3.5 h-3.5 text-purple-400" />}
-                    {apt.type}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* ACTION BUTTONS ACCORDING TO TAB */}
-            <div className="self-end md:self-center flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800 w-full md:w-auto justify-end">
-              {activeTab === 'upcoming' && (
+            {/* ACTION BUTTONS */}
+            <div className="flex items-center gap-2 self-end md:self-auto">
+              <button
+                onClick={() => setDetailDrawerTarget(apt)}
+                className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-300 dark:border-slate-700"
+              >
+                <Eye className="w-4 h-4 inline mr-1" />
+                <span>Details</span>
+              </button>
+
+              {apt.status !== 'Cancelled' && apt.status !== 'Completed' && (
                 <>
+                  <button
+                    onClick={() => setReminderTarget(apt)}
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer border border-slate-300 dark:border-slate-700"
+                    title="Set Reminder"
+                  >
+                    <Bell className="w-4 h-4 text-amber-500" />
+                  </button>
+
+                  <button
+                    onClick={() => setRescheduleTarget(apt)}
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer border border-slate-300 dark:border-slate-700"
+                    title="Reschedule"
+                  >
+                    <RefreshCw className="w-4 h-4 text-[#00a896]" />
+                  </button>
+
+                  <button
+                    onClick={() => setCancelTarget(apt)}
+                    className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 cursor-pointer border border-rose-500/30"
+                    title="Cancel"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+
                   {apt.type === 'Video' && (
                     <button
                       onClick={() => onNavigate('video-consultation')}
-                      className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#00a896] hover:bg-teal-600 transition-colors flex items-center gap-1.5 cursor-pointer shadow"
+                      className="px-4 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow cursor-pointer flex items-center gap-1.5"
                     >
-                      <Video className="w-3.5 h-3.5" />
+                      <Video className="w-4 h-4" />
                       <span>Join</span>
                     </button>
                   )}
-                  <button
-                    onClick={() => setDetailDrawerTarget(apt)}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => setRescheduleTarget(apt)}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    Reschedule
-                  </button>
-                  <button
-                    onClick={() => setCancelTarget(apt)}
-                    className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
                 </>
-              )}
-
-              {activeTab === 'past' && (
-                <button
-                  onClick={() => setDetailDrawerTarget(apt)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>View Summary</span>
-                </button>
-              )}
-
-              {activeTab === 'cancelled' && (
-                <button
-                  onClick={() => {
-                    const doc = MOCK_DOCTORS.find((d) => d.id === apt.doctorId) || MOCK_DOCTORS[0];
-                    setSelectedDoctorForBooking(doc);
-                    setBookingModalOpen(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-[#00a896] hover:bg-teal-600 text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Book Again</span>
-                </button>
               )}
             </div>
           </div>
         ))}
 
-        {/* EMPTY STATES */}
         {filteredAppointments.length === 0 && (
-          <div className="py-16 px-6 rounded-3xl bg-slate-900/60 border border-dashed border-slate-800 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center text-slate-400 mx-auto">
-              <Calendar className="w-7 h-7" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-white">
-                {activeTab === 'upcoming' && 'No upcoming appointments.'}
-                {activeTab === 'past' && 'No completed appointments yet.'}
-                {activeTab === 'cancelled' && 'No cancelled appointments.'}
-              </h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                {activeTab === 'upcoming'
-                  ? 'Book a consultation with top specialist doctors for video or in-person visits.'
-                  : 'Your past consultation records will be archived here.'}
-              </p>
-            </div>
-            {activeTab === 'upcoming' && (
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    setSelectedDoctorForBooking(null);
-                    setBookingModalOpen(true);
-                  }}
-                  className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-lg flex items-center gap-2 cursor-pointer mx-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Book Appointment</span>
-                </button>
-              </div>
-            )}
+          <div className="py-12 text-center bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+            <Calendar className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">No appointments found in this view.</p>
+            <button
+              onClick={() => setBookingModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-[#00a896] text-white text-xs font-bold cursor-pointer shadow-sm"
+            >
+              Book New Appointment
+            </button>
           </div>
         )}
       </div>
 
-      {/* ALL MODALS & DRAWERS */}
+      {/* 6. TOP DOCTORS RECOMMENDATION ROW */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Recommended Doctors</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Top rated specialists available for video or clinic consultation</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {MOCK_DOCTORS.slice(0, 4).map((doc) => (
+            <div
+              key={doc.id}
+              className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-3xl space-y-3 shadow-md hover:shadow-xl transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <img
+                  src={doc.photoUrl}
+                  alt={doc.name}
+                  className="w-12 h-12 rounded-2xl object-cover border-2 border-teal-500/30 shrink-0"
+                />
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold text-slate-900 dark:text-white truncate group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
+                    {doc.name}
+                  </h4>
+                  <p className="text-[11px] font-bold text-[#00a896] dark:text-teal-400 truncate">{doc.speciality}</p>
+                  <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold font-mono">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <span>{doc.rating} ({doc.reviewsCount})</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-600 dark:text-slate-400 font-bold">Fee: ₹{doc.fee}</span>
+                <button
+                  onClick={() => {
+                    setSelectedDoctorForBooking(doc);
+                    setBookingModalOpen(true);
+                  }}
+                  className="px-3 py-1 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-extrabold hover:bg-teal-500/20 cursor-pointer font-sans"
+                >
+                  Book Now
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* MODALS & DRAWERS */}
       <BookingModal
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
         onConfirmBooking={handleConfirmNewBooking}
-        initialDoctor={selectedDoctorForBooking}
-      />
-
-      <CalendarViewModal
-        isOpen={calendarModalOpen}
-        onClose={() => setCalendarModalOpen(false)}
-        appointments={appointments}
-        onSelectAppointment={(apt) => setDetailDrawerTarget(apt)}
       />
 
       <DoctorProfileDrawer
@@ -601,31 +591,36 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         appointment={detailDrawerTarget}
         isOpen={!!detailDrawerTarget}
         onClose={() => setDetailDrawerTarget(null)}
-        onJoin={() => onNavigate('video-consultation')}
         onReschedule={(apt) => setRescheduleTarget(apt)}
         onCancel={(apt) => setCancelTarget(apt)}
-        onAddReminder={(apt) => setReminderTarget(apt)}
+        onNavigateVideo={() => onNavigate('video-consultation')}
+      />
+
+      <CalendarViewModal
+        isOpen={calendarModalOpen}
+        onClose={() => setCalendarModalOpen(false)}
+        appointments={appointments}
       />
 
       <RescheduleModal
-        isOpen={!!rescheduleTarget}
         appointment={rescheduleTarget}
+        isOpen={!!rescheduleTarget}
         onClose={() => setRescheduleTarget(null)}
         onConfirmReschedule={handleConfirmReschedule}
       />
 
       <CancelConfirmModal
-        isOpen={!!cancelTarget}
         appointment={cancelTarget}
+        isOpen={!!cancelTarget}
         onClose={() => setCancelTarget(null)}
         onConfirmCancel={handleConfirmCancel}
       />
 
       <ReminderModal
-        isOpen={!!reminderTarget}
         appointment={reminderTarget}
+        isOpen={!!reminderTarget}
         onClose={() => setReminderTarget(null)}
-        onSetReminder={handleSetReminder}
+        onSaveReminder={handleSetReminder}
       />
     </div>
   );

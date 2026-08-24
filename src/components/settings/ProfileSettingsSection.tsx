@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Edit, Camera, Save, Check, Sparkles } from 'lucide-react';
+import { User, Edit, Camera, Check, Sparkles } from 'lucide-react';
 import type { UserProfileSettings } from './settingsData';
 
 interface ProfileSettingsSectionProps {
@@ -20,7 +20,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
   const [dob, setDob] = useState(profile.dob);
   const [gender, setGender] = useState(profile.gender);
   const [location, setLocation] = useState(profile.location);
-  const [bloodGroup, setBloodGroup] = useState(profile.bloodGroup);
+  const [bloodGroup] = useState(profile.bloodGroup);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(profile.avatarUrl);
   const [saving, setSaving] = useState(false);
 
@@ -61,18 +61,18 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl text-xs">
+    <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl text-xs font-sans">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
-          <h3 className="text-lg font-extrabold text-white">Profile</h3>
-          <p className="text-xs text-slate-400">Manage your personal profile information and patient identity</p>
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Profile</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Manage your personal profile information and patient identity</p>
         </div>
 
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-500 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
           >
             <Edit className="w-4 h-4" />
             <span>Edit Profile</span>
@@ -80,7 +80,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
         ) : (
           <button
             onClick={() => setIsEditing(false)}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 cursor-pointer"
           >
             Cancel Edit
           </button>
@@ -88,9 +88,9 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
       </div>
 
       {/* AVATAR & BASIC METADATA */}
-      <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-950 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-purple-500/20 border-2 border-purple-500/40 flex items-center justify-center text-purple-300 font-extrabold text-2xl overflow-hidden shadow-lg">
+          <div className="w-20 h-20 rounded-full bg-purple-500/15 border-2 border-purple-500/40 flex items-center justify-center text-purple-700 dark:text-purple-300 font-extrabold text-2xl overflow-hidden shadow-lg">
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -98,75 +98,75 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
             )}
           </div>
 
-          <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shadow-md transition-transform hover:scale-110">
+          <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-md transition-transform hover:scale-110">
             <Camera className="w-3.5 h-3.5" />
             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
           </label>
         </div>
 
         <div className="text-center sm:text-left space-y-1">
-          <h4 className="text-base font-extrabold text-white">{fullName}</h4>
-          <p className="text-slate-400 font-mono">{email} • {phone}</p>
-          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/30 font-mono">
+          <h4 className="text-base font-extrabold text-slate-900 dark:text-white">{fullName}</h4>
+          <p className="text-slate-600 dark:text-slate-400 font-mono text-xs">{email} • {phone}</p>
+          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-mono">
             Blood Group {bloodGroup}
           </span>
         </div>
       </div>
 
       {/* FORM / READ-ONLY GRID */}
-      <form onSubmit={handleSave} className="space-y-4">
+      <form onSubmit={handleSave} className="space-y-4 font-medium">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Full Name</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Full Name</label>
             <input
               type="text"
               disabled={!isEditing}
               value={fullName}
               onChange={(e) => { setFullName(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Email Address</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Email Address</label>
             <input
               type="email"
               disabled={!isEditing}
               value={email}
               onChange={(e) => { setEmail(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Phone Number</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Phone Number</label>
             <input
               type="text"
               disabled={!isEditing}
               value={phone}
               onChange={(e) => { setPhone(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Date of Birth</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Date of Birth</label>
             <input
               type="date"
               disabled={!isEditing}
               value={dob}
               onChange={(e) => { setDob(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Gender</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Gender</label>
             <select
               disabled={!isEditing}
               value={gender}
               onChange={(e) => { setGender(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -175,23 +175,23 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Location</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Location</label>
             <input
               type="text"
               disabled={!isEditing}
               value={location}
               onChange={(e) => { setLocation(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
             />
           </div>
         </div>
 
         {isEditing && (
-          <div className="pt-4 border-t border-slate-800 flex justify-end">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end font-sans">
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-75"
+              className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-75"
             >
               {saving ? (
                 <>

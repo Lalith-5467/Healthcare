@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { QrCode, X, Copy, Check, ShieldCheck, Share2 } from 'lucide-react';
+import { X, Copy, Check, ShieldCheck } from 'lucide-react';
+import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -27,64 +28,63 @@ export const QRModal: React.FC<QRModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md font-sans">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-sm p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl text-white space-y-6 relative overflow-hidden text-center"
+          className="w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white space-y-5 relative overflow-hidden text-center"
         >
           {/* CLOSE BUTTON */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
 
           {/* TITLE & HEADER */}
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-cyan-300 text-[10px] font-extrabold uppercase border border-teal-500/30">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 text-[#00a896] dark:text-cyan-300 text-[10px] font-extrabold uppercase border border-teal-500/30">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>ABDM Verified QR Code</span>
             </div>
-            <h3 className="text-xl font-black tracking-tight">{userName}</h3>
-            <p className="text-xs text-slate-400 font-mono">{abhaId}</p>
+            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">{userName}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">{abhaId}</p>
           </div>
 
-          {/* QR CODE CONTAINER WITH SCANNING ANIMATION */}
-          <div className="relative p-6 rounded-2xl bg-white mx-auto w-48 h-48 flex items-center justify-center shadow-inner group">
-            {/* SCANNING LINE */}
+          {/* REAL VECTOR QR CODE CONTAINER WITH SCANNING ANIMATION */}
+          <div className="relative p-4 rounded-2xl bg-white border border-slate-200/90 dark:border-slate-700 shadow-md mx-auto w-56 h-56 flex items-center justify-center group overflow-hidden">
+            {/* SCANNING LASER BEAM */}
             <motion.div
-              animate={{ y: [-70, 70, -70] }}
+              animate={{ y: [-90, 90, -90] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-              className="absolute left-4 right-4 h-0.5 bg-cyan-500 shadow-[0_0_8px_#06b6d4]"
+              className="absolute w-48 h-0.5 bg-[#00a896] shadow-[0_0_12px_#00a896] z-20 pointer-events-none"
             />
-            {/* MOCK QR CODE SVG */}
-            <QrCode className="w-36 h-36 text-slate-900" />
+            <ABDMQRCodeSVG value={abhaId} size={185} />
           </div>
 
-          <p className="text-[11px] text-slate-400">
-            Scan with any ABDM compliant hospital scanner to grant consent-based record access.
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+            Scan with any ABDM-compliant health app to instantly link and access medical records.
           </p>
 
-          {/* ACTION BUTTONS */}
-          <div className="flex items-center gap-2 pt-2">
-            <button
-              onClick={handleCopy}
-              className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied!' : 'Copy Health ID'}</span>
-            </button>
-            <button
-              onClick={handleCopy}
-              className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Share QR</span>
-            </button>
-          </div>
+          {/* COPY ACTION BUTTON */}
+          <button
+            onClick={handleCopy}
+            className="w-full py-3 px-4 rounded-2xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Copied to Clipboard!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>Copy ABHA ID</span>
+              </>
+            )}
+          </button>
         </motion.div>
       </div>
     </AnimatePresence>

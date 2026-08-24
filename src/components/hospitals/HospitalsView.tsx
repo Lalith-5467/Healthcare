@@ -1,29 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Building2,
   MapPin,
   Search,
-  Filter,
   Navigation,
   Star,
   Clock,
-  Heart,
-  Plus,
-  ShieldCheck,
   CheckCircle2,
-  Phone,
   Calendar,
-  Share2,
-  ExternalLink,
-  RotateCcw,
-  Sparkles,
   SlidersHorizontal,
-  ChevronRight,
-  Eye,
   Activity,
   Pill,
-  Users
+  Users,
+  Heart
 } from 'lucide-react';
 import type {
   HospitalItem,
@@ -66,9 +57,10 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
   // GEOLOCATION STATE
   const [locationStatus, setLocationStatus] = useState<'detected' | 'disabled' | 'default'>('detected');
   const [locationName, setLocationName] = useState<string>('Selaiyur, Chennai (12.9104, 80.1234)');
+  const [isLocating, setIsLocating] = useState(false);
 
   // MAIN HOSPITALS STATE
-  const [hospitals, setHospitals] = useState<HospitalItem[]>(INITIAL_HOSPITALS);
+  const [hospitals] = useState<HospitalItem[]>(INITIAL_HOSPITALS);
   const [savedHospitalIds, setSavedHospitalIds] = useState<string[]>([]);
   const [comparedHospitalIds, setComparedHospitalIds] = useState<string[]>([]);
   const [recentlyViewedIds, setRecentlyViewedIds] = useState<string[]>([]);
@@ -121,7 +113,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setLocationStatus('detected');
-          setLocationName(`Current Location (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`);
+          setLocationName(`Selaiyur, Chennai (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`);
         },
         () => {
           setLocationStatus('default');
@@ -134,6 +126,29 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleDetectLocation = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setIsLocating(false);
+          setLocationStatus('detected');
+          setLocationName(`Selaiyur, Chennai (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`);
+          showToast('✓ Detected your current location');
+        },
+        (_err) => {
+          setIsLocating(false);
+          setLocationStatus('default');
+          setLocationName('Selaiyur, Chennai (Default Location)');
+          showToast('Could not fetch GPS location. Using default location.');
+        }
+      );
+    } else {
+      setIsLocating(false);
+      showToast('Geolocation is not supported by your browser.');
+    }
   };
 
   const handleToggleSave = (hosp: HospitalItem) => {
@@ -212,10 +227,9 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
 
   const comparedHospitals = hospitals.filter((h) => comparedHospitalIds.includes(h.id));
   const savedHospitals = hospitals.filter((h) => savedHospitalIds.includes(h.id));
-  const recentlyViewedHospitals = hospitals.filter((h) => recentlyViewedIds.includes(h.id));
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -232,47 +246,28 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Nearby Hospitals</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full font-mono">
-              📍 {locationStatus === 'detected' ? 'Location Detected' : 'Default Location'}
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Discover hospitals, clinics and healthcare facilities near your location.
-          </p>
-        </div>
-
-        {/* LOCATION BUTTON */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
+      <PageHeader
+        title="Nearby Hospitals & Clinics"
+        subtitle="Find empanelled cashless hospitals, emergency centers and specialist clinics near you."
+        badgeText={locationStatus === 'detected' ? 'Location Detected' : 'Default Location'}
+        badgeIcon={<MapPin className="w-3.5 h-3.5" />}
+        rightElement={
           <button
-            onClick={() => {
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    setLocationStatus('detected');
-                    setLocationName(`Current Location (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`);
-                    showToast('📍 Updated to live GPS location');
-                  },
-                  () => showToast('Location permission unavailable. Using default mock location.')
-                );
-              }
-            }}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow"
+            onClick={handleDetectLocation}
+            disabled={isLocating}
+            className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
           >
-            <Navigation className="w-4 h-4 text-cyan-400" />
-            <span>Change Location</span>
+            <Navigation className={`w-4 h-4 text-[#00a896] dark:text-cyan-400 ${isLocating ? 'animate-spin' : ''}`} />
+            <span>{isLocating ? 'Locating...' : 'Use My Location'}</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. HERO SEARCH AREA */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      <div className="bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-teal-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="space-y-2 max-w-xl">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white">Find Healthcare Near You</h2>
-          <p className="text-xs text-slate-400 font-mono">📍 {locationName}</p>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Find Healthcare Near You</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-mono font-bold">📍 {locationName}</p>
         </div>
 
         {/* SEARCH BAR */}
@@ -284,29 +279,29 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search hospitals, clinics, specialties (e.g. Cardiology)..."
-              className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:outline-none focus:border-cyan-500 shadow-inner"
+              className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium text-xs focus:outline-none focus:border-[#00a896] shadow-inner"
             />
           </div>
 
           <button
             onClick={() => setFilterDrawerOpen(true)}
-            className="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow"
+            className="px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow"
           >
-            <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
+            <SlidersHorizontal className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
             <span>Filters</span>
           </button>
         </div>
 
         {/* CATEGORY CHIPS (HORIZONTAL SCROLLABLE CONTAINER) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-xs">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-xs font-mono">
           {HOSPITAL_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer font-sans ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-[#00a896] to-cyan-600 text-white shadow-md'
-                  : 'bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800'
+                  ? 'bg-[#00a896] text-white shadow-md'
+                  : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               {cat}
@@ -316,54 +311,54 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       </div>
 
       {/* 3. FOUR SUMMARY CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Nearby Facilities</span>
-            <Building2 className="w-4 h-4 text-teal-400" />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Nearby Facilities</span>
+            <Building2 className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-teal-400 font-mono">{filteredHospitals.length}</span>
-            <span className="text-[10px] text-slate-400 font-semibold">Listed</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400">{filteredHospitals.length}</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">Listed</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Open Now</span>
-            <Clock className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Open Now</span>
+            <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
               {hospitals.filter((h) => h.status !== 'Closed').length}
             </span>
-            <span className="text-[10px] text-slate-400 font-semibold">Active</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">Active</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Emergency Care</span>
-            <Activity className="w-4 h-4 text-rose-400" />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Emergency Care</span>
+            <Activity className="w-4 h-4 text-rose-600 dark:text-rose-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-rose-400 font-mono">
+            <span className="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-400">
               {hospitals.filter((h) => h.emergencyCare).length}
             </span>
-            <span className="text-[10px] text-slate-400 font-semibold">24x7 Active</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">24x7 Active</span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Top Rated (4.5+)</span>
-            <Star className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Top Rated (4.5+)</span>
+            <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-300 font-mono">
+            <span className="text-2xl sm:text-3xl font-extrabold text-amber-700 dark:text-amber-300">
               {hospitals.filter((h) => h.rating >= 4.5).length}
             </span>
-            <span className="text-[10px] text-slate-400 font-semibold">High Care</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">High Care</span>
           </div>
         </div>
       </div>
@@ -371,12 +366,12 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       {/* 4. EMERGENCY ALERT SECTION */}
       <div className="p-5 rounded-3xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 font-bold text-lg animate-pulse">
+          <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold text-lg animate-pulse">
             🚨
           </div>
           <div>
-            <h4 className="font-extrabold text-white text-sm">Need Emergency Care?</h4>
-            <p className="text-slate-300 text-xs mt-0.5">Filter facilities marked with 24x7 active emergency trauma bays.</p>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Need Emergency Care?</h4>
+            <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5 font-medium">Filter facilities marked with 24x7 active emergency trauma bays.</p>
           </div>
         </div>
 
@@ -395,16 +390,16 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       {/* 5. MAP & HOSPITAL LIST CONTAINER */}
       <div className="space-y-4">
         {/* SORT BAR & VIEW MODE CONTROLS */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-          <h3 className="text-base font-extrabold text-white">Hospitals Near You</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Hospitals Near You</h3>
 
           <div className="flex items-center gap-3 self-stretch sm:self-auto text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 font-bold">Sort:</span>
+              <span className="text-slate-600 dark:text-slate-400 font-bold">Sort:</span>
               <select
                 value={filters.sortBy}
                 onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as any })}
-                className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold focus:outline-none cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-extrabold focus:outline-none cursor-pointer"
               >
                 <option value="Nearest">Nearest</option>
                 <option value="Top Rated">Top Rated</option>
@@ -413,19 +408,19 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 font-mono">
               <button
                 onClick={() => setViewMode('split')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  viewMode === 'split' ? 'bg-[#00a896] text-white' : 'text-slate-400 hover:text-white'
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer font-sans ${
+                  viewMode === 'split' ? 'bg-[#00a896] text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Split View
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  viewMode === 'list' ? 'bg-[#00a896] text-white' : 'text-slate-400 hover:text-white'
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer font-sans ${
+                  viewMode === 'list' ? 'bg-[#00a896] text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 List Only
@@ -464,10 +459,10 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
             ))}
           </div>
         ) : (
-          <div className="py-12 text-center bg-slate-900/60 border border-slate-800 rounded-3xl space-y-3">
-            <Building2 className="w-12 h-12 text-slate-600 mx-auto" />
-            <h4 className="font-extrabold text-white text-base">No hospitals match your search criteria</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          <div className="py-12 text-center bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+            <Building2 className="w-12 h-12 text-slate-400 mx-auto" />
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-base">No hospitals match your search criteria</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-medium">
               Try adjusting your category chips, distance range, or clear search text to see available facilities.
             </p>
             <button
@@ -476,7 +471,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
                 setSelectedCategory('All');
                 setFilters({ category: 'All', distanceRange: 'Any Distance', minRating: 'Any Rating', openNowOnly: false, emergencyOnly: false, sortBy: 'Nearest' });
               }}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-[#00a896] dark:text-teal-300 font-bold text-xs cursor-pointer border border-slate-300 dark:border-slate-700"
             >
               Clear All Filters
             </button>
@@ -486,22 +481,22 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
 
       {/* 6. COMPARISON STICKY BAR */}
       {comparedHospitalIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 border border-purple-500/40 p-4 rounded-3xl shadow-2xl backdrop-blur-md flex items-center justify-between gap-6 text-xs max-w-lg w-[92%] font-mono">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-500/40 p-4 rounded-3xl shadow-2xl backdrop-blur-md flex items-center justify-between gap-6 text-xs max-w-lg w-[92%] font-mono">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-purple-400 animate-ping" />
-            <span className="font-bold text-white">{comparedHospitalIds.length} Hospitals Selected for Comparison</span>
+            <span className="w-3 h-3 rounded-full bg-purple-500 animate-ping" />
+            <span className="font-bold text-slate-900 dark:text-white font-sans">{comparedHospitalIds.length} Hospitals Selected for Comparison</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 font-sans">
             <button
               onClick={() => setComparedHospitalIds([])}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer"
             >
               Clear
             </button>
             <button
               onClick={() => setCompareModalOpen(true)}
-              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold cursor-pointer shadow-md"
+              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold cursor-pointer shadow-md"
             >
               Compare Now
             </button>
@@ -509,20 +504,20 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
         </div>
       )}
 
-      {/* 7. SAVED HOSPITALS & RECENTLY VIEWED */}
+      {/* 7. SAVED HOSPITALS */}
       {savedHospitals.length > 0 && (
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <h3 className="text-base font-extrabold text-white border-b border-slate-800 pb-3">Saved Favorite Facilities</h3>
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3">Saved Favorite Facilities</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
             {savedHospitals.map((sh) => (
-              <div key={sh.id} className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+              <div key={sh.id} className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <h4 className="font-extrabold text-white">{sh.name}</h4>
-                  <span className="text-[10px] text-teal-400 font-mono">★ {sh.rating} • {sh.distance}</span>
+                  <h4 className="font-extrabold text-slate-900 dark:text-white">{sh.name}</h4>
+                  <span className="text-[10px] text-[#00a896] dark:text-teal-400 font-mono font-bold">★ {sh.rating} • {sh.distance}</span>
                 </div>
                 <button
                   onClick={() => handleOpenDetails(sh)}
-                  className="px-3 py-1 rounded-xl bg-slate-800 text-cyan-300 font-bold cursor-pointer"
+                  className="px-3 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-[#00a896] dark:text-cyan-300 font-bold cursor-pointer"
                 >
                   View
                 </button>
@@ -536,38 +531,38 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => onNavigate('appointments')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Calendar className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">Book Doctor Appointment</h4>
-          <p className="text-[11px] text-slate-400">Schedule clinic or video consultation →</p>
+          <Calendar className="w-5 h-5 text-[#00a896] dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Book Doctor Appointment</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Schedule clinic or video consultation →</p>
         </button>
 
         <button
           onClick={() => onNavigate('family')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Users className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">Share with Family Connect</h4>
-          <p className="text-[11px] text-slate-400">Coordinate facility locations →</p>
+          <Users className="w-5 h-5 text-[#00a896] dark:text-teal-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Share with Family Connect</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Coordinate facility locations →</p>
         </button>
 
         <button
           onClick={() => onNavigate('checkup')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Activity className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">Health Check-Up Facilities</h4>
-          <p className="text-[11px] text-slate-400">Complete wellness assessments →</p>
+          <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Health Check-Up Facilities</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Complete wellness assessments →</p>
         </button>
 
         <button
           onClick={() => onNavigate('pharmacy')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Pill className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">Nearby Pharmacies</h4>
-          <p className="text-[11px] text-slate-400">Track medication refill orders →</p>
+          <Pill className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Nearby Pharmacies</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Track medication refill orders →</p>
         </button>
       </div>
 
@@ -600,7 +595,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
         hospital={appointmentTarget}
         isOpen={!!appointmentTarget}
         onClose={() => setAppointmentTarget(null)}
-        onConfirmBooking={(hospName, dept, doc, date) => {
+        onConfirmBooking={(hospName, dept, _doc, _date) => {
           showToast(`✓ Demo appointment request created at ${hospName} (${dept})`);
           setTimeout(() => onNavigate('appointments'), 1200);
         }}
