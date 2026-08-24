@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PhoneCall, Calendar, ArrowRight, Building2, Siren } from 'lucide-react';
+import { PhoneCall, ShieldCheck, ArrowRight, Building2, Siren } from 'lucide-react';
 
 interface QuickActionCardsProps {
   onNavigate: (sectionId: string) => void;
@@ -81,7 +81,7 @@ export const QuickActionCards: React.FC<QuickActionCardsProps> = ({ onNavigate }
             </div>
           </motion.div>
 
-          {/* CARD 3: BOOK APPOINTMENT */}
+          {/* CARD 3: ABHA DIGITAL LOCKER */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -90,23 +90,23 @@ export const QuickActionCards: React.FC<QuickActionCardsProps> = ({ onNavigate }
             className="relative rounded-2xl overflow-hidden p-8 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg group border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between min-h-[220px]"
           >
             <div className="relative z-10 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-[#0f3980] dark:text-blue-400 flex items-center justify-center">
-                <Calendar className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/50 text-[#00a896] dark:text-teal-400 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Book Appointment
+                ABHA Digital Health Locker
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                Schedule an in-person or online appointment with your preferred doctor in seconds.
+                Securely link your Ayushman Bharat Digital ID to access all hospital lab reports & vitals in one place.
               </p>
             </div>
 
             <div className="relative z-10 pt-4">
               <button 
-                onClick={() => onNavigate('appointment')}
+                onClick={() => onNavigate('abha')}
                 className="inline-flex items-center gap-2 text-xs font-bold text-[#0f3980] dark:text-cyan-400 hover:text-[#00a896] transition-colors"
               >
-                <span>Book Now</span>
+                <span>Explore ABHA Locker</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
