@@ -23,19 +23,19 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4 font-sans"
+      className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4 font-sans"
     >
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-2xl bg-teal-500/10 text-cyan-400 border border-teal-500/20">
+          <div className="p-2.5 rounded-2xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20">
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-white tracking-tight">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Recent Health Records
             </h3>
-            <span className="text-xs text-slate-300 font-mono">ABDM Vault Encrypted Documents</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">ABDM Vault Encrypted Documents</span>
           </div>
         </div>
 
@@ -54,22 +54,22 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
           <div
             key={r.id}
             onClick={() => onNavigate('records')}
-            className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-teal-500/40 flex items-center justify-between gap-3 transition-all cursor-pointer group shadow-sm"
+            className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-teal-500/40 flex items-center justify-between gap-3 transition-all cursor-pointer group shadow-sm"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2.5 rounded-xl bg-teal-500/10 text-cyan-400 border border-teal-500/20 shrink-0">
+              <div className="p-2.5 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20 shrink-0">
                 <FileText className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-extrabold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors font-sans">
+                <h4 className="text-xs font-extrabold text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors font-sans">
                   {r.title}
                 </h4>
-                <p className="text-[11px] text-slate-300 flex items-center gap-2 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-2 font-medium">
                   <span>{r.type}</span>
                   <span>•</span>
                   <span>{r.date}</span>
                   <span>•</span>
-                  <span className="font-extrabold text-cyan-300 font-sans">{r.doctor}</span>
+                  <span className="font-extrabold text-[#00a896] dark:text-cyan-300 font-sans">{r.doctor}</span>
                 </p>
               </div>
             </div>

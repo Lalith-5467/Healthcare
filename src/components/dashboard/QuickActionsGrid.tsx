@@ -19,7 +19,7 @@ export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({ onNavigate }
   return (
     <section className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold text-white tracking-tight">
+        <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
           Quick Actions
         </h2>
       </div>
@@ -36,12 +36,12 @@ export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({ onNavigate }
               whileHover={{ y: -3, scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => onNavigate(act.id)}
-              className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 shadow-md hover:shadow-xl transition-all flex flex-col items-center justify-center text-center space-y-2.5 group cursor-pointer"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-md hover:shadow-xl transition-all flex flex-col items-center justify-center text-center space-y-2.5 group cursor-pointer"
             >
               <div className={`p-3 rounded-2xl border ${act.color} group-hover:scale-110 transition-transform shadow-inner`}>
                 <Icon className="w-5 h-5" />
               </div>
-              <span className="text-xs font-extrabold text-white leading-tight font-sans">
+              <span className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight font-sans">
                 {act.label}
               </span>
             </motion.button>
