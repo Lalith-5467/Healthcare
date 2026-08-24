@@ -11,8 +11,7 @@ import {
   Search,
   Filter,
   CheckCircle2,
-  Clock,
-  ExternalLink
+  Clock
 } from 'lucide-react';
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
@@ -44,7 +43,7 @@ interface RemindersViewProps {
 
 export const RemindersView: React.FC<RemindersViewProps> = ({
   user: _user,
-  onNavigate,
+  onNavigate: _onNavigate,
 }) => {
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -140,6 +139,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     });
     saveRemindersState(updated);
     showToast(`✓ Marked ${title} as completed at ${nowTime}`);
+  };
+
+  const handleDismissReminder = (id: string) => {
+    const updated = reminders.filter((r) => r.id !== id);
+    saveRemindersState(updated);
+    setDetailTarget(null);
+    showToast('Reminder dismissed');
   };
 
   const handleSnoozeConfirm = (id: string, mins: number) => {
@@ -245,7 +251,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         badgeText="Smart Alert Hub"
         badgeIcon={<Bell className="w-3.5 h-3.5" />}
         rightElement={
-          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+          <div className="flex items-center gap-3 self-stretch sm:self-auto font-sans">
             <button
               onClick={() => setSettingsDrawerOpen(true)}
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
