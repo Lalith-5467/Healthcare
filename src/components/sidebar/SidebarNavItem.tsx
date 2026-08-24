@@ -21,13 +21,13 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
   let containerClass = 'group relative flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer select-none ';
 
   if (isActive) {
-    containerClass += 'bg-gradient-to-r from-purple-900/50 via-blue-900/40 to-slate-900/80 border border-purple-500/30 text-white font-bold shadow-md shadow-purple-950/40 ';
+    containerClass += 'bg-teal-500/10 dark:bg-gradient-to-r dark:from-purple-900/50 dark:via-blue-900/40 dark:to-slate-900/80 border border-teal-500/30 dark:border-purple-500/30 text-teal-800 dark:text-white font-extrabold shadow-sm dark:shadow-md ';
   } else if (isEmergency) {
-    containerClass += 'bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 ';
+    containerClass += 'bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 ';
   } else if (isAI) {
-    containerClass += 'bg-indigo-950/30 border border-indigo-500/20 text-indigo-200 hover:border-indigo-500/40 hover:bg-indigo-900/40 ';
+    containerClass += 'bg-purple-50 dark:bg-indigo-950/30 border border-purple-200 dark:border-indigo-500/20 text-purple-700 dark:text-indigo-200 hover:bg-purple-100 dark:hover:bg-indigo-900/40 ';
   } else {
-    containerClass += 'bg-transparent text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent ';
+    containerClass += 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white border border-transparent ';
   }
 
   return (
@@ -45,12 +45,12 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
         {/* ICON */}
         <div className={`shrink-0 transition-transform duration-150 group-hover:scale-105 group-hover:translate-x-0.5 ${
           isActive 
-            ? 'text-cyan-400' 
+            ? 'text-[#00a896] dark:text-cyan-400' 
             : isEmergency 
-            ? 'text-rose-400' 
+            ? 'text-rose-600 dark:text-rose-400' 
             : isAI 
-            ? 'text-indigo-400' 
-            : 'text-slate-400 group-hover:text-slate-200'
+            ? 'text-purple-600 dark:text-indigo-400' 
+            : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200'
         }`}>
           <Icon className="w-4 h-4 stroke-[2]" />
         </div>
@@ -58,13 +58,13 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
         {/* LABEL & BADGES (WHEN EXPANDED) */}
         {!isCollapsed && (
           <div className="flex-1 flex items-center justify-between min-w-0 transition-all duration-150">
-            <span className={`truncate text-xs ${isActive ? 'font-bold text-white' : ''}`}>
+            <span className={`truncate text-xs ${isActive ? 'font-black text-slate-900 dark:text-white' : ''}`}>
               {item.label}
             </span>
 
             {/* AI BADGE */}
             {isAI && (
-              <span className="ml-1.5 px-1.5 py-0.2 text-[9px] font-black tracking-wider uppercase bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded shadow-sm">
+              <span className="ml-1.5 px-1.5 py-0.2 text-[9px] font-black tracking-wider uppercase bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded shadow-sm">
                 AI
               </span>
             )}
@@ -78,7 +78,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
 
             {/* NOTIFICATION BADGE */}
             {item.badge && !isAI && !isEmergency && (
-              <span className="ml-1.5 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-teal-500/20 text-cyan-300 border border-teal-500/30">
+              <span className="ml-1.5 px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-teal-500/20 text-teal-700 dark:text-cyan-300 border border-teal-500/30">
                 {item.badge}
               </span>
             )}

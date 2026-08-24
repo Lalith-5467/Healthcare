@@ -204,18 +204,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </AnimatePresence>
 
         {/* MOBILE SIDEBAR MENU TRIGGER */}
-        <div className="lg:hidden mb-4 flex items-center justify-between p-3 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-md">
+        <div className="lg:hidden mb-4 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-md">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer border border-slate-200 dark:border-slate-700"
               aria-label="Open Sidebar Navigation"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <span className="text-xs font-extrabold text-white">Healthcare Menu</span>
+            <span className="text-xs font-extrabold text-slate-900 dark:text-white">Healthcare Menu</span>
           </div>
-          <span className="px-2.5 py-1 text-[10px] font-bold bg-[#00a896]/20 text-cyan-300 rounded-full border border-teal-500/30">
+          <span className="px-2.5 py-1 text-[10px] font-bold bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30">
             HealthRecord
           </span>
         </div>
