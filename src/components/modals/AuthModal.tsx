@@ -5,12 +5,10 @@ import { Logo } from '../ui/Logo';
 
 interface AuthModalProps {
   isOpen: boolean;
-  mode: 'login' | 'signup';
   onClose: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, mode: initialMode, onClose }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -48,37 +46,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, mode: initialMode,
           <div className="text-center flex flex-col items-center">
             <Logo showBadge />
             <h3 className="text-2xl font-extrabold mt-4">
-              {mode === 'login' ? 'Welcome Back to PulseCare' : 'Start Your Health Journey'}
+              Start Your Health Journey
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              {mode === 'login' ? 'Access your ABHA records & vitals' : 'Create your encrypted digital health account'}
+              Create your encrypted digital health account
             </p>
           </div>
 
           {submitted ? (
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
               <ShieldCheck className="w-10 h-10 text-emerald-500 mx-auto animate-bounce" />
-              <h4 className="font-bold text-emerald-600 dark:text-emerald-400">Authenticated Successfully!</h4>
-              <p className="text-xs text-slate-500">Redirecting to your health dashboard...</p>
+              <h4 className="font-bold text-emerald-600 dark:text-emerald-400">Registered Successfully!</h4>
+              <p className="text-xs text-slate-500">Welcome to your health portal...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {mode === 'signup' && (
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">Full Name</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Lalith Patel"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF5B22]"
-                    />
-                  </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700 dark:text-slate-300">Full Name</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Lalith Patel"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF5B22]"
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 dark:text-slate-300">Email / ABHA ID</label>
@@ -112,31 +108,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, mode: initialMode,
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full text-xs font-bold text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-full text-xs font-bold text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{mode === 'login' ? 'Login to Account' : 'Create Connected Account'}</span>
+                <span>Create Connected Account</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
-
-          <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-            {mode === 'login' ? (
-              <p>
-                Don't have an account?{' '}
-                <button onClick={() => setMode('signup')} className="text-[#FF5B22] font-bold hover:underline">
-                  Get Started
-                </button>
-              </p>
-            ) : (
-              <p>
-                Already have an account?{' '}
-                <button onClick={() => setMode('login')} className="text-[#FF5B22] font-bold hover:underline">
-                  Login
-                </button>
-              </p>
-            )}
-          </div>
         </motion.div>
       </div>
     </AnimatePresence>

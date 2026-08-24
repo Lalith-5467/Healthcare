@@ -1,43 +1,42 @@
 import React from 'react';
+import { Activity } from 'lucide-react';
 
 interface LogoProps {
   className?: string;
   showBadge?: boolean;
+  variant?: 'light' | 'dark' | 'auto';
 }
 
-export const Logo: React.FC<LogoProps> = ({ className = '', showBadge = false }) => {
+export const Logo: React.FC<LogoProps> = ({ className = '', showBadge = false, variant = 'auto' }) => {
+  const mediTextColor = variant === 'dark' 
+    ? 'text-white' 
+    : variant === 'light' 
+    ? 'text-slate-900' 
+    : 'text-slate-900 dark:text-white';
+
+  const subtextColor = variant === 'dark' 
+    ? 'text-slate-300' 
+    : 'text-slate-500 dark:text-slate-400';
+
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-slate-950 dark:bg-slate-900 border border-slate-800 dark:border-slate-700 shadow-md group transition-transform duration-300 hover:scale-105">
-        {/* Glow accent */}
-        <div className="absolute inset-0 rounded-xl bg-orange-500/20 blur-md group-hover:bg-orange-500/30 transition-all" />
-        
-        {/* SVG Pulse Heart Icon */}
-        <svg className="w-5 h-5 relative z-10 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            d="M3 12H6.5L9 5L13.5 19L16.5 10.5L18.5 14H21" 
-            stroke="#FF5B22" 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-          />
-          <circle cx="18.5" cy="14" r="1.5" fill="#FF5B22" />
-        </svg>
+      <div className="w-10 h-10 rounded-xl bg-[#00a896] flex items-center justify-center text-white shadow-md shrink-0">
+        <Activity className="w-6 h-6 stroke-[2.5]" />
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col text-left">
         <div className="flex items-center gap-1.5">
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">
-            Pulse<span className="text-[#FF5B22]">Care</span>
+          <span className={`font-extrabold text-xl tracking-tight leading-none ${mediTextColor}`}>
+            Medi<span className="text-[#00a896]">Care</span>
           </span>
           {showBadge && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full uppercase">
+            <span className="px-2 py-0.5 text-[10px] font-semibold tracking-wider text-teal-400 bg-teal-500/10 border border-teal-500/20 rounded-full uppercase">
               ABDM Ready
             </span>
           )}
         </div>
-        <span className="text-[10.5px] font-medium tracking-wide text-slate-500 dark:text-slate-400 -mt-0.5">
-          Connected Health Platform
+        <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${subtextColor}`}>
+          Healthcare & Medical
         </span>
       </div>
     </div>
