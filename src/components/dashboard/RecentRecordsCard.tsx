@@ -69,20 +69,20 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
                   <span>•</span>
                   <span>{r.date}</span>
                   <span>•</span>
-                  <span className="font-extrabold text-[#00a896] dark:text-cyan-300 font-sans">{r.doctor}</span>
+                  <span className="font-extrabold text-[#00a896] dark:text-cyan-400 font-sans">{r.doctor}</span>
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30">
+              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30">
                 {r.status}
               </span>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => handleDownload(e, r.title)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors cursor-pointer border border-slate-700"
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors cursor-pointer border border-slate-300 dark:border-slate-700"
                 title="Download PDF"
               >
                 <Download className="w-3.5 h-3.5" />

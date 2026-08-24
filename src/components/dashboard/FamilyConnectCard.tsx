@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Users, ArrowRight } from 'lucide-react';
 
 interface FamilyConnectCardProps {
   onNavigate: (id: string) => void;
@@ -27,7 +27,7 @@ export const FamilyConnectCard: React.FC<FamilyConnectCardProps> = ({ onNavigate
           </div>
         </div>
 
-        <span className="px-3 py-1 text-[10px] font-black uppercase bg-purple-500/20 text-purple-600 dark:text-purple-300 rounded-full border border-purple-500/30 font-mono">
+        <span className="px-3 py-1 text-[10px] font-black uppercase bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full border border-purple-500/30 font-mono">
           3 Members
         </span>
       </div>
@@ -39,20 +39,20 @@ export const FamilyConnectCard: React.FC<FamilyConnectCardProps> = ({ onNavigate
           <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Rohan" className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 object-cover" />
           <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&q=80" alt="Kavita" className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 object-cover" />
         </div>
-        <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Priya, Rohan, Kavita</span>
+        <span className="text-slate-800 dark:text-slate-200 font-sans font-bold">Priya, Rohan, Kavita</span>
       </div>
 
       {/* FOOTER LINK */}
-      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs font-mono">
         <button
           onClick={() => onNavigate('family')}
-          className="inline-flex items-center gap-1.5 font-extrabold text-cyan-300 hover:text-white transition-colors cursor-pointer font-sans"
+          className="inline-flex items-center gap-1.5 font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-sans"
         >
           <span>Open Family Connect</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] text-emerald-400 font-bold">Records Synced</span>
+        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold">Records Synced</span>
       </div>
     </motion.div>
   );

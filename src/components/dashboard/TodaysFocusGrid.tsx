@@ -37,10 +37,10 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-amber-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
               <Pill className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
               12:00 PM
             </span>
           </div>
@@ -55,7 +55,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             disabled={medTaken}
             className={`w-full py-2 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow ${
               medTaken
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                 : 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black'
             }`}
           >
@@ -77,10 +77,10 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-blue-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
               <Calendar className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 font-mono">
               10:30 AM
             </span>
           </div>
@@ -105,10 +105,10 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-emerald-500/30 transition-all flex flex-col justify-between group"
         >
           <div className="flex items-start justify-between">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <FileText className="w-4.5 h-4.5" />
             </div>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono">
               New Report
             </span>
           </div>
