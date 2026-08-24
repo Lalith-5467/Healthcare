@@ -108,6 +108,13 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
     localStorage.setItem('user_checkup_history', JSON.stringify(updated));
   };
 
+  const handleSaveDraft = (step: number, answers: CheckupAnswers) => {
+    setSavedDraftStep(step);
+    setSavedDraftAnswers(answers);
+    localStorage.setItem('user_checkup_draft', JSON.stringify({ step, answers }));
+    showToast(`Draft saved at Step ${step}`);
+  };
+
   const handleDiscardDraft = () => {
     setSavedDraftStep(null);
     setSavedDraftAnswers(null);
@@ -169,7 +176,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
         badgeText="Guided Assessment"
         badgeIcon={<Stethoscope className="w-3.5 h-3.5" />}
         rightElement={
-          <div className="flex items-center gap-3 self-stretch sm:self-auto">
+          <div className="flex items-center gap-3 self-stretch sm:self-auto font-sans">
             <button
               onClick={() => {
                 const el = document.getElementById('history-section');
