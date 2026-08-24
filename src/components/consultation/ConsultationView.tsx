@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { ConsultationAppointment } from './consultationData';
 import { MOCK_CONSULTATION_APPOINTMENT } from './consultationData';
 import { PreCallScreen } from './PreCallScreen';
@@ -24,7 +24,7 @@ interface ConsultationViewProps {
 }
 
 export const ConsultationView: React.FC<ConsultationViewProps> = ({
-  user,
+  user: _user,
   onNavigate,
 }) => {
   // WORKFLOW STAGES: 'preCall' | 'waiting' | 'active' | 'ended'
@@ -76,10 +76,10 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white select-none">
+    <div className="min-h-screen bg-transparent text-slate-900 dark:text-white select-none transition-colors duration-300 font-sans pb-16">
       {/* 1. PRE-CALL STAGE */}
       {stage === 'preCall' && (
-        <div className="p-4 sm:p-8">
+        <div className="p-2 sm:p-4">
           <PreCallScreen
             appointment={appointment}
             cameraEnabled={cameraEnabled}
@@ -97,7 +97,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
 
       {/* 2. WAITING ROOM STAGE */}
       {stage === 'waiting' && (
-        <div className="p-4 sm:p-8">
+        <div className="p-2 sm:p-4">
           <WaitingRoom
             appointment={appointment}
             cameraEnabled={cameraEnabled}
@@ -137,7 +137,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
 
       {/* 4. CONSULTATION ENDED STAGE */}
       {stage === 'ended' && (
-        <div className="p-4 sm:p-8">
+        <div className="p-2 sm:p-4">
           <ConsultationEndedScreen
             appointment={appointment}
             durationSeconds={endedDurationSeconds}
