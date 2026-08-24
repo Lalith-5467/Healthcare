@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import {
   Upload,
@@ -7,13 +7,6 @@ import {
   FileText,
   CheckCircle2,
   AlertCircle,
-  X,
-  ArrowRight,
-  Sparkles,
-  Layers,
-  LayoutDashboard,
-  Eye,
-  ShieldCheck,
   RefreshCw
 } from 'lucide-react';
 import type { MedicalRecordItem } from '../records/recordsData';
@@ -41,7 +34,7 @@ interface ScanViewProps {
 }
 
 export const ScanView: React.FC<ScanViewProps> = ({
-  user,
+  user: _user,
   onNavigate,
 }) => {
   // WORKFLOW STEPS: 'idle' | 'uploading' | 'editing' | 'info' | 'success'
