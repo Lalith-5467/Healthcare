@@ -215,8 +215,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
             <span className="text-xs font-extrabold text-slate-900 dark:text-white">Healthcare Menu</span>
           </div>
-          <span className="px-2.5 py-1 text-[10px] font-bold bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30">
-            HealthRecord
+          <span className="px-2.5 py-1 text-[10px] font-black bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 font-sans">
+            MediCare
           </span>
         </div>
 
