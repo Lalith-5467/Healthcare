@@ -108,13 +108,6 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
     localStorage.setItem('user_checkup_history', JSON.stringify(updated));
   };
 
-  const handleSaveDraft = (step: number, answers: CheckupAnswers) => {
-    setSavedDraftStep(step);
-    setSavedDraftAnswers(answers);
-    localStorage.setItem('user_checkup_draft', JSON.stringify({ step, answers }));
-    showToast('✓ Check-up progress saved locally');
-  };
-
   const handleDiscardDraft = () => {
     setSavedDraftStep(null);
     setSavedDraftAnswers(null);
@@ -153,7 +146,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -203,41 +196,41 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       />
 
       {/* 2. HERO CARD SECTION */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-teal-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 font-mono text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/15 border border-teal-500/30 text-[#00a896] dark:text-teal-300 font-mono text-xs font-extrabold">
               <Stethoscope className="w-3.5 h-3.5" />
               <span>Interactive Digital Health Check</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white">Start Your Health Check-Up</h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Start Your Health Check-Up</h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               Answer a few simple questions about your current health, wellness, sleep, hydration, and daily routine.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono pt-2">
-              <div className="flex items-center gap-1.5 text-cyan-300">
+              <div className="flex items-center gap-1.5 text-[#00a896] dark:text-cyan-300 font-bold">
                 <Clock className="w-4 h-4" />
                 <span>Est. Time: 5–7 min</span>
               </div>
-              <div className="flex items-center gap-1.5 text-purple-300">
+              <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 font-bold">
                 <FileText className="w-4 h-4" />
                 <span>12 Questions</span>
               </div>
-              <div className="flex items-center gap-1.5 text-amber-300">
+              <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-bold">
                 <Calendar className="w-4 h-4" />
                 <span>Last Check: 18 Aug 2026</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 self-stretch sm:self-auto">
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 self-stretch sm:self-auto font-sans">
             <button
               onClick={() => {
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="px-6 py-3.5 rounded-2xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-xl hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
+              className="px-6 py-3.5 rounded-2xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start Check-Up (12 Steps)</span>
@@ -248,9 +241,9 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(true);
                 setWizardOpen(true);
               }}
-              className="px-6 py-3 rounded-2xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow"
+              className="px-6 py-3 rounded-2xl font-bold text-xs text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow"
             >
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <Sparkles className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
               <span>Quick Check-Up (2 min)</span>
             </button>
           </div>
@@ -259,23 +252,23 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
       {/* 3. IN-PROGRESS DRAFT RESUME CARD */}
       {savedDraftStep && (
-        <div className="bg-cyan-500/10 border border-cyan-500/30 p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+        <div className="bg-teal-500/10 border border-teal-500/30 p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-[#00a896] dark:text-cyan-300">
               <RotateCcw className="w-5 h-5 animate-spin" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-sm">Check-Up In Progress</h4>
-              <p className="text-slate-300 font-mono text-[11px] mt-0.5">
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Check-Up In Progress</h4>
+              <p className="text-slate-600 dark:text-slate-300 font-mono text-[11px] mt-0.5 font-bold">
                 Saved at Step {savedDraftStep} of 12 ({Math.round((savedDraftStep / 12) * 100)}% completed)
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+          <div className="flex items-center gap-2 self-stretch sm:self-auto font-sans">
             <button
               onClick={handleDiscardDraft}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer border border-slate-300 dark:border-slate-700"
             >
               Discard
             </button>
@@ -284,7 +277,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="px-4 py-2 rounded-xl font-extrabold text-white bg-[#00a896] hover:bg-teal-600 shadow-md cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl font-extrabold text-white bg-[#00a896] hover:bg-[#00897b] shadow-md cursor-pointer flex items-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
               <span>Resume Check-Up</span>
@@ -295,42 +288,42 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
       {/* 4. CHECK-UP CATEGORY CARDS */}
       <div className="space-y-4">
-        <h3 className="text-base font-extrabold text-white">Check-Up Categories</h3>
+        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Check-Up Categories</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-slate-900/80 border border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg hover:border-teal-500/40 transition-all">
+            <div key={cat.id} className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg hover:border-[#00a896]/40 transition-all">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#00a896] dark:text-cyan-400">
                   {cat.iconName === 'Stethoscope' && <Stethoscope className="w-5 h-5" />}
-                  {cat.iconName === 'Heart' && <Heart className="w-5 h-5 text-rose-400" />}
-                  {cat.iconName === 'Activity' && <Activity className="w-5 h-5 text-teal-400" />}
-                  {cat.iconName === 'Smile' && <Smile className="w-5 h-5 text-emerald-400" />}
-                  {cat.iconName === 'Pill' && <Pill className="w-5 h-5 text-purple-400" />}
-                  {cat.iconName === 'FileText' && <FileText className="w-5 h-5 text-amber-400" />}
+                  {cat.iconName === 'Heart' && <Heart className="w-5 h-5 text-rose-600 dark:text-rose-400" />}
+                  {cat.iconName === 'Activity' && <Activity className="w-5 h-5 text-[#00a896] dark:text-teal-400" />}
+                  {cat.iconName === 'Smile' && <Smile className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+                  {cat.iconName === 'Pill' && <Pill className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+                  {cat.iconName === 'FileText' && <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
                 </div>
 
-                <span className={`text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${
+                <span className={`text-[10px] font-extrabold font-mono px-2.5 py-0.5 rounded-full border ${
                   cat.status === 'Completed'
-                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                     : cat.status === 'In Progress'
-                    ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                    ? 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border-teal-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                 }`}>
                   {cat.status}
                 </span>
               </div>
 
               <div>
-                <h4 className="font-extrabold text-white text-sm">{cat.title}</h4>
-                <p className="text-xs text-slate-400 mt-0.5">{cat.description}</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{cat.title}</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">{cat.description}</p>
               </div>
 
-              <div className="space-y-1 pt-1">
-                <div className="flex justify-between text-[10px] font-mono text-slate-400">
+              <div className="space-y-1 pt-1 font-mono">
+                <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400">
                   <span>Category Progress</span>
-                  <span className="font-bold text-teal-400">{cat.progressPercentage}%</span>
+                  <span className="font-extrabold text-[#00a896] dark:text-teal-400">{cat.progressPercentage}%</span>
                 </div>
-                <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                <div className="w-full bg-slate-100 dark:bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
                   <div
                     className="bg-[#00a896] h-full rounded-full transition-all duration-300"
                     style={{ width: `${cat.progressPercentage}%` }}
@@ -343,22 +336,22 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       </div>
 
       {/* 5. SAFETY NOTICE BANNER */}
-      <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-3 shadow-md">
-        <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" />
+      <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-3 shadow-md">
+        <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
         <div className="space-y-0.5">
-          <p className="font-bold">Important Notice & Medical Safety</p>
-          <p className="text-[11px] opacity-90 leading-relaxed">
+          <p className="font-extrabold">Important Notice & Medical Safety</p>
+          <p className="text-[11px] opacity-90 leading-relaxed font-medium">
             This digital check-up is intended strictly for personal health tracking and wellness organization. It does not replace clinical evaluation, medical advice, diagnosis, or treatment from qualified healthcare professionals.
           </p>
         </div>
       </div>
 
       {/* 6. PREVIOUS CHECK-UPS HISTORY LOG */}
-      <div id="history-section" className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div id="history-section" className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h3 className="text-base font-extrabold text-white">Previous Check-Ups</h3>
-            <p className="text-xs text-slate-400">Review your past completed health assessments</p>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Previous Check-Ups</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Review your past completed health assessments</p>
           </div>
 
           <div className="flex items-center gap-2 self-stretch sm:self-auto">
@@ -369,39 +362,39 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search history..."
-                className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-cyan-500 font-medium"
+                className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896] font-medium"
               />
             </div>
             <button
               onClick={() => setFilterDrawerOpen(true)}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors border border-slate-300 dark:border-slate-700 cursor-pointer"
             >
-              <Filter className="w-4 h-4 text-cyan-400" />
+              <Filter className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
             </button>
           </div>
         </div>
 
         <div className="space-y-3 text-xs">
           {filteredHistory.map((item) => (
-            <div key={item.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={item.id} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] font-mono font-bold text-cyan-400">{item.date} • {item.time}</span>
-                <h4 className="font-extrabold text-white text-sm">{item.type}</h4>
-                <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                  Form Completion Score: <strong className="text-teal-400">{item.completionScore}%</strong>
+                <span className="text-[10px] font-mono font-extrabold text-[#00a896] dark:text-cyan-400">{item.date} • {item.time}</span>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{item.type}</h4>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-mono mt-0.5 font-bold">
+                  Form Completion Score: <strong className="text-emerald-600 dark:text-teal-400">{item.completionScore}%</strong>
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 font-sans">
                 <button
                   onClick={() => setHistoryDrawerTarget(item)}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 cursor-pointer"
                 >
                   View Details
                 </button>
                 <button
                   onClick={() => handleDeleteRecord(item.id)}
-                  className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-400 cursor-pointer"
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -415,74 +408,69 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => onNavigate('appointments')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Calendar className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">Discuss in Appointments</h4>
-          <p className="text-[11px] text-slate-400">Schedule consultation with doctor →</p>
+          <Calendar className="w-5 h-5 text-[#00a896] dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Discuss in Appointments</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Schedule consultation with doctor →</p>
         </button>
 
         <button
           onClick={() => onNavigate('medicines')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Pill className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">View Medicines Tracker</h4>
-          <p className="text-[11px] text-slate-400">Review prescriptions & doses →</p>
+          <Pill className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">View Medicines Tracker</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Review prescriptions & doses →</p>
         </button>
 
         <button
           onClick={() => onNavigate('records')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <FileText className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">View Medical Records</h4>
-          <p className="text-[11px] text-slate-400">Inspect lab reports & scans →</p>
+          <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">View Medical Records</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Inspect lab reports & scans →</p>
         </button>
 
         <button
           onClick={() => onNavigate('analytics')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Activity className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white text-xs">View Health Analytics</h4>
-          <p className="text-[11px] text-slate-400">Track vital signs trends →</p>
+          <Activity className="w-5 h-5 text-[#00a896] dark:text-teal-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">View Health Analytics</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Track vital signs trends →</p>
         </button>
       </div>
 
       {/* MODALS & DRAWERS */}
       <CheckupWizardModal
         isOpen={wizardOpen}
-        isQuickMode={isQuickMode}
-        initialStep={savedDraftStep || 1}
         onClose={() => setWizardOpen(false)}
+        isQuickMode={isQuickMode}
         onSaveDraft={handleSaveDraft}
         onSubmitCompleted={handleSubmitCompleted}
-        onNavigateToMedicines={() => onNavigate('medicines')}
       />
 
       <CheckupSummaryModal
         record={summaryTarget}
         isOpen={!!summaryTarget}
         onClose={() => setSummaryTarget(null)}
-        onNavigateToAnalytics={() => onNavigate('analytics')}
-        onNavigateToAppointments={() => onNavigate('appointments')}
-        onNavigateToReminders={() => onNavigate('reminders')}
+        onNavigate={onNavigate}
       />
 
       <CheckupHistoryDrawer
         record={historyDrawerTarget}
         isOpen={!!historyDrawerTarget}
         onClose={() => setHistoryDrawerTarget(null)}
-        onDeleteRecord={handleDeleteRecord}
+        onDelete={handleDeleteRecord}
       />
 
       <CheckupFilterDrawer
         isOpen={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
         filters={filters}
-        onApplyFilters={(f) => setFilters(f)}
-        onResetFilters={() => setFilters({ checkupType: 'All', status: 'All', dateRange: 'All Time' })}
+        onApplyFilters={(updated) => setFilters(updated)}
       />
     </div>
   );
