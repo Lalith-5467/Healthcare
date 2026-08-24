@@ -3,7 +3,7 @@ import { ShieldCheck, QrCode, Edit, Eye, CheckCircle2 } from 'lucide-react';
 import type { InsurancePolicy } from './insuranceData';
 
 interface PrimaryPolicyHeroCardProps {
-  policy: InsurancePolicy;
+  policy: InsurancePolicy | null | undefined;
   onOpenDigitalCard: () => void;
   onOpenEditPolicy: (policy: InsurancePolicy) => void;
   onOpenCoverageDetails: () => void;
@@ -15,6 +15,8 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
   onOpenEditPolicy,
   onOpenCoverageDetails,
 }) => {
+  if (!policy) return null;
+
   return (
     <div className="bg-gradient-to-br from-purple-50 via-teal-50/60 to-white dark:from-slate-900 dark:via-slate-900 dark:to-[#071329] border border-purple-200 dark:border-purple-500/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden font-sans">
       {/* GLOW DECORATIONS */}
@@ -62,39 +64,41 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
 
         <div className="bg-white/80 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1 shadow-sm">
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Policy Number</span>
-          <strong className="text-[#00a896] dark:text-cyan-300 text-xs font-bold block">{policy.policyNumber}</strong>
-          <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-sans">Group: {policy.groupNumber}</span>
+          <strong className="text-[#00a896] dark:text-cyan-300 text-sm block font-extrabold">{policy.policyNumber}</strong>
+          <span className="text-[10px] text-slate-500 block">Sum Insured: ₹{(policy.coverageAmount / 100000).toFixed(0)}L</span>
         </div>
 
         <div className="bg-white/80 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1 shadow-sm">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Sum Insured</span>
-          <strong className="text-emerald-700 dark:text-emerald-400 text-sm font-extrabold block">₹{(policy.sumInsured / 100000).toFixed(1)} Lakhs</strong>
-          <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-sans">Remaining: ₹{(policy.remainingSumInsured / 100000).toFixed(1)}L</span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Policy Duration</span>
+          <strong className="text-slate-900 dark:text-white text-xs block font-bold">{policy.startDate} →</strong>
+          <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-bold">{policy.expiryDate}</span>
         </div>
 
         <div className="bg-white/80 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1 shadow-sm">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Valid Until</span>
-          <strong className="text-amber-700 dark:text-amber-400 text-xs font-bold block">{policy.expiryDate}</strong>
-          <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-sans">Renewal due in 60d</span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Premium Amount</span>
+          <strong className="text-slate-900 dark:text-white text-sm block font-extrabold">₹{policy.premiumAmount}</strong>
+          <span className="text-[10px] text-slate-500 block">{policy.premiumFrequency}</span>
         </div>
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800/80 pt-4 relative z-10">
-        <button
-          onClick={onOpenCoverageDetails}
-          className="text-xs font-bold text-[#00a896] dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
-        >
-          <Eye className="w-4 h-4" />
-          <span>Full Coverage & Copay Breakdown</span>
-        </button>
+      {/* FOOTER ACTIONS */}
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 relative z-10 font-sans text-xs">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenCoverageDetails}
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-[#00a896] dark:text-teal-300 font-bold border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <Eye className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
+            <span>Coverage Breakdown</span>
+          </button>
+        </div>
 
         <button
           onClick={() => onOpenEditPolicy(policy)}
-          className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-300 dark:border-slate-700"
+          className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
         >
-          <Edit className="w-3.5 h-3.5" />
-          <span>Edit Policy</span>
+          <Edit className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          <span>Edit Policy Info</span>
         </button>
       </div>
     </div>

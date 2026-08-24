@@ -96,11 +96,25 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   useEffect(() => {
     const savedPolicies = localStorage.getItem('user_insurance_policies');
     if (savedPolicies) {
-      try { setPolicies(JSON.parse(savedPolicies)); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(savedPolicies);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPolicies(parsed);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
     const savedClaims = localStorage.getItem('user_insurance_claims');
     if (savedClaims) {
-      try { setClaims(JSON.parse(savedClaims)); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(savedClaims);
+        if (Array.isArray(parsed)) {
+          setClaims(parsed);
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, []);
 
@@ -109,7 +123,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const primaryPolicy = policies.find((p) => p.isPrimary) || policies[0];
+  const primaryPolicy = policies.find((p) => p.isPrimary) || policies[0] || INITIAL_POLICIES[0];
 
   const handleAddPolicy = (newPol: InsurancePolicy) => {
     const updated = [newPol, ...policies];
@@ -146,14 +160,14 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     const newPay: PremiumPaymentRecord = {
       id: `PAY-${Date.now().toString().slice(-4)}`,
       monthYear: 'Sep 2026',
-      amount: primaryPolicy.premiumAmount,
+      amount: primaryPolicy ? primaryPolicy.premiumAmount : 2450,
       paymentDate: '24 Aug 2026',
       status: 'Paid',
       receiptNumber: `REC-${Math.floor(1000 + Math.random() * 9000)}-SEP`
     };
     setPayments([newPay, ...payments]);
     setPayModalOpen(false);
-    showToast(`✓ Payment of ₹${primaryPolicy.premiumAmount} successful for Sep 2026`);
+    showToast(`✓ Payment of ₹${newPay.amount} successful for Sep 2026`);
   };
 
   return (
@@ -191,12 +205,14 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       />
 
       {/* 2. HERO PRIMARY POLICY CARD */}
-      <PrimaryPolicyHeroCard
-        policy={primaryPolicy}
-        onOpenDigitalCard={() => setDigitalCardOpen(true)}
-        onOpenEditPolicy={(p) => setEditPolicyTarget(p)}
-        onOpenCoverageDetails={() => setCoverageDetailsOpen(true)}
-      />
+      {primaryPolicy && (
+        <PrimaryPolicyHeroCard
+          policy={primaryPolicy}
+          onOpenDigitalCard={() => setDigitalCardOpen(true)}
+          onOpenEditPolicy={(p) => setEditPolicyTarget(p)}
+          onOpenCoverageDetails={() => setCoverageDetailsOpen(true)}
+        />
+      )}
 
       {/* 3. FOUR SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
@@ -207,7 +223,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
           <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block font-sans">Total Coverage</span>
-          <strong className="text-2xl font-extrabold text-purple-700 dark:text-purple-300">₹{(primaryPolicy.coverageAmount / 100000).toFixed(0)} Lakhs</strong>
+          <strong className="text-2xl font-extrabold text-purple-700 dark:text-purple-300">₹{((primaryPolicy?.coverageAmount || 1000000) / 100000).toFixed(0)} Lakhs</strong>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
@@ -222,10 +238,12 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       </div>
 
       {/* 4. COVERAGE OVERVIEW SECTION */}
-      <CoverageOverviewSection
-        policy={primaryPolicy}
-        onOpenDetails={() => setCoverageDetailsOpen(true)}
-      />
+      {primaryPolicy && (
+        <CoverageOverviewSection
+          policy={primaryPolicy}
+          onOpenDetails={() => setCoverageDetailsOpen(true)}
+        />
+      )}
 
       {/* 5. MY POLICIES LIST */}
       <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl text-xs">
@@ -263,14 +281,16 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       </div>
 
       {/* 6. RENEWAL COUNTDOWN CARD */}
-      <PolicyRenewalCard
-        policy={primaryPolicy}
-        onRenewClick={() => showToast('✓ Demo policy renewal request submitted')}
-        onSetReminderClick={() => {
-          showToast('Navigating to Reminders & Notifications');
-          onNavigate('reminders');
-        }}
-      />
+      {primaryPolicy && (
+        <PolicyRenewalCard
+          policy={primaryPolicy}
+          onRenewClick={() => showToast('✓ Demo policy renewal request submitted')}
+          onSetReminderClick={() => {
+            showToast('Navigating to Reminders & Notifications');
+            onNavigate('reminders');
+          }}
+        />
+      )}
 
       {/* 7. CLAIMS OVERVIEW SECTION */}
       <ClaimsOverviewSection
@@ -308,7 +328,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       <InsuranceFAQSection />
 
       {/* 12. CROSS-MODULE CTAs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-sans">
         <button
           onClick={() => onNavigate('records')}
           className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
@@ -414,7 +434,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       />
 
       {/* DEMO PAY MODAL */}
-      {payModalOpen && (
+      {payModalOpen && primaryPolicy && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Pay Policy Premium</h3>
@@ -425,7 +445,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             </div>
             <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between gap-3 font-sans">
               <button onClick={() => setPayModalOpen(false)} className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 font-bold cursor-pointer border border-slate-300 dark:border-slate-700">Cancel</button>
-              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold cursor-pointer text-center shadow-md">Confirm Payment (₹2,450)</button>
+              <button onClick={confirmPayPremium} className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold cursor-pointer text-center shadow-md">Confirm Payment (₹{primaryPolicy.premiumAmount})</button>
             </div>
           </div>
         </div>
