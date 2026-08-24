@@ -4,6 +4,7 @@ import { CheckCircle2, Menu } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
 import {
   DashboardHeader,
+  DashboardStatsGrid,
   HealthScoreCard,
   HealthAccessCard,
   TodaysFocusGrid,
@@ -16,6 +17,11 @@ import {
   EmergencyQuickCard,
   QuickActionsGrid,
   PremiumDashboardCard,
+  AIAssistantDashboardCard,
+  InsuranceSummaryCard,
+  FamilyConnectCard,
+  NearbyHospitalsCard,
+  RecentActivityTimeline,
   DashboardSkeleton
 } from '../components/dashboard';
 
@@ -312,7 +318,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onOpenProfile={() => handleSelectNav('profile')}
             />
 
-            {/* 2. HEALTH OVERVIEW HERO GRID (HEALTH SCORE + HEALTH ACCESS) */}
+            {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}
+            <DashboardStatsGrid onNavigate={handleSelectNav} />
+
+            {/* 3. HEALTH OVERVIEW HERO GRID (HEALTH SCORE + HEALTH ACCESS) */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <HealthScoreCard />
               <HealthAccessCard
@@ -322,22 +331,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               />
             </section>
 
-            {/* 3. TODAY'S FOCUS (4 COMPACT CARDS) */}
-            <TodaysFocusGrid
-              onNavigate={handleSelectNav}
-              onToast={showToast}
-            />
-
-            {/* 4. HEALTH SNAPSHOT (6 BIOMETRIC VITAL CARDS) */}
-            <HealthSnapshotGrid />
-
-            {/* 5. HEALTH INSIGHT & UPCOMING APPOINTMENT */}
+            {/* 4. TODAY'S FOCUS & UPCOMING APPOINTMENT */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <HealthInsightCard onNavigate={handleSelectNav} />
+              <TodaysFocusGrid
+                onNavigate={handleSelectNav}
+                onToast={showToast}
+              />
               <UpcomingAppointmentCard
                 onNavigate={handleSelectNav}
                 onToast={showToast}
               />
+            </section>
+
+            {/* 5. HEALTH SNAPSHOT & INSIGHT */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <HealthSnapshotGrid />
+              <HealthInsightCard onNavigate={handleSelectNav} />
             </section>
 
             {/* 6. MEDICATIONS & HEALTH PROGRESS CHART */}
@@ -349,20 +358,35 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <HealthProgressChart />
             </section>
 
-            {/* 7. RECENT MEDICAL RECORDS */}
-            <RecentRecordsCard
-              onNavigate={handleSelectNav}
-              onToast={showToast}
-            />
-
-            {/* 8. QUICK ACTIONS */}
+            {/* 7. QUICK ACTIONS */}
             <QuickActionsGrid onNavigate={handleSelectNav} />
 
-            {/* 9. PREMIUM HEALTH PROMOTION */}
-            <PremiumDashboardCard onOpenPremium={() => setPremiumModalOpen(true)} />
+            {/* 8. AI HEALTH ASSISTANT PREVIEW */}
+            <AIAssistantDashboardCard onNavigate={handleSelectNav} />
 
-            {/* 10. EMERGENCY ASSISTANCE */}
-            <EmergencyQuickCard onOpenEmergency={onOpenEmergencyModal} />
+            {/* 9. INSURANCE & FAMILY CONNECT */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InsuranceSummaryCard onNavigate={handleSelectNav} />
+              <FamilyConnectCard onNavigate={handleSelectNav} />
+            </section>
+
+            {/* 10. NEARBY HOSPITALS & EMERGENCY SOS */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <NearbyHospitalsCard onNavigate={handleSelectNav} />
+              <EmergencyQuickCard onOpenEmergency={onOpenEmergencyModal} />
+            </section>
+
+            {/* 11. RECENT RECORDS & ACTIVITY TIMELINE */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RecentRecordsCard
+                onNavigate={handleSelectNav}
+                onToast={showToast}
+              />
+              <RecentActivityTimeline />
+            </section>
+
+            {/* 12. PREMIUM PROMOTION */}
+            <PremiumDashboardCard onOpenPremium={() => setPremiumModalOpen(true)} />
           </motion.div>
         )}
 
