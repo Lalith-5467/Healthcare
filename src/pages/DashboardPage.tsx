@@ -83,15 +83,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   }, [initialNavId]);
 
-  const currentUser: UserProfile = user || {
-    name: 'Lalith Patel',
-    email: 'lalith.patel@abdm.in',
-    role: 'Patient',
-    abhaId: '91-8472-9104-5821@abdm',
-    bloodGroup: 'O+',
-    age: 34
-  };
-
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -322,9 +313,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           >
             {/* 1. TOP HEADER */}
             <DashboardHeader
-              userName={currentUser.name}
-              onNavigate={handleSelectNav}
-              onShowToast={showToast}
+              userName={user.name}
+              onOpenNotifications={() => showToast('Opening Notifications drawer')}
               onOpenProfile={() => handleSelectNav('profile')}
             />
 
@@ -335,8 +325,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <HealthScoreCard />
               <HealthAccessCard
-                abhaId={currentUser.abhaId}
-                userName={currentUser.name}
+                abhaId={user.abhaId}
+                userName={user.name}
                 onToast={showToast}
               />
             </section>
