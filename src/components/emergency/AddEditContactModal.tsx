@@ -59,107 +59,100 @@ export const AddEditContactModal: React.FC<AddEditContactModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-xs">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-xs text-slate-900 dark:text-white">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
                 {contactToEdit ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
               </h3>
-              <p className="text-xs text-slate-400">Specify priority and relationship</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Automatic SOS notification recipient</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 font-medium">
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">Full Name</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Contact Name</label>
             <input
               type="text"
+              required
+              placeholder="e.g. Dr. Ramesh Kumar"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Priya Kumar"
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:outline-none focus:border-purple-500"
-              required
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-purple-500 font-sans"
             />
           </div>
 
-          <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">Relationship</label>
-            <input
-              type="text"
-              value={relationship}
-              onChange={(e) => setRelationship(e.target.value)}
-              placeholder="e.g. Mother / Father / Spouse / Doctor"
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-medium focus:outline-none focus:border-purple-500"
-              required
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Relationship</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Spouse / Doctor"
+                value={relationship}
+                onChange={(e) => setRelationship(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-purple-500 font-sans"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as any)}
+                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:outline-none font-sans"
+              >
+                <option value="Primary">Primary</option>
+                <option value="Secondary">Secondary</option>
+                <option value="Medical Contact">Medical Contact</option>
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">Phone Number</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Phone Number</label>
             <input
               type="text"
+              required
+              placeholder="+91 98401 23456"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+91 98401 23456"
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono focus:outline-none focus:border-purple-500"
-              required
+              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-purple-500 font-mono"
             />
           </div>
 
-          <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">Contact Priority</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as any)}
-              className="w-full px-3 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold focus:outline-none focus:border-purple-500"
-            >
-              <option value="Primary">Primary (First Alert Contact)</option>
-              <option value="Secondary">Secondary Contact</option>
-              <option value="Medical Contact">Medical Contact / Doctor</option>
-            </select>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800 flex justify-between gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
-            >
-              {submitting ? (
-                <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>Saving Contact...</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span>Save Contact</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+          >
+            {submitting ? (
+              <>
+                <Sparkles className="w-4 h-4 animate-spin" />
+                <span>Saving Contact...</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Save Emergency Contact</span>
+              </>
+            )}
+          </button>
         </form>
       </div>
     </div>
