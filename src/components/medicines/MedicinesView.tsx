@@ -10,17 +10,11 @@ import {
   Plus,
   Search,
   Filter,
-  Calendar,
-  User,
-  Building2,
-  Bell,
-  RefreshCw,
   Truck,
   FileText,
   ShieldAlert,
   ChevronRight,
-  TrendingUp,
-  XCircle
+  TrendingUp
 } from 'lucide-react';
 import type { MedicineItem, DoseRecord } from './medicinesData';
 import {
@@ -51,10 +45,10 @@ interface MedicinesViewProps {
 }
 
 export const MedicinesView: React.FC<MedicinesViewProps> = ({
-  user,
+  user: _user,
   onNavigate,
 }) => {
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // MEDICINES & TODAY'S DOSES STATE (Persisted in localStorage)
