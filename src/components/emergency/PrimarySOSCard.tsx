@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { ShieldAlert } from 'lucide-react';
 
 interface PrimarySOSCardProps {
@@ -9,7 +10,11 @@ export const PrimarySOSCard: React.FC<PrimarySOSCardProps> = ({
   onTriggerSOS,
 }) => {
   return (
-    <div className="bg-gradient-to-b from-rose-50/80 via-white to-rose-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/40 border-2 border-rose-300 dark:border-rose-500/40 rounded-3xl p-6 sm:p-10 space-y-6 text-center shadow-2xl relative overflow-hidden font-sans">
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="bg-gradient-to-b from-rose-50/80 via-white to-rose-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/40 border-2 border-rose-300 dark:border-rose-500/40 rounded-3xl p-6 sm:p-10 space-y-6 text-center shadow-2xl relative overflow-hidden font-sans"
+    >
       {/* DECORATIVE PULSE BACKGROUND */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -48,6 +53,6 @@ export const PrimarySOSCard: React.FC<PrimarySOSCardProps> = ({
           🔒 Safe Activation: Confirmation → 5-second countdown → Cancel option
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };

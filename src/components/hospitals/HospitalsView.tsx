@@ -151,14 +151,14 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
     }
   };
 
-  const handleToggleSave = (hosp: HospitalItem) => {
+  const handleToggleSave = (hosp: HospitalItem, suppressToast: boolean = false) => {
     let updated: string[];
     if (savedHospitalIds.includes(hosp.id)) {
       updated = savedHospitalIds.filter((id) => id !== hosp.id);
-      showToast(`Removed ${hosp.name} from saved facilities`);
+      if (!suppressToast) showToast(`Removed ${hosp.name} from saved facilities`);
     } else {
       updated = [...savedHospitalIds, hosp.id];
-      showToast(`✓ Saved ${hosp.name} to favorites`);
+      if (!suppressToast) showToast(`✓ Saved ${hosp.name} to favorites`);
     }
     setSavedHospitalIds(updated);
     localStorage.setItem('user_saved_hospitals', JSON.stringify(updated));
@@ -312,55 +312,71 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
 
       {/* 3. FOUR SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <motion.div
+          whileHover={{ y: -4, scale: 1.01 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="bg-[#00a896]/10 dark:bg-teal-900/20 border border-teal-200/50 dark:border-teal-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Nearby Facilities</span>
+            <span className="text-xs font-bold text-teal-800 dark:text-teal-300 font-sans">Nearby Facilities</span>
             <Building2 className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400">{filteredHospitals.length}</span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">Listed</span>
+            <span className="text-[10px] text-teal-700 dark:text-teal-400 font-bold font-sans">Listed</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <motion.div
+          whileHover={{ y: -4, scale: 1.01 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="bg-emerald-500/10 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Open Now</span>
+            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 font-sans">Open Now</span>
             <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
               {hospitals.filter((h) => h.status !== 'Closed').length}
             </span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">Active</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold font-sans">Active</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <motion.div
+          whileHover={{ y: -4, scale: 1.01 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="bg-rose-500/10 dark:bg-rose-900/20 border border-rose-200/50 dark:border-rose-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Emergency Care</span>
+            <span className="text-xs font-bold text-rose-800 dark:text-rose-300 font-sans">Emergency Care</span>
             <Activity className="w-4 h-4 text-rose-600 dark:text-rose-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-400">
               {hospitals.filter((h) => h.emergencyCare).length}
             </span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">24x7 Active</span>
+            <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold font-sans">24x7 Active</span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <motion.div
+          whileHover={{ y: -4, scale: 1.01 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="bg-amber-500/10 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-sans">Top Rated (4.5+)</span>
+            <span className="text-xs font-bold text-amber-800 dark:text-amber-300 font-sans">Top Rated (4.5+)</span>
             <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-amber-700 dark:text-amber-300">
               {hospitals.filter((h) => h.rating >= 4.5).length}
             </span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold font-sans">High Care</span>
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold font-sans">High Care</span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* 4. EMERGENCY ALERT SECTION */}

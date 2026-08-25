@@ -11,7 +11,7 @@ interface HospitalDetailsDrawerProps {
   onOpenCall: (hosp: HospitalItem) => void;
   onOpenAppointment: (hosp: HospitalItem) => void;
   onOpenShareFamily: (hosp: HospitalItem) => void;
-  onToggleSave: (hosp: HospitalItem) => void;
+  onToggleSave: (hosp: HospitalItem, suppressToast?: boolean) => void;
 }
 
 export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
@@ -30,8 +30,8 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
   if (!isOpen || !hospital) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200 font-sans">
-      <div className="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-lg h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto text-slate-900 dark:text-white">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg max-h-[90vh] rounded-3xl flex flex-col shadow-2xl p-6 text-slate-900 dark:text-white overflow-hidden">
         {/* HEADER */}
         <div className="space-y-4 border-b border-slate-200 dark:border-slate-800 pb-4 shrink-0">
           <div className="flex items-start justify-between gap-3">
@@ -80,7 +80,7 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
             </button>
 
             <button
-              onClick={() => onToggleSave(hospital)}
+              onClick={() => onToggleSave(hospital, true)}
               className={`p-2.5 rounded-xl border flex flex-col items-center gap-1 cursor-pointer font-sans transition-colors ${
                 isSaved
                   ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30'
@@ -124,24 +124,35 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
         </div>
 
         {/* TAB BODY CONTENT */}
-        <div className="flex-1 py-4 overflow-y-auto space-y-5 text-xs font-medium">
+        <div className="py-4 overflow-y-auto space-y-5 text-xs font-medium">
+          {isSaved && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 p-3 text-xs font-bold rounded-2xl flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>Saved {hospital.name} to favorites</span>
+            </div>
+          )}
+
           {activeTab === 'overview' && (
             <div className="space-y-4">
               <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 space-y-2">
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Facility Bio</h4>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{hospital.about}</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Facility Overview</h4>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {hospital.name} is a top-rated {hospital.type} providing high-quality healthcare. 
+                  Operating {hospital.openingHours.toLowerCase()}, the facility features {hospital.bedsAvailable} inpatient beds 
+                  and a dedicated team of {hospital.doctorsCount} specialized medical professionals.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 font-mono">
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Sum Insured Limit</span>
-                  <strong className="text-emerald-700 dark:text-emerald-400 text-sm font-extrabold block">₹{(hospital.cashlessCap / 100000).toFixed(1)} Lakhs</strong>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Insurance Status</span>
+                  <strong className="text-purple-700 dark:text-purple-400 text-xs font-extrabold block truncate">{hospital.insuranceAccepted}</strong>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Rating</span>
-                  <strong className="text-amber-700 dark:text-amber-400 text-sm font-extrabold block flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {hospital.rating} ({hospital.reviewsCount})
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Patient Rating</span>
+                  <strong className="text-amber-700 dark:text-amber-400 text-sm font-extrabold flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {hospital.rating} <span className="text-xs text-slate-400">({hospital.reviewsCount})</span>
                   </strong>
                 </div>
               </div>
@@ -150,12 +161,12 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
 
           {activeTab === 'departments' && (
             <div className="space-y-2">
-              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Medical Departments</h4>
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Medical Specialties</h4>
               <div className="grid grid-cols-2 gap-2">
-                {hospital.departments.map((dept, idx) => (
+                {hospital.specialties.map((specialty, idx) => (
                   <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{dept}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{specialty}</span>
                   </div>
                 ))}
               </div>
@@ -164,12 +175,12 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
 
           {activeTab === 'services' && (
             <div className="space-y-2">
-              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Available Facilities & Care Services</h4>
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Available Facilities & Services</h4>
               <div className="space-y-2">
-                {hospital.amenities.map((amenity, idx) => (
+                {hospital.facilities.map((facility, idx) => (
                   <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{amenity}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{facility}</span>
                   </div>
                 ))}
               </div>
@@ -179,16 +190,27 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
           {activeTab === 'reviews' && (
             <div className="space-y-3">
               <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Patient Testimonials</h4>
-              <div className="space-y-2">
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                      <User className="w-3.5 h-3.5 text-[#00a896]" /> Ramesh S.
-                    </span>
-                    <span className="text-amber-500 font-bold font-mono">★★★★★</span>
+              <div className="space-y-3">
+                {hospital.reviewsList && hospital.reviewsList.length > 0 ? (
+                  hospital.reviewsList.map((review) => (
+                    <div key={review.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-[#00a896]" /> {review.patientName}
+                        </span>
+                        <div className="flex items-center gap-1 text-amber-500 font-bold font-mono">
+                          <Star className="w-3 h-3 fill-amber-500" /> {review.rating}
+                        </div>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-300 italic text-[11px] leading-relaxed">"{review.comment}"</p>
+                      <div className="text-[10px] text-slate-400 font-mono text-right">{review.date}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center p-4 text-slate-500 text-xs italic bg-slate-50 dark:bg-slate-800/60 rounded-2xl">
+                    No reviews available yet.
                   </div>
-                  <p className="text-slate-600 dark:text-slate-300 italic text-[11px]">"Excellent cashless claim processing and 24x7 emergency response."</p>
-                </div>
+                )}
               </div>
             </div>
           )}

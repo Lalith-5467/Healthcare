@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Star, MapPin, Clock, Phone, Navigation, Heart, ShieldCheck, Check, Building2 } from 'lucide-react';
 import type { HospitalItem } from './hospitalsData';
 
@@ -28,7 +29,9 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
   onToggleCompare,
 }) => {
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => onSelect(hospital)}
       className={`p-5 bg-white dark:bg-slate-900/90 rounded-3xl border transition-all space-y-4 shadow-md hover:shadow-xl cursor-pointer group font-sans ${
         isSelected
@@ -60,14 +63,15 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
               e.stopPropagation();
               onToggleSave(hospital);
             }}
-            className={`p-2 rounded-xl transition-colors cursor-pointer ${
+            className={`p-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${
               isSaved
-                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-3'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-500'
             }`}
             title={isSaved ? 'Remove from Saved' : 'Save Hospital'}
           >
             <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500' : ''}`} />
+            {isSaved && <span className="text-[10px] font-bold tracking-wide uppercase">Saved</span>}
           </button>
         </div>
       </div>
@@ -87,7 +91,7 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
           <span>•</span>
           <span className="text-[#00a896] dark:text-cyan-300 font-extrabold">{hospital.distance} away</span>
           <span>•</span>
-          <span className={hospital.status === 'Open 24/7' || hospital.status === 'Open Now' ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400'}>
+          <span className={hospital.status === '24 Hours' || hospital.status === 'Open Now' ? 'text-emerald-700 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400'}>
             {hospital.status}
           </span>
         </div>
@@ -106,6 +110,14 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
           </span>
         )}
       </div>
+
+      {/* SAVED BANNER */}
+      {isSaved && (
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 p-2.5 text-[11px] font-bold rounded-xl flex items-center gap-2">
+          <Check className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Saved {hospital.name} to favorites</span>
+        </div>
+      )}
 
       {/* FOOTER ACTIONS */}
       <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -155,6 +167,6 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
           View Details
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
