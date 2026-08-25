@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Upload,
   Camera,
   FileText,
   CheckCircle2,
   AlertCircle,
-  X,
-  ArrowRight,
-  Sparkles,
-  Layers,
-  LayoutDashboard,
-  Eye,
-  ShieldCheck,
   RefreshCw
 } from 'lucide-react';
 import type { MedicalRecordItem } from '../records/recordsData';
@@ -40,7 +34,7 @@ interface ScanViewProps {
 }
 
 export const ScanView: React.FC<ScanViewProps> = ({
-  user,
+  user: _user,
   onNavigate,
 }) => {
   // WORKFLOW STEPS: 'idle' | 'uploading' | 'editing' | 'info' | 'success'
@@ -106,53 +100,50 @@ export const ScanView: React.FC<ScanViewProps> = ({
       return;
     }
 
-    // Start progress simulation
     setSelectedFile(file);
     setFlowStep('uploading');
-    setUploadProgress(15);
-    setUploadStatusText('Uploading document...');
-
-    // Read image as Data URL if image
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCapturedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setCapturedImage(null);
-    }
-
-    // Progress simulation
-    setTimeout(() => setUploadProgress(45), 200);
-    setTimeout(() => setUploadProgress(75), 450);
-    setTimeout(() => {
-      setUploadProgress(100);
-      setUploadStatusText('Processing & Optimizing...');
-    }, 700);
-
-    setTimeout(() => {
-      setFlowStep('editing');
-      setEditorOpen(true);
-    }, 1100);
+    simulateUpload();
   };
 
-  // FILE DRAG & DROP HANDLERS
-  const handleDrop = (e: React.DragEvent) => {
+  // SIMULATE FILE UPLOAD PROGRESS
+  const simulateUpload = () => {
+    setUploadProgress(0);
+    setUploadStatusText('Uploading document...');
+
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 20;
+      setUploadProgress(current);
+
+      if (current === 40) {
+        setUploadStatusText('Extracting document metadata...');
+      } else if (current === 80) {
+        setUploadStatusText('Preparing record information form...');
+      } else if (current >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setFlowStep('info');
+        }, 400);
+      }
+    }, 250);
+  };
+
+  // DRAG & DROP HANDLERS
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       validateAndProcessFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files && e.target.files[0]) {
       validateAndProcessFile(e.target.files[0]);
     }
   };
 
-  // CAMERA SCANNER CAPTURE HANDLER
+  // CAMERA CAPTURE HANDLER
   const handleCameraCapture = (dataUrl: string) => {
     setScannerOpen(false);
     setCapturedImage(dataUrl);
@@ -238,49 +229,33 @@ export const ScanView: React.FC<ScanViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Scan & Upload</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-[#00a896]/20 text-cyan-300 border border-teal-500/30 rounded-full">
-              Smart Digitizer
-            </span>
+      <PageHeader
+        title="Scan & Upload Health Records"
+        subtitle="Digitize physical prescriptions, lab reports and diagnostic scans into your ABDM Vault."
+        badgeText="Smart Digitizer"
+        badgeIcon={<Camera className="w-3.5 h-3.5" />}
+        rightElement={
+          <div className="flex items-center gap-3 self-stretch sm:self-auto font-sans">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Upload className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
+              <span>Upload Document</span>
+            </button>
+
+            <button
+              onClick={() => setScannerOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Camera className="w-4 h-4" />
+              <span>Scan Document</span>
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Digitize your medical documents and keep your health records organized.
-          </p>
-        </div>
-
-        {/* TOP RIGHT ACTION BUTTONS */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto">
-          <button
-            onClick={() => setMultiScanOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold transition-colors cursor-pointer"
-            title="Scan Multiple Pages"
-          >
-            <Layers className="w-4 h-4 text-cyan-400" />
-            <span>Multi-Scan</span>
-          </button>
-
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
-          >
-            <Upload className="w-4 h-4 text-teal-400" />
-            <span>Upload Document</span>
-          </button>
-
-          <button
-            onClick={() => setScannerOpen(true)}
-            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md hover:shadow-cyan-500/20 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Camera className="w-4 h-4" />
-            <span>Scan Document</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* HIDDEN FILE INPUT */}
       <input
@@ -297,23 +272,23 @@ export const ScanView: React.FC<ScanViewProps> = ({
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto space-y-6 shadow-2xl"
+          className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto space-y-6 shadow-2xl font-sans"
         >
-          <div className="w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto shadow-[0_0_30px_rgba(16,185,129,0.2)] animate-bounce">
+          <div className="w-20 h-20 rounded-full bg-emerald-500/15 border-2 border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mx-auto shadow-[0_0_30px_rgba(16,185,129,0.2)] animate-bounce">
             <CheckCircle2 className="w-10 h-10" />
           </div>
 
           <div>
-            <h2 className="text-2xl font-extrabold text-white">Document Saved Successfully</h2>
-            <p className="text-sm text-slate-300 mt-2 leading-relaxed">
-              Your medical document <strong className="text-cyan-300">"{savedRecordTitle}"</strong> has been added to your Medical Records database.
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Document Saved Successfully</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed font-medium">
+              Your medical document <strong className="text-[#00a896] dark:text-cyan-300">"{savedRecordTitle}"</strong> has been added to your Medical Records database.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
             <button
               onClick={() => onNavigate('records')}
-              className="w-full sm:w-auto py-3 px-5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto py-3 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
               <FileText className="w-4 h-4" />
               <span>View Medical Records</span>
@@ -321,15 +296,15 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
             <button
               onClick={handleResetFlow}
-              className="w-full sm:w-auto py-3 px-5 rounded-xl font-bold text-xs text-slate-200 bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto py-3 px-5 rounded-xl font-bold text-xs text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
-              <RefreshCw className="w-4 h-4 text-cyan-400" />
+              <RefreshCw className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
               <span>Scan Another Document</span>
             </button>
 
             <button
               onClick={() => onNavigate('dashboard')}
-              className="w-full sm:w-auto py-3 px-4 rounded-xl font-semibold text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="w-full sm:w-auto py-3 px-4 rounded-xl font-semibold text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <span>Go to Dashboard</span>
             </button>
@@ -347,32 +322,30 @@ export const ScanView: React.FC<ScanViewProps> = ({
         />
       ) : (
         /* WORKSPACE: SCAN OR UPLOAD DRAG-AND-DROP OPTIONS */
-        <div className="space-y-8">
+        <div className="space-y-8 font-sans">
           {/* TWO PRIMARY CHOICE CARDS (DESKTOP: SIDE-BY-SIDE, MOBILE: STACKED) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* SCAN CARD */}
             <div
               onClick={() => setScannerOpen(true)}
-              className="group bg-gradient-to-br from-slate-900/90 to-slate-900/50 hover:to-teal-950/40 border border-slate-800 hover:border-teal-500/50 rounded-3xl p-8 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden"
+              className="group bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/50 rounded-3xl p-8 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl group-hover:bg-cyan-500/10 transition-colors" />
-
               <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#00a896]/15 border border-teal-500/30 flex items-center justify-center text-cyan-300 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-[#00a896]/15 border border-teal-500/30 flex items-center justify-center text-[#00a896] dark:text-cyan-300 group-hover:scale-110 transition-transform">
                   <Camera className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-extrabold text-white group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
                     Scan Document
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed font-medium">
                     Use your device camera to scan physical paper reports, prescriptions, or discharge sheets.
                   </p>
                 </div>
               </div>
 
               <div className="pt-2">
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#00a896] group-hover:bg-teal-600 transition-colors shadow-md">
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#00a896] group-hover:bg-[#00897b] transition-colors shadow-md">
                   <Camera className="w-4 h-4" />
                   <span>Start Scan</span>
                 </span>
@@ -382,30 +355,28 @@ export const ScanView: React.FC<ScanViewProps> = ({
             {/* UPLOAD CARD */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="group bg-gradient-to-br from-slate-900/90 to-slate-900/50 hover:to-purple-950/40 border border-slate-800 hover:border-purple-500/50 rounded-3xl p-8 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden"
+              className="group bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/50 rounded-3xl p-8 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-colors" />
-
               <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-300 group-hover:scale-110 transition-transform">
                   <Upload className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-extrabold text-white group-hover:text-purple-300 transition-colors">
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                     Upload File
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed font-medium">
                     Select existing digital files from your phone or computer.
                   </p>
                 </div>
               </div>
 
               <div className="pt-2 flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 group-hover:bg-purple-600 transition-colors shadow-md">
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 dark:bg-slate-800 group-hover:bg-purple-600 transition-colors shadow-md">
                   <Upload className="w-4 h-4" />
                   <span>Browse Files</span>
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">PDF, JPG, PNG</span>
+                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-bold">PDF, JPG, PNG</span>
               </div>
             </div>
           </div>
@@ -418,67 +389,67 @@ export const ScanView: React.FC<ScanViewProps> = ({
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            className={`relative rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden ${
+            className={`relative rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden shadow-sm ${
               dragOver
-                ? 'border-cyan-400 bg-cyan-950/30 scale-[1.01]'
+                ? 'border-cyan-500 bg-cyan-500/10 scale-[1.01]'
                 : fileError
-                ? 'border-rose-500/50 bg-rose-950/20'
-                : 'border-slate-800 hover:border-teal-500/40 bg-slate-900/60 hover:bg-slate-900/90'
+                ? 'border-rose-500/50 bg-rose-500/10'
+                : 'border-slate-300 dark:border-slate-800 hover:border-teal-500/40 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-900/90'
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
             {/* FILE UPLOAD PROGRESS OVERLAY */}
             {flowStep === 'uploading' ? (
-              <div className="max-w-md mx-auto space-y-4 py-4">
-                <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-cyan-400 mx-auto animate-pulse">
+              <div className="max-w-md mx-auto space-y-4 py-4 font-sans">
+                <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-[#00a896] dark:text-cyan-400 mx-auto animate-pulse">
                   <Upload className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-base font-extrabold text-white">{uploadStatusText}</h4>
-                  <p className="text-xs text-slate-400 mt-1">{selectedFile?.name}</p>
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white">{uploadStatusText}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">{selectedFile?.name}</p>
                 </div>
 
                 {/* PROGRESS BAR */}
-                <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-700">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-[#00a896] to-cyan-400 rounded-full"
+                    className="h-full bg-[#00a896] dark:bg-gradient-to-r dark:from-[#00a896] dark:to-cyan-400 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${uploadProgress}%` }}
                     transition={{ duration: 0.3 }}
                   />
                 </div>
-                <div className="flex justify-between text-[11px] font-mono text-slate-400 font-bold">
+                <div className="flex justify-between text-[11px] font-mono text-slate-600 dark:text-slate-400 font-bold">
                   <span>{uploadProgress}%</span>
                   <span>Max 10MB</span>
                 </div>
               </div>
             ) : (
               /* DEFAULT DRAG DROP PROMPT */
-              <div className="max-w-md mx-auto space-y-4">
+              <div className="max-w-md mx-auto space-y-4 font-sans">
                 <div
                   className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto transition-transform ${
-                    dragOver ? 'scale-110 bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'
+                    dragOver ? 'scale-110 bg-cyan-500/20 text-cyan-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   <Upload className="w-8 h-8" />
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-bold text-white">Drop your medical document here</h3>
-                  <p className="text-xs text-slate-400 mt-1">or browse files from your device</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Drop your medical document here</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">or browse files from your device</p>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 pt-2 text-[11px] font-semibold text-slate-400">
-                  <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">PDF</span>
-                  <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">JPG</span>
-                  <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">JPEG</span>
-                  <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">PNG</span>
+                <div className="flex items-center justify-center gap-2 pt-2 text-[11px] font-semibold text-slate-600 dark:text-slate-400 font-mono">
+                  <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">PDF</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">JPG</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">JPEG</span>
+                  <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">PNG</span>
                   <span>• Max 10 MB</span>
                 </div>
 
                 {/* FILE VALIDATION ERROR BANNER */}
                 {fileError && (
-                  <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center justify-center gap-2 animate-in fade-in">
+                  <div className="mt-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-center gap-2 animate-in fade-in">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{fileError}</span>
                   </div>

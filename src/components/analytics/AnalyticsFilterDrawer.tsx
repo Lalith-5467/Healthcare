@@ -41,70 +41,47 @@ export const AnalyticsFilterDrawer: React.FC<AnalyticsFilterDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
-      <div className="bg-slate-900 border-l border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto text-slate-900 dark:text-white">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
               <Filter className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Filter Health Analytics</h3>
-              <p className="text-xs text-slate-400">Filter activity timeline by type & date range</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Filter Health Analytics</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Filter activity timeline by type & date range</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* BODY */}
-        <div className="space-y-6 py-6 flex-1 overflow-y-auto text-xs">
+        <div className="space-y-6 py-6 flex-1 overflow-y-auto text-xs font-medium">
           {/* ACTIVITY TYPE */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2 font-mono">
               Activity Type
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {['All', 'Medication', 'Appointment', 'Record', 'Consultation', 'Wellness'].map((t) => (
+            <div className="grid grid-cols-2 gap-2 font-mono">
+              {['All', 'Medication', 'Appointment', 'Consultation', 'Record Added', 'Vital Measured'].map((at) => (
                 <button
-                  key={t}
+                  key={at}
                   type="button"
-                  onClick={() => setLocalFilters({ ...localFilters, activityType: t })}
-                  className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer ${
-                    localFilters.activityType === t
-                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  onClick={() => setLocalFilters({ ...localFilters, activityType: at })}
+                  className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer font-sans ${
+                    localFilters.activityType === at
+                      ? 'bg-[#00a896] text-white border-teal-300 shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* STATUS */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Activity Status
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {['All', 'Completed', 'Upcoming', 'Added', 'Cancelled'].map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => setLocalFilters({ ...localFilters, status: st })}
-                  className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer ${
-                    localFilters.status === st
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                  }`}
-                >
-                  {st}
+                  {at}
                 </button>
               ))}
             </div>
@@ -112,34 +89,34 @@ export const AnalyticsFilterDrawer: React.FC<AnalyticsFilterDrawerProps> = ({
 
           {/* DATE RANGE */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Time Period
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2 font-mono">
+              Date Range
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {['7 Days', '30 Days', '3 Months', '6 Months', '1 Year'].map((range) => (
+            <div className="grid grid-cols-2 gap-2 font-mono">
+              {['7 Days', '30 Days', '3 Months', '1 Year'].map((dr) => (
                 <button
-                  key={range}
+                  key={dr}
                   type="button"
-                  onClick={() => setLocalFilters({ ...localFilters, dateRange: range })}
-                  className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer ${
-                    localFilters.dateRange === range
-                      ? 'bg-[#00a896] text-white border-teal-400'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  onClick={() => setLocalFilters({ ...localFilters, dateRange: dr })}
+                  className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer font-sans ${
+                    localFilters.dateRange === dr
+                      ? 'bg-[#00a896] text-white border-teal-300 shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  {range}
+                  {dr}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+        {/* FOOTER ACTIONS */}
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex items-center justify-between gap-3 font-sans">
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+            className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-extrabold transition-colors border border-slate-300 dark:border-slate-700 flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -148,7 +125,7 @@ export const AnalyticsFilterDrawer: React.FC<AnalyticsFilterDrawerProps> = ({
           <button
             type="button"
             onClick={handleApply}
-            className="flex-1 py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2.5 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
           >
             <Check className="w-4 h-4" />
             <span>Apply Filters</span>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PageHeader } from '../ui/PageHeader';
 import {
   Building2,
   Users,
   FileText,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import type {
   EmergencyContactItem,
@@ -187,7 +189,7 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -204,19 +206,12 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">SOS & Emergency</h1>
-            <span className="px-3 py-1 text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full font-mono">
-              🚨 24x7 Safety Desk
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Quickly access emergency options and important contacts when you need them.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="SOS & Emergency Care"
+        subtitle="Quickly access emergency options and important contacts when you need them."
+        badgeText="24x7 Safety Desk"
+        badgeIcon={<AlertTriangle className="w-3.5 h-3.5" />}
+      />
 
       {/* 2. EMERGENCY HEADER STATUS AREA */}
       <EmergencyHeaderStatus onOpenSettings={() => setPreferencesModalOpen(true)} />
@@ -287,41 +282,41 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
       </div>
 
       {/* 9. CROSS-MODULE SHORTCUT CTAs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-sans">
         <button
           onClick={() => onNavigate('hospitals')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-purple-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Building2 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Nearby Hospitals</h4>
-          <p className="text-[11px] text-slate-400">Find 24x7 cashless emergency network hospitals →</p>
+          <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Nearby Hospitals</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Find 24x7 cashless emergency network hospitals →</p>
         </button>
 
         <button
           onClick={() => onNavigate('family')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Users className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Family Connect</h4>
-          <p className="text-[11px] text-slate-400">Share emergency medical ID with dependents →</p>
+          <Users className="w-5 h-5 text-[#00a896] dark:text-teal-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Family Connect</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Share emergency medical ID with dependents →</p>
         </button>
 
         <button
           onClick={() => onNavigate('insurance')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <FileText className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Insurance Coverage</h4>
-          <p className="text-[11px] text-slate-400">View cashless hospitalization policy limits →</p>
+          <FileText className="w-5 h-5 text-[#00a896] dark:text-cyan-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Insurance Coverage</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">View cashless hospitalization policy limits →</p>
         </button>
 
         <button
           onClick={() => onNavigate('appointments')}
-          className="p-5 bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
+          className="p-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/40 rounded-3xl text-left space-y-2 transition-all cursor-pointer shadow-md group"
         >
-          <Calendar className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <h4 className="font-extrabold text-white">Care Appointments</h4>
-          <p className="text-[11px] text-slate-400">Book follow-up specialist consultation →</p>
+          <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+          <h4 className="font-extrabold text-slate-900 dark:text-white">Care Appointments</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Book follow-up specialist consultation →</p>
         </button>
       </div>
 
@@ -407,17 +402,17 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
 
       {/* SHARE ID MODAL */}
       {shareIDModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs">
-            <h3 className="font-extrabold text-white text-base">Share Emergency Medical ID</h3>
-            <p className="text-slate-300">Share offline medical QR & allergy record with trusted contact.</p>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Share Emergency Medical ID</h3>
+            <p className="text-slate-600 dark:text-slate-300 font-medium">Share offline medical QR & allergy record with trusted contact.</p>
             <div className="space-y-2">
               <button
                 onClick={() => {
                   onNavigate('family');
                   setShareIDModalOpen(false);
                 }}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-teal-300 font-bold hover:bg-slate-800 text-left cursor-pointer"
+                className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[#00a896] dark:text-teal-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-left cursor-pointer"
               >
                 Share via Family Connect →
               </button>
@@ -427,12 +422,12 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
                   showToast('✓ Copied demo medical ID info to clipboard');
                   setShareIDModalOpen(false);
                 }}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-purple-300 font-bold hover:bg-slate-800 text-left cursor-pointer"
+                className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-left cursor-pointer"
               >
                 Copy Demo Medical ID Details
               </button>
             </div>
-            <button onClick={() => setShareIDModalOpen(false)} className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer">Close</button>
+            <button onClick={() => setShareIDModalOpen(false)} className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold cursor-pointer border border-slate-300 dark:border-slate-700">Close</button>
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface SidebarHeaderProps {
   isCollapsed: boolean;
@@ -11,23 +11,22 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   onToggleCollapse
 }) => {
   return (
-    <div className="p-3.5 flex items-center justify-between border-b border-slate-800/60 relative shrink-0">
+    <div className="p-3.5 flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800/60 relative shrink-0">
       <div className="flex items-center gap-2.5 overflow-hidden select-none">
         
-        {/* HEART ICON WITH SOFT GLOW */}
-        <div className="relative shrink-0 flex items-center justify-center w-9 h-9 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-md shadow-rose-500/10 group">
-          <div className="absolute inset-0 rounded-2xl bg-rose-500/20 blur-md pointer-events-none group-hover:bg-rose-500/40 transition-all duration-300" />
-          <Heart className="w-5 h-5 relative z-10 fill-rose-500/30 text-rose-400 stroke-[2.5]" />
+        {/* ECG ACTIVITY ICON WITH TEAL BACKGROUND */}
+        <div className="relative shrink-0 flex items-center justify-center w-9 h-9 rounded-2xl bg-[#00a896] text-white shadow-md shadow-teal-500/20 group">
+          <Activity className="w-5 h-5 text-white stroke-[2.5]" />
         </div>
 
         {/* BRAND NAME & SUBTITLE */}
         {!isCollapsed && (
           <div className="flex flex-col min-w-0 transition-all duration-300">
-            <span className="font-extrabold text-base tracking-tight text-white leading-tight flex items-center gap-1">
-              Health<span className="text-[#00a896]">Record</span>
+            <span className="font-black text-lg tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+              Medi<span className="text-[#00a896]">Care</span>
             </span>
-            <span className="text-[10px] font-semibold text-slate-400 tracking-tight leading-tight mt-0.5">
-              Your Health. Your Records.
+            <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 tracking-wider leading-tight uppercase font-mono mt-0.5">
+              HEALTHCARE & MEDICAL
             </span>
           </div>
         )}
@@ -37,7 +36,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       <button
         onClick={onToggleCollapse}
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="hidden md:flex p-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors shrink-0 cursor-pointer"
+        className="hidden md:flex p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 transition-colors shrink-0 cursor-pointer"
         title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}

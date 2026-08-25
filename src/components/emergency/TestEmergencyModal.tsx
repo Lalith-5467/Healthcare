@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Play, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
+import { X, Play, CheckCircle2, Sparkles } from 'lucide-react';
 
 interface TestEmergencyModalProps {
   isOpen: boolean;
@@ -25,23 +25,23 @@ export const TestEmergencyModal: React.FC<TestEmergencyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-xs text-center">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-xs text-center text-slate-900 dark:text-white">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4 text-left">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 text-left">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-              <Play className="w-5 h-5 fill-purple-400" />
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <Play className="w-5 h-5 fill-current" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Test Emergency System</h3>
-              <p className="text-xs text-slate-400">Safe dry-run simulation of alerts</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Test Emergency System</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Safe dry-run simulation of alerts</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -49,48 +49,44 @@ export const TestEmergencyModal: React.FC<TestEmergencyModalProps> = ({
 
         {/* STEP 1: IDLE */}
         {step === 'idle' && (
-          <div className="space-y-4">
-            <p className="text-slate-300 leading-relaxed">
+          <div className="space-y-4 font-medium">
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
               Test your emergency contacts and SOS interface without sending a real alert.
             </p>
-            <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-[11px] text-purple-300">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-[11px] text-purple-700 dark:text-purple-300">
               ✓ Validates location detection & contact list readiness
             </div>
             <button
               onClick={startTestSequence}
-              className="w-full py-3 rounded-xl font-extrabold text-white bg-purple-600 hover:bg-purple-500 shadow-md cursor-pointer"
+              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs cursor-pointer shadow-md flex items-center justify-center gap-2 font-sans"
             >
-              Run System Test
+              <Play className="w-4 h-4 fill-white" />
+              <span>Start System Test</span>
             </button>
           </div>
         )}
 
         {/* STEP 2: TESTING */}
         {step === 'testing' && (
-          <div className="space-y-4 py-4 font-mono">
-            <Sparkles className="w-10 h-10 text-purple-400 animate-spin mx-auto" />
-            <h4 className="font-extrabold text-white text-sm">Testing Emergency Sequence...</h4>
-            <div className="space-y-1 text-slate-400 text-[11px]">
-              <p>• Verifying Emergency Contacts... OK</p>
-              <p>• Checking Location API... OK</p>
-              <p>• Simulating Alert Payloads... OK</p>
-            </div>
+          <div className="py-8 space-y-4 font-medium">
+            <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin mx-auto" />
+            <p className="text-slate-800 dark:text-slate-200 font-bold font-mono">Running dry-run simulation sequence...</p>
           </div>
         )}
 
         {/* STEP 3: COMPLETE */}
         {step === 'complete' && (
-          <div className="space-y-4 py-2">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-            <h4 className="font-extrabold text-white text-base">✓ Test Completed</h4>
-            <p className="text-slate-300 text-xs font-mono">
-              Emergency contacts and location system are 100% ready. No real alert was sent.
-            </p>
+          <div className="space-y-4 font-medium">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Emergency Readiness Verified!</h4>
+            <p className="text-slate-600 dark:text-slate-300">All emergency services & contacts are operational and configured properly.</p>
             <button
               onClick={onClose}
-              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs cursor-pointer shadow-md font-sans"
             >
-              Close Test
+              Close Test Window
             </button>
           </div>
         )}

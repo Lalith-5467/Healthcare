@@ -12,7 +12,7 @@ interface MedicineFilterDrawerProps {
   onClose: () => void;
   filters: MedicineFilterState;
   onApplyFilters: (newFilters: MedicineFilterState) => void;
-  onResetFilters: () => void;
+  onResetFilters?: () => void;
 }
 
 export const MedicineFilterDrawer: React.FC<MedicineFilterDrawerProps> = ({
@@ -36,128 +36,100 @@ export const MedicineFilterDrawer: React.FC<MedicineFilterDrawerProps> = ({
   };
 
   const handleReset = () => {
-    onResetFilters();
-    onClose();
+    const defaultFilters: MedicineFilterState = {
+      status: 'All',
+      frequency: 'All',
+      sortBy: 'Newest'
+    };
+    setLocalFilters(defaultFilters);
+    if (onResetFilters) onResetFilters();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
-      <div className="bg-slate-900 border-l border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto text-slate-900 dark:text-white font-sans">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Filter className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Filter Medicines</h3>
-              <p className="text-xs text-slate-400">Refine by status, dosage frequency & sorting</p>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Filter Medicines</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Refine your active prescription list</p>
             </div>
           </div>
+
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* BODY */}
+        {/* OPTIONS */}
         <div className="space-y-6 py-6 flex-1 overflow-y-auto">
-          {/* STATUS */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Medication Status
+          {/* STATUS FILTER */}
+          <div className="space-y-3 font-mono">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-300 uppercase tracking-wider font-sans">
+              Medicine Status
             </label>
             <div className="grid grid-cols-2 gap-2">
               {['All', 'Active', 'Completed', 'Paused'].map((st) => (
                 <button
                   key={st}
-                  type="button"
                   onClick={() => setLocalFilters({ ...localFilters, status: st })}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                  className={`p-3 rounded-xl text-xs font-extrabold border text-left transition-all flex items-center justify-between cursor-pointer ${
                     localFilters.status === st
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                      ? 'bg-teal-500/10 dark:bg-amber-500/20 text-[#00a896] dark:text-amber-300 border-[#00a896] dark:border-amber-500/40 shadow-sm'
+                      : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900'
                   }`}
                 >
-                  {st}
+                  <span className="font-sans">{st}</span>
+                  {localFilters.status === st && <Check className="w-4 h-4 text-[#00a896] dark:text-amber-400" />}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* FREQUENCY */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+          {/* FREQUENCY FILTER */}
+          <div className="space-y-3 font-mono">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-300 uppercase tracking-wider font-sans">
               Dosage Frequency
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: 'All Frequencies', value: 'All' },
-                { label: 'Once Daily', value: 'Once daily' },
-                { label: 'Twice Daily', value: 'Twice daily' },
-                { label: 'As Needed', value: 'As needed' }
-              ].map((freq) => (
+            <div className="space-y-2">
+              {['All', 'Once daily', 'Twice daily', 'Thrice daily', 'As needed'].map((freq) => (
                 <button
-                  key={freq.value}
-                  type="button"
-                  onClick={() => setLocalFilters({ ...localFilters, frequency: freq.value })}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                    localFilters.frequency === freq.value
-                      ? 'bg-[#00a896] text-white border-teal-500'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  key={freq}
+                  onClick={() => setLocalFilters({ ...localFilters, frequency: freq })}
+                  className={`w-full p-3 rounded-xl text-xs font-extrabold border text-left transition-all flex items-center justify-between cursor-pointer ${
+                    localFilters.frequency === freq
+                      ? 'bg-teal-500/10 dark:bg-amber-500/20 text-[#00a896] dark:text-amber-300 border-[#00a896] dark:border-amber-500/40 shadow-sm'
+                      : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900'
                   }`}
                 >
-                  {freq.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* SORT BY */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Sort Order
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Newest', value: 'Newest' },
-                { label: 'Oldest', value: 'Oldest' },
-                { label: 'A – Z', value: 'A-Z' }
-              ].map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
-                  onClick={() => setLocalFilters({ ...localFilters, sortBy: s.value })}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                    localFilters.sortBy === s.value
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                  }`}
-                >
-                  {s.label}
+                  <span className="font-sans">{freq}</span>
+                  {localFilters.frequency === freq && <Check className="w-4 h-4 text-[#00a896] dark:text-amber-400" />}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+        {/* FOOTER ACTIONS */}
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex items-center gap-3">
           <button
-            type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300 dark:border-slate-700"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Reset</span>
+            <RefreshCw className="w-4 h-4" />
+            <span>Reset All</span>
           </button>
 
           <button
-            type="button"
             onClick={handleApply}
-            className="flex-1 py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-500 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
           >
             <Check className="w-4 h-4" />
             <span>Apply Filters</span>

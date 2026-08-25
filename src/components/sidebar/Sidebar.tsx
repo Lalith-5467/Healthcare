@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       <aside
         aria-label="Main healthcare navigation"
-        className={`h-screen sticky top-0 bg-gradient-to-b from-[#0b1329] via-[#091024] to-[#070b18] text-slate-300 border-r border-slate-800/80 shadow-2xl transition-all duration-300 ease-in-out flex flex-col justify-between z-30 select-none ${
+        className={`h-screen sticky top-0 bg-white dark:bg-gradient-to-b dark:from-[#0b1329] dark:via-[#091024] dark:to-[#070b18] text-slate-800 dark:text-slate-300 border-r border-slate-200/90 dark:border-slate-800/80 shadow-lg dark:shadow-2xl transition-all duration-300 ease-in-out flex flex-col justify-between z-30 select-none ${
           isCollapsed ? 'w-[76px]' : 'w-[260px] lg:w-[270px]'
         }`}
       >

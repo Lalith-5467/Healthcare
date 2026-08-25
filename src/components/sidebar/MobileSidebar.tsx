@@ -40,7 +40,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+              className="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md"
             />
 
             {/* OFF-CANVAS SIDEBAR DRAWER */}
@@ -49,13 +49,13 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-[280px] max-w-[85vw] h-full bg-gradient-to-b from-[#0b1329] via-[#091024] to-[#070b18] text-slate-300 shadow-2xl border-r border-slate-800 flex flex-col justify-between z-50 select-none"
+              className="relative w-[280px] max-w-[85vw] h-full bg-white dark:bg-gradient-to-b dark:from-[#0b1329] dark:via-[#091024] dark:to-[#070b18] text-slate-800 dark:text-slate-300 shadow-2xl border-r border-slate-200/90 dark:border-slate-800 flex flex-col justify-between z-50 select-none"
             >
               {/* CLOSE BUTTON */}
               <button
                 onClick={onClose}
                 aria-label="Close mobile navigation"
-                className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white bg-slate-900 border border-slate-800 transition-colors z-20 cursor-pointer"
+                className="absolute top-4 right-4 p-2 rounded-full text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 transition-colors z-20 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
