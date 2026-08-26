@@ -19,7 +19,6 @@ import {
   HeartHandshake,
   Stethoscope,
   Zap,
-  Check,
   Calendar,
   Heart,
   Droplet,
@@ -153,48 +152,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   const strength = getPasswordStrength(password);
 
-  const handleQuickDemoFill = () => {
-    setErrorMsg('');
-    setPassword('MediCare@2026');
-    setConfirmPassword('MediCare@2026');
-    setAgreedTerms(true);
-
-    if (role === 'patient') {
-      setFullName('Lalith Patel');
-      setEmail('lalith.patel@abdm.in');
-      setPhone('+91 98765 43210');
-      setDob('1992-05-14');
-      setAge('34');
-      setGender('Male');
-      setBloodGroup('O+');
-      setFamilyPhone('+91 98765 11223');
-      setEmergencyContactName('Priya Patel (Spouse)');
-      setAllergies('Penicillin, Dust');
-      setAbhaId('14-8472-9104-5821');
-    } else if (role === 'caregiver') {
-      setFullName('Sunita Rao');
-      setEmail('sunita.caregiver@abdm.in');
-      setPhone('+91 98111 22334');
-      setCaregiverType('Family Member');
-      setCaregiverGovId('9842-1940-5821');
-      setPatientName('Ramesh Rao (Father)');
-      setPatientRelation('Parent');
-      setPatientAbhaId('14-9981-4432-1109');
-      setAuthorizationScope('Full Medical Proxy');
-    } else if (role === 'doctor') {
-      setFullName('Dr. Rajesh Varma');
-      setEmail('dr.varma@apollohealthcare.in');
-      setPhone('+91 98222 33445');
-      setMedicalCouncilRegNo('NMC-2014-089421');
-      setSpecialization('Cardiology');
-      setQualifications('MBBS, MD (Cardiology), DM');
-      setExperienceYears('14');
-      setHospitalAffiliation('Apollo Multi-Specialty Hospital, Chennai');
-      setHprAddress('dr.varma@hpr.abdm');
-      setTeleConsultReady(true);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -237,8 +194,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }, 900);
   };
 
+  // Consistent Input Field Class
+  const inputClass = "w-full h-11 px-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
+  const inputWithIconClass = "w-full h-11 pl-10 pr-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
+  const labelClass = "text-xs font-bold text-slate-700 dark:text-slate-200 block mb-1";
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative overflow-hidden flex flex-col justify-center select-none">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative overflow-hidden flex flex-col justify-center select-none">
       
       {/* BACKGROUND DECORATIVE GLOW ACCENTS */}
       <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#00a896]/15 rounded-full blur-3xl pointer-events-none" />
@@ -260,7 +222,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       </div>
 
       {/* MAIN CONTAINER (CENTERED ON REGISTER, 2-COLUMN ON LOGIN) */}
-      <div className={`mx-auto w-full relative z-10 pt-10 sm:pt-6 ${
+      <div className={`mx-auto w-full relative z-10 pt-8 sm:pt-4 ${
         mode === 'register' 
           ? 'max-w-2xl' 
           : 'max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch'
@@ -356,7 +318,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           transition={{ duration: 0.5 }}
           className={mode === 'register' ? 'w-full' : 'lg:col-span-7'}
         >
-          <div className="h-full rounded-3xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl flex flex-col justify-between">
+          <div className="h-full rounded-3xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-6 sm:p-9 shadow-2xl backdrop-blur-2xl flex flex-col justify-between">
             <div>
               {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) */}
               <div className="p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 flex items-center mb-6 relative">
@@ -370,7 +332,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   }`}
                 >
                   <KeyRound className="w-4 h-4" />
-                  <span>Sign In to Account</span>
+                  <span>Sign In</span>
                 </button>
 
                 <button
@@ -383,7 +345,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   }`}
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>Register New Account</span>
+                  <span>Register</span>
                 </button>
               </div>
 
@@ -448,10 +410,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   
-                  {/* ROLE SELECTOR CARDS */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 tracking-wider font-mono">
-                      Select Portal Access Role
+                  {/* ROLE SELECTOR PILLS */}
+                  <div className="space-y-1.5 pb-1">
+                    <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider font-mono">
+                      Account Role
                     </label>
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
@@ -466,13 +428,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             key={item.id}
                             type="button"
                             onClick={() => { setRole(item.id as any); setErrorMsg(''); }}
-                            className={`py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            className={`h-11 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-teal-500/15 border-[#00a896] dark:border-cyan-400 text-[#00a896] dark:text-cyan-300 shadow-sm ring-2 ring-teal-500/20'
-                                : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
+                                : 'bg-slate-50/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
                             }`}
                           >
-                            <ItemIcon className="w-3.5 h-3.5" />
+                            <ItemIcon className="w-4 h-4" />
                             <span>{item.label}</span>
                           </button>
                         );
@@ -484,544 +446,496 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       PATIENT REGISTRATION FORM
                       ========================================================================= */}
                   {mode === 'register' && role === 'patient' && (
-                    <>
-                      {/* SECTION 1: BASIC INFO */}
+                    <div className="space-y-4">
+                      {/* ROW 1: FULL NAME & PRIMARY PHONE */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Full Name</label>
+                        <div>
+                          <label className={labelClass}>Full Name</label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
                               placeholder="e.g. Lalith Patel"
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Phone Number</label>
+                        <div>
+                          <label className={labelClass}>Phone Number</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
                               placeholder="+91 98765 43210"
                               value={phone}
                               onChange={(e) => setPhone(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* SECTION 2: MEDICAL DEMOGRAPHICS */}
-                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Heart className="w-3.5 h-3.5 text-rose-500" />
-                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                            Patient Medical Demographics
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                          <div className="sm:col-span-2 space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Date of Birth</label>
-                            <div className="relative">
-                              <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                              <input
-                                type="date"
-                                required
-                                value={dob}
-                                onChange={(e) => handleDobChange(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Age (Yrs)</label>
-                            <div className="relative">
-                              <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                              <input
-                                type="number"
-                                min="1"
-                                max="125"
-                                required
-                                placeholder="34"
-                                value={age}
-                                onChange={(e) => setAge(e.target.value)}
-                                className="w-full pl-8 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Gender</label>
-                            <select
-                              value={gender}
-                              onChange={(e) => setGender(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
-                            >
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                              <option value="Other">Other</option>
-                            </select>
+                      {/* ROW 2: DOB, AGE, GENDER */}
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+                        <div className="sm:col-span-5">
+                          <label className={labelClass}>Date of Birth</label>
+                          <div className="relative">
+                            <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="date"
+                              required
+                              value={dob}
+                              onChange={(e) => handleDobChange(e.target.value)}
+                              className={inputWithIconClass}
+                            />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                              <Droplet className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                              <span>Blood Group</span>
-                            </label>
-                            <select
-                              value={bloodGroup}
-                              onChange={(e) => setBloodGroup(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
-                            >
-                              {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                                <option key={bg} value={bg}>{bg}</option>
-                              ))}
-                            </select>
+                        <div className="sm:col-span-3">
+                          <label className={labelClass}>Age (Yrs)</label>
+                          <div className="relative">
+                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="number"
+                              min="1"
+                              max="125"
+                              required
+                              placeholder="34"
+                              value={age}
+                              onChange={(e) => setAge(e.target.value)}
+                              className={inputWithIconClass}
+                            />
                           </div>
+                        </div>
 
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                              <span>Allergies / Conditions</span>
-                              <span className="text-[10px] text-slate-400 font-mono">Optional</span>
-                            </label>
+                        <div className="sm:col-span-4">
+                          <label className={labelClass}>Gender</label>
+                          <select
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            className={inputClass}
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* ROW 3: BLOOD GROUP & ALLERGIES */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>Blood Group</label>
+                          <select
+                            value={bloodGroup}
+                            onChange={(e) => setBloodGroup(e.target.value)}
+                            className={`${inputClass} font-bold text-[#00a896] dark:text-cyan-300`}
+                          >
+                            {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
+                              <option key={bg} value={bg}>{bg}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className={`${labelClass} flex items-center justify-between`}>
+                            <span>Allergies / Conditions</span>
+                            <span className="text-[10px] text-slate-400 font-normal">Optional</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Penicillin, Dust, Asthma"
+                            value={allergies}
+                            onChange={(e) => setAllergies(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+
+                      {/* ROW 4: EMERGENCY FAMILY CONTACT */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>Family Emergency Phone</label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98765 11223"
+                              value={familyPhone}
+                              onChange={(e) => setFamilyPhone(e.target.value)}
+                              className={inputWithIconClass}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={labelClass}>Contact Name & Relation</label>
+                          <div className="relative">
+                            <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
-                              placeholder="e.g. Penicillin, Asthma"
-                              value={allergies}
-                              onChange={(e) => setAllergies(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                              required
+                              placeholder="e.g. Priya Patel (Spouse)"
+                              value={emergencyContactName}
+                              onChange={(e) => setEmergencyContactName(e.target.value)}
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* SECTION 3: EMERGENCY & FAMILY CONTACT */}
-                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <PhoneCall className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
-                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                            Emergency & Family Contact
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Family Emergency Number</label>
-                            <div className="relative">
-                              <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                              <input
-                                type="tel"
-                                required
-                                placeholder="+91 98765 11223"
-                                value={familyPhone}
-                                onChange={(e) => setFamilyPhone(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Name & Relation</label>
-                            <div className="relative">
-                              <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                              <input
-                                type="text"
-                                placeholder="e.g. Priya Patel (Spouse)"
-                                value={emergencyContactName}
-                                onChange={(e) => setEmergencyContactName(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* SECTION 4: ABHA GOVERNMENT HEALTH ID */}
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                      {/* ROW 5: OPTIONAL ABHA ID */}
+                      <div>
+                        <label className={`${labelClass} flex items-center justify-between`}>
                           <span>Ayushman Bharat Health ID (ABHA)</span>
-                          <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional · Government ID</span>
+                          <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono font-medium">Optional · Government ID</span>
                         </label>
                         <div className="relative">
-                          <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                          <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
                             placeholder="e.g. 14-XXXX-XXXX-8921"
                             value={abhaId}
                             onChange={(e) => setAbhaId(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono"
+                            className={`${inputWithIconClass} font-mono`}
                           />
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
 
                   {/* =========================================================================
                       CAREGIVER REGISTRATION FORM
                       ========================================================================= */}
                   {mode === 'register' && role === 'caregiver' && (
-                    <>
-                      {/* CAREGIVER IDENTITY */}
+                    <div className="space-y-4">
+                      {/* ROW 1: FULL NAME & PHONE */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Full Name</label>
+                        <div>
+                          <label className={labelClass}>Caregiver Full Name</label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
                               placeholder="e.g. Sunita Rao"
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Phone Number</label>
+                        <div>
+                          <label className={labelClass}>Contact Phone Number</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
                               placeholder="+91 98111 22334"
                               value={phone}
                               onChange={(e) => setPhone(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* CAREGIVER TYPE & GOV ID */}
-                      <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/40 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <HeartHandshake className="w-3.5 h-3.5 text-purple-500" />
-                          <span className="text-[11px] font-black uppercase text-purple-700 dark:text-purple-300 tracking-wider font-mono">
-                            Caregiver Verification & Authority
-                          </span>
+                      {/* ROW 2: CLASSIFICATION & GOV ID */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>Caregiver Classification</label>
+                          <select
+                            value={caregiverType}
+                            onChange={(e) => setCaregiverType(e.target.value)}
+                            className={inputClass}
+                          >
+                            <option value="Family Member">Family Member / Next-of-Kin</option>
+                            <option value="Professional Nurse / Aide">Professional Nurse / Medical Aide</option>
+                            <option value="Legal Guardian">Designated Legal Guardian</option>
+                            <option value="Elder Care Specialist">Elder Care Companion</option>
+                          </select>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Classification</label>
-                            <select
-                              value={caregiverType}
-                              onChange={(e) => setCaregiverType(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
-                            >
-                              <option value="Family Member">Family Member / Next-of-Kin</option>
-                              <option value="Professional Nurse / Aide">Professional Nurse / Medical Aide</option>
-                              <option value="Legal Guardian">Designated Legal Guardian</option>
-                              <option value="Elder Care Specialist">Elder Care Companion</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Government ID / Aadhaar No.</label>
-                            <div className="relative">
-                              <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                              <input
-                                type="text"
-                                required
-                                placeholder="e.g. 9842-1940-5821"
-                                value={caregiverGovId}
-                                onChange={(e) => setCaregiverGovId(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors font-mono"
-                              />
-                            </div>
+                        <div>
+                          <label className={labelClass}>Aadhaar / National ID No.</label>
+                          <div className="relative">
+                            <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. 9842-1940-5821"
+                              value={caregiverGovId}
+                              onChange={(e) => setCaregiverGovId(e.target.value)}
+                              className={`${inputWithIconClass} font-mono`}
+                            />
                           </div>
                         </div>
                       </div>
 
-                      {/* LINKED PATIENT PROFILE */}
-                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
-                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                            Assigned / Linked Patient Information
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Patient Full Name</label>
+                      {/* ROW 3: LINKED PATIENT NAME & RELATIONSHIP */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>Assigned Patient Full Name</label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
                               placeholder="e.g. Ramesh Rao"
                               value={patientName}
                               onChange={(e) => setPatientName(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors"
+                              className={inputWithIconClass}
                             />
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Relationship to Patient</label>
-                            <select
-                              value={patientRelation}
-                              onChange={(e) => setPatientRelation(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors cursor-pointer"
-                            >
-                              <option value="Parent">Parent (Father / Mother)</option>
-                              <option value="Spouse">Spouse (Husband / Wife)</option>
-                              <option value="Child">Child (Son / Daughter)</option>
-                              <option value="Sibling">Sibling (Brother / Sister)</option>
-                              <option value="Assigned Ward">Assigned Ward / Client</option>
-                            </select>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                              <span>Patient ABHA ID</span>
-                              <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional</span>
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. 14-9981-4432-1109"
-                              value={patientAbhaId}
-                              onChange={(e) => setPatientAbhaId(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors font-mono"
-                            />
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiving Authority Scope</label>
-                            <select
-                              value={authorizationScope}
-                              onChange={(e) => setAuthorizationScope(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] transition-colors cursor-pointer"
-                            >
-                              <option value="Full Medical Proxy">Full Medical Proxy (Manage All)</option>
-                              <option value="Medication & Vitals Supervisor">Medication & Vitals Supervisor</option>
-                              <option value="View Health Records Only">View Health Records Only</option>
-                            </select>
-                          </div>
+                        <div>
+                          <label className={labelClass}>Relationship to Patient</label>
+                          <select
+                            value={patientRelation}
+                            onChange={(e) => setPatientRelation(e.target.value)}
+                            className={inputClass}
+                          >
+                            <option value="Parent">Parent (Father / Mother)</option>
+                            <option value="Spouse">Spouse (Husband / Wife)</option>
+                            <option value="Child">Child (Son / Daughter)</option>
+                            <option value="Sibling">Sibling (Brother / Sister)</option>
+                            <option value="Assigned Ward">Assigned Ward / Client</option>
+                          </select>
                         </div>
                       </div>
-                    </>
+
+                      {/* ROW 4: PATIENT ABHA & AUTHORITY SCOPE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={`${labelClass} flex items-center justify-between`}>
+                            <span>Patient ABHA ID</span>
+                            <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono font-medium">Optional</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 14-9981-4432-1109"
+                            value={patientAbhaId}
+                            onChange={(e) => setPatientAbhaId(e.target.value)}
+                            className={`${inputClass} font-mono`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className={labelClass}>Caregiving Proxy Scope</label>
+                          <select
+                            value={authorizationScope}
+                            onChange={(e) => setAuthorizationScope(e.target.value)}
+                            className={`${inputClass} font-bold text-[#00a896] dark:text-cyan-300`}
+                          >
+                            <option value="Full Medical Proxy">Full Medical Proxy (Manage All)</option>
+                            <option value="Medication & Vitals Supervisor">Medication & Vitals Supervisor</option>
+                            <option value="View Health Records Only">View Health Records Only</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   {/* =========================================================================
                       DOCTOR / HEALTHCARE PROVIDER REGISTRATION FORM
                       ========================================================================= */}
                   {mode === 'register' && role === 'doctor' && (
-                    <>
-                      {/* DOCTOR BASIC INFO */}
+                    <div className="space-y-4">
+                      {/* ROW 1: DOCTOR NAME & PHONE */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Doctor Full Name (with Title)</label>
+                        <div>
+                          <label className={labelClass}>Doctor Full Name</label>
                           <div className="relative">
-                            <Stethoscope className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <Stethoscope className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
                               placeholder="e.g. Dr. Rajesh Varma"
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Direct Contact Phone</label>
+                        <div>
+                          <label className={labelClass}>Direct Contact Phone</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
                               placeholder="+91 98222 33445"
                               value={phone}
                               onChange={(e) => setPhone(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                              className={inputWithIconClass}
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* CLINICAL CREDENTIALS */}
-                      <div className="p-4 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-200/80 dark:border-cyan-800/40 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Award className="w-3.5 h-3.5 text-cyan-500" />
-                          <span className="text-[11px] font-black uppercase text-cyan-700 dark:text-cyan-300 tracking-wider font-mono">
-                            Clinical Credentials & Medical Council Registration
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Medical Council Reg. No. (NMC / State)</label>
-                            <div className="relative">
-                              <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                              <input
-                                type="text"
-                                required
-                                placeholder="e.g. NMC-2014-089421"
-                                value={medicalCouncilRegNo}
-                                onChange={(e) => setMedicalCouncilRegNo(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors font-mono"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Specialization</label>
-                            <select
-                              value={specialization}
-                              onChange={(e) => setSpecialization(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-cyan-600 dark:text-cyan-300 focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
-                            >
-                              <option value="Cardiology">Cardiology (Heart Specialist)</option>
-                              <option value="Neurology">Neurology (Brain & Spine)</option>
-                              <option value="Orthopedics">Orthopedic Surgery (Bones & Joints)</option>
-                              <option value="General Medicine">General Medicine / Internal Physician</option>
-                              <option value="Pediatrics">Pediatrics (Child Care)</option>
-                              <option value="Dermatology">Dermatology (Skin & Hair)</option>
-                              <option value="Oncology">Oncology (Cancer Specialist)</option>
-                              <option value="Endocrinology">Endocrinology (Diabetes & Hormones)</option>
-                              <option value="Psychiatry">Psychiatry & Mental Health</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Qualifications & Degrees</label>
+                      {/* ROW 2: MEDICAL COUNCIL REG NO & SPECIALIZATION */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>Medical Council Registration No.</label>
+                          <div className="relative">
+                            <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
-                              placeholder="e.g. MBBS, MD (Cardiology), DM"
-                              value={qualifications}
-                              onChange={(e) => setQualifications(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                              placeholder="e.g. NMC-2014-089421"
+                              value={medicalCouncilRegNo}
+                              onChange={(e) => setMedicalCouncilRegNo(e.target.value)}
+                              className={`${inputWithIconClass} font-mono`}
                             />
                           </div>
+                        </div>
 
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Clinical Experience (Years)</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="60"
-                              required
-                              placeholder="14"
-                              value={experienceYears}
-                              onChange={(e) => setExperienceYears(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
-                            />
-                          </div>
+                        <div>
+                          <label className={labelClass}>Primary Specialization</label>
+                          <select
+                            value={specialization}
+                            onChange={(e) => setSpecialization(e.target.value)}
+                            className={`${inputClass} font-bold text-cyan-600 dark:text-cyan-300`}
+                          >
+                            <option value="Cardiology">Cardiology (Heart Specialist)</option>
+                            <option value="Neurology">Neurology (Brain & Spine)</option>
+                            <option value="Orthopedics">Orthopedic Surgery (Bones & Joints)</option>
+                            <option value="General Medicine">General Medicine / Internal Physician</option>
+                            <option value="Pediatrics">Pediatrics (Child Care)</option>
+                            <option value="Dermatology">Dermatology (Skin & Hair)</option>
+                            <option value="Oncology">Oncology (Cancer Specialist)</option>
+                            <option value="Endocrinology">Endocrinology (Diabetes & Hormones)</option>
+                            <option value="Psychiatry">Psychiatry & Mental Health</option>
+                          </select>
                         </div>
                       </div>
 
-                      {/* HOSPITAL / CLINIC AFFILIATION & HPR ID */}
-                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
-                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                            Hospital Affiliation & ABDM Registry
-                          </span>
+                      {/* ROW 3: QUALIFICATIONS & EXPERIENCE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+                        <div className="sm:col-span-8">
+                          <label className={labelClass}>Qualifications & Degrees</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. MBBS, MD (Cardiology), DM"
+                            value={qualifications}
+                            onChange={(e) => setQualifications(e.target.value)}
+                            className={inputClass}
+                          />
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Hospital / Clinic Practice Name</label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="e.g. Apollo Multi-Specialty Hospital, Chennai"
-                              value={hospitalAffiliation}
-                              onChange={(e) => setHospitalAffiliation(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                            <div className="space-y-1">
-                              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                                <span>ABDM Registry ID (HPR)</span>
-                                <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional</span>
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="e.g. dr.varma@hpr.abdm"
-                                value={hprAddress}
-                                onChange={(e) => setHprAddress(e.target.value)}
-                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors font-mono"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-5">
-                              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <input
-                                  type="checkbox"
-                                  checked={teleConsultReady}
-                                  onChange={(e) => setTeleConsultReady(e.target.checked)}
-                                  className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 dark:border-slate-700 cursor-pointer"
-                                />
-                                <div className="flex items-center gap-1.5">
-                                  <Video className="w-3.5 h-3.5 text-teal-500" />
-                                  <span>Available for Tele-Consultation</span>
-                                </div>
-                              </label>
-                            </div>
-                          </div>
+                        <div className="sm:col-span-4">
+                          <label className={labelClass}>Experience (Yrs)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="60"
+                            required
+                            placeholder="14"
+                            value={experienceYears}
+                            onChange={(e) => setExperienceYears(e.target.value)}
+                            className={inputClass}
+                          />
                         </div>
                       </div>
-                    </>
+
+                      {/* ROW 4: HOSPITAL AFFILIATION */}
+                      <div>
+                        <label className={labelClass}>Hospital / Clinic Practice Name</label>
+                        <div className="relative">
+                          <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Apollo Multi-Specialty Hospital, Chennai"
+                            value={hospitalAffiliation}
+                            onChange={(e) => setHospitalAffiliation(e.target.value)}
+                            className={inputWithIconClass}
+                          />
+                        </div>
+                      </div>
+
+                      {/* ROW 5: HPR REGISTRY & TELECONSULTATION TOGGLE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-center">
+                        <div>
+                          <label className={`${labelClass} flex items-center justify-between`}>
+                            <span>ABDM Registry ID (HPR)</span>
+                            <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono font-medium">Optional</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. dr.varma@hpr.abdm"
+                            value={hprAddress}
+                            onChange={(e) => setHprAddress(e.target.value)}
+                            className={`${inputClass} font-mono`}
+                          />
+                        </div>
+
+                        <div className="pt-5 sm:pt-6">
+                          <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-200">
+                            <input
+                              type="checkbox"
+                              checked={teleConsultReady}
+                              onChange={(e) => setTeleConsultReady(e.target.checked)}
+                              className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 dark:border-slate-700 cursor-pointer"
+                            />
+                            <div className="flex items-center gap-1.5">
+                              <Video className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
+                              <span>Available for Tele-Consultation</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   {/* EMAIL ADDRESS (COMMON FOR ALL ROLES) */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <div>
+                    <label className={labelClass}>
                       {mode === 'login' 
                         ? 'Email Address or Health ID' 
                         : (role === 'doctor' ? 'Official Professional Email' : 'Email Address')}
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="email"
                         required
                         placeholder={role === 'doctor' ? 'e.g. dr.varma@apollohealthcare.in' : 'e.g. user@abdm.in'}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        className={inputWithIconClass}
                       />
                     </div>
                   </div>
 
                   {/* PASSWORD FIELD (COMMON FOR ALL ROLES) */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Password</label>
+                  <div>
+                    <label className={labelClass}>Password</label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1029,14 +943,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                     {/* DYNAMIC PASSWORD STRENGTH METER (REGISTER) */}
                     {mode === 'register' && password && (
-                      <div className="pt-1 space-y-1">
+                      <div className="pt-1.5 space-y-1">
                         <div className="flex items-center justify-between text-[10px] font-bold">
                           <span className="text-slate-500 dark:text-slate-400 font-mono">Password Strength:</span>
                           <span className={`${strength.score >= 75 ? 'text-teal-600 dark:text-cyan-400' : 'text-amber-500'} font-mono`}>
                             {strength.label}
                           </span>
                         </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1 overflow-hidden">
+                        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                           <div 
                             className={`h-full transition-all duration-300 ${strength.color}`} 
                             style={{ width: `${strength.score}%` }} 
@@ -1048,17 +962,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                   {/* REGISTER ONLY: CONFIRM PASSWORD */}
                   {mode === 'register' && (
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
+                    <div>
+                      <label className={labelClass}>Confirm Password</label>
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           required
                           placeholder="••••••••••••"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                          className={inputWithIconClass}
                         />
                       </div>
                     </div>
@@ -1106,7 +1020,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 px-6 rounded-xl font-black text-sm text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-3 border border-teal-400/30 disabled:opacity-50"
+                    className="w-full h-12 rounded-xl font-black text-sm text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-3 border border-teal-400/30 disabled:opacity-50"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
