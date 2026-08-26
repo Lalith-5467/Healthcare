@@ -168,7 +168,7 @@ const leadership = [
     role: 'Head of Health Privacy & Architecture',
     credentials: 'M.Tech, Stanford Fellow in Cryptography',
     specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
-    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80',
     badge: 'Data Security Pioneer',
   },
   {
@@ -1117,11 +1117,11 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     )}
 
                     {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
-                    <div className="h-68 overflow-hidden relative">
+                    <div className="h-72 overflow-hidden relative">
                       <img 
                         src={mem.img} 
                         alt={mem.name} 
-                        className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isCenter ? 'scale-105' : 'scale-100'}`}
+                        className={`w-full h-full object-cover object-[center_top] transition-transform duration-700 ease-out ${isCenter ? 'scale-105' : 'scale-100'}`}
                       />
                       
                       {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
