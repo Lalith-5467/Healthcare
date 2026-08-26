@@ -424,55 +424,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               );
             })}
           </motion.div>
-
-          {/* METRIC HIGHLIGHT SUMMARY BANNER */}
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-[#004d40] via-[#00695c] to-[#004d40] text-white shadow-2xl grid grid-cols-2 md:grid-cols-4 gap-6 text-left items-center border border-teal-400/20"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-teal-200 shrink-0">
-                <Users className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-black font-mono">50K+</div>
-                <div className="text-xs text-teal-100/90 font-medium">Happy Patients Trusting Platform</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-200 shrink-0">
-                <Stethoscope className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-black font-mono">2K+</div>
-                <div className="text-xs text-teal-100/90 font-medium">Healthcare Professionals Connected</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-200 shrink-0">
-                <Building2 className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-black font-mono">250+</div>
-                <div className="text-xs text-teal-100/90 font-medium">Hospitals & Clinics Onboarded</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-emerald-200 shrink-0">
-                <ShieldCheck className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-black font-mono">100%</div>
-                <div className="text-xs text-teal-100/90 font-medium">Secure & ABDM Integrated</div>
-              </div>
-            </div>
-          </motion.div>
-
         </div>
       </section>
 
