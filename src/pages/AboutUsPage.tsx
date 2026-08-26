@@ -43,46 +43,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   onStartJourney, 
   onExploreFeatures 
 }) => {
-  const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
-  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
-  const [activePillarIndex, setActivePillarIndex] = useState(0);
-  const [isPillarHovered, setIsPillarHovered] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
-
-  // Continuous auto-play for 3D Cover-Flow Carousel (pauses on user hover/interaction)
-  useEffect(() => {
-    if (isPillarHovered) return;
-    const timer = setInterval(() => {
-      setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, [isPillarHovered, corePillars.length]);
-
-  const handlePrevPillar = () => {
-    setActivePillarIndex((prev) => (prev - 1 + corePillars.length) % corePillars.length);
-  };
-
-  const handleNextPillar = () => {
-    setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
-  };
-
-  const handlePlayVideo = () => {
-    setIsPlayingVideo(true);
-    setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.play().catch(() => {});
-      }
-    }, 150);
-    const videoSection = document.getElementById('about-video');
-    if (videoSection) {
-      videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
   const corePillars = [
     {
       category: 'Secure Healthcare',
@@ -139,6 +99,46 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       glow: 'amber',
     },
   ];
+
+  const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [activePillarIndex, setActivePillarIndex] = useState(0);
+  const [isPillarHovered, setIsPillarHovered] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  // Continuous auto-play for 3D Cover-Flow Carousel (pauses on user hover/interaction)
+  useEffect(() => {
+    if (isPillarHovered) return;
+    const timer = setInterval(() => {
+      setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [isPillarHovered, corePillars.length]);
+
+  const handlePrevPillar = () => {
+    setActivePillarIndex((prev) => (prev - 1 + corePillars.length) % corePillars.length);
+  };
+
+  const handleNextPillar = () => {
+    setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
+  };
+
+  const handlePlayVideo = () => {
+    setIsPlayingVideo(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    }, 150);
+    const videoSection = document.getElementById('about-video');
+    if (videoSection) {
+      videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const milestones = [
     {
