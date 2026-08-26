@@ -181,9 +181,9 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
           </motion.div>
 
           {/* RIGHT COLUMN: DOWNWARD-ALIGNED ROTATING SPOTLIGHT CARD */}
-          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center py-4 w-full">
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-end py-4 w-full">
             
-            <div className="w-full max-w-[285px] flex flex-col items-center gap-3.5 relative lg:mt-32 sm:mt-20 mt-8">
+            <div className="w-full max-w-[295px] flex flex-col items-center gap-3.5 relative lg:mt-60 sm:mt-40 mt-16">
               
               {/* DOWNWARD SLIDING CARD CONTAINER */}
               <div className="w-full overflow-hidden py-1">
