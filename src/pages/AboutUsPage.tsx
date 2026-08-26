@@ -1014,11 +1014,25 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
           {/* 3D HORIZONTAL COVER-FLOW CAROUSEL FOR LEADERSHIP */}
           <div 
-            className="relative w-full max-w-5xl mx-auto h-[550px] flex items-center justify-center overflow-visible"
+            className="relative w-full max-w-5xl mx-auto h-[570px] flex items-center justify-center overflow-visible select-none"
             onMouseEnter={() => setIsLeadershipHovered(true)}
             onMouseLeave={() => setIsLeadershipHovered(false)}
-            style={{ perspective: '1200px' }}
+            style={{ perspective: '1400px' }}
           >
+            {/* AMBIENT BACKGROUND GLOW SPOTLIGHT BEHIND CENTER */}
+            <motion.div 
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: [0.4, 0.7, 0.4]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute w-[450px] h-[450px] bg-gradient-to-tr from-teal-500/20 via-cyan-500/20 to-emerald-500/10 rounded-full blur-3xl pointer-events-none" 
+            />
+
             {/* 3D TRACK */}
             <div className="relative w-full h-full flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
               {leadership.map((mem, idx) => {
@@ -1032,31 +1046,39 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 if (!isVisible) return null;
 
-                // 3D Cover-Flow Positioning & Scale
+                // 3D Cover-Flow Cinematic Geometry
                 let xOffset = 0;
+                let zOffset = 0;
                 let scale = 1;
                 let rotateY = 0;
                 let zIndex = 30;
                 let opacity = 1;
+                let filter = 'blur(0px) brightness(1)';
 
                 if (diff === 0) {
                   xOffset = 0;
-                  scale = 1.0;
+                  zOffset = 100;
+                  scale = 1.04;
                   rotateY = 0;
-                  zIndex = 30;
+                  zIndex = 40;
                   opacity = 1.0;
+                  filter = 'blur(0px) brightness(1.05)';
                 } else if (Math.abs(diff) === 1) {
                   xOffset = diff * 290;
+                  zOffset = -30;
                   scale = 0.88;
-                  rotateY = diff * -16;
-                  zIndex = 20;
-                  opacity = 0.78;
+                  rotateY = diff * -20;
+                  zIndex = 25;
+                  opacity = 0.82;
+                  filter = 'blur(0.4px) brightness(0.88)';
                 } else if (Math.abs(diff) === 2) {
-                  xOffset = diff * 480;
+                  xOffset = diff * 470;
+                  zOffset = -140;
                   scale = 0.74;
-                  rotateY = diff * -28;
+                  rotateY = diff * -32;
                   zIndex = 10;
-                  opacity = 0.42;
+                  opacity = 0.45;
+                  filter = 'blur(1.5px) brightness(0.68)';
                 }
 
                 return (
@@ -1064,16 +1086,18 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     key={idx}
                     animate={{
                       x: xOffset,
+                      z: zOffset,
                       scale: scale,
                       rotateY: rotateY,
                       zIndex: zIndex,
                       opacity: opacity,
+                      filter: filter,
                     }}
                     transition={{
                       type: "spring",
-                      stiffness: 240,
+                      stiffness: 260,
                       damping: 26,
-                      mass: 0.8
+                      mass: 0.85
                     }}
                     onClick={() => {
                       if (!isCenter) {
@@ -1081,15 +1105,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       }
                     }}
                     style={{ transformStyle: 'preserve-3d' }}
-                    className={`absolute w-[300px] sm:w-[340px] md:w-[350px] h-[480px] rounded-[24px] bg-slate-950 overflow-hidden shadow-xl flex flex-col justify-between cursor-pointer select-none transition-all duration-300 ${
+                    className={`absolute w-[300px] sm:w-[340px] md:w-[350px] h-[485px] rounded-[24px] bg-slate-950 overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
                       isCenter
-                        ? 'border-2 border-[#00a896] dark:border-cyan-400 shadow-2xl shadow-teal-500/30 ring-4 ring-teal-500/15'
-                        : 'border border-slate-700/80 shadow-lg hover:border-teal-400/50'
+                        ? 'border-2 border-cyan-400 dark:border-cyan-300 shadow-[0_25px_60px_-15px_rgba(0,168,150,0.45)] ring-4 ring-teal-500/25'
+                        : 'border border-slate-700/80 shadow-xl hover:border-teal-400/60'
                     }`}
                   >
-                    {/* AMBIENT GLOW ON CENTER CARD */}
+                    {/* SPECULAR SHEEN HIGHLIGHT FOR CENTER CARD */}
                     {isCenter && (
-                      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-teal-400/25 dark:bg-teal-500/25 rounded-full blur-2xl pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none z-20" />
                     )}
 
                     {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
@@ -1097,7 +1121,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       <img 
                         src={mem.img} 
                         alt={mem.name} 
-                        className={`w-full h-full object-cover transition-transform duration-500 ${isCenter ? 'scale-105' : 'scale-100'}`}
+                        className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isCenter ? 'scale-110' : 'scale-100'}`}
                       />
                       
                       {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
@@ -1105,9 +1129,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       
                       {/* TOP CORNER FLOATING BADGE CHIP */}
                       <div className="absolute top-3.5 right-3.5 z-10">
-                        <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md font-mono shadow-md ${
+                        <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md font-mono shadow-md transition-colors ${
                           isCenter 
-                            ? 'bg-slate-950/90 text-cyan-300 border border-cyan-400/40 ring-1 ring-cyan-400/20' 
+                            ? 'bg-slate-950/90 text-cyan-300 border border-cyan-400/50 ring-2 ring-cyan-400/20' 
                             : 'bg-slate-950/80 text-slate-300 border border-slate-700'
                         }`}>
                           {mem.badge}
@@ -1116,7 +1140,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                       {/* OVERLAID NAME AND TITLE */}
                       <div className="absolute bottom-3 left-4 right-4 text-white z-10">
-                        <h4 className="text-lg font-black tracking-tight drop-shadow-sm">{mem.name}</h4>
+                        <h4 className="text-lg font-black tracking-tight drop-shadow-md">{mem.name}</h4>
                         <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
                       </div>
                     </div>
@@ -1134,11 +1158,11 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                       <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] font-bold text-teal-400">
                         <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
                           <span>Verified Clinical Advisor</span>
                         </div>
                         {!isCenter && (
-                          <span className="text-[10px] text-cyan-300 font-mono underline">Focus</span>
+                          <span className="text-[10px] text-cyan-300 font-mono underline hover:text-cyan-200">Focus</span>
                         )}
                       </div>
                     </div>
@@ -1148,21 +1172,25 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             </div>
 
             {/* PREVIOUS / NEXT FLOATING NAV BUTTONS */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); handlePrevLeadership(); }}
               aria-label="Previous Leadership Member"
-              className="absolute left-2 sm:left-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              className="absolute left-2 sm:left-4 z-50 w-12 h-12 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); handleNextLeadership(); }}
               aria-label="Next Leadership Member"
-              className="absolute right-2 sm:right-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              className="absolute right-2 sm:right-4 z-50 w-12 h-12 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-colors cursor-pointer"
             >
               <ChevronRight className="w-5 h-5 stroke-[2.5]" />
-            </button>
+            </motion.button>
           </div>
 
           {/* CAROUSEL PAGINATION INDICATOR DOTS */}
@@ -1172,10 +1200,10 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 key={idx}
                 onClick={() => setActiveLeadershipIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                   activeLeadershipIndex === idx 
-                    ? 'w-8 bg-[#00a896] shadow-md shadow-teal-500/40' 
-                    : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                    ? 'w-10 bg-gradient-to-r from-teal-400 to-cyan-400 shadow-lg shadow-teal-500/50' 
+                    : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
                 }`}
               />
             ))}
