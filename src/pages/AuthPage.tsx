@@ -26,7 +26,13 @@ import {
   PhoneCall,
   Users,
   AlertCircle,
-  Hash
+  Hash,
+  Award,
+  Building2,
+  FileCheck2,
+  Video,
+  Shield,
+  Briefcase
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 
@@ -37,11 +43,14 @@ interface AuthPageProps {
   onSuccessLogin?: (userData: { 
     name: string; 
     email: string; 
+    role?: string;
     abhaId?: string;
     bloodGroup?: string;
     age?: number;
     phone?: string;
     emergencyContact?: string;
+    specialization?: string;
+    hospitalAffiliation?: string;
   }) => void;
 }
 
@@ -57,13 +66,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [initialMode]);
 
-  // Form states
+  // Role Selection
   const [role, setRole] = useState<'patient' | 'doctor' | 'caregiver'>('patient');
+
+  // Common Form States
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [agreedTerms, setAgreedTerms] = useState(false);
+
+  // Patient Specific States
   const [abhaId, setAbhaId] = useState('');
   const [dob, setDob] = useState('');
   const [age, setAge] = useState('');
@@ -72,11 +88,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [familyPhone, setFamilyPhone] = useState('');
   const [emergencyContactName, setEmergencyContactName] = useState('');
   const [allergies, setAllergies] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [agreedTerms, setAgreedTerms] = useState(false);
 
-  // Status states
+  // Caregiver Specific States
+  const [caregiverType, setCaregiverType] = useState('Family Member');
+  const [caregiverGovId, setCaregiverGovId] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [patientRelation, setPatientRelation] = useState('Parent');
+  const [patientAbhaId, setPatientAbhaId] = useState('');
+  const [authorizationScope, setAuthorizationScope] = useState('Full Medical Proxy');
+
+  // Doctor Specific States
+  const [medicalCouncilRegNo, setMedicalCouncilRegNo] = useState('');
+  const [specialization, setSpecialization] = useState('Cardiology');
+  const [qualifications, setQualifications] = useState('MBBS, MD');
+  const [experienceYears, setExperienceYears] = useState('10');
+  const [hospitalAffiliation, setHospitalAffiliation] = useState('');
+  const [hprAddress, setHprAddress] = useState('');
+  const [teleConsultReady, setTeleConsultReady] = useState(true);
+
+  // Status feedback states
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -124,21 +154,45 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const strength = getPasswordStrength(password);
 
   const handleQuickDemoFill = () => {
-    setEmail('lalith.patel@abdm.in');
+    setErrorMsg('');
     setPassword('MediCare@2026');
-    setFullName('Lalith Patel');
-    setPhone('+91 98765 43210');
-    setDob('1992-05-14');
-    setAge('34');
-    setGender('Male');
-    setBloodGroup('O+');
-    setFamilyPhone('+91 98765 11223');
-    setEmergencyContactName('Priya Patel (Spouse)');
-    setAllergies('Penicillin, Dust');
-    setAbhaId('14-8472-9104-5821');
     setConfirmPassword('MediCare@2026');
     setAgreedTerms(true);
-    setErrorMsg('');
+
+    if (role === 'patient') {
+      setFullName('Lalith Patel');
+      setEmail('lalith.patel@abdm.in');
+      setPhone('+91 98765 43210');
+      setDob('1992-05-14');
+      setAge('34');
+      setGender('Male');
+      setBloodGroup('O+');
+      setFamilyPhone('+91 98765 11223');
+      setEmergencyContactName('Priya Patel (Spouse)');
+      setAllergies('Penicillin, Dust');
+      setAbhaId('14-8472-9104-5821');
+    } else if (role === 'caregiver') {
+      setFullName('Sunita Rao');
+      setEmail('sunita.caregiver@abdm.in');
+      setPhone('+91 98111 22334');
+      setCaregiverType('Family Member');
+      setCaregiverGovId('9842-1940-5821');
+      setPatientName('Ramesh Rao (Father)');
+      setPatientRelation('Parent');
+      setPatientAbhaId('14-9981-4432-1109');
+      setAuthorizationScope('Full Medical Proxy');
+    } else if (role === 'doctor') {
+      setFullName('Dr. Rajesh Varma');
+      setEmail('dr.varma@apollohealthcare.in');
+      setPhone('+91 98222 33445');
+      setMedicalCouncilRegNo('NMC-2014-089421');
+      setSpecialization('Cardiology');
+      setQualifications('MBBS, MD (Cardiology), DM');
+      setExperienceYears('14');
+      setHospitalAffiliation('Apollo Multi-Specialty Hospital, Chennai');
+      setHprAddress('dr.varma@hpr.abdm');
+      setTeleConsultReady(true);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -165,13 +219,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         setSubmitted(false);
         if (onSuccessLogin) {
           onSuccessLogin({
-            name: fullName || (email ? email.split('@')[0] : 'Lalith Patel'),
+            name: fullName || (email ? email.split('@')[0] : (role === 'doctor' ? 'Dr. Rajesh Varma' : 'Lalith Patel')),
             email: email || 'lalith.patel@abdm.in',
-            abhaId: abhaId || '91-8472-9104-5821@abdm',
+            role: role === 'doctor' ? 'Doctor' : (role === 'caregiver' ? 'Caregiver' : 'Patient'),
+            abhaId: role === 'doctor' ? (hprAddress || 'dr.varma@hpr.abdm') : (abhaId || '91-8472-9104-5821@abdm'),
             bloodGroup: bloodGroup || 'O+',
             age: age ? parseInt(age, 10) : 34,
             phone: phone || '+91 98765 43210',
-            emergencyContact: familyPhone || '+91 98765 11223'
+            emergencyContact: familyPhone || '+91 98765 11223',
+            specialization: role === 'doctor' ? specialization : undefined,
+            hospitalAffiliation: role === 'doctor' ? hospitalAffiliation : undefined
           });
         } else {
           onNavigateHome();
@@ -205,10 +262,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             type="button"
             onClick={handleQuickDemoFill}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
-            title="Auto-fill with complete demo credentials"
+            title="Auto-fill with role-specific demo credentials"
           >
             <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
-            <span>Quick Demo Fill</span>
+            <span>Quick Demo Fill ({role.toUpperCase()})</span>
           </button>
 
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -251,7 +308,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     Access Your Unified Health Ecosystem
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-                    Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate family care with enterprise-grade privacy standards.
+                    Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate care with enterprise-grade privacy standards.
                   </p>
                 </div>
 
@@ -349,12 +406,22 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               {/* FORM HEADING */}
               <div className="mb-6">
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {mode === 'login' ? 'Welcome back to MediCare' : 'Create your comprehensive health profile'}
+                  {mode === 'login' 
+                    ? 'Welcome back to MediCare' 
+                    : (role === 'doctor' 
+                        ? 'Doctor & Healthcare Provider Portal' 
+                        : (role === 'caregiver' 
+                            ? 'Caregiver & Guardian Portal Registration' 
+                            : 'Patient Personal Health Registration'))}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {mode === 'login'
                     ? 'Enter your credentials to securely access your medical records and care circle.'
-                    : 'Fill in your medical details to set up your personal health card and ABDM ecosystem.'}
+                    : (role === 'doctor'
+                        ? 'Register your clinical credentials, medical license, and hospital affiliations.'
+                        : (role === 'caregiver'
+                            ? 'Set up family or professional proxy access to oversee patient vitals and medications.'
+                            : 'Fill in your medical details to set up your personal health card and ABDM ecosystem.'))}
                 </p>
               </div>
 
@@ -386,7 +453,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-medium">
                     {mode === 'login' 
                       ? 'Loading your personalized health dashboard and ABHA medical records...' 
-                      : 'Your encrypted account and Emergency SOS card have been provisioned. Redirecting...'}
+                      : `Your ${role.toUpperCase()} profile and authorization credentials have been provisioned. Redirecting...`}
                   </p>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden max-w-xs mx-auto">
                     <div className="bg-gradient-to-r from-[#00a896] to-cyan-400 h-full animate-pulse w-full" />
@@ -412,7 +479,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => setRole(item.id as any)}
+                            onClick={() => { setRole(item.id as any); setErrorMsg(''); }}
                             className={`py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-teal-500/15 border-[#00a896] dark:border-cyan-400 text-[#00a896] dark:text-cyan-300 shadow-sm ring-2 ring-teal-500/20'
@@ -427,52 +494,524 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   </div>
 
-                  {/* REGISTER ONLY: SECTION 1 — BASIC INFO */}
-                  {mode === 'register' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* =========================================================================
+                      PATIENT REGISTRATION FORM
+                      ========================================================================= */}
+                  {mode === 'register' && role === 'patient' && (
+                    <>
+                      {/* SECTION 1: BASIC INFO */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Full Name</label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Lalith Patel"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Phone Number</label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98765 43210"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 2: MEDICAL DEMOGRAPHICS */}
+                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-3.5 h-3.5 text-rose-500" />
+                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                            Patient Medical Demographics
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Date of Birth</label>
+                            <div className="relative">
+                              <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                              <input
+                                type="date"
+                                required
+                                value={dob}
+                                onChange={(e) => handleDobChange(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Age (Yrs)</label>
+                            <div className="relative">
+                              <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                              <input
+                                type="number"
+                                min="1"
+                                max="125"
+                                required
+                                placeholder="34"
+                                value={age}
+                                onChange={(e) => setAge(e.target.value)}
+                                className="w-full pl-8 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Gender</label>
+                            <select
+                              value={gender}
+                              onChange={(e) => setGender(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
+                            >
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                              <Droplet className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                              <span>Blood Group</span>
+                            </label>
+                            <select
+                              value={bloodGroup}
+                              onChange={(e) => setBloodGroup(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
+                            >
+                              {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
+                                <option key={bg} value={bg}>{bg}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                              <span>Allergies / Conditions</span>
+                              <span className="text-[10px] text-slate-400 font-mono">Optional</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Penicillin, Asthma"
+                              value={allergies}
+                              onChange={(e) => setAllergies(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 3: EMERGENCY & FAMILY CONTACT */}
+                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <PhoneCall className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                            Emergency & Family Contact
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Family Emergency Number</label>
+                            <div className="relative">
+                              <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                              <input
+                                type="tel"
+                                required
+                                placeholder="+91 98765 11223"
+                                value={familyPhone}
+                                onChange={(e) => setFamilyPhone(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Name & Relation</label>
+                            <div className="relative">
+                              <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                              <input
+                                type="text"
+                                placeholder="e.g. Priya Patel (Spouse)"
+                                value={emergencyContactName}
+                                onChange={(e) => setEmergencyContactName(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SECTION 4: ABHA GOVERNMENT HEALTH ID */}
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Full Name</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                          <span>Ayushman Bharat Health ID (ABHA)</span>
+                          <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional · Government ID</span>
+                        </label>
                         <div className="relative">
-                          <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                          <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                           <input
                             type="text"
-                            required
-                            placeholder="e.g. Lalith Patel"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            placeholder="e.g. 14-XXXX-XXXX-8921"
+                            value={abhaId}
+                            onChange={(e) => setAbhaId(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono"
                           />
                         </div>
                       </div>
-
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Phone Number</label>
-                        <div className="relative">
-                          <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                          <input
-                            type="tel"
-                            required
-                            placeholder="+91 98765 43210"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    </>
                   )}
 
-                  {/* EMAIL ADDRESS */}
+                  {/* =========================================================================
+                      CAREGIVER REGISTRATION FORM
+                      ========================================================================= */}
+                  {mode === 'register' && role === 'caregiver' && (
+                    <>
+                      {/* CAREGIVER IDENTITY */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Full Name</label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Sunita Rao"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Phone Number</label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98111 22334"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CAREGIVER TYPE & GOV ID */}
+                      <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/40 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <HeartHandshake className="w-3.5 h-3.5 text-purple-500" />
+                          <span className="text-[11px] font-black uppercase text-purple-700 dark:text-purple-300 tracking-wider font-mono">
+                            Caregiver Verification & Authority
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiver Classification</label>
+                            <select
+                              value={caregiverType}
+                              onChange={(e) => setCaregiverType(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+                            >
+                              <option value="Family Member">Family Member / Next-of-Kin</option>
+                              <option value="Professional Nurse / Aide">Professional Nurse / Medical Aide</option>
+                              <option value="Legal Guardian">Designated Legal Guardian</option>
+                              <option value="Elder Care Specialist">Elder Care Companion</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Government ID / Aadhaar No.</label>
+                            <div className="relative">
+                              <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. 9842-1940-5821"
+                                value={caregiverGovId}
+                                onChange={(e) => setCaregiverGovId(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* LINKED PATIENT PROFILE */}
+                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                            Assigned / Linked Patient Information
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Patient Full Name</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Ramesh Rao"
+                              value={patientName}
+                              onChange={(e) => setPatientName(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Relationship to Patient</label>
+                            <select
+                              value={patientRelation}
+                              onChange={(e) => setPatientRelation(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors cursor-pointer"
+                            >
+                              <option value="Parent">Parent (Father / Mother)</option>
+                              <option value="Spouse">Spouse (Husband / Wife)</option>
+                              <option value="Child">Child (Son / Daughter)</option>
+                              <option value="Sibling">Sibling (Brother / Sister)</option>
+                              <option value="Assigned Ward">Assigned Ward / Client</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                              <span>Patient ABHA ID</span>
+                              <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 14-9981-4432-1109"
+                              value={patientAbhaId}
+                              onChange={(e) => setPatientAbhaId(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors font-mono"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Caregiving Authority Scope</label>
+                            <select
+                              value={authorizationScope}
+                              onChange={(e) => setAuthorizationScope(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] transition-colors cursor-pointer"
+                            >
+                              <option value="Full Medical Proxy">Full Medical Proxy (Manage All)</option>
+                              <option value="Medication & Vitals Supervisor">Medication & Vitals Supervisor</option>
+                              <option value="View Health Records Only">View Health Records Only</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* =========================================================================
+                      DOCTOR / HEALTHCARE PROVIDER REGISTRATION FORM
+                      ========================================================================= */}
+                  {mode === 'register' && role === 'doctor' && (
+                    <>
+                      {/* DOCTOR BASIC INFO */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Doctor Full Name (with Title)</label>
+                          <div className="relative">
+                            <Stethoscope className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Dr. Rajesh Varma"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Direct Contact Phone</label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98222 33445"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CLINICAL CREDENTIALS */}
+                      <div className="p-4 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-200/80 dark:border-cyan-800/40 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Award className="w-3.5 h-3.5 text-cyan-500" />
+                          <span className="text-[11px] font-black uppercase text-cyan-700 dark:text-cyan-300 tracking-wider font-mono">
+                            Clinical Credentials & Medical Council Registration
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Medical Council Reg. No. (NMC / State)</label>
+                            <div className="relative">
+                              <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. NMC-2014-089421"
+                                value={medicalCouncilRegNo}
+                                onChange={(e) => setMedicalCouncilRegNo(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors font-mono"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Specialization</label>
+                            <select
+                              value={specialization}
+                              onChange={(e) => setSpecialization(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-cyan-600 dark:text-cyan-300 focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                            >
+                              <option value="Cardiology">Cardiology (Heart Specialist)</option>
+                              <option value="Neurology">Neurology (Brain & Spine)</option>
+                              <option value="Orthopedics">Orthopedic Surgery (Bones & Joints)</option>
+                              <option value="General Medicine">General Medicine / Internal Physician</option>
+                              <option value="Pediatrics">Pediatrics (Child Care)</option>
+                              <option value="Dermatology">Dermatology (Skin & Hair)</option>
+                              <option value="Oncology">Oncology (Cancer Specialist)</option>
+                              <option value="Endocrinology">Endocrinology (Diabetes & Hormones)</option>
+                              <option value="Psychiatry">Psychiatry & Mental Health</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Qualifications & Degrees</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. MBBS, MD (Cardiology), DM"
+                              value={qualifications}
+                              onChange={(e) => setQualifications(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Clinical Experience (Years)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="60"
+                              required
+                              placeholder="14"
+                              value={experienceYears}
+                              onChange={(e) => setExperienceYears(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* HOSPITAL / CLINIC AFFILIATION & HPR ID */}
+                      <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                          <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                            Hospital Affiliation & ABDM Registry
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Hospital / Clinic Practice Name</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Apollo Multi-Specialty Hospital, Chennai"
+                              value={hospitalAffiliation}
+                              onChange={(e) => setHospitalAffiliation(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div className="space-y-1">
+                              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                                <span>ABDM Registry ID (HPR)</span>
+                                <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional</span>
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. dr.varma@hpr.abdm"
+                                value={hprAddress}
+                                onChange={(e) => setHprAddress(e.target.value)}
+                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors font-mono"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-5">
+                              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <input
+                                  type="checkbox"
+                                  checked={teleConsultReady}
+                                  onChange={(e) => setTeleConsultReady(e.target.checked)}
+                                  className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 dark:border-slate-700 cursor-pointer"
+                                />
+                                <div className="flex items-center gap-1.5">
+                                  <Video className="w-3.5 h-3.5 text-teal-500" />
+                                  <span>Available for Tele-Consultation</span>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* EMAIL ADDRESS (COMMON FOR ALL ROLES) */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {mode === 'login' ? 'Email Address or ABHA ID' : 'Email Address'}
+                      {mode === 'login' 
+                        ? 'Email Address or Health ID' 
+                        : (role === 'doctor' ? 'Official Professional Email' : 'Email Address')}
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type="email"
                         required
-                        placeholder="e.g. lalith.patel@abdm.in"
+                        placeholder={role === 'doctor' ? 'e.g. dr.varma@apollohealthcare.in' : 'e.g. user@abdm.in'}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
@@ -480,164 +1019,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   </div>
 
-                  {/* REGISTER ONLY: SECTION 2 — MEDICAL DEMOGRAPHICS (DOB, AGE, GENDER, BLOOD GROUP) */}
-                  {mode === 'register' && (
-                    <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-3.5 h-3.5 text-rose-500" />
-                        <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                          Medical Demographics
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                        {/* DATE OF BIRTH */}
-                        <div className="sm:col-span-2 space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Date of Birth</label>
-                          <div className="relative">
-                            <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                            <input
-                              type="date"
-                              required
-                              value={dob}
-                              onChange={(e) => handleDobChange(e.target.value)}
-                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        {/* AGE */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Age (Yrs)</label>
-                          <div className="relative">
-                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                            <input
-                              type="number"
-                              min="1"
-                              max="125"
-                              required
-                              placeholder="34"
-                              value={age}
-                              onChange={(e) => setAge(e.target.value)}
-                              className="w-full pl-8 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        {/* GENDER */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Gender</label>
-                          <select
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
-                          >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* BLOOD GROUP & KNOWN ALLERGIES */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                            <Droplet className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                            <span>Blood Group</span>
-                          </label>
-                          <select
-                            value={bloodGroup}
-                            onChange={(e) => setBloodGroup(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
-                          >
-                            {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                              <option key={bg} value={bg}>{bg}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                            <span>Allergies / Conditions</span>
-                            <span className="text-[10px] text-slate-400 font-mono">Optional</span>
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Penicillin, Asthma"
-                            value={allergies}
-                            onChange={(e) => setAllergies(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* REGISTER ONLY: SECTION 3 — EMERGENCY & FAMILY CONTACT */}
-                  {mode === 'register' && (
-                    <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <PhoneCall className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
-                        <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
-                          Emergency & Family Contact
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Family Emergency Number</label>
-                          <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                            <input
-                              type="tel"
-                              required
-                              placeholder="+91 98765 11223"
-                              value={familyPhone}
-                              onChange={(e) => setFamilyPhone(e.target.value)}
-                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Name & Relation</label>
-                          <div className="relative">
-                            <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-                            <input
-                              type="text"
-                              placeholder="e.g. Priya Patel (Spouse)"
-                              value={emergencyContactName}
-                              onChange={(e) => setEmergencyContactName(e.target.value)}
-                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* REGISTER ONLY: SECTION 4 — OPTIONAL ABHA NUMBER */}
-                  {mode === 'register' && (
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                        <span>Ayushman Bharat Health ID (ABHA)</span>
-                        <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional · Government ID</span>
-                      </label>
-                      <div className="relative">
-                        <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                        <input
-                          type="text"
-                          placeholder="e.g. 14-XXXX-XXXX-8921"
-                          value={abhaId}
-                          onChange={(e) => setAbhaId(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PASSWORD FIELD */}
+                  {/* PASSWORD FIELD (COMMON FOR ALL ROLES) */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Password</label>
                     <div className="relative">
@@ -696,7 +1078,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   )}
 
-                  {/* REMEMBER ME & FORGOT PASSWORD */}
+                  {/* REMEMBER ME & TERMS */}
                   <div className="flex items-center justify-between pt-1">
                     {mode === 'login' ? (
                       <>
@@ -726,7 +1108,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 dark:border-slate-700 mt-0.5 cursor-pointer"
                         />
                         <span className="leading-snug">
-                          I agree to MediCare’s <span className="text-[#00a896] dark:text-cyan-400 font-bold">Terms</span> & <span className="text-[#00a896] dark:text-cyan-400 font-bold">ABDM Privacy Framework</span>.
+                          I agree to MediCare’s <span className="text-[#00a896] dark:text-cyan-400 font-bold">Terms of Service</span> & <span className="text-[#00a896] dark:text-cyan-400 font-bold">ABDM Healthcare Protocol</span>.
                         </span>
                       </label>
                     )}
@@ -744,7 +1126,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        <span>{mode === 'login' ? 'Secure Sign In' : 'Create Encrypted Account'}</span>
+                        <span>
+                          {mode === 'login' 
+                            ? 'Secure Sign In' 
+                            : (role === 'doctor' 
+                                ? 'Complete Clinical Provider Registration' 
+                                : (role === 'caregiver' 
+                                    ? 'Authorize & Register Caregiver' 
+                                    : 'Create Encrypted Health Account'))}
+                        </span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
