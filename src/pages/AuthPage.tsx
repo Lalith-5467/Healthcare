@@ -219,101 +219,105 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </div>
       </div>
 
-      {/* MAIN CONTAINER GRID */}
-      <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch relative z-10">
+      {/* MAIN CONTAINER (CENTERED ON REGISTER, 2-COLUMN ON LOGIN) */}
+      <div className={`mx-auto w-full relative z-10 ${
+        mode === 'register' 
+          ? 'max-w-2xl' 
+          : 'max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch'
+      }`}>
         
-        {/* LEFT COLUMN - HERO POSTER & VALUE PROPOSITION */}
-        <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="lg:col-span-5"
-        >
-          <SpotlightCard
-            spotlightColor="rgba(0, 168, 150, 0.3)"
-            className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-700/60"
+        {/* LEFT COLUMN - HERO POSTER & VALUE PROPOSITION (ONLY SHOWN ON LOGIN) */}
+        {mode === 'login' && (
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-5"
           >
-            {/* AMBIENT MESH OVERLAY */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <SpotlightCard
+              spotlightColor="rgba(0, 168, 150, 0.3)"
+              className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-700/60"
+            >
+              {/* AMBIENT MESH OVERLAY */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-            {/* TOP HEADER */}
-            <div className="relative z-10 space-y-6">
-              <div className="flex items-center justify-between">
-                <Logo showBadge />
-                <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
-                  ABDM Verified
-                </span>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-                  {mode === 'login' 
-                    ? 'Access Your Unified Health Ecosystem' 
-                    : 'Start Your Encrypted Health Journey'}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-                  Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate family care with enterprise-grade privacy standards.
-                </p>
-              </div>
-
-              {/* VALUE CARDS */}
-              <div className="space-y-3 pt-2">
-                <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
-                  <div className="p-2.5 rounded-xl bg-teal-500/20 text-cyan-300 mt-0.5 border border-teal-500/30">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-white">Ayushman Bharat (ABHA) Integration</h4>
-                    <p className="text-[11px] text-slate-300 mt-0.5">Instantly fetch verified lab reports, prescriptions, and hospital discharge summaries.</p>
-                  </div>
+              {/* TOP HEADER */}
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center justify-between">
+                  <Logo showBadge />
+                  <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
+                    ABDM Verified
+                  </span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
-                  <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-300 mt-0.5 border border-rose-500/30">
-                    <QrCode className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-white">Emergency SOS Medical Card</h4>
-                    <p className="text-[11px] text-slate-300 mt-0.5">Offline-scannable QR matrix containing critical allergies, blood group & emergency contacts.</p>
-                  </div>
+                <div className="space-y-3 pt-2">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                    Access Your Unified Health Ecosystem
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                    Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate family care with enterprise-grade privacy standards.
+                  </p>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 mt-0.5 border border-cyan-500/30">
-                    <ShieldCheck className="w-4 h-4" />
+                {/* VALUE CARDS */}
+                <div className="space-y-3 pt-2">
+                  <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
+                    <div className="p-2.5 rounded-xl bg-teal-500/20 text-cyan-300 mt-0.5 border border-teal-500/30">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Ayushman Bharat (ABHA) Integration</h4>
+                      <p className="text-[11px] text-slate-300 mt-0.5">Instantly fetch verified lab reports, prescriptions, and hospital discharge summaries.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-black text-white">Zero-Knowledge Data Vault</h4>
-                    <p className="text-[11px] text-slate-300 mt-0.5">Your health data is 256-bit encrypted with granular 1-tap consent revocation controls.</p>
+
+                  <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
+                    <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-300 mt-0.5 border border-rose-500/30">
+                      <QrCode className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Emergency SOS Medical Card</h4>
+                      <p className="text-[11px] text-slate-300 mt-0.5">Offline-scannable QR matrix containing critical allergies, blood group & emergency contacts.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white/5 dark:bg-slate-900/60 backdrop-blur-md border border-white/10 flex items-start gap-3 hover:border-teal-500/40 transition-all">
+                    <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 mt-0.5 border border-cyan-500/30">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Zero-Knowledge Data Vault</h4>
+                      <p className="text-[11px] text-slate-300 mt-0.5">Your health data is 256-bit encrypted with granular 1-tap consent revocation controls.</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* BOTTOM TRUST METRICS */}
-            <div className="relative z-10 pt-6 border-t border-white/10 mt-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="Patient" />
-                  <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Patient" />
-                  <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&q=80" alt="Patient" />
+              {/* BOTTOM TRUST METRICS */}
+              <div className="relative z-10 pt-6 border-t border-white/10 mt-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="Patient" />
+                    <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Patient" />
+                    <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&q=80" alt="Patient" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-300">50,000+ Active Patients</span>
                 </div>
-                <span className="text-[11px] font-bold text-slate-300">50,000+ Active Patients</span>
-              </div>
 
-              <div className="flex items-center gap-1 text-xs text-amber-400 font-extrabold">
-                <span>★ 4.9/5 Rating</span>
+                <div className="flex items-center gap-1 text-xs text-amber-400 font-extrabold">
+                  <span>★ 4.9/5 Rating</span>
+                </div>
               </div>
-            </div>
-          </SpotlightCard>
-        </motion.div>
+            </SpotlightCard>
+          </motion.div>
+        )}
 
-        {/* RIGHT COLUMN - BEAUTIFIED COMPREHENSIVE AUTHENTICATION FORM */}
+        {/* AUTHENTICATION FORM (FULL-WIDTH CENTERED ON REGISTER, RIGHT-COLUMN ON LOGIN) */}
         <motion.div 
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="lg:col-span-7"
+          initial={{ opacity: 0, y: mode === 'register' ? 20 : 0, x: mode === 'login' ? 30 : 0 }}
+          animate={{ opacity: 1, y: 0, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className={mode === 'register' ? 'w-full' : 'lg:col-span-7'}
         >
           <SpotlightCard
             spotlightColor="rgba(0, 168, 150, 0.22)"
