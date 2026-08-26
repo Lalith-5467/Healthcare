@@ -35,41 +35,41 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
   const doctors: DoctorCard[] = [
     {
       id: 'dr-1',
-      name: 'Dr. James Anderson',
+      name: 'Dr. Rajesh Varma',
       specialty: 'Chief Cardiologist',
       department: 'Cardiology & Heart Surgery',
-      location: 'Apollo Multi-Specialty, Chennai',
+      location: 'Apollo Hospitals, Chennai',
       image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80',
-      experience: '14+ Yrs',
-      rating: '4.95',
-      reviews: '1.2k',
+      experience: '15+ Yrs',
+      rating: '4.98',
+      reviews: '1.8k',
       consultFee: '₹850',
       availability: 'Available Today',
       badge: 'ABDM Verified'
     },
     {
       id: 'dr-2',
-      name: 'Dr. Sarah Mitchell',
+      name: 'Dr. Priya Sharma',
       specialty: 'Senior Neurologist',
       department: 'Neurosciences & Stroke Care',
       location: 'Fortis Memorial, Gurugram',
       image: 'https://images.unsplash.com/photo-1594824813566-78853b841793?auto=format&fit=crop&w=600&q=80',
       experience: '12+ Yrs',
-      rating: '4.98',
-      reviews: '980+',
+      rating: '4.96',
+      reviews: '1.2k',
       consultFee: '₹900',
       availability: 'Next: 4:30 PM',
       badge: 'Gold Medalist'
     },
     {
       id: 'dr-3',
-      name: 'Dr. Michael Brown',
-      specialty: 'Orthopedic Surgeon',
+      name: 'Dr. Amit Patel',
+      specialty: 'Robotic Orthopedic Surgeon',
       department: 'Joint Replacement & Spine',
       location: 'Max Super Specialty, Delhi',
-      image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80',
       experience: '16+ Yrs',
-      rating: '4.92',
+      rating: '4.94',
       reviews: '1.5k',
       consultFee: '₹800',
       availability: 'Available Today',
@@ -77,42 +77,42 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
     },
     {
       id: 'dr-4',
-      name: 'Dr. Emily Johnson',
+      name: 'Dr. Ananya Iyer',
       specialty: 'Senior Pediatrician',
       department: 'Pediatrics & Neonatal Care',
-      location: 'Rainbow Children’s Hospital',
-      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
-      experience: '10+ Yrs',
-      rating: '4.96',
-      reviews: '2.1k',
+      location: 'Rainbow Children’s Hospital, Bengaluru',
+      image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=600&q=80',
+      experience: '11+ Yrs',
+      rating: '4.97',
+      reviews: '2.3k',
       consultFee: '₹750',
       availability: 'Next: Tomorrow',
       badge: 'Pediatric Fellow'
     },
     {
       id: 'dr-5',
-      name: 'Dr. David Wilson',
-      specialty: 'Dental & Implant Specialist',
-      department: 'Oral Surgery & Aesthetics',
-      location: 'Manipal Health Institute',
-      image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
-      experience: '11+ Yrs',
-      rating: '4.90',
-      reviews: '840+',
-      consultFee: '₹650',
+      name: 'Dr. Vikram Malhotra',
+      specialty: 'Cardiothoracic Surgeon',
+      department: 'Cardiac Surgery & Transplantation',
+      location: 'AIIMS & Medanta, New Delhi',
+      image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+      experience: '18+ Yrs',
+      rating: '4.99',
+      reviews: '2.9k',
+      consultFee: '₹950',
       availability: 'Available Today',
-      badge: 'Implantologist'
+      badge: 'National Awardee'
     },
     {
       id: 'dr-6',
-      name: 'Dr. Rajesh Varma',
+      name: 'Dr. Sunita Reddy',
       specialty: 'Interventional Physician',
       department: 'Internal Medicine & ABDM Lead',
-      location: 'Apollo Healthcare, Hyderabad',
-      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80',
-      experience: '15+ Yrs',
-      rating: '4.99',
-      reviews: '3.4k',
+      location: 'Apollo Health City, Hyderabad',
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
+      experience: '14+ Yrs',
+      rating: '4.95',
+      reviews: '1.4k',
       consultFee: '₹800',
       availability: 'Instant Video Consult',
       badge: 'ABDM Specialist'
@@ -191,30 +191,20 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* SECTION HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 text-xs font-black uppercase tracking-wider mb-1.5 font-mono">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Certified Healthcare Specialists</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-              Meet Our Leading Doctors
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl font-medium">
-              Verified clinical specialists offering integrated ABDM digital records, instant telemedicine, and in-hospital care.
-            </p>
+        {/* CENTERED SECTION HEADER */}
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 text-xs font-black uppercase tracking-wider font-mono">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Certified Healthcare Specialists</span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={onOpenDoctorPortal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-black text-slate-800 dark:text-slate-100 transition-all shadow-xs hover:shadow group cursor-pointer"
-            >
-              <span>View All 50+ Doctors</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-[#00a896] dark:text-cyan-400" />
-            </button>
-          </div>
+          
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            Meet Our Leading Doctors
+          </h2>
+          
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium">
+            Verified Indian clinical specialists offering integrated ABDM digital records, instant telemedicine, and in-hospital consultations.
+          </p>
         </div>
 
         {/* COMPACT 3D STACKED CARD CAROUSEL STAGE */}
@@ -304,7 +294,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                   zIndex: zIndex,
                   transformStyle: 'preserve-3d',
                 }}
-                className={`absolute w-[280px] sm:w-[310px] rounded-3xl bg-white dark:bg-slate-900 border transition-colors duration-300 overflow-hidden ${
+                className={`absolute w-[280px] sm:w-[310px] rounded-3xl bg-white dark:bg-slate-900 border transition-colors duration-300 overflow-hidden text-center ${
                   isCenter 
                     ? 'shadow-2xl shadow-teal-500/20 border-teal-500/50 dark:border-cyan-400/60 ring-1 ring-teal-500/30' 
                     : 'shadow-md border-slate-200/90 dark:border-slate-800 cursor-pointer hover:border-teal-500/40'
@@ -317,7 +307,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                     alt={doctor.name}
                     className="w-full h-full object-cover object-[center_18%] transition-transform duration-700 hover:scale-105"
                     onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80";
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80";
                     }}
                   />
 
@@ -337,40 +327,42 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                     </div>
                   </div>
 
-                  {/* BOTTOM LIVE STATUS */}
-                  <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-white z-10">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-teal-500/90 px-2 py-0.5 rounded-full backdrop-blur-md shadow-xs">
+                  {/* BOTTOM LIVE STATUS (CENTERED) */}
+                  <div className="absolute bottom-2 inset-x-0 flex items-center justify-center text-white z-10">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-teal-500/90 px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       {doctor.availability}
                     </span>
                   </div>
                 </div>
 
-                {/* CARD BODY CONTENT */}
-                <div className="p-3.5 sm:p-4 flex flex-col justify-between space-y-2.5">
-                  <div>
-                    {/* SPECIALTY & EXP */}
-                    <div className="flex items-center justify-between">
+                {/* CARD BODY CONTENT (CENTERED ALIGNMENT) */}
+                <div className="p-3.5 sm:p-4 flex flex-col justify-between space-y-2.5 text-center">
+                  <div className="text-center">
+                    {/* SPECIALTY & EXP (CENTERED) */}
+                    <div className="flex items-center justify-center gap-2">
                       <span className="text-[10px] font-black uppercase text-[#00a896] dark:text-cyan-400 tracking-wider font-mono">
                         {doctor.specialty}
                       </span>
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
                       <span className="text-[10px] font-bold text-slate-400 font-mono">
                         {doctor.experience}
                       </span>
                     </div>
 
-                    <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight truncate mt-0.5">
+                    {/* DOCTOR NAME (CENTERED) */}
+                    <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight truncate mt-0.5 text-center">
                       {doctor.name}
                     </h3>
 
-                    {/* LOCATION */}
-                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-[11px] font-medium mt-0.5">
+                    {/* LOCATION (CENTERED) */}
+                    <div className="flex items-center justify-center gap-1 text-slate-500 dark:text-slate-400 text-[11px] font-medium mt-0.5">
                       <MapPin className="w-3 h-3 text-[#00a896] shrink-0" />
                       <span className="truncate">{doctor.location}</span>
                     </div>
                   </div>
 
-                  {/* 3 STATS PILLS */}
+                  {/* 3 STATS PILLS (CENTERED) */}
                   <div className="grid grid-cols-3 gap-1 py-1.5 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-center">
                     <div>
                       <span className="block text-[8px] font-bold text-slate-400 uppercase">Exp</span>
@@ -391,7 +383,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
 
                   {/* BOTTOM ACTION & CONSULTATION FEE */}
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div>
+                    <div className="text-left">
                       <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">Fee</span>
                       <span className="text-sm font-black text-slate-900 dark:text-white">
                         {doctor.consultFee}
@@ -416,7 +408,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
           })}
         </div>
 
-        {/* CAROUSEL NAVIGATION CONTROLS & PAGINATION DOTS */}
+        {/* CAROUSEL NAVIGATION CONTROLS & VIEW ALL BUTTON */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-20">
           <div className="flex items-center gap-3">
             <button
@@ -451,6 +443,14 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
+
+          <button 
+            onClick={onOpenDoctorPortal}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-black text-slate-800 dark:text-slate-100 transition-all shadow-xs hover:shadow group cursor-pointer"
+          >
+            <span>View All 50+ Doctors</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1 text-[#00a896] dark:text-cyan-400" />
+          </button>
         </div>
 
       </div>
