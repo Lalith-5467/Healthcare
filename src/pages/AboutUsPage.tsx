@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -21,7 +21,11 @@ import {
   ChevronRight,
   Clock,
   QrCode,
-  Check
+  Check,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause
 } from 'lucide-react';
 
 import { CountUp } from '../components/ui/CountUp';
@@ -38,10 +42,32 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   onExploreFeatures 
 }) => {
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  const toggleSound = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
 
   const corePillars = [
     {
@@ -192,108 +218,148 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
       
-      {/* 1. HERO HEADER SECTION WITH GLOWING BACKGROUND & BREADCRUMB */}
-      <section className="relative pt-12 pb-24 lg:pt-16 lg:pb-28 bg-gradient-to-b from-teal-50/60 via-white to-slate-50 dark:from-[#0f172a] dark:via-[#0b1120] dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
+      {/* 1. HERO HEADER SECTION WITH PROFESSIONAL 12-COLUMN FULL-WIDTH LAYOUT */}
+      <section className="relative pt-10 pb-20 lg:pt-14 lg:pb-24 bg-gradient-to-b from-teal-50/70 via-white to-slate-50 dark:from-[#0f172a] dark:via-[#0b1120] dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
         {/* BACKGROUND GLOW ACCENTS */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-teal-400/20 via-[#00a896]/15 to-cyan-400/20 blur-3xl pointer-events-none rounded-full" />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-purple-500/10 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-1/3 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-teal-400/20 via-[#00a896]/15 to-cyan-400/20 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-20 right-10 w-96 h-96 bg-purple-500/10 blur-3xl pointer-events-none rounded-full" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* TOP PILL BADGE */}
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center justify-center gap-2 mb-4"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>Official Video Introduction • Welcome to MediCare</span>
-            </span>
-          </motion.div>
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+          
+          {/* TOP INTRO SPLIT GRID (NO EMPTY SIDES) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            
+            {/* LEFT COLUMN: INTRODUCTION TEXT & CTAS (5 COLS) */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-5 space-y-6 text-left"
+            >
+              {/* TOP BADGE */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                <span>Official Video • Welcome to MediCare</span>
+              </div>
 
-          {/* MAIN HERO HEADLINE */}
-          <div className="text-center max-w-4xl mx-auto space-y-4 mb-8">
-            <motion.h1 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
+              {/* HEADLINE */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+                Empowering Millions with{' '}
+                <span className="bg-gradient-to-r from-[#00a896] via-teal-500 to-cyan-500 bg-clip-text text-transparent">
+                  Unified Healthcare
+                </span>
+              </h1>
+
+              {/* VALUE PROPOSITION */}
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                MediCare transforms fragmented health paperwork into a unified, 100% encrypted digital vault. Watch our introduction video to see how we bridge patients, doctors, and hospitals under ABDM standards.
+              </p>
+
+              {/* 3 QUICK VALUE PILLS */}
+              <div className="space-y-2.5 pt-1">
+                {[
+                  '100% Encrypted ABDM Personal Health Vault',
+                  'Instant Offline Emergency SOS QR Health Card',
+                  'Caregiver Monitoring for Children & Elderly Parents',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="pt-3 flex flex-wrap items-center gap-3.5">
+                <button
+                  onClick={onStartJourney}
+                  className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
+                >
+                  <span>Create Health Vault</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={onExploreFeatures}
+                  className="px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-xs sm:text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all cursor-pointer"
+                >
+                  Explore Features
+                </button>
+              </div>
+            </motion.div>
+
+            {/* RIGHT COLUMN: FULL-WIDTH CINEMATIC VIDEO FRAME (7 COLS) */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]"
+              className="lg:col-span-7 w-full"
             >
-              Discover the Future of <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-[#00a896] via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                Unified & Connected Healthcare
-              </span>
-            </motion.h1>
+              <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-950 group">
+                
+                {/* VIDEO CONTAINER */}
+                <div className="aspect-video w-full relative">
+                  <video
+                    ref={videoRef}
+                    src="/about_us_.mp4"
+                    autoPlay
+                    muted={isMuted}
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
 
-            <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium"
-            >
-              Watch how MediCare connects patients, doctors, hospitals, and emergency responders under one seamless, 100% encrypted ABDM-integrated ecosystem.
-            </motion.p>
+                {/* OVERLAY HEADER BADGE */}
+                <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/20 text-white text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>MediCare Platform Overview</span>
+                  </span>
+                </div>
+
+                {/* CUSTOM FLOATING CONTROLS (MUTE/UNMUTE & PLAY/PAUSE) */}
+                <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+                  <button
+                    onClick={togglePlay}
+                    className="p-2.5 rounded-2xl bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg hover:scale-105 cursor-pointer"
+                    title={isPlaying ? 'Pause video' : 'Play video'}
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+
+                  <button
+                    onClick={toggleSound}
+                    className="p-2.5 rounded-2xl bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg hover:scale-105 cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                    title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+                    <span className="hidden sm:inline font-mono">{isMuted ? 'Muted' : 'Sound On'}</span>
+                  </button>
+                </div>
+
+                {/* SUBTLE INNER BORDER GLOW */}
+                <div className="absolute inset-0 rounded-3xl border border-white/10 pointer-events-none" />
+              </div>
+            </motion.div>
+
           </div>
 
-          {/* CINEMATIC INTRODUCTION VIDEO PLAYER */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
-          >
-            <div className="aspect-video w-full relative">
-              <video
-                src="/about_us_.mp4"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-full object-cover rounded-3xl"
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </motion.div>
-
-          {/* ACTION BUTTONS */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap items-center justify-center gap-4 pt-8"
-          >
-            <button
-              onClick={onStartJourney}
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-black text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              <span>Create Your Health Vault</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onExploreFeatures}
-              className="px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all cursor-pointer"
-            >
-              Explore Platform Capabilities
-            </button>
-          </motion.div>
-
-          {/* QUICK CREDENTIAL TICKER STRIP */}
+          {/* QUICK CREDENTIAL TICKER STRIP (FULL-WIDTH 4-COLUMNS) */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full"
           >
             {securityBadges.map((badge, idx) => {
               const Icon = badge.icon;
               return (
                 <div 
                   key={idx}
-                  className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-center gap-3.5 group hover:border-[#00a896]/50 transition-colors"
+                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-center gap-3.5 group hover:border-[#00a896]/50 transition-colors"
                 >
                   <div className="w-10 h-10 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                     <Icon className="w-5 h-5 stroke-[2.2]" />
@@ -306,6 +372,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               );
             })}
           </motion.div>
+
         </div>
       </section>
 
