@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Building2, Shield, UserCheck, Clock } from 'lucide-react';
+import { ArrowRight, Activity, ShieldCheck, QrCode, Users, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface AboutHospitalProps {
   onLearnMore?: () => void;
@@ -8,15 +8,19 @@ interface AboutHospitalProps {
 
 export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => {
   const highlights = [
-    { title: 'Modern Infrastructure', icon: Building2 },
-    { title: 'Advanced Medical Equipment', icon: Shield },
-    { title: 'Experienced Medical Professionals', icon: UserCheck },
-    { title: '24/7 Emergency Services', icon: Clock },
+    { title: 'Ayushman Bharat (ABHA) PHR', icon: Activity, desc: 'Unified longitudinal health record sync' },
+    { title: 'Emergency SOS QR Matrix', icon: QrCode, desc: 'Instant offline first-responder access' },
+    { title: 'Family & Caregiver Circle', icon: Users, desc: 'Secure proxy oversight & reminders' },
+    { title: '256-Bit Encrypted Vault', icon: ShieldCheck, desc: 'Granular 1-tap consent revocation' },
   ];
 
   return (
-    <section id="about" className="py-14 sm:py-16 bg-slate-50 dark:bg-[#0f172a] transition-colors overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="about" className="py-14 sm:py-16 bg-slate-50 dark:bg-[#070c18] transition-colors overflow-hidden relative">
+      {/* BACKGROUND DECORATIVE ACCENTS */}
+      <div className="absolute top-1/2 -left-24 w-96 h-96 bg-[#00a896]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* LEFT CONTENT */}
@@ -28,48 +32,54 @@ export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => 
             transition={{ duration: 0.6 }}
           >
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#00a896] dark:text-cyan-400">
-                Patient-Centered PHR Platform
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-                About Us
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 text-xs font-black uppercase tracking-wider mb-2 font-mono">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Next-Gen PHR Ecosystem</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                Empowering India with Unified Digital Healthcare
               </h2>
             </div>
 
-            <p className="text-base text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
-              MediCare is an advanced digital personal health record (PHR) and caregiver companion platform committed to delivering secure medical record management, emergency SOS accessibility, and seamless doctor sharing with cutting-edge privacy and patient-centered technology.
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+              MediCare is India’s state-of-the-art Personal Health Record (PHR) and Caregiver platform. We seamlessly bridge hospital electronic health records (ABDM), patient-owned diagnostic histories, real-time vitals monitoring, and emergency QR lifelines into one cohesive, privacy-first interface.
             </p>
 
-            {/* CHECKLIST */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            {/* CHECKLIST HIGHLIGHTS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
               {highlights.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
-                    <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-950/50 flex items-center justify-center text-[#00a896] dark:text-cyan-400 shrink-0">
-                      <Icon className="w-4 h-4" />
+                  <div key={index} className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#00a896]/40 transition-all flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-teal-500/15 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center shrink-0 mt-0.5 border border-teal-500/30">
+                      <Icon className="w-4 h-4 stroke-[2.5]" />
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                      {item.title}
-                    </span>
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* BUTTON */}
-            <div className="pt-4">
+            {/* CTA BUTTON */}
+            <div className="pt-2">
               <button
                 onClick={onLearnMore}
-                className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white bg-[#00a896] dark:bg-cyan-600 hover:bg-[#008f80] dark:hover:bg-cyan-700 rounded-xl shadow-md transition-all active:scale-98 gap-2 cursor-pointer"
+                className="inline-flex items-center justify-center px-6 py-3.5 text-xs font-black text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-700 rounded-xl shadow-lg shadow-teal-500/25 transition-all active:scale-98 gap-2 cursor-pointer"
               >
-                <span>Learn More About Us</span>
+                <span>Explore Complete Platform</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
 
-          {/* RIGHT HOSPITAL BUILDING IMAGE */}
+          {/* RIGHT PROJECT HEALTHCARE VISUAL */}
           <motion.div 
             className="lg:col-span-6 relative"
             initial={{ opacity: 0, x: 30 }}
@@ -78,31 +88,50 @@ export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => 
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="relative mx-auto max-w-lg lg:max-w-none">
+              
+              {/* MAIN FRAME */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 group">
                 <img 
-                  src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=1000&q=80" 
-                  alt="MediCare Digital Health"
-                  className="w-full h-[360px] sm:h-[420px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  src="/about_us_healthcare.jpg" 
+                  alt="MediCare Digital Health Consultations"
+                  className="w-full h-[380px] sm:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700"
                   onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80";
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=1000&q=80";
                   }}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 
-                {/* OVERLAY BADGE */}
-                <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-white/40 dark:border-slate-700 shadow-lg">
+                {/* TOP FLOATING BADGE */}
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 text-[#00a896] dark:text-cyan-300 text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-md border border-white/20">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>ABDM Integrated</span>
+                  </span>
+
+                  <span className="px-3 py-1 rounded-full bg-black/60 text-white text-[10px] font-bold backdrop-blur-md border border-white/10">
+                    Tele-Health Ready
+                  </span>
+                </div>
+
+                {/* BOTTOM OVERLAY BADGE */}
+                <div className="absolute bottom-5 left-5 right-5 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/40 dark:border-slate-700/80 shadow-2xl z-10">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white">MediCare Health Network</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Connected Digital Health Ecosystem</p>
+                      <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                        MediCare Unified Health Network
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                        Patient Records · Real-Time Vitals · Emergency QR
+                      </p>
                     </div>
-                    <span className="px-3 py-1 text-xs font-bold bg-[#00a896] text-white rounded-full">
-                      Secure & Private
+                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-[#00a896] text-white rounded-full shrink-0 shadow-xs">
+                      100% Private
                     </span>
                   </div>
                 </div>
               </div>
+
             </div>
           </motion.div>
 
