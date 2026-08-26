@@ -143,7 +143,6 @@ export const Header: React.FC<HeaderProps> = ({
   const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
-    ...(isLoggedIn ? [{ id: 'dashboard', label: 'Patient Dashboard' }] : []),
     { id: 'services', label: 'Services', isMega: true },
     { id: 'features', label: 'Features' },
     { id: 'doctors', label: 'Doctors' },
@@ -318,42 +317,20 @@ export const Header: React.FC<HeaderProps> = ({
             {/* THEME TOGGLE */}
             <ThemeToggle />
 
-            {/* AUTH BUTTONS OR LOGGED-IN PROFILE */}
-            {isLoggedIn ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className="h-10 px-4 text-xs font-extrabold text-[#00a896] bg-teal-50 dark:bg-teal-950/60 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-teal-500/20"
-                >
-                  <User className="w-4 h-4 text-[#00a896]" />
-                  <span>{userName || 'My Dashboard'}</span>
-                </button>
+            {/* AUTH BUTTONS */}
+            <button
+              onClick={() => onNavigate('login')}
+              className="h-10 px-4 text-sm font-bold text-[#00a896] hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
+            >
+              Sign In
+            </button>
 
-                <button
-                  onClick={onLogout}
-                  className="h-10 px-3 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
-                  title="Log Out"
-                >
-                  Log Out
-                </button>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={() => onNavigate('login')}
-                  className="h-10 px-4 text-sm font-bold text-[#00a896] hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
-                >
-                  Sign In
-                </button>
-
-                <button
-                  onClick={() => onNavigate('register')}
-                  className="h-10 px-4 text-sm font-bold text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
-                >
-                  Register
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => onNavigate('register')}
+              className="h-10 px-4 text-sm font-bold text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
+            >
+              Register
+            </button>
           </div>
 
           {/* MOBILE TOGGLE */}
@@ -389,38 +366,18 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             ))}
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-3">
-              {isLoggedIn ? (
-                <>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); onNavigate('dashboard'); }}
-                    className="w-full py-2.5 text-center text-sm font-bold text-[#00a896] bg-teal-50 dark:bg-teal-950/50 rounded-lg flex items-center justify-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>My Patient Dashboard</span>
-                  </button>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); if (onLogout) onLogout(); }}
-                    className="w-full py-2.5 text-center text-sm font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/50 rounded-lg"
-                  >
-                    Log Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); onNavigate('login'); }}
-                    className="w-full py-2.5 text-center text-sm font-bold text-[#00a896] bg-teal-50 dark:bg-teal-950/50 rounded-lg"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); onNavigate('register'); }}
-                    className="w-full py-2.5 text-center text-sm font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg"
-                  >
-                    Register
-                  </button>
-                </>
-              )}
+              <button
+                onClick={() => { setMobileMenuOpen(false); onNavigate('login'); }}
+                className="w-full py-2.5 text-center text-sm font-bold text-[#00a896] bg-teal-50 dark:bg-teal-950/50 rounded-lg"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => { setMobileMenuOpen(false); onNavigate('register'); }}
+                className="w-full py-2.5 text-center text-sm font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg"
+              >
+                Register
+              </button>
             </div>
           </nav>
         </div>
