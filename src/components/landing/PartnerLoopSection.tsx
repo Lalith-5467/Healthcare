@@ -3,26 +3,25 @@ import { LogoLoop } from '../ui/LogoLoop';
 import type { LogoItem } from '../ui/LogoLoop';
 
 export const PartnerLoopSection: React.FC = () => {
-  const healthcareLogos: LogoItem[] = [
-    // 1. ABDM (Ayushman Bharat Digital Mission)
+  const brandLogos: LogoItem[] = [
+    // 1. ABDM (National Digital Health Mission)
     {
       title: 'ABDM',
-      ariaLabel: 'Ayushman Bharat Digital Mission Ecosystem',
+      ariaLabel: 'ABDM',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-teal-500/10 group-hover:bg-[#00a896] text-[#00a896] group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-teal-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
-              <path d="M12 8v8" />
-              <path d="M8 12h8" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300 font-mono">
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <path d="M16 3L5 8v8c0 6.63 4.7 12.89 11 14.5C22.3 28.89 27 22.63 27 16V8l-11-5z" />
+            <path d="M16 10v12" />
+            <path d="M10 16h12" />
+            <circle cx="16" cy="16" r="3" className="fill-current stroke-none" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 font-mono leading-none">
               ABDM
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              National Health Network
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Digital Mission
             </span>
           </div>
         </div>
@@ -32,174 +31,161 @@ export const PartnerLoopSection: React.FC = () => {
     // 2. ABHA (Ayushman Bharat Health Account)
     {
       title: 'ABHA',
-      ariaLabel: 'Ayushman Bharat Health Account',
+      ariaLabel: 'ABHA',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-600 text-cyan-600 dark:text-cyan-400 group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-cyan-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <rect x="2" y="4" width="20" height="16" rx="3" />
-              <path d="M7 15h4" />
-              <path d="M7 11h2" />
-              <circle cx="16" cy="11" r="2" />
-              <path d="M14 17c0-1.5 1-2 2-2s2 .5 2 2" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300 font-mono">
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <rect x="3" y="6" width="26" height="20" rx="4" />
+            <circle cx="11" cy="16" r="3.5" />
+            <path d="M18 13h7" />
+            <path d="M18 18h4" />
+            <path d="M7 22c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 font-mono leading-none">
               ABHA
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Digital Health ID
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Health ID
             </span>
           </div>
         </div>
       ),
     },
 
-    // 3. SECURE HEALTH (Shield + Medical Cross)
+    // 3. SECURE HEALTH (Shield Cross)
     {
       title: 'Secure Health',
-      ariaLabel: 'Secure Health Protocol',
+      ariaLabel: 'Secure Health',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-teal-500/10 group-hover:bg-[#00a896] text-[#00a896] group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-teal-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              <path d="M9 12h6" />
-              <path d="M12 9v6" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300">
-              Secure Health
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <path d="M16 28s10-5 10-13V7L16 3 6 7v8c0 8 10 13 10 13z" />
+            <path d="M12 15h8" />
+            <path d="M16 11v8" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              Secure<span className="text-[#00a896] dark:text-cyan-400">Health</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              HIPAA & ABDM Compliant
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Certified
             </span>
           </div>
         </div>
       ),
     },
 
-    // 4. DIGITAL RECORDS (Medical Document + Digital Connection)
+    // 4. DIGITAL RECORDS (Doc + Pulse)
     {
       title: 'Digital Records',
-      ariaLabel: 'Digital Medical Records',
+      ariaLabel: 'Digital Records',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-600 text-cyan-600 dark:text-cyan-400 group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-cyan-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <path d="M9 15h6" />
-              <path d="M9 11h6" />
-              <circle cx="16" cy="18" r="1.5" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300">
-              Digital Records
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <path d="M19 3H8a3 3 0 0 0-3 3v20a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V11l-8-8z" />
+            <polyline points="19 3 19 11 27 11" />
+            <path d="M10 20h3l2-4 3 7 2-3h2" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              Digi<span className="text-[#00a896] dark:text-cyan-400">Records</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Unified Fast PHR Vault
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Fast PHR
             </span>
           </div>
         </div>
       ),
     },
 
-    // 5. DOCTOR NETWORK (Stethoscope + Connected Nodes)
+    // 5. DOCTOR NETWORK (Stethoscope Node)
     {
       title: 'Doctor Network',
-      ariaLabel: 'Verified Doctor Network',
+      ariaLabel: 'Doctor Network',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-teal-500/10 group-hover:bg-[#00a896] text-[#00a896] group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-teal-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
-              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
-              <circle cx="20" cy="10" r="2" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300">
-              Doctor Network
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <path d="M6 5v6a8 8 0 0 0 16 0V5" />
+            <path d="M14 19v3a6 6 0 0 0 6 6h1" />
+            <circle cx="25" cy="28" r="2.5" className="fill-current stroke-none" />
+            <circle cx="6" cy="5" r="1.5" className="fill-current" />
+            <circle cx="22" cy="5" r="1.5" className="fill-current" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              Doc<span className="text-[#00a896] dark:text-cyan-400">Network</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Verified Practitioners
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Verified MDs
             </span>
           </div>
         </div>
       ),
     },
 
-    // 6. HOSPITAL NETWORK (Hospital + Connected Telemetry)
+    // 6. HOSPITAL NETWORK (Hospital Telemetry)
     {
       title: 'Hospital Network',
-      ariaLabel: 'Connected Hospital Network',
+      ariaLabel: 'Hospital Network',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 group-hover:bg-cyan-600 text-cyan-600 dark:text-cyan-400 group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-cyan-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M12 7v10" />
-              <path d="M7 12h10" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300">
-              Hospital Network
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <rect x="4" y="4" width="24" height="24" rx="3" />
+            <path d="M16 9v14" />
+            <path d="M9 16h14" />
+            <circle cx="16" cy="16" r="5" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              Care<span className="text-[#00a896] dark:text-cyan-400">Network</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Integrated OPD & Labs
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Hospitals & OPD
             </span>
           </div>
         </div>
       ),
     },
 
-    // 7. EMERGENCY CARE (Medical Cross + Pulse ECG)
+    // 7. EMERGENCY CARE (ECG Pulse Cross)
     {
       title: 'Emergency Care',
-      ariaLabel: 'Instant Emergency Care',
+      ariaLabel: 'Emergency Care',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-rose-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-rose-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/10 group-hover:bg-rose-500 text-rose-500 group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-rose-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-rose-500 dark:group-hover:text-rose-400">
-              Emergency Care
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <path d="M29 16h-5l-4 11L12 5l-4 11H3" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              SOS<span className="text-rose-500">Pulse</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              24/7 SOS Medical QR
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              Emergency QR
             </span>
           </div>
         </div>
       ),
     },
 
-    // 8. PROTECTED HEALTH DATA (Lock + Medical Security)
+    // 8. DATA VAULT (256-Bit Lock)
     {
-      title: 'Protected Health Data',
-      ariaLabel: '256-bit Protected Health Data',
+      title: 'Data Vault',
+      ariaLabel: 'Protected Health Data Vault',
       node: (
-        <div className="group flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/60 dark:bg-slate-850/60 hover:bg-teal-500/10 border border-slate-200/70 dark:border-slate-800 hover:border-teal-500/40 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none">
-          <div className="w-9 h-9 rounded-xl bg-teal-500/10 group-hover:bg-[#00a896] text-[#00a896] group-hover:text-white flex items-center justify-center transition-colors duration-300 shrink-0 border border-teal-500/20">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              <circle cx="12" cy="16" r="1" />
-            </svg>
-          </div>
-          <div className="text-left">
-            <span className="block text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 group-hover:text-[#00a896] dark:group-hover:text-cyan-300">
-              Protected Health Data
+        <div className="group flex items-center gap-2.5 px-3 py-1 cursor-pointer transition-all duration-300 hover:scale-108 select-none">
+          <svg viewBox="0 0 32 32" className="w-8 h-8 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-400 transition-colors duration-300 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round">
+            <rect x="5" y="14" width="22" height="14" rx="3" />
+            <path d="M10 14V9a6 6 0 0 1 12 0v5" />
+            <circle cx="16" cy="21" r="2" className="fill-current stroke-none" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+              Data<span className="text-[#00a896] dark:text-cyan-400">Vault</span>
             </span>
-            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              256-Bit Zero-Knowledge
+            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+              256-Bit Encrypted
             </span>
           </div>
         </div>
@@ -219,18 +205,18 @@ export const PartnerLoopSection: React.FC = () => {
         </span>
       </div>
 
-      {/* SEAMLESS INFINITE CONTINUOUS HEALTHCARE LOGOLOOP */}
+      {/* PURE STANDALONE HEALTHCARE LOGO STRIP LOOP */}
       <div className="relative py-1">
         <LogoLoop
-          logos={healthcareLogos}
-          speed={45}
+          logos={brandLogos}
+          speed={40}
           direction="left"
-          gap={32}
-          logoHeight={48}
+          gap={56}
+          logoHeight={40}
           hoverSpeed={0}
-          scaleOnHover
+          scaleOnHover={false}
           fadeOut
-          ariaLabel="Trusted Healthcare Ecosystem Logos"
+          ariaLabel="Trusted Healthcare Ecosystem Brand Logos"
         />
       </div>
     </section>
