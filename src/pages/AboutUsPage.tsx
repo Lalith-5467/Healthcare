@@ -204,60 +204,82 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center justify-center gap-2 mb-6"
+            className="flex items-center justify-center gap-2 mb-4"
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-sm">
               <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>Unified Digital Healthcare Network</span>
+              <span>Official Video Introduction • Welcome to MediCare</span>
             </span>
           </motion.div>
 
           {/* MAIN HERO HEADLINE */}
-          <div className="text-center max-w-4xl mx-auto space-y-6">
+          <div className="text-center max-w-4xl mx-auto space-y-4 mb-8">
             <motion.h1 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]"
             >
-              Empowering Millions with <br className="hidden sm:inline" />
+              Discover the Future of <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-[#00a896] via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                Unified, Encrypted & Instant
-              </span> Healthcare.
+                Unified & Connected Healthcare
+              </span>
             </motion.h1>
 
             <motion.p 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed font-medium"
+              className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium"
             >
-              MediCare is India’s next-generation Personal Health Record (PHR) platform, seamlessly bridging patients, doctors, hospitals, and emergency responders under the Ayushman Bharat Digital Mission (ABDM).
+              Watch how MediCare connects patients, doctors, hospitals, and emergency responders under one seamless, 100% encrypted ABDM-integrated ecosystem.
             </motion.p>
-
-            {/* ACTION BUTTONS */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-wrap items-center justify-center gap-4 pt-4"
-            >
-              <button
-                onClick={onStartJourney}
-                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-black text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
-              >
-                <span>Create Your Health Vault</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={onExploreFeatures}
-                className="px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all cursor-pointer"
-              >
-                Explore Platform Capabilities
-              </button>
-            </motion.div>
           </div>
+
+          {/* CINEMATIC INTRODUCTION VIDEO PLAYER */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
+          >
+            <div className="aspect-video w-full relative">
+              <video
+                src="/about_us_.mp4"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover rounded-3xl"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </motion.div>
+
+          {/* ACTION BUTTONS */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-wrap items-center justify-center gap-4 pt-8"
+          >
+            <button
+              onClick={onStartJourney}
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-black text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
+            >
+              <span>Create Your Health Vault</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={onExploreFeatures}
+              className="px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all cursor-pointer"
+            >
+              Explore Platform Capabilities
+            </button>
+          </motion.div>
 
           {/* QUICK CREDENTIAL TICKER STRIP */}
           <motion.div 
