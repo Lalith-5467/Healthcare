@@ -1014,7 +1014,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
           {/* 3D HORIZONTAL COVER-FLOW CAROUSEL FOR LEADERSHIP */}
           <div 
-            className="relative w-full max-w-5xl mx-auto h-[570px] flex items-center justify-center overflow-visible select-none"
+            className="relative w-full max-w-7xl mx-auto h-[540px] flex items-center justify-center overflow-hidden select-none"
             onMouseEnter={() => setIsLeadershipHovered(true)}
             onMouseLeave={() => setIsLeadershipHovered(false)}
             style={{ perspective: '1400px' }}
@@ -1022,15 +1022,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             {/* AMBIENT BACKGROUND GLOW SPOTLIGHT BEHIND CENTER */}
             <motion.div 
               animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: [0.4, 0.7, 0.4]
+                scale: [1, 1.08, 1],
+                opacity: [0.35, 0.65, 0.35]
               }}
               transition={{
                 duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="absolute w-[450px] h-[450px] bg-gradient-to-tr from-teal-500/20 via-cyan-500/20 to-emerald-500/10 rounded-full blur-3xl pointer-events-none" 
+              className="absolute w-[500px] h-[500px] bg-gradient-to-tr from-teal-500/25 via-cyan-500/20 to-emerald-500/15 rounded-full blur-3xl pointer-events-none" 
             />
 
             {/* 3D TRACK */}
@@ -1046,7 +1046,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 if (!isVisible) return null;
 
-                // 3D Cover-Flow Cinematic Geometry
+                // 3D Cover-Flow Cinematic Geometry with Perfect Spacing
                 let xOffset = 0;
                 let zOffset = 0;
                 let scale = 1;
@@ -1057,28 +1057,28 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 if (diff === 0) {
                   xOffset = 0;
-                  zOffset = 100;
-                  scale = 1.04;
+                  zOffset = 80;
+                  scale = 1.02;
                   rotateY = 0;
                   zIndex = 40;
                   opacity = 1.0;
-                  filter = 'blur(0px) brightness(1.05)';
+                  filter = 'blur(0px) brightness(1.04)';
                 } else if (Math.abs(diff) === 1) {
-                  xOffset = diff * 290;
-                  zOffset = -30;
+                  xOffset = diff * 320;
+                  zOffset = -35;
                   scale = 0.88;
-                  rotateY = diff * -20;
+                  rotateY = diff * -18;
                   zIndex = 25;
-                  opacity = 0.82;
+                  opacity = 0.85;
                   filter = 'blur(0.4px) brightness(0.88)';
                 } else if (Math.abs(diff) === 2) {
-                  xOffset = diff * 470;
-                  zOffset = -140;
-                  scale = 0.74;
-                  rotateY = diff * -32;
+                  xOffset = diff * 540;
+                  zOffset = -130;
+                  scale = 0.72;
+                  rotateY = diff * -30;
                   zIndex = 10;
                   opacity = 0.45;
-                  filter = 'blur(1.5px) brightness(0.68)';
+                  filter = 'blur(1.5px) brightness(0.7)';
                 }
 
                 return (
@@ -1105,7 +1105,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       }
                     }}
                     style={{ transformStyle: 'preserve-3d' }}
-                    className={`absolute w-[300px] sm:w-[340px] md:w-[350px] h-[485px] rounded-[24px] bg-slate-950 overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
+                    className={`absolute w-[290px] sm:w-[320px] md:w-[330px] h-[470px] rounded-[22px] bg-slate-950 overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
                       isCenter
                         ? 'border-2 border-cyan-400 dark:border-cyan-300 shadow-[0_25px_60px_-15px_rgba(0,168,150,0.45)] ring-4 ring-teal-500/25'
                         : 'border border-slate-700/80 shadow-xl hover:border-teal-400/60'
@@ -1117,11 +1117,11 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     )}
 
                     {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
-                    <div className="h-72 overflow-hidden relative">
+                    <div className="h-68 overflow-hidden relative">
                       <img 
                         src={mem.img} 
                         alt={mem.name} 
-                        className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isCenter ? 'scale-110' : 'scale-100'}`}
+                        className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isCenter ? 'scale-105' : 'scale-100'}`}
                       />
                       
                       {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
@@ -1151,7 +1151,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                         <div className="text-[11px] font-bold text-slate-400 font-mono">
                           {mem.credentials}
                         </div>
-                        <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-300 font-medium leading-relaxed line-clamp-2">
                           {mem.specialty}
                         </p>
                       </div>
@@ -1170,43 +1170,48 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 );
               })}
             </div>
+          </div>
 
-            {/* PREVIOUS / NEXT FLOATING NAV BUTTONS */}
+          {/* SLEEK BOTTOM NAVIGATION & PAGINATION CONTROL BAR */}
+          <div className="flex items-center justify-center gap-5 pt-6 relative z-30">
+            {/* PREVIOUS BUTTON */}
             <motion.button
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={(e) => { e.stopPropagation(); handlePrevLeadership(); }}
+              onClick={handlePrevLeadership}
               aria-label="Previous Leadership Member"
-              className="absolute left-2 sm:left-4 z-50 w-12 h-12 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-colors cursor-pointer"
+              className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-all cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
             </motion.button>
 
+            {/* PAGINATION INDICATOR PILLS */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+              {leadership.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveLeadershipIndex(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    activeLeadershipIndex === idx 
+                      ? 'w-9 bg-gradient-to-r from-[#00a896] to-cyan-400 shadow-md shadow-teal-500/40' 
+                      : 'w-2.5 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* NEXT BUTTON */}
             <motion.button
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={(e) => { e.stopPropagation(); handleNextLeadership(); }}
+              onClick={handleNextLeadership}
               aria-label="Next Leadership Member"
-              className="absolute right-2 sm:right-4 z-50 w-12 h-12 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-colors cursor-pointer"
+              className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] transition-all cursor-pointer"
             >
               <ChevronRight className="w-5 h-5 stroke-[2.5]" />
             </motion.button>
           </div>
-
-          {/* CAROUSEL PAGINATION INDICATOR DOTS */}
-          <div className="flex items-center justify-center gap-2 pt-6">
-            {leadership.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveLeadershipIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  activeLeadershipIndex === idx 
-                    ? 'w-10 bg-gradient-to-r from-teal-400 to-cyan-400 shadow-lg shadow-teal-500/50' 
-                    : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
-                }`}
-              />
-            ))}
           </div>
 
         </div>
