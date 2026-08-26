@@ -42,7 +42,6 @@ const NAV_MAP: Record<string, string> = {
   'hospitals': 'hospitals',
   'insurance': 'insurance',
   'more-features': 'more-features',
-  'features': 'more-features',
   'emergency': 'emergency',
   'sos': 'emergency',
   'settings': 'settings',
@@ -285,7 +284,7 @@ export const App: React.FC = () => {
       'reminders', 'reminder', 'notifications', 'notification',
       'analytics', 'health-analytics', 'family', 'family-connect',
       'checkup', 'health-checkup', 'settings', 'ai-assistant', 'assistant',
-      'more-features', 'features'
+      'more-features'
     ];
 
     if (protectedModules.includes(id)) {
@@ -322,23 +321,15 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    if (id === 'abha') {
-      const element = document.getElementById('abha');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-      return;
-    }
-    if (id === 'contact' || id === 'appointment') {
-      const element = document.getElementById('appointment');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-    }
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const topOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - topOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
