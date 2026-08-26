@@ -339,7 +339,7 @@ export const App: React.FC = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white">
+      <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${currentPage !== 'dashboard' ? 'pt-20' : ''}`}>
         
         {/* HEADER & TOP BAR (HIDE ON DASHBOARD) */}
         {currentPage !== 'dashboard' && (

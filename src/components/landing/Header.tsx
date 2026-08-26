@@ -164,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-50 transition-all duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       {/* ANIMATED SCROLL PROGRESS BAR */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 origin-left z-50 shadow-[0_0_12px_#00a896]"
@@ -175,8 +175,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div
         className={`transition-all duration-300 ${
           scrolled
-            ? 'bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-lg shadow-sm border-b border-slate-200/80 dark:border-slate-800'
-            : 'bg-white dark:bg-[#0b1120] border-b border-slate-100 dark:border-slate-800'
+            ? 'bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-xl shadow-md border-b border-slate-200/80 dark:border-slate-800'
+            : 'bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-xs'
         }`}
       >
         <div className="w-full px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
