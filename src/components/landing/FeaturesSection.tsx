@@ -57,10 +57,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       themeColor: 'teal',
       spotlightColor: 'rgba(0, 168, 150, 0.28)',
       glowBg: 'from-teal-500/25 via-cyan-500/15 to-transparent',
-      activeRing: 'border-teal-500 ring-4 ring-teal-500/20 shadow-teal-500/25',
-      activeBadge: 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/30',
+      activeRing: 'border-teal-500 dark:border-cyan-400 ring-4 ring-teal-500/15 dark:ring-cyan-400/20 shadow-lg shadow-teal-500/15',
+      activeBadge: 'bg-teal-500/15 dark:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border-teal-500/30 dark:border-cyan-400/40',
       iconBgActive: 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-md shadow-teal-500/30',
-      titleColorActive: 'text-[#00a896] dark:text-cyan-300',
+      titleColorActive: 'text-slate-900 dark:text-white',
+      subtitleColorActive: 'text-[#00a896] dark:text-cyan-400',
       subtitleColor: 'text-[#00a896] dark:text-cyan-400',
       checkColor: 'text-[#00a896] dark:text-cyan-400',
       ctaButton: 'bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-teal-500/25 border-teal-400/30',
@@ -86,10 +87,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       themeColor: 'purple',
       spotlightColor: 'rgba(168, 85, 247, 0.28)',
       glowBg: 'from-purple-500/25 via-indigo-500/15 to-transparent',
-      activeRing: 'border-purple-500 ring-4 ring-purple-500/20 shadow-purple-500/25',
-      activeBadge: 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30',
+      activeRing: 'border-purple-500 dark:border-purple-400 ring-4 ring-purple-500/15 dark:ring-purple-400/20 shadow-lg shadow-purple-500/15',
+      activeBadge: 'bg-purple-500/15 dark:bg-purple-500/25 text-purple-600 dark:text-purple-300 border-purple-500/30 dark:border-purple-400/40',
       iconBgActive: 'bg-gradient-to-tr from-purple-500 to-indigo-500 text-white shadow-md shadow-purple-500/30',
-      titleColorActive: 'text-purple-600 dark:text-purple-300',
+      titleColorActive: 'text-slate-900 dark:text-white',
+      subtitleColorActive: 'text-purple-600 dark:text-purple-400',
       subtitleColor: 'text-purple-600 dark:text-purple-400',
       checkColor: 'text-purple-500 dark:text-purple-400',
       ctaButton: 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/25 border-purple-400/30',
@@ -115,10 +117,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       themeColor: 'cyan',
       spotlightColor: 'rgba(6, 182, 212, 0.28)',
       glowBg: 'from-cyan-500/25 via-blue-500/15 to-transparent',
-      activeRing: 'border-cyan-500 ring-4 ring-cyan-500/20 shadow-cyan-500/25',
-      activeBadge: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30',
+      activeRing: 'border-cyan-500 dark:border-cyan-400 ring-4 ring-cyan-500/15 dark:ring-cyan-400/20 shadow-lg shadow-cyan-500/15',
+      activeBadge: 'bg-cyan-500/15 dark:bg-cyan-500/25 text-cyan-600 dark:text-cyan-300 border-cyan-500/30 dark:border-cyan-400/40',
       iconBgActive: 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/30',
-      titleColorActive: 'text-cyan-600 dark:text-cyan-300',
+      titleColorActive: 'text-slate-900 dark:text-white',
+      subtitleColorActive: 'text-cyan-600 dark:text-cyan-400',
       subtitleColor: 'text-cyan-600 dark:text-cyan-400',
       checkColor: 'text-cyan-500 dark:text-cyan-400',
       ctaButton: 'bg-gradient-to-r from-cyan-600 via-blue-600 to-sky-600 hover:from-cyan-700 hover:to-blue-700 shadow-cyan-500/25 border-cyan-400/30',
@@ -144,10 +147,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       themeColor: 'rose',
       spotlightColor: 'rgba(244, 63, 94, 0.28)',
       glowBg: 'from-rose-500/25 via-pink-500/15 to-transparent',
-      activeRing: 'border-rose-500 ring-4 ring-rose-500/20 shadow-rose-500/25',
-      activeBadge: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30',
+      activeRing: 'border-rose-500 dark:border-rose-400 ring-4 ring-rose-500/15 dark:ring-rose-400/20 shadow-lg shadow-rose-500/15',
+      activeBadge: 'bg-rose-500/15 dark:bg-rose-500/25 text-rose-600 dark:text-rose-300 border-rose-500/30 dark:border-rose-400/40',
       iconBgActive: 'bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/30',
-      titleColorActive: 'text-rose-600 dark:text-rose-300',
+      titleColorActive: 'text-slate-900 dark:text-white',
+      subtitleColorActive: 'text-rose-600 dark:text-rose-400',
       subtitleColor: 'text-rose-600 dark:text-rose-400',
       checkColor: 'text-rose-500 dark:text-rose-400',
       ctaButton: 'bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 hover:from-rose-700 hover:to-pink-700 shadow-rose-500/25 border-rose-400/30',
@@ -213,7 +217,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
           </motion.p>
         </div>
 
-        {/* INTERACTIVE 4 FEATURE TAB SELECTOR WITH SPOTLIGHT EFFECT */}
+        {/* INTERACTIVE 4 FEATURE TAB SELECTOR (PROFESSIONAL DARK & LIGHT STYLING) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
           {featureCategories.map((cat, index) => {
             const Icon = cat.icon;
@@ -225,13 +229,13 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                 onClick={() => setActiveTab(index)}
                 className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative shadow-sm h-full min-h-[145px] ${
                   isActive
-                    ? `bg-white dark:bg-slate-850 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl scale-[1.02]`
-                    : 'bg-white/80 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800 backdrop-blur-md'
+                    ? `bg-white dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-2xl backdrop-blur-xl scale-[1.02]`
+                    : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-850 backdrop-blur-md opacity-85 hover:opacity-100'
                 }`}
               >
                 {/* ACTIVE TAB ACCENT GRADIENT GLOW */}
                 {isActive && (
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${cat.glowBg} rounded-full blur-2xl pointer-events-none`} />
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${cat.glowBg} rounded-full blur-2xl pointer-events-none opacity-90`} />
                 )}
 
                 <div className="flex items-center justify-between mb-4 relative z-10 w-full">
@@ -251,11 +255,13 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                 <div className="relative z-10 space-y-1">
                   <h3 className={`text-base font-black transition-colors ${
-                    isActive ? cat.titleColorActive : 'text-slate-900 dark:text-white'
+                    isActive ? cat.titleColorActive : 'text-slate-800 dark:text-slate-200'
                   }`}>
                     {cat.title}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <p className={`text-xs font-semibold transition-colors ${
+                    isActive ? cat.subtitleColorActive : 'text-slate-500 dark:text-slate-400'
+                  }`}>
                     {cat.subtitle}
                   </p>
                 </div>
@@ -264,7 +270,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
           })}
         </div>
 
-        {/* ACTIVE FEATURE DISPLAY SHOWCASE WITH DYNAMIC SPOTLIGHT */}
+        {/* ACTIVE FEATURE DISPLAY SHOWCASE */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeFeature.id}
@@ -275,7 +281,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
           >
             <SpotlightCard
               spotlightColor={activeFeature.spotlightColor}
-              className="rounded-3xl bg-white/95 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl relative text-slate-900 dark:text-white"
+              className="rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl relative text-slate-900 dark:text-white"
             >
               {/* AMBIENT CORNER AURA */}
               <div className={`absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br ${activeFeature.glowBg} rounded-full blur-3xl pointer-events-none opacity-80`} />
@@ -462,87 +468,87 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                         </span>
                       </div>
 
-                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs border border-cyan-500/30">
-                            DR
+                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs border border-cyan-500/30">
+                              DR
+                            </div>
+                            <div>
+                              <strong className="text-xs text-white block">Dr. Rajesh Varma</strong>
+                              <span className="text-[10px] text-slate-400 font-mono">Apollo Cardiology · OTP Verified</span>
+                            </div>
                           </div>
-                          <div>
-                            <strong className="text-xs text-white block">Dr. Rajesh Varma</strong>
-                            <span className="text-[10px] text-slate-400 font-mono">Apollo Cardiology · OTP Verified</span>
-                          </div>
+                          <button 
+                            onClick={() => setIsAccessRevoked(!isAccessRevoked)}
+                            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                              isAccessRevoked 
+                                ? 'bg-teal-500 text-white border-teal-400' 
+                                : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border-rose-500/30'
+                            }`}
+                          >
+                            {isAccessRevoked ? 'Re-Grant' : 'Revoke Access'}
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => setIsAccessRevoked(!isAccessRevoked)}
-                          className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                            isAccessRevoked 
-                              ? 'bg-teal-500 text-white border-teal-400' 
-                              : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border-rose-500/30'
-                          }`}
-                        >
-                          {isAccessRevoked ? 'Re-Grant' : 'Revoke Access'}
-                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 text-center">
+                        {activeFeature.previewStats.map((st, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                            <strong className="text-xs font-black text-cyan-300 mt-0.5 block">{st.value}</strong>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
 
-                    <div className="grid grid-cols-3 gap-2.5 text-center">
-                      {activeFeature.previewStats.map((st, i) => (
-                        <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                          <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
-                          <strong className="text-xs font-black text-cyan-300 mt-0.5 block">{st.value}</strong>
+                  {/* 4. EMERGENCY SOS PASS MOCKUP */}
+                  {activeFeature.id === 'emergency-sos' && (
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-rose-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                        <div className="flex items-center gap-2">
+                          <ShieldAlert className="w-4 h-4 text-rose-400 animate-pulse" />
+                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Offline Emergency QR Matrix</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. EMERGENCY SOS PASS MOCKUP */}
-                {activeFeature.id === 'emergency-sos' && (
-                  <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-rose-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-                      <div className="flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-rose-400 animate-pulse" />
-                        <span className="text-xs font-black uppercase text-slate-300 font-mono">Offline Emergency QR Matrix</span>
-                      </div>
-                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
-                        Zero-Latency SOS
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-rose-950/60 via-slate-900 to-slate-900 border border-rose-500/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-rose-300 font-mono">Primary Patient</span>
-                          <h4 className="text-sm font-black text-white">Rahul Sharma · 34 Yrs</h4>
-                        </div>
-                        <span className="px-3 py-1 rounded-lg bg-rose-500 text-white font-black text-xs shadow-md">
-                          Blood: O+
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+                          Zero-Latency SOS
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-300 space-y-1">
-                        <div><strong className="text-rose-400 font-mono">Allergies:</strong> Penicillin, Sulfa, Peanuts</div>
-                        <div><strong className="text-teal-400 font-mono">ICE Contact:</strong> Dr. Sen (+91 98765 43210)</div>
+
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-rose-950/60 via-slate-900 to-slate-900 border border-rose-500/40 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-rose-300 font-mono">Primary Patient</span>
+                            <h4 className="text-sm font-black text-white">Rahul Sharma · 34 Yrs</h4>
+                          </div>
+                          <span className="px-3 py-1 rounded-lg bg-rose-500 text-white font-black text-xs shadow-md">
+                            Blood: O+
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-300 space-y-1">
+                          <div><strong className="text-rose-400 font-mono">Allergies:</strong> Penicillin, Sulfa, Peanuts</div>
+                          <div><strong className="text-teal-400 font-mono">ICE Contact:</strong> Dr. Sen (+91 98765 43210)</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 text-center">
+                        {activeFeature.previewStats.map((st, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                            <strong className="text-xs font-black text-rose-300 mt-0.5 block">{st.value}</strong>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
 
-                    <div className="grid grid-cols-3 gap-2.5 text-center">
-                      {activeFeature.previewStats.map((st, i) => (
-                        <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                          <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
-                          <strong className="text-xs font-black text-rose-300 mt-0.5 block">{st.value}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                </div>
 
               </div>
-
-            </div>
-          </SpotlightCard>
-        </motion.div>
-      </AnimatePresence>
+            </SpotlightCard>
+          </motion.div>
+        </AnimatePresence>
 
       </div>
     </section>
