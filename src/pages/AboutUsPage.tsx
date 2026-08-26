@@ -65,46 +65,58 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
   const corePillars = [
     {
-      icon: Lock,
+      category: 'Secure Healthcare',
+      icon: ShieldCheck,
       title: 'Zero-Knowledge Privacy',
       desc: 'Health records are encrypted with 256-bit AES before touching our servers. Even our team cannot view your confidential data without explicit consent.',
       badge: '256-Bit AES',
       accent: 'from-teal-500 to-emerald-500',
+      glow: 'teal',
     },
     {
-      icon: QrCode,
+      category: 'Connected Care',
+      icon: Link2,
+      title: 'Unified Health Network',
+      desc: 'Seamlessly connects patients, doctors, hospitals, diagnostic labs, and emergency responders under one synchronized ecosystem.',
+      badge: 'Multi-Connect',
+      accent: 'from-cyan-500 to-blue-500',
+      glow: 'cyan',
+    },
+    {
+      category: 'Doctor Consultation',
+      icon: Stethoscope,
+      title: 'Tele-Consultation Ready',
+      desc: 'Instant HD video consultations with verified specialists, electronic prescriptions, dosage reminders, and follow-up tracking.',
+      badge: 'HD Telehealth',
+      accent: 'from-emerald-500 to-teal-500',
+      glow: 'emerald',
+    },
+    {
+      category: 'Emergency Support',
+      icon: ShieldAlert,
       title: 'Instant Emergency SOS',
       desc: 'Offline-ready QR medical card equipping first responders with blood group, emergency contacts, and severe allergy warnings in under 3 seconds.',
       badge: 'Offline Matrix',
       accent: 'from-rose-500 to-pink-500',
+      glow: 'rose',
     },
     {
-      icon: Users,
-      title: 'Caregiver & Family Sync',
-      desc: 'Keep elderly parents, children, and loved ones monitored with automated pill trackers, vitals tracking, and shared clinical summaries.',
-      badge: 'Multi-Profile',
-      accent: 'from-purple-500 to-indigo-500',
-    },
-    {
+      category: 'ABDM Integration',
       icon: Activity,
-      title: 'Universal ABDM Bridge',
-      desc: 'Directly integrated with Ayushman Bharat Digital Mission (ABDM) enabling effortless record exchange with hospitals, diagnostic labs, and clinics.',
+      title: 'Universal ABHA Gateway',
+      desc: 'Directly certified with Ayushman Bharat Digital Mission (ABDM) enabling effortless nationwide record exchange and sovereign health storage.',
       badge: 'ABHA Certified',
-      accent: 'from-cyan-500 to-blue-500',
+      accent: 'from-cyan-500 to-teal-500',
+      glow: 'cyan',
     },
     {
+      category: 'Smart AI Diagnostics',
       icon: Cpu,
-      title: 'Smart AI Prescription OCR',
+      title: 'AI Prescription OCR',
       desc: 'Digitize handwritten prescriptions and lab reports instantly into structured dosage schedules and searchable medical timelines.',
       badge: '99.8% Accuracy',
       accent: 'from-amber-500 to-orange-500',
-    },
-    {
-      icon: Stethoscope,
-      title: 'Tele-Consultation Ready',
-      desc: 'Seamless HD video consultations with verified specialists, instant electronic prescriptions, and synchronized doctor follow-ups.',
-      badge: 'HD Telehealth',
-      accent: 'from-emerald-500 to-teal-500',
+      glow: 'amber',
     },
   ];
 
@@ -173,7 +185,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       role: 'Chief Medical Officer',
       credentials: 'MD, DM (Cardiology), AIIMS New Delhi',
       specialty: 'Clinical Governance & Digital Health Standards',
-      img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=400&q=80',
+      img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
       badge: '20+ Yrs Clinical Exp',
     },
     {
@@ -181,7 +193,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       role: 'Head of Health Privacy & Architecture',
       credentials: 'M.Tech, Stanford Fellow in Cryptography',
       specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
-      img: 'https://images.unsplash.com/photo-1594824813571-21252df9d944?auto=format&fit=crop&w=400&q=80',
+      img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
       badge: 'Data Security Pioneer',
     },
     {
@@ -189,7 +201,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       role: 'Director of Emergency Care & Trauma',
       credentials: 'MBBS, MRCEM (UK), Emergency Medicine',
       specialty: 'Golden-Hour SOS Systems & Paramedic Workflows',
-      img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80',
+      img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
       badge: 'Trauma Care Expert',
     },
     {
@@ -197,7 +209,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       role: 'VP of AI & Health Informatics',
       credentials: 'PhD in Medical AI, IISc Bengaluru',
       specialty: 'OCR Prescription Parsing & Predictive Analytics',
-      img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=400&q=80',
+      img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
       badge: 'Health AI Researcher',
     },
   ];
@@ -839,29 +851,36 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.08 }}
                   onClick={onStartJourney}
-                  className="p-7 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-2xl hover:border-[#00a896]/60 flex flex-col justify-between space-y-6 group hover:-translate-y-1.5 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                  className="p-7 rounded-[22px] bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-teal-500/20 dark:border-teal-500/30 shadow-xl hover:shadow-2xl hover:shadow-teal-500/20 hover:border-teal-400/70 flex flex-col justify-between space-y-6 group hover:scale-[1.03] transition-all duration-300 cursor-pointer relative overflow-hidden"
                 >
+                  {/* CINEMATIC AMBIENT GRADIENT & GLOW ACCENTS */}
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-teal-400/15 dark:bg-teal-500/15 rounded-full blur-2xl group-hover:opacity-100 opacity-60 transition-opacity duration-300 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                        <Icon className="w-6 h-6 stroke-[2.2]" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
-                        {pillar.badge}
+                      {/* CATEGORY LABEL */}
+                      <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/25 font-mono shadow-xs">
+                        {pillar.category}
                       </span>
+
+                      {/* ICON BADGE */}
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-teal-500/25 group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-5 h-5 stroke-[2.3]" />
+                      </div>
                     </div>
 
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
                       {pillar.title}
                     </h3>
 
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       {pillar.desc}
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#00a896] dark:text-cyan-400 relative z-10">
-                    <span className="group-hover:underline">Explore integration</span>
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-[#00a896] dark:text-cyan-400 relative z-10">
+                    <span className="group-hover:underline font-bold">Explore integration</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </motion.div>
@@ -899,7 +918,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-white/10 backdrop-blur-md border border-white/20 p-6 sm:p-7 rounded-3xl space-y-2 shadow-xl hover:bg-white/15 transition-all"
+                className="bg-white/10 backdrop-blur-md border border-white/20 p-6 sm:p-7 rounded-[22px] space-y-2 shadow-xl hover:bg-white/15 transition-all"
               >
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-mono flex items-center justify-center">
                   <CountUp
@@ -920,7 +939,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       </section>
 
       {/* =========================================================================
-          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM
+          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM (CINEMATIC POSTER UI)
           ========================================================================= */}
       <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -945,41 +964,45 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 overflow-hidden shadow-md group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                className="rounded-[22px] bg-slate-950 border border-teal-500/20 dark:border-teal-500/30 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-teal-500/25 hover:border-teal-400/70 group hover:scale-[1.03] transition-all duration-300 flex flex-col justify-between relative"
               >
-                <div>
-                  <div className="h-64 overflow-hidden relative">
-                    <img 
-                      src={mem.img} 
-                      alt={mem.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-                    
-                    <div className="absolute top-3 right-3">
-                      <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-950/70 backdrop-blur-md text-cyan-300 border border-cyan-400/30">
-                        {mem.badge}
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h4 className="text-lg font-black">{mem.name}</h4>
-                      <p className="text-xs text-teal-300 font-bold">{mem.role}</p>
-                    </div>
+                {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
+                <div className="h-72 overflow-hidden relative">
+                  <img 
+                    src={mem.img} 
+                    alt={mem.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  
+                  {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+                  
+                  {/* TOP CORNER FLOATING BADGE CHIP */}
+                  <div className="absolute top-3.5 right-3.5 z-10">
+                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-cyan-300 border border-cyan-400/30 font-mono shadow-md">
+                      {mem.badge}
+                    </span>
                   </div>
 
-                  <div className="p-5 space-y-2.5">
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono">
-                      {mem.credentials}
-                    </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      {mem.specialty}
-                    </p>
+                  {/* OVERLAID NAME AND TITLE */}
+                  <div className="absolute bottom-3 left-4 right-4 text-white z-10">
+                    <h4 className="text-lg font-black tracking-tight drop-shadow-sm">{mem.name}</h4>
+                    <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
                   </div>
                 </div>
 
-                <div className="p-5 pt-0">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#00a896] dark:text-cyan-400">
+                {/* LOWER INFORMATION CONTENT */}
+                <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-800/80">
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-bold text-slate-400 font-mono">
+                      {mem.credentials}
+                    </div>
+                    <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                      {mem.specialty}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/60 flex items-center gap-1.5 text-[11px] font-bold text-teal-400">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Verified Clinical Advisor</span>
                   </div>
