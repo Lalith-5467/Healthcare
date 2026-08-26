@@ -199,19 +199,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         <div className="absolute top-20 right-10 w-72 h-72 bg-purple-500/10 blur-3xl pointer-events-none rounded-full" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* TOP PILL BADGE */}
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center justify-center gap-2 mb-4"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>Official Video Introduction • Welcome to MediCare</span>
-            </span>
-          </motion.div>
-
           {/* MAIN HERO HEADLINE */}
           <div className="text-center max-w-4xl mx-auto space-y-4 mb-8">
             <motion.h1 
