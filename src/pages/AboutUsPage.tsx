@@ -838,14 +838,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.08 }}
-                  className="p-7 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-xl flex flex-col justify-between space-y-6 group hover:-translate-y-1 transition-all duration-300"
+                  onClick={onStartJourney}
+                  className="p-7 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 shadow-md hover:shadow-2xl hover:border-[#00a896]/60 flex flex-col justify-between space-y-6 group hover:-translate-y-1.5 transition-all duration-300 cursor-pointer relative overflow-hidden"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                         <Icon className="w-6 h-6 stroke-[2.2]" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
                         {pillar.badge}
                       </span>
                     </div>
@@ -859,9 +860,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center text-xs font-bold text-[#00a896] dark:text-cyan-400 group-hover:translate-x-1 transition-transform">
-                    <span>Explore integration</span>
-                    <ChevronRight className="w-4 h-4 ml-0.5" />
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#00a896] dark:text-cyan-400 relative z-10">
+                    <span className="group-hover:underline">Explore integration</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </motion.div>
               );
