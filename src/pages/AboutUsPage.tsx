@@ -38,68 +38,162 @@ interface AboutUsPageProps {
   onExploreFeatures: () => void;
 }
 
+const corePillars = [
+  {
+    category: 'Secure Healthcare',
+    icon: ShieldCheck,
+    title: 'Zero-Knowledge Privacy',
+    desc: 'Health records are encrypted with 256-bit AES before touching our servers. Even our team cannot view your confidential data without explicit consent.',
+    badge: '256-Bit AES',
+    accent: 'from-teal-500 to-emerald-500',
+    glow: 'teal',
+  },
+  {
+    category: 'Connected Care',
+    icon: Link2,
+    title: 'Unified Health Network',
+    desc: 'Seamlessly connects patients, doctors, hospitals, diagnostic labs, and emergency responders under one synchronized ecosystem.',
+    badge: 'Multi-Connect',
+    accent: 'from-cyan-500 to-blue-500',
+    glow: 'cyan',
+  },
+  {
+    category: 'Doctor Consultation',
+    icon: Stethoscope,
+    title: 'Tele-Consultation Ready',
+    desc: 'Instant HD video consultations with verified specialists, electronic prescriptions, dosage reminders, and follow-up tracking.',
+    badge: 'HD Telehealth',
+    accent: 'from-emerald-500 to-teal-500',
+    glow: 'emerald',
+  },
+  {
+    category: 'Emergency Support',
+    icon: ShieldAlert,
+    title: 'Instant Emergency SOS',
+    desc: 'Offline-ready QR medical card equipping first responders with blood group, emergency contacts, and severe allergy warnings in under 3 seconds.',
+    badge: 'Offline Matrix',
+    accent: 'from-rose-500 to-pink-500',
+    glow: 'rose',
+  },
+  {
+    category: 'ABDM Integration',
+    icon: Activity,
+    title: 'Universal ABHA Gateway',
+    desc: 'Directly certified with Ayushman Bharat Digital Mission (ABDM) enabling effortless nationwide record exchange and sovereign health storage.',
+    badge: 'ABHA Certified',
+    accent: 'from-cyan-500 to-teal-500',
+    glow: 'cyan',
+  },
+  {
+    category: 'Smart AI Diagnostics',
+    icon: Cpu,
+    title: 'AI Prescription OCR',
+    desc: 'Digitize handwritten prescriptions and lab reports instantly into structured dosage schedules and searchable medical timelines.',
+    badge: '99.8% Accuracy',
+    accent: 'from-amber-500 to-orange-500',
+    glow: 'amber',
+  },
+];
+
+const milestones = [
+  {
+    target: 100,
+    suffix: '%',
+    label: 'Encrypted Health Vault',
+    subtext: '256-bit HIPAA & ABDM compliance',
+  },
+  {
+    target: 50000,
+    suffix: '+',
+    separator: ',',
+    label: 'ABHA IDs Connected',
+    subtext: 'Across national digital health grid',
+  },
+  {
+    target: 99.8,
+    suffix: '%',
+    label: 'OCR Precision Rate',
+    subtext: 'Automated prescription parsing',
+  },
+  {
+    target: 24,
+    suffix: '/7',
+    label: 'Emergency SOS Readiness',
+    subtext: 'Zero-latency offline QR scanning',
+  },
+];
+
+const journeySteps = [
+  {
+    year: '2023',
+    phase: 'Phase I',
+    title: 'Foundation & ABDM Architecture',
+    desc: 'Engineered the core encrypted health locker architecture compliant with Ayushman Bharat Digital Mission (ABDM) M1, M2, and M3 protocols.',
+    highlight: 'ABHA Gateway v1.0',
+  },
+  {
+    year: '2024',
+    phase: 'Phase II',
+    title: 'Offline Emergency SOS & QR Matrix',
+    desc: 'Pioneered zero-latency offline QR health cards for ambulances and first responders, saving critical minutes during golden-hour emergencies.',
+    highlight: '10,000+ SOS Cards Generated',
+  },
+  {
+    year: '2025',
+    phase: 'Phase III',
+    title: 'AI Diagnostics & Family Health Graph',
+    desc: 'Integrated machine learning OCR for handwritten prescriptions and created multi-generational family caregiver monitoring rings.',
+    highlight: 'Smart Timeline & OCR AI',
+  },
+  {
+    year: '2026',
+    phase: 'Phase IV (Current)',
+    title: 'Unified Hospital Network & Telehealth',
+    desc: 'Connecting over 500+ multispecialty hospitals, telemedicine video consultations, pharmacy refills, and patient-first medical vaults.',
+    highlight: 'Complete Healthcare Ecosystem',
+  },
+];
+
+const leadership = [
+  {
+    name: 'Dr. Rajesh Varma',
+    role: 'Chief Medical Officer',
+    credentials: 'MD, DM (Cardiology), AIIMS New Delhi',
+    specialty: 'Clinical Governance & Digital Health Standards',
+    img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
+    badge: '20+ Yrs Clinical Exp',
+  },
+  {
+    name: 'Priya Sharma',
+    role: 'Head of Health Privacy & Architecture',
+    credentials: 'M.Tech, Stanford Fellow in Cryptography',
+    specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
+    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+    badge: 'Data Security Pioneer',
+  },
+  {
+    name: 'Dr. Ananya Sen',
+    role: 'Director of Emergency Care & Trauma',
+    credentials: 'MBBS, MRCEM (UK), Emergency Medicine',
+    specialty: 'Golden-Hour SOS Systems & Paramedic Workflows',
+    img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
+    badge: 'Trauma Care Expert',
+  },
+  {
+    name: 'Karthik Ramanathan',
+    role: 'VP of AI & Health Informatics',
+    credentials: 'PhD in Medical AI, IISc Bengaluru',
+    specialty: 'OCR Prescription Parsing & Predictive Analytics',
+    img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+    badge: 'Health AI Researcher',
+  },
+];
+
 export const AboutUsPage: React.FC<AboutUsPageProps> = ({ 
   onNavigateHome, 
   onStartJourney, 
   onExploreFeatures 
 }) => {
-  const corePillars = [
-    {
-      category: 'Secure Healthcare',
-      icon: ShieldCheck,
-      title: 'Zero-Knowledge Privacy',
-      desc: 'Health records are encrypted with 256-bit AES before touching our servers. Even our team cannot view your confidential data without explicit consent.',
-      badge: '256-Bit AES',
-      accent: 'from-teal-500 to-emerald-500',
-      glow: 'teal',
-    },
-    {
-      category: 'Connected Care',
-      icon: Link2,
-      title: 'Unified Health Network',
-      desc: 'Seamlessly connects patients, doctors, hospitals, diagnostic labs, and emergency responders under one synchronized ecosystem.',
-      badge: 'Multi-Connect',
-      accent: 'from-cyan-500 to-blue-500',
-      glow: 'cyan',
-    },
-    {
-      category: 'Doctor Consultation',
-      icon: Stethoscope,
-      title: 'Tele-Consultation Ready',
-      desc: 'Instant HD video consultations with verified specialists, electronic prescriptions, dosage reminders, and follow-up tracking.',
-      badge: 'HD Telehealth',
-      accent: 'from-emerald-500 to-teal-500',
-      glow: 'emerald',
-    },
-    {
-      category: 'Emergency Support',
-      icon: ShieldAlert,
-      title: 'Instant Emergency SOS',
-      desc: 'Offline-ready QR medical card equipping first responders with blood group, emergency contacts, and severe allergy warnings in under 3 seconds.',
-      badge: 'Offline Matrix',
-      accent: 'from-rose-500 to-pink-500',
-      glow: 'rose',
-    },
-    {
-      category: 'ABDM Integration',
-      icon: Activity,
-      title: 'Universal ABHA Gateway',
-      desc: 'Directly certified with Ayushman Bharat Digital Mission (ABDM) enabling effortless nationwide record exchange and sovereign health storage.',
-      badge: 'ABHA Certified',
-      accent: 'from-cyan-500 to-teal-500',
-      glow: 'cyan',
-    },
-    {
-      category: 'Smart AI Diagnostics',
-      icon: Cpu,
-      title: 'AI Prescription OCR',
-      desc: 'Digitize handwritten prescriptions and lab reports instantly into structured dosage schedules and searchable medical timelines.',
-      badge: '99.8% Accuracy',
-      accent: 'from-amber-500 to-orange-500',
-      glow: 'amber',
-    },
-  ];
-
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [activeLeadershipIndex, setActiveLeadershipIndex] = useState(0);
@@ -117,7 +211,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       setActiveLeadershipIndex((prev) => (prev + 1) % leadership.length);
     }, 3500);
     return () => clearInterval(timer);
-  }, [isLeadershipHovered, leadership.length]);
+  }, [isLeadershipHovered]);
 
   const handlePrevLeadership = () => {
     setActiveLeadershipIndex((prev) => (prev - 1 + leadership.length) % leadership.length);
@@ -139,100 +233,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
-
-  const milestones = [
-    {
-      target: 100,
-      suffix: '%',
-      label: 'Encrypted Health Vault',
-      subtext: '256-bit HIPAA & ABDM compliance',
-    },
-    {
-      target: 50000,
-      suffix: '+',
-      separator: ',',
-      label: 'ABHA IDs Connected',
-      subtext: 'Across national digital health grid',
-    },
-    {
-      target: 99.8,
-      suffix: '%',
-      label: 'OCR Precision Rate',
-      subtext: 'Automated prescription parsing',
-    },
-    {
-      target: 24,
-      suffix: '/7',
-      label: 'Emergency SOS Readiness',
-      subtext: 'Zero-latency offline QR scanning',
-    },
-  ];
-
-  const journeySteps = [
-    {
-      year: '2023',
-      phase: 'Phase I',
-      title: 'Foundation & ABDM Architecture',
-      desc: 'Engineered the core encrypted health locker architecture compliant with Ayushman Bharat Digital Mission (ABDM) M1, M2, and M3 protocols.',
-      highlight: 'ABHA Gateway v1.0',
-    },
-    {
-      year: '2024',
-      phase: 'Phase II',
-      title: 'Offline Emergency SOS & QR Matrix',
-      desc: 'Pioneered zero-latency offline QR health cards for ambulances and first responders, saving critical minutes during golden-hour emergencies.',
-      highlight: '10,000+ SOS Cards Generated',
-    },
-    {
-      year: '2025',
-      phase: 'Phase III',
-      title: 'AI Diagnostics & Family Health Graph',
-      desc: 'Integrated machine learning OCR for handwritten prescriptions and created multi-generational family caregiver monitoring rings.',
-      highlight: 'Smart Timeline & OCR AI',
-    },
-    {
-      year: '2026',
-      phase: 'Phase IV (Current)',
-      title: 'Unified Hospital Network & Telehealth',
-      desc: 'Connecting over 500+ multispecialty hospitals, telemedicine video consultations, pharmacy refills, and patient-first medical vaults.',
-      highlight: 'Complete Healthcare Ecosystem',
-    },
-  ];
-
-  const leadership = [
-    {
-      name: 'Dr. Rajesh Varma',
-      role: 'Chief Medical Officer',
-      credentials: 'MD, DM (Cardiology), AIIMS New Delhi',
-      specialty: 'Clinical Governance & Digital Health Standards',
-      img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
-      badge: '20+ Yrs Clinical Exp',
-    },
-    {
-      name: 'Priya Sharma',
-      role: 'Head of Health Privacy & Architecture',
-      credentials: 'M.Tech, Stanford Fellow in Cryptography',
-      specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
-      img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
-      badge: 'Data Security Pioneer',
-    },
-    {
-      name: 'Dr. Ananya Sen',
-      role: 'Director of Emergency Care & Trauma',
-      credentials: 'MBBS, MRCEM (UK), Emergency Medicine',
-      specialty: 'Golden-Hour SOS Systems & Paramedic Workflows',
-      img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
-      badge: 'Trauma Care Expert',
-    },
-    {
-      name: 'Karthik Ramanathan',
-      role: 'VP of AI & Health Informatics',
-      credentials: 'PhD in Medical AI, IISc Bengaluru',
-      specialty: 'OCR Prescription Parsing & Predictive Analytics',
-      img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
-      badge: 'Health AI Researcher',
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden font-sans">
