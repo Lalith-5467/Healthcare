@@ -19,7 +19,14 @@ import {
   HeartHandshake,
   Stethoscope,
   Zap,
-  Check
+  Check,
+  Calendar,
+  Heart,
+  Droplet,
+  PhoneCall,
+  Users,
+  AlertCircle,
+  Hash
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
@@ -28,7 +35,15 @@ interface AuthPageProps {
   initialMode?: 'login' | 'register';
   onNavigateHome: () => void;
   onNavigate?: (page: string) => void;
-  onSuccessLogin?: (userData: { name: string; email: string; abhaId?: string }) => void;
+  onSuccessLogin?: (userData: { 
+    name: string; 
+    email: string; 
+    abhaId?: string;
+    bloodGroup?: string;
+    age?: number;
+    phone?: string;
+    emergencyContact?: string;
+  }) => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ 
@@ -51,6 +66,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [abhaId, setAbhaId] = useState('');
+  const [dob, setDob] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('Male');
+  const [bloodGroup, setBloodGroup] = useState('O+');
+  const [familyPhone, setFamilyPhone] = useState('');
+  const [emergencyContactName, setEmergencyContactName] = useState('');
+  const [allergies, setAllergies] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -59,6 +81,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Auto-calculate age from DOB
+  const handleDobChange = (dateStr: string) => {
+    setDob(dateStr);
+    if (dateStr) {
+      const birthDate = new Date(dateStr);
+      const today = new Date();
+      let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        calculatedAge--;
+      }
+      if (calculatedAge >= 0 && calculatedAge < 130) {
+        setAge(calculatedAge.toString());
+      }
+    }
+  };
 
   // Password strength calculation
   const getPasswordStrength = (pass: string) => {
@@ -90,6 +129,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setPassword('MediCare@2026');
     setFullName('Lalith Patel');
     setPhone('+91 98765 43210');
+    setDob('1992-05-14');
+    setAge('34');
+    setGender('Male');
+    setBloodGroup('O+');
+    setFamilyPhone('+91 98765 11223');
+    setEmergencyContactName('Priya Patel (Spouse)');
+    setAllergies('Penicillin, Dust');
     setAbhaId('14-8472-9104-5821');
     setConfirmPassword('MediCare@2026');
     setAgreedTerms(true);
@@ -122,7 +168,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           onSuccessLogin({
             name: fullName || (email ? email.split('@')[0] : 'Lalith Patel'),
             email: email || 'lalith.patel@abdm.in',
-            abhaId: abhaId || '91-8472-9104-5821@abdm'
+            abhaId: abhaId || '91-8472-9104-5821@abdm',
+            bloodGroup: bloodGroup || 'O+',
+            age: age ? parseInt(age, 10) : 34,
+            phone: phone || '+91 98765 43210',
+            emergencyContact: familyPhone || '+91 98765 11223'
           });
         } else {
           onNavigateHome();
@@ -132,7 +182,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative overflow-hidden flex flex-col justify-center select-none">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative overflow-hidden flex flex-col justify-center select-none">
       
       {/* BACKGROUND DECORATIVE GLOW ACCENTS */}
       <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#00a896]/15 rounded-full blur-3xl pointer-events-none" />
@@ -156,7 +206,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             type="button"
             onClick={handleQuickDemoFill}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
-            title="Auto-fill with demo credentials"
+            title="Auto-fill with complete demo credentials"
           >
             <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
             <span>Quick Demo Fill</span>
@@ -202,7 +252,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     : 'Start Your Encrypted Health Journey'}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-                  Seamlessly manage ABHA health records, track live vitals, and coordinate family care with enterprise-grade privacy standards.
+                  Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate family care with enterprise-grade privacy standards.
                 </p>
               </div>
 
@@ -258,7 +308,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </SpotlightCard>
         </motion.div>
 
-        {/* RIGHT COLUMN - BEAUTIFIED AUTHENTICATION FORM */}
+        {/* RIGHT COLUMN - BEAUTIFIED COMPREHENSIVE AUTHENTICATION FORM */}
         <motion.div 
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -270,8 +320,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             className="h-full rounded-3xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl flex flex-col justify-between"
           >
             <div>
-              {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) WITH ANIMATED SLIDING INDICATOR */}
-              <div className="p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 flex items-center mb-8 relative">
+              {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) */}
+              <div className="p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 flex items-center mb-6 relative">
                 <button
                   type="button"
                   onClick={() => { setMode('login'); setErrorMsg(''); }}
@@ -302,12 +352,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               {/* FORM HEADING */}
               <div className="mb-6">
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {mode === 'login' ? 'Welcome back to MediCare' : 'Create your health profile'}
+                  {mode === 'login' ? 'Welcome back to MediCare' : 'Create your comprehensive health profile'}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {mode === 'login'
                     ? 'Enter your credentials to securely access your medical records and care circle.'
-                    : 'Join the connected healthcare network with ABDM health ID support in under 2 minutes.'}
+                    : 'Fill in your medical details to set up your personal health card and ABDM ecosystem.'}
                 </p>
               </div>
 
@@ -339,7 +389,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-medium">
                     {mode === 'login' 
                       ? 'Loading your personalized health dashboard and ABHA medical records...' 
-                      : 'Your encrypted account has been provisioned. Redirecting...'}
+                      : 'Your encrypted account and Emergency SOS card have been provisioned. Redirecting...'}
                   </p>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden max-w-xs mx-auto">
                     <div className="bg-gradient-to-r from-[#00a896] to-cyan-400 h-full animate-pulse w-full" />
@@ -380,9 +430,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   </div>
 
-                  {/* REGISTER ONLY FIELDS: FULL NAME & PHONE */}
+                  {/* REGISTER ONLY: SECTION 1 — BASIC INFO */}
                   {mode === 'register' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Full Name</label>
                         <div className="relative">
@@ -393,13 +443,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             placeholder="e.g. Lalith Patel"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Phone Number</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Primary Phone Number</label>
                         <div className="relative">
                           <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                           <input
@@ -408,14 +458,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             placeholder="+91 98765 43210"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
                           />
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* EMAIL OR ABHA ADDRESS */}
+                  {/* EMAIL ADDRESS */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                       {mode === 'login' ? 'Email Address or ABHA ID' : 'Email Address'}
@@ -428,26 +478,163 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         placeholder="e.g. lalith.patel@abdm.in"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* REGISTER ONLY: OPTIONAL ABHA NUMBER */}
+                  {/* REGISTER ONLY: SECTION 2 — MEDICAL DEMOGRAPHICS (DOB, AGE, GENDER, BLOOD GROUP) */}
+                  {mode === 'register' && (
+                    <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-3.5 h-3.5 text-rose-500" />
+                        <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                          Medical Demographics
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        {/* DATE OF BIRTH */}
+                        <div className="sm:col-span-2 space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Date of Birth</label>
+                          <div className="relative">
+                            <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                            <input
+                              type="date"
+                              required
+                              value={dob}
+                              onChange={(e) => handleDobChange(e.target.value)}
+                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        {/* AGE */}
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Age (Yrs)</label>
+                          <div className="relative">
+                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                            <input
+                              type="number"
+                              min="1"
+                              max="125"
+                              required
+                              placeholder="34"
+                              value={age}
+                              onChange={(e) => setAge(e.target.value)}
+                              className="w-full pl-8 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        {/* GENDER */}
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Gender</label>
+                          <select
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* BLOOD GROUP & KNOWN ALLERGIES */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Droplet className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                            <span>Blood Group</span>
+                          </label>
+                          <select
+                            value={bloodGroup}
+                            onChange={(e) => setBloodGroup(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[#00a896] dark:text-cyan-300 focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors cursor-pointer"
+                          >
+                            {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
+                              <option key={bg} value={bg}>{bg}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                            <span>Allergies / Conditions</span>
+                            <span className="text-[10px] text-slate-400 font-mono">Optional</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Penicillin, Asthma"
+                            value={allergies}
+                            onChange={(e) => setAllergies(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* REGISTER ONLY: SECTION 3 — EMERGENCY & FAMILY CONTACT */}
+                  {mode === 'register' && (
+                    <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-850/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <PhoneCall className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                        <span className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider font-mono">
+                          Emergency & Family Contact
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Family Emergency Number</label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98765 11223"
+                              value={familyPhone}
+                              onChange={(e) => setFamilyPhone(e.target.value)}
+                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Contact Name & Relation</label>
+                          <div className="relative">
+                            <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                            <input
+                              type="text"
+                              placeholder="e.g. Priya Patel (Spouse)"
+                              value={emergencyContactName}
+                              onChange={(e) => setEmergencyContactName(e.target.value)}
+                              className="w-full pl-10 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* REGISTER ONLY: SECTION 4 — OPTIONAL ABHA NUMBER */}
                   {mode === 'register' && (
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                        <span>Ayushman Bharat ID (ABHA)</span>
-                        <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional</span>
+                        <span>Ayushman Bharat Health ID (ABHA)</span>
+                        <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono">Optional · Government ID</span>
                       </label>
                       <div className="relative">
-                        <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                         <input
                           type="text"
                           placeholder="e.g. 14-XXXX-XXXX-8921"
                           value={abhaId}
                           onChange={(e) => setAbhaId(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono"
                         />
                       </div>
                     </div>
@@ -457,19 +644,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Password</label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                        className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -477,7 +664,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                     {/* DYNAMIC PASSWORD STRENGTH METER (REGISTER) */}
                     {mode === 'register' && password && (
-                      <div className="pt-1.5 space-y-1">
+                      <div className="pt-1 space-y-1">
                         <div className="flex items-center justify-between text-[10px] font-bold">
                           <span className="text-slate-500 dark:text-slate-400 font-mono">Password Strength:</span>
                           <span className={`${strength.score >= 75 ? 'text-teal-600 dark:text-cyan-400' : 'text-amber-500'} font-mono`}>
@@ -499,14 +686,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           required
                           placeholder="••••••••••••"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-teal-500/20 transition-all"
                         />
                       </div>
                     </div>
@@ -570,7 +757,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
 
             {/* SWITCH MODE FOOTER PROMPT */}
-            <div className="pt-6 border-t border-slate-200 dark:border-slate-800 text-center mt-6">
+            <div className="pt-5 border-t border-slate-200 dark:border-slate-800 text-center mt-5">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 {mode === 'login' ? "Don't have a MediCare account yet? " : "Already registered with MediCare? "}
                 <button

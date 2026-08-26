@@ -202,14 +202,24 @@ export const App: React.FC = () => {
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
 
-  const handleSuccessLogin = (userData: { name: string; email: string; abhaId?: string }) => {
+  const handleSuccessLogin = (userData: { 
+    name: string; 
+    email: string; 
+    abhaId?: string;
+    bloodGroup?: string;
+    age?: number;
+    phone?: string;
+    emergencyContact?: string;
+  }) => {
     const newUser = {
       name: userData.name || 'Lalith Patel',
       email: userData.email || 'lalith.patel@abdm.in',
       role: 'Patient',
       abhaId: userData.abhaId || '91-8472-9104-5821@abdm',
-      bloodGroup: 'O+',
-      age: 34
+      bloodGroup: userData.bloodGroup || 'O+',
+      age: userData.age || 34,
+      phone: userData.phone || '+91 98765 43210',
+      emergencyContact: userData.emergencyContact || '+91 98765 11223'
     };
     setIsLoggedIn(true);
     setUser(newUser);
