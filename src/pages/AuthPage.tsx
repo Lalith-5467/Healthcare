@@ -281,14 +281,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               {/* TOP HEADER */}
               <div className="relative z-10 space-y-6">
                 <div className="flex items-center justify-between">
-                  <Logo showBadge />
+                  <Logo showBadge variant="dark" />
                   <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
                     ABDM Verified
                   </span>
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight text-white">
                     Access Your Unified Health Ecosystem
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
@@ -390,13 +390,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               {/* FORM HEADING */}
               <div className="mb-6">
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {mode === 'login' 
-                    ? 'Welcome back to MediCare' 
-                    : (role === 'doctor' 
-                        ? 'Doctor & Healthcare Provider Portal' 
-                        : (role === 'caregiver' 
-                            ? 'Caregiver & Guardian Portal Registration' 
-                            : 'Patient Personal Health Registration'))}
+                  {mode === 'login' ? (
+                    <span>
+                      Welcome back to <span className="text-slate-900 dark:text-white font-extrabold">Medi</span><span className="text-[#00a896] dark:text-cyan-400 font-extrabold">Care</span>
+                    </span>
+                  ) : (role === 'doctor' 
+                      ? 'Doctor & Healthcare Provider Portal' 
+                      : (role === 'caregiver' 
+                          ? 'Caregiver & Guardian Portal Registration' 
+                          : 'Patient Personal Health Registration'))}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {mode === 'login'
