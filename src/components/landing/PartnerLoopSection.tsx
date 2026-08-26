@@ -198,10 +198,11 @@ export const PartnerLoopSection: React.FC = () => {
       {/* AMBIENT BACKGROUND GLOW */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-12 bg-teal-500/5 dark:bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
 
-      {/* SECTION SUB-HEADING */}
-      <div className="text-center mb-4 relative z-10">
-        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 font-mono">
-          POWERING INDIA&apos;S CONNECTED HEALTHCARE ECOSYSTEM
+      {/* SECTION SUB-HEADING (HIGH-CONTRAST & CLEARLY VISIBLE) */}
+      <div className="text-center mb-5 relative z-10">
+        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/15 border border-teal-500/30 text-[#00a896] dark:text-cyan-300 text-xs sm:text-sm font-black uppercase tracking-wider font-mono shadow-xs">
+          <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
+          <span>Powering India&apos;s Connected Healthcare Ecosystem</span>
         </span>
       </div>
 
