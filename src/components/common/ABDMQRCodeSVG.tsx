@@ -3,12 +3,14 @@ import React from 'react';
 interface ABDMQRCodeSVGProps {
   value?: string;
   size?: number;
+  showCenterLogo?: boolean;
   className?: string;
 }
 
 export const ABDMQRCodeSVG: React.FC<ABDMQRCodeSVGProps> = ({
   value = '91-8472-9104-5821@abdm',
   size = 200,
+  showCenterLogo = false,
   className = '',
 }) => {
   const gridCount = 25;
@@ -37,8 +39,8 @@ export const ABDMQRCodeSVG: React.FC<ABDMQRCodeSVGProps> = ({
       if (r2 >= 2 && r2 <= 4 && c >= 2 && c <= 4) return true;
       return false;
     }
-    // 4. Center Healthcare Logo Cutout (5x5)
-    if (r >= 10 && r <= 14 && c >= 10 && c <= 14) {
+    // 4. Center Healthcare Logo Cutout (5x5) - only cutout if center logo enabled
+    if (showCenterLogo && r >= 10 && r <= 14 && c >= 10 && c <= 14) {
       return false;
     }
     // 5. Bottom-Right Alignment Pattern (5x5)
@@ -78,11 +80,11 @@ export const ABDMQRCodeSVG: React.FC<ABDMQRCodeSVGProps> = ({
     >
       <svg
         viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-        className="w-full h-full drop-shadow-sm"
+        className="w-full h-full"
         shapeRendering="crispEdges"
       >
         {/* Crisp White Background Container */}
-        <rect width={viewBoxSize} height={viewBoxSize} fill="#ffffff" rx="16" />
+        <rect width={viewBoxSize} height={viewBoxSize} fill="#ffffff" rx="12" />
 
         {/* Outer Quiet Zone Margin Padding */}
         <g transform="scale(0.88) translate(15, 15)">
@@ -94,21 +96,23 @@ export const ABDMQRCodeSVG: React.FC<ABDMQRCodeSVGProps> = ({
               y={m.y}
               width={cellSize - 0.5}
               height={cellSize - 0.5}
-              fill="#0f172a"
-              rx="1"
+              fill="#0b1329"
+              rx="1.2"
             />
           ))}
         </g>
       </svg>
 
-      {/* CENTER BRAND HEALTH BADGE */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#00a896] shadow-md flex items-center justify-center p-0.5">
-          <div className="w-full h-full rounded-lg bg-[#00a896] text-white flex items-center justify-center font-extrabold text-xs shadow-inner">
-            ✚
+      {/* OPTIONAL CENTER BRAND BADGE */}
+      {showCenterLogo && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-1/4 h-1/4 rounded-lg bg-white border border-[#00a896] shadow-md flex items-center justify-center p-0.5">
+            <div className="w-full h-full rounded-md bg-[#00a896] text-white flex items-center justify-center font-extrabold text-[10px] shadow-inner">
+              ✚
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

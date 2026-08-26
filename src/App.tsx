@@ -6,6 +6,7 @@ import { AboutHospital } from './components/landing/AboutHospital';
 import { FeaturesSection } from './components/landing/FeaturesSection';
 import { DoctorSection } from './components/landing/DoctorSection';
 import { ABHASection } from './components/landing/ABHASection';
+import { PartnerLoopSection } from './components/landing/PartnerLoopSection';
 import { FinalCTA } from './components/landing/FinalCTA';
 import { Footer } from './components/landing/Footer';
 import { AboutUsPage } from './pages/AboutUsPage';
@@ -28,6 +29,40 @@ const DEFAULT_PATIENT_USER = {
   age: 34
 };
 
+const NAV_MAP: Record<string, string> = {
+  'family-connect': 'family',
+  'family': 'family',
+  'video-consultation': 'consultation',
+  'consultation': 'consultation',
+  'health-analytics': 'analytics',
+  'analytics': 'analytics',
+  'health-checkup': 'checkup',
+  'checkup': 'checkup',
+  'nearby-hospitals': 'hospitals',
+  'hospitals': 'hospitals',
+  'insurance': 'insurance',
+  'more-features': 'more-features',
+  'features': 'more-features',
+  'emergency': 'emergency',
+  'sos': 'emergency',
+  'settings': 'settings',
+  'ai-assistant': 'ai-assistant',
+  'assistant': 'ai-assistant',
+  'notifications': 'notifications',
+  'notification': 'notifications',
+  'reminder': 'reminders',
+  'reminders': 'reminders',
+  'appointment': 'appointments',
+  'appointments': 'appointments',
+  'medicine': 'medicines',
+  'medicines': 'medicines',
+  'pharmacy': 'pharmacy',
+  'profile': 'profile',
+  'records': 'records',
+  'scan': 'scan',
+  'dashboard': 'dashboard'
+};
+
 const getURLPathForRoute = (page: string, navId?: string) => {
   if (page === 'about') return '/about';
   if (page === 'login') return '/login';
@@ -38,7 +73,8 @@ const getURLPathForRoute = (page: string, navId?: string) => {
     if (nav === 'consultation' || nav === 'video-consultation') return '/user/video-consultation';
     if (nav === 'analytics' || nav === 'health-analytics') return '/user/health-analytics';
     if (nav === 'checkup' || nav === 'health-checkup') return '/user/health-checkup';
-    if (nav === 'reminders' || nav === 'notifications') return '/user/reminders';
+    if (nav === 'notifications' || nav === 'notification') return '/user/notifications';
+    if (nav === 'reminders' || nav === 'reminder') return '/user/reminders';
     if (nav === 'appointments' || nav === 'appointment') return '/user/appointments';
     if (nav === 'medicines' || nav === 'medicine') return '/user/medicines';
     return `/user/${nav}`;
@@ -49,65 +85,45 @@ const getURLPathForRoute = (page: string, navId?: string) => {
 const getInitialAppState = () => {
   const path = window.location.pathname.toLowerCase();
   const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
-  const target = path.startsWith('/user/') ? path.replace('/user/', '') : rawHash;
+  const target = path.startsWith('/user/')
+    ? path.replace('/user/', '')
+    : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash);
 
-  const savedPage = localStorage.getItem('app_current_page') as any;
   const savedNav = localStorage.getItem('app_active_nav_id');
   const savedUser = localStorage.getItem('app_user');
   const savedLoggedIn = localStorage.getItem('app_is_logged_in');
 
-  const navMap: Record<string, string> = {
-    'family-connect': 'family',
-    'family': 'family',
-    'video-consultation': 'consultation',
-    'consultation': 'consultation',
-    'health-analytics': 'analytics',
-    'analytics': 'analytics',
-    'health-checkup': 'checkup',
-    'checkup': 'checkup',
-    'nearby-hospitals': 'hospitals',
-    'hospitals': 'hospitals',
-    'insurance': 'insurance',
-    'emergency': 'emergency',
-    'sos': 'emergency',
-    'settings': 'settings',
-    'ai-assistant': 'ai-assistant',
-    'assistant': 'ai-assistant',
-    'notifications': 'reminders',
-    'notification': 'reminders',
-    'reminder': 'reminders',
-    'reminders': 'reminders',
-    'appointment': 'appointments',
-    'appointments': 'appointments',
-    'medicine': 'medicines',
-    'medicines': 'medicines',
-    'pharmacy': 'pharmacy',
-    'profile': 'profile',
-    'records': 'records',
-    'scan': 'scan',
-    'dashboard': 'dashboard'
-  };
+  const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : false;
+  const userData = savedUser ? JSON.parse(savedUser) : (loggedIn ? DEFAULT_PATIENT_USER : null);
 
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
   let nav = savedNav || 'dashboard';
 
-  if (target && navMap[target]) {
-    page = 'dashboard';
-    nav = navMap[target];
+  // ROUTE DETERMINATION DERIVED STRICTLY FROM URL PATH
+  if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
+    // Root URL MUST ALWAYS render the Landing Page
+    page = 'home';
   } else if (path === '/about') {
     page = 'about';
   } else if (path === '/login') {
     page = 'login';
   } else if (path === '/register') {
     page = 'register';
-  } else if (savedPage === 'dashboard') {
-    page = 'dashboard';
-  } else if (savedPage && ['home', 'about', 'login', 'register'].includes(savedPage)) {
-    page = savedPage;
+  } else if (path.startsWith('/user/') || (target && NAV_MAP[target])) {
+    // Protected Patient Dashboard Route
+    if (loggedIn) {
+      page = 'dashboard';
+      if (target && NAV_MAP[target]) {
+        nav = NAV_MAP[target];
+      }
+    } else {
+      // Unauthenticated access to protected route redirects to /login
+      page = 'login';
+    }
+  } else {
+    // Wildcard / Fallback route -> Landing Page
+    page = 'home';
   }
-
-  const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : (page === 'dashboard');
-  const userData = savedUser ? JSON.parse(savedUser) : (loggedIn ? DEFAULT_PATIENT_USER : null);
 
   return { page, nav, loggedIn, userData };
 };
@@ -145,6 +161,43 @@ export const App: React.FC = () => {
     }
   }, [currentPage, initialNavId, isLoggedIn, user]);
 
+  // Handle Browser Back / Forward buttons (popstate)
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase();
+      const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
+      const target = path.startsWith('/user/')
+        ? path.replace('/user/', '')
+        : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash);
+      const savedLoggedIn = localStorage.getItem('app_is_logged_in');
+      const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : false;
+
+      if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
+        setCurrentPage('home');
+      } else if (path === '/about') {
+        setCurrentPage('about');
+      } else if (path === '/login') {
+        setCurrentPage('login');
+      } else if (path === '/register') {
+        setCurrentPage('register');
+      } else if (path.startsWith('/user/') || (target && NAV_MAP[target])) {
+        if (loggedIn) {
+          setCurrentPage('dashboard');
+          if (target && NAV_MAP[target]) {
+            setInitialNavId(NAV_MAP[target]);
+          }
+        } else {
+          setCurrentPage('login');
+        }
+      } else {
+        setCurrentPage('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [abhaModalOpen, setAbhaModalOpen] = useState(false);
   const [consentModalOpen, setConsentModalOpen] = useState(false);
@@ -162,6 +215,7 @@ export const App: React.FC = () => {
     setIsLoggedIn(true);
     setUser(newUser);
     setCurrentPage('dashboard');
+    setInitialNavId('dashboard');
     localStorage.setItem('app_current_page', 'dashboard');
     localStorage.setItem('app_is_logged_in', 'true');
     localStorage.setItem('app_user', JSON.stringify(newUser));
@@ -177,7 +231,7 @@ export const App: React.FC = () => {
     localStorage.setItem('app_is_logged_in', 'false');
     localStorage.setItem('app_current_page', 'home');
     localStorage.setItem('app_active_nav_id', 'dashboard');
-    history.replaceState(null, '', window.location.pathname);
+    window.history.pushState(null, '', '/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -197,8 +251,51 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
-    if (id === 'dashboard' || id === 'profile' || id === 'records' || id === 'appointments' || id === 'appointment' || id === 'medicines' || id === 'medicine' || id === 'insurance' || id === 'scan' || id === 'hospitals' || id === 'nearby-hospitals' || id === 'pharmacy' || id === 'consultation' || id === 'video-consultation' || id === 'reminders' || id === 'reminder' || id === 'notifications' || id === 'notification' || id === 'analytics' || id === 'health-analytics' || id === 'family' || id === 'family-connect' || id === 'checkup' || id === 'health-checkup') {
-      const normalizedId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder' || id === 'notification' || id === 'notifications') ? 'reminders' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
+    const SERVICE_TO_DASHBOARD_MAP: Record<string, string> = {
+      'medical-records': 'records',
+      'timeline': 'records',
+      'medication': 'medicines',
+      'doctor-sharing': 'records',
+      'emergency-sos': 'emergency',
+      'vitals': 'analytics',
+      'caregiver': 'family',
+      'ai-assistance': 'ai-assistant',
+      'home-care': 'consultation',
+      'wearables': 'analytics'
+    };
+
+    // Services Mega-Menu Item Click Handler
+    if (SERVICE_TO_DASHBOARD_MAP[id]) {
+      if (!isLoggedIn) {
+        // Direct unauthenticated users to register page
+        setCurrentPage('register');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return;
+      }
+      setInitialNavId(SERVICE_TO_DASHBOARD_MAP[id]);
+      setCurrentPage('dashboard');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+
+    const protectedModules = [
+      'dashboard', 'profile', 'records', 'appointments', 'appointment',
+      'medicines', 'medicine', 'insurance', 'scan', 'hospitals',
+      'nearby-hospitals', 'pharmacy', 'consultation', 'video-consultation',
+      'reminders', 'reminder', 'notifications', 'notification',
+      'analytics', 'health-analytics', 'family', 'family-connect',
+      'checkup', 'health-checkup', 'settings', 'ai-assistant', 'assistant',
+      'more-features', 'features'
+    ];
+
+    if (protectedModules.includes(id)) {
+      if (!isLoggedIn) {
+        // Protected route attempted without authentication -> redirect to register / login
+        setCurrentPage('register');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return;
+      }
+      const normalizedId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
       setInitialNavId(normalizedId);
       setCurrentPage('dashboard');
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -251,7 +348,7 @@ export const App: React.FC = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white">
+      <div className="min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white">
         
         {/* HEADER & TOP BAR (HIDE ON DASHBOARD) */}
         {currentPage !== 'dashboard' && (
@@ -316,6 +413,9 @@ export const App: React.FC = () => {
 
             {/* ABHA DIGITAL HEALTH CONNECTION */}
             <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
+
+            {/* HEALTHCARE PARTNER NETWORKS LOGOLOOP */}
+            <PartnerLoopSection />
 
             {/* FINAL HIGH-CONVERSION CTA */}
             <FinalCTA 

@@ -29,7 +29,7 @@ export const ProfileHealthScoreCard: React.FC<ProfileHealthScoreCardProps> = ({ 
   return (
     <div
       onClick={() => onNavigate('analytics')}
-      className="p-5 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl flex items-center justify-between gap-4 cursor-pointer hover:border-teal-500/30 transition-all group"
+      className="p-5 h-full rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl flex items-center justify-between gap-4 cursor-pointer hover:border-teal-500/30 transition-all group"
     >
       <div className="space-y-1">
         <div className="flex items-center gap-2">

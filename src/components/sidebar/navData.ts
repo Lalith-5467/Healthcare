@@ -12,6 +12,7 @@ import {
   Activity, 
   Building2, 
   Shield, 
+  Grid,
   AlertTriangle, 
   Sparkles, 
   BarChart3, 
@@ -33,8 +34,8 @@ export const SIDEBAR_NAV_ITEMS: NavItemConfig[] = [
   { id: 'checkup', label: 'Health Check-up', icon: Activity, path: '/checkup' },
   { id: 'hospitals', label: 'Nearby Hospitals', icon: Building2, path: '/hospitals' },
   { id: 'insurance', label: 'Insurance', icon: Shield, path: '/insurance' },
+  { id: 'more-features', label: 'More Features', icon: Grid, path: '/more-features', badge: 'New' },
   { id: 'emergency', label: 'SOS & Emergency', icon: AlertTriangle, path: '/emergency', isSpecial: 'sos' },
-  { id: 'ai-assistant', label: 'AI Health Assistant', icon: Sparkles, path: '/ai-assistant', isSpecial: 'ai' },
   { id: 'analytics', label: 'Health Analytics', icon: BarChart3, path: '/analytics' },
   { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications', badge: '3' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }

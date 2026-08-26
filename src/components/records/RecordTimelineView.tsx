@@ -26,27 +26,40 @@ export const RecordTimelineView: React.FC<RecordTimelineViewProps> = ({
   onRename
 }) => {
   return (
-    <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-      {records.map((rec) => (
-        <div key={rec.id} className="relative">
-          {/* TIMELINE CONNECTOR NODE */}
-          <div className="absolute -left-6 top-5 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-900 border-2 border-[#00a896] shadow-md flex items-center justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          </div>
+    <div className="space-y-0 font-sans">
+      {records.map((rec, idx) => {
+        const isLast = idx === records.length - 1;
 
-          <RecordCard
-            record={rec}
-            isSelected={selectedIds.includes(rec.id)}
-            onToggleSelect={onToggleSelect}
-            onToggleImportant={onToggleImportant}
-            onView={onView}
-            onDownload={onDownload}
-            onShare={onShare}
-            onDelete={onDelete}
-            onRename={onRename}
-          />
-        </div>
-      ))}
+        return (
+          <div key={rec.id} className="flex items-stretch gap-4">
+            {/* TRACK & CONNECTOR NODE */}
+            <div className="flex flex-col items-center shrink-0 w-4 pt-4">
+              <div className="w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-[#00a896] shadow-xs flex items-center justify-center shrink-0 z-10">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00a896]" />
+              </div>
+
+              {!isLast && (
+                <div className="w-0.5 flex-1 min-h-[60px] bg-slate-200 dark:bg-slate-800 my-1" />
+              )}
+            </div>
+
+            {/* RECORD CARD */}
+            <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-4'}`}>
+              <RecordCard
+                record={rec}
+                isSelected={selectedIds.includes(rec.id)}
+                onToggleSelect={onToggleSelect}
+                onToggleImportant={onToggleImportant}
+                onView={onView}
+                onDownload={onDownload}
+                onShare={onShare}
+                onDelete={onDelete}
+                onRename={onRename}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
