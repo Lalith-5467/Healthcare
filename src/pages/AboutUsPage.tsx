@@ -579,18 +579,27 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch"
               >
                 {/* MISSION CARD */}
-                <div className="p-8 sm:p-9 rounded-3xl bg-gradient-to-br from-teal-500/10 via-emerald-50/70 to-white dark:from-teal-950/40 dark:via-emerald-950/20 dark:to-slate-900 border-2 border-teal-500/25 dark:border-teal-500/40 shadow-xl hover:shadow-2xl hover:border-[#00a896]/60 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
-                  {/* BACKGROUND GLOWS & WATERMARK */}
-                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-teal-400/20 dark:bg-teal-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-400/30 transition-all" />
-                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-emerald-400/15 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
-                  <Target className="absolute top-6 right-6 w-36 h-36 text-teal-600/5 dark:text-teal-400/5 pointer-events-none stroke-[1.2]" />
+                <div className="p-8 sm:p-10 rounded-3xl border-2 border-teal-500/30 dark:border-teal-500/40 shadow-xl hover:shadow-2xl hover:border-[#00a896]/70 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                  {/* AMBIENT 3D BACKGROUND LAYER WITH GRADIENT OVERLAY */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <img 
+                      src="/mission_3d_target.jpg" 
+                      alt="" 
+                      className="w-full h-full object-cover opacity-20 dark:opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-teal-50/85 to-white/95 dark:from-slate-900/90 dark:via-teal-950/80 dark:to-slate-900/95 backdrop-blur-[2px]" />
+                  </div>
+
+                  {/* BACKGROUND GLOW ACCENTS */}
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-teal-400/25 dark:bg-teal-500/25 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-400/35 transition-all" />
+                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-emerald-400/20 dark:bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00a896] to-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
                         <Target className="w-7 h-7 stroke-[2.2]" />
                       </div>
-                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono">
+                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono shadow-xs">
                         Our Mission
                       </span>
                     </div>
@@ -602,19 +611,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       To empower every citizen with complete sovereignty over their clinical history — eliminating lost paperwork, avoiding redundant diagnostic tests, and accelerating emergency response by turning scattered medical data into a single unified lifeline.
                     </p>
-
-                    {/* 3D HEALTHCARE TARGET ILLUSTRATION */}
-                    <div className="w-full h-48 sm:h-56 rounded-2xl overflow-hidden relative border border-teal-500/20 dark:border-teal-500/40 shadow-md bg-white/70 dark:bg-slate-900/60 group-hover:shadow-lg transition-all">
-                      <img 
-                        src="/mission_3d_target.jpg" 
-                        alt="3D Healthcare Security Target Illustration" 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-teal-950/40 via-transparent to-transparent pointer-events-none" />
-                    </div>
                   </div>
 
-                  <div className="pt-2 border-t border-teal-500/20 dark:border-teal-700/40 space-y-2.5 relative z-10">
+                  <div className="pt-4 border-t border-teal-500/20 dark:border-teal-700/40 space-y-3 relative z-10">
                     {[
                       'Instant access to prescriptions, discharge summaries & lab tests',
                       'Zero-data-selling pledge with strict cryptographic patient gates',
@@ -622,7 +621,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     ].map((bullet, i) => (
                       <div 
                         key={i} 
-                        className="p-3 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-teal-500/20 dark:border-teal-700/40 flex items-center gap-3 shadow-xs hover:border-[#00a896]/50 transition-colors"
+                        className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-teal-500/20 dark:border-teal-700/40 flex items-center gap-3 shadow-xs hover:border-[#00a896]/50 transition-colors"
                       >
                         <div className="p-1 rounded-lg bg-teal-500/15 text-[#00a896] dark:text-cyan-400 shrink-0">
                           <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
@@ -634,18 +633,27 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 </div>
 
                 {/* VISION CARD */}
-                <div className="p-8 sm:p-9 rounded-3xl bg-gradient-to-br from-cyan-500/10 via-sky-50/70 to-white dark:from-cyan-950/40 dark:via-sky-950/20 dark:to-slate-900 border-2 border-cyan-500/25 dark:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:border-cyan-500/60 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
-                  {/* BACKGROUND GLOWS & WATERMARK */}
-                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-cyan-400/20 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-400/30 transition-all" />
-                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-blue-400/15 dark:bg-blue-500/15 rounded-full blur-2xl pointer-events-none" />
-                  <Eye className="absolute top-6 right-6 w-36 h-36 text-cyan-600/5 dark:text-cyan-400/5 pointer-events-none stroke-[1.2]" />
+                <div className="p-8 sm:p-10 rounded-3xl border-2 border-cyan-500/30 dark:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:border-cyan-500/70 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                  {/* AMBIENT 3D BACKGROUND LAYER WITH GRADIENT OVERLAY */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <img 
+                      src="/vision_3d_ecosystem.jpg" 
+                      alt="" 
+                      className="w-full h-full object-cover opacity-20 dark:opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-sky-50/85 to-white/95 dark:from-slate-900/90 dark:via-sky-950/80 dark:to-slate-900/95 backdrop-blur-[2px]" />
+                  </div>
+
+                  {/* BACKGROUND GLOW ACCENTS */}
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-cyan-400/25 dark:bg-cyan-500/25 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-400/35 transition-all" />
+                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-blue-400/20 dark:bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <Eye className="w-7 h-7 stroke-[2.2]" />
                       </div>
-                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-mono">
+                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-mono shadow-xs">
                         Our Vision
                       </span>
                     </div>
@@ -657,19 +665,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       Building the national standard for interoperable digital health where 1.4 billion citizens, thousands of hospitals, and emergency personnel connect seamlessly under ABDM standards, creating proactive, preventive, and life-saving healthcare.
                     </p>
-
-                    {/* 3D HEALTHCARE ECOSYSTEM ILLUSTRATION */}
-                    <div className="w-full h-48 sm:h-56 rounded-2xl overflow-hidden relative border border-cyan-500/20 dark:border-cyan-500/40 shadow-md bg-white/70 dark:bg-slate-900/60 group-hover:shadow-lg transition-all">
-                      <img 
-                        src="/vision_3d_ecosystem.jpg" 
-                        alt="3D Healthcare Interconnected Ecosystem Illustration" 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-cyan-950/40 via-transparent to-transparent pointer-events-none" />
-                    </div>
                   </div>
 
-                  <div className="pt-2 border-t border-cyan-500/20 dark:border-cyan-700/40 space-y-2.5 relative z-10">
+                  <div className="pt-4 border-t border-cyan-500/20 dark:border-cyan-700/40 space-y-3 relative z-10">
                     {[
                       'Universal ABHA ID linkage across 100,000+ empanelled health facilities',
                       'Intelligent AI health trend indicators & proactive vital alerts',
@@ -677,7 +675,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     ].map((bullet, i) => (
                       <div 
                         key={i} 
-                        className="p-3 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-cyan-500/20 dark:border-cyan-700/40 flex items-center gap-3 shadow-xs hover:border-cyan-500/50 transition-colors"
+                        className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-cyan-500/20 dark:border-cyan-700/40 flex items-center gap-3 shadow-xs hover:border-cyan-500/50 transition-colors"
                       >
                         <div className="p-1 rounded-lg bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 shrink-0">
                           <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
