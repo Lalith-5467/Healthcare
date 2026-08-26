@@ -187,6 +187,14 @@ const leadership = [
     img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
     badge: 'Health AI Researcher',
   },
+  {
+    name: 'Dr. Vikram Malhotra',
+    role: 'Head of Telemedicine & Digital Surgery',
+    credentials: 'MS, MCh (Neurosurgery), PGIMER Chandigarh',
+    specialty: 'Remote Surgical Telemetry & Real-Time Haptic Protocols',
+    img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80',
+    badge: 'Tele-Health Pioneer',
+  },
 ];
 
 export const AboutUsPage: React.FC<AboutUsPageProps> = ({ 
