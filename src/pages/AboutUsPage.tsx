@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -21,7 +21,12 @@ import {
   ChevronRight,
   Clock,
   QrCode,
-  Check
+  Check,
+  Play,
+  ShieldAlert,
+  HeartPulse,
+  Plus,
+  Link2
 } from 'lucide-react';
 
 import { CountUp } from '../components/ui/CountUp';
@@ -38,10 +43,25 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   onExploreFeatures 
 }) => {
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  const handlePlayVideo = () => {
+    setIsPlayingVideo(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    }, 150);
+    const videoSection = document.getElementById('about-video');
+    if (videoSection) {
+      videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const corePillars = [
     {
@@ -182,121 +202,376 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
     },
   ];
 
-  const securityBadges = [
-    { title: 'ABDM Certified', sub: 'National Health Authority approved', icon: ShieldCheck },
-    { title: 'AES-256 Encryption', sub: 'Military-grade end-to-end data security', icon: Lock },
-    { title: 'ISO 27001 Certified', sub: 'Global information security compliance', icon: FileCheck },
-    { title: 'HIPAA Aligned', sub: 'Strict patient healthcare data privacy', icon: Award },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden font-sans">
       
-      {/* 1. HERO HEADER SECTION WITH GLOWING BACKGROUND & BREADCRUMB */}
-      <section className="relative pt-12 pb-24 lg:pt-16 lg:pb-28 bg-gradient-to-b from-teal-50/60 via-white to-slate-50 dark:from-[#0f172a] dark:via-[#0b1120] dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
-        {/* BACKGROUND GLOW ACCENTS */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-teal-400/20 via-[#00a896]/15 to-cyan-400/20 blur-3xl pointer-events-none rounded-full" />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-purple-500/10 blur-3xl pointer-events-none rounded-full" />
+      {/* =========================================================================
+          SECTION 1 — PREMIUM ABOUT US HERO
+          ========================================================================= */}
+      <section className="relative pt-10 pb-16 lg:pt-14 lg:pb-20 bg-gradient-to-b from-teal-50/70 via-white to-slate-50 dark:from-[#0b1329] dark:via-[#091024] dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
+        {/* SUBTLE BACKGROUND ACCENT GLOWS & PATTERNS */}
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-teal-400/15 via-[#00a896]/10 to-cyan-400/15 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute -bottom-20 -left-20 w-[450px] h-[450px] bg-blue-500/10 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(#00a896_0.75px,transparent_0.75px)] [background-size:28px_28px] opacity-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* MAIN HERO HEADLINE */}
-          <div className="text-center max-w-4xl mx-auto space-y-4 mb-8">
-            <motion.h1 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-14">
+          
+          {/* TWO COLUMN HERO GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            
+            {/* LEFT SIDE — TEXT & ACTIONS */}
+            <motion.div 
+              initial={{ opacity: 0, x: -25 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-6 space-y-6 text-left"
             >
-              Discover the Future of <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-[#00a896] via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                Unified & Connected Healthcare
-              </span>
-            </motion.h1>
+              {/* SMALL ROUNDED BADGE */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#00a896]" />
+                <span>ABOUT MEDICARE</span>
+              </div>
 
-            <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium"
+              {/* MAIN HEADING */}
+              <h1 className="text-4xl sm:text-5xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                Discover the Future of{' '}
+                <span className="text-[#00a896] dark:text-cyan-400">
+                  Connected Healthcare
+                </span>
+              </h1>
+
+              {/* SUPPORTING TEXT */}
+              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium max-w-xl">
+                MediCare brings patients, doctors, hospitals, and emergency healthcare services together through one simple, secure, and connected digital healthcare ecosystem.
+              </p>
+
+              {/* HERO BUTTONS */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <button
+                  onClick={handlePlayVideo}
+                  className="px-7 py-3.5 rounded-2xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-sm flex items-center gap-2.5 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
+                  </div>
+                  <span>Watch Introduction</span>
+                </button>
+
+                <button
+                  onClick={onExploreFeatures}
+                  className="px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow hover:scale-[1.02] transition-all cursor-pointer"
+                >
+                  Explore Our Services
+                </button>
+              </div>
+            </motion.div>
+
+            {/* RIGHT SIDE — SOPHISTICATED ABSTRACT HEALTHCARE ECOSYSTEM VISUAL */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.92, x: 25 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="lg:col-span-6 flex items-center justify-center relative"
             >
-              Watch how MediCare connects patients, doctors, hospitals, and emergency responders under one seamless, 100% encrypted ABDM-integrated ecosystem.
-            </motion.p>
+              <div className="relative w-full max-w-[480px] aspect-square flex items-center justify-center">
+                
+                {/* BACKGROUND ROTATING ORBITAL GLOW RINGS */}
+                <div className="absolute inset-4 rounded-full border-2 border-dashed border-teal-500/20 dark:border-teal-500/30 animate-[spin_40s_linear_infinite]" />
+                <div className="absolute inset-12 rounded-full border border-teal-500/30 dark:border-cyan-500/30 animate-[spin_25s_linear_infinite_reverse]" />
+                <div className="absolute inset-24 rounded-full bg-gradient-to-tr from-teal-500/10 via-cyan-500/10 to-transparent blur-xl" />
+
+                {/* AMBIENT RADIAL PEDESTAL */}
+                <div className="absolute bottom-6 w-72 h-14 bg-gradient-to-r from-teal-500/30 via-cyan-400/40 to-teal-500/30 rounded-full blur-xl transform scale-y-50" />
+                <div className="absolute bottom-10 w-60 h-8 rounded-full bg-gradient-to-r from-teal-100 via-white to-teal-100 dark:from-teal-900/60 dark:via-cyan-900/40 dark:to-teal-900/60 border border-teal-300/40 dark:border-teal-500/40 shadow-inner" />
+
+                {/* CENTRAL HEALTHCARE MEDICAL SHIELD WITH GLOW */}
+                <motion.div 
+                  animate={{ y: [-4, 4, -4] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="relative z-20 flex flex-col items-center justify-center"
+                >
+                  <div className="w-32 h-36 sm:w-36 sm:h-40 rounded-3xl bg-gradient-to-b from-[#00a896] via-teal-600 to-cyan-700 p-1 shadow-2xl shadow-teal-500/35 flex items-center justify-center relative group">
+                    {/* INNER SHIELD CORE */}
+                    <div className="w-full h-full rounded-[22px] bg-gradient-to-b from-teal-900/40 via-teal-950/80 to-[#0b1329] backdrop-blur-md flex flex-col items-center justify-center p-4 border border-teal-300/40 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-60" />
+                      
+                      {/* HEALTHCARE CROSS ICON */}
+                      <div className="w-14 h-14 rounded-2xl bg-white text-[#00a896] flex items-center justify-center shadow-lg shadow-white/20 mb-1.5 relative z-10 group-hover:scale-110 transition-transform">
+                        <Plus className="w-9 h-9 stroke-[3.5]" />
+                      </div>
+                      
+                      <span className="text-[10px] font-black tracking-widest text-teal-200 uppercase font-mono relative z-10">
+                        ABDM SECURE
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 1. TOP-LEFT NODE: DOCTORS */}
+                <motion.div 
+                  animate={{ y: [-3, 3, -3] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                  className="absolute top-4 left-6 sm:left-10 z-20 flex flex-col items-center gap-1.5"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-white/95 dark:bg-slate-800/90 backdrop-blur-md border border-teal-200 dark:border-teal-700/80 shadow-xl shadow-teal-500/10 flex items-center justify-center text-[#00a896] dark:text-cyan-400 group hover:scale-110 transition-transform">
+                    <Stethoscope className="w-7 h-7 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    Doctors
+                  </span>
+                </motion.div>
+
+                {/* 2. TOP-RIGHT NODE: HOSPITALS */}
+                <motion.div 
+                  animate={{ y: [3, -3, 3] }}
+                  transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                  className="absolute top-4 right-6 sm:right-10 z-20 flex flex-col items-center gap-1.5"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-white/95 dark:bg-slate-800/90 backdrop-blur-md border border-cyan-200 dark:border-cyan-700/80 shadow-xl shadow-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-cyan-400 group hover:scale-110 transition-transform">
+                    <Building2 className="w-7 h-7 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    Hospitals
+                  </span>
+                </motion.div>
+
+                {/* 3. BOTTOM-LEFT NODE: PATIENTS */}
+                <motion.div 
+                  animate={{ y: [-3, 3, -3] }}
+                  transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+                  className="absolute bottom-10 left-4 sm:left-8 z-20 flex flex-col items-center gap-1.5"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-white/95 dark:bg-slate-800/90 backdrop-blur-md border border-emerald-200 dark:border-emerald-700/80 shadow-xl shadow-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group hover:scale-110 transition-transform">
+                    <Users className="w-7 h-7 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    Patients
+                  </span>
+                </motion.div>
+
+                {/* 4. BOTTOM-RIGHT NODE: EMERGENCY */}
+                <motion.div 
+                  animate={{ y: [3, -3, 3] }}
+                  transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }}
+                  className="absolute bottom-10 right-4 sm:right-8 z-20 flex flex-col items-center gap-1.5"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-white/95 dark:bg-slate-800/90 backdrop-blur-md border border-rose-200 dark:border-rose-700/80 shadow-xl shadow-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400 group hover:scale-110 transition-transform">
+                    <ShieldAlert className="w-7 h-7 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    Emergency
+                  </span>
+                </motion.div>
+
+              </div>
+            </motion.div>
+
           </div>
 
-          {/* CINEMATIC INTRODUCTION VIDEO PLAYER */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+          {/* 5 FEATURE CARDS STRIP (FROM APPROVED MOCKUP) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="w-full max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
+            className="p-4 sm:p-6 rounded-3xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
           >
-            <div className="aspect-video w-full relative">
-              <video
-                src="/about_us_.mp4"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-full object-cover rounded-3xl"
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </motion.div>
-
-          {/* ACTION BUTTONS */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap items-center justify-center gap-4 pt-8"
-          >
-            <button
-              onClick={onStartJourney}
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-black text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              <span>Create Your Health Vault</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onExploreFeatures}
-              className="px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 font-extrabold text-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-all cursor-pointer"
-            >
-              Explore Platform Capabilities
-            </button>
-          </motion.div>
-
-          {/* QUICK CREDENTIAL TICKER STRIP */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto"
-          >
-            {securityBadges.map((badge, idx) => {
-              const Icon = badge.icon;
+            {[
+              {
+                icon: ShieldCheck,
+                title: 'Secure & Private',
+                desc: '100% encrypted and ABDM-integrated for complete data security.',
+                color: 'text-teal-600 bg-teal-50 dark:bg-teal-950/60 dark:text-teal-300',
+              },
+              {
+                icon: Link2,
+                title: 'Unified Ecosystem',
+                desc: 'Connects patients, doctors, hospitals & emergency responders seamlessly.',
+                color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/60 dark:text-cyan-300',
+              },
+              {
+                icon: Zap,
+                title: 'Instant Access',
+                desc: 'Quick and easy access to healthcare services anytime, anywhere.',
+                color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300',
+              },
+              {
+                icon: HeartPulse,
+                title: 'Better Outcomes',
+                desc: 'Streamlined care coordination for faster diagnosis and better treatment.',
+                color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/60 dark:text-rose-300',
+              },
+              {
+                icon: Users,
+                title: 'Built for Everyone',
+                desc: 'Designed for patients, doctors, hospitals, and communities.',
+                color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-300',
+              },
+            ].map((feat, idx) => {
+              const Icon = feat.icon;
               return (
                 <div 
                   key={idx}
-                  className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-center gap-3.5 group hover:border-[#00a896]/50 transition-colors"
+                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 flex flex-col items-center text-center space-y-2.5 group hover:border-[#00a896]/50 hover:bg-white dark:hover:bg-slate-800 transition-all"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${feat.color} shadow-xs group-hover:scale-110 transition-transform`}>
                     <Icon className="w-5 h-5 stroke-[2.2]" />
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{badge.title}</h4>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{badge.sub}</p>
-                  </div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">{feat.title}</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    {feat.desc}
+                  </p>
                 </div>
               );
             })}
           </motion.div>
+
+          {/* METRIC HIGHLIGHT SUMMARY BANNER */}
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-[#004d40] via-[#00695c] to-[#004d40] text-white shadow-2xl grid grid-cols-2 md:grid-cols-4 gap-6 text-left items-center border border-teal-400/20"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-teal-200 shrink-0">
+                <Users className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono">50K+</div>
+                <div className="text-xs text-teal-100/90 font-medium">Happy Patients Trusting Platform</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-200 shrink-0">
+                <Stethoscope className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono">2K+</div>
+                <div className="text-xs text-teal-100/90 font-medium">Healthcare Professionals Connected</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-200 shrink-0">
+                <Building2 className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono">250+</div>
+                <div className="text-xs text-teal-100/90 font-medium">Hospitals & Clinics Onboarded</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-emerald-200 shrink-0">
+                <ShieldCheck className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono">100%</div>
+                <div className="text-xs text-teal-100/90 font-medium">Secure & ABDM Integrated</div>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
-      {/* 2. INTERACTIVE STORY & MISSION / VISION / SECURITY TABS */}
+      {/* =========================================================================
+          SECTION 2 — INTRODUCTION VIDEO SECTION
+          ========================================================================= */}
+      <section 
+        id="about-video"
+        className="py-20 lg:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#0b1120] dark:via-slate-900/70 dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 relative overflow-hidden"
+      >
+        {/* DECORATIVE HEALTHCARE THEMED BACKGROUND AMBIENCE */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[450px] bg-gradient-to-tr from-teal-400/10 via-[#00a896]/10 to-cyan-400/10 blur-3xl pointer-events-none rounded-full" />
+        
+        {/* SUBTLE ECG WAVE LINE BACKGROUND ACCENT */}
+        <svg 
+          className="absolute inset-x-0 top-1/3 w-full h-32 opacity-15 pointer-events-none text-[#00a896]" 
+          viewBox="0 0 1200 120" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="1.5"
+        >
+          <path d="M0,60 L200,60 L220,60 L230,20 L240,100 L250,40 L260,75 L270,60 L600,60 L620,60 L630,15 L640,105 L650,35 L660,80 L670,60 L1200,60" />
+        </svg>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+          
+          {/* SECTION HEADING */}
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider">
+              <Activity className="w-3.5 h-3.5" />
+              <span>OUR STORY</span>
+            </span>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+              See How MediCare Connects Healthcare
+            </h2>
+
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
+              Discover how MediCare brings people, healthcare professionals, and essential healthcare services together in one connected ecosystem.
+            </p>
+          </div>
+
+          {/* LARGE CENTERED VIDEO CARD */}
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="w-full max-w-6xl mx-auto rounded-[28px] overflow-hidden shadow-2xl shadow-teal-500/10 border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
+          >
+            <div className="aspect-video w-full relative bg-slate-950 flex items-center justify-center">
+              
+              {/* VIDEO PLAYER */}
+              <video
+                ref={videoRef}
+                src="/about_us_.mp4"
+                controls={isPlayingVideo}
+                playsInline
+                className="w-full h-full object-cover rounded-[26px]"
+                onEnded={() => setIsPlayingVideo(false)}
+              >
+                Your browser does not support the video tag.
+              </video>
+
+              {/* INTERACTIVE PREVIEW OVERLAY (SHOWN BEFORE PLAY) */}
+              {!isPlayingVideo && (
+                <div 
+                  onClick={handlePlayVideo}
+                  className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-slate-950/40 backdrop-blur-xs flex flex-col items-center justify-center text-center p-6 cursor-pointer group/overlay transition-all"
+                >
+                  {/* PLAY BUTTON WITH PULSING GLOW & HOVER MOVEMENT */}
+                  <motion.div 
+                    whileHover={{ scale: 1.12 }}
+                    whileTap={{ scale: 0.94 }}
+                    className="relative mb-5"
+                  >
+                    <div className="absolute inset-0 rounded-full bg-[#00a896] blur-xl opacity-60 group-hover/overlay:opacity-90 animate-pulse" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#00a896] via-teal-500 to-cyan-400 text-white flex items-center justify-center shadow-2xl shadow-teal-500/40 relative z-10 border-2 border-white/40">
+                      <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-white ml-1" />
+                    </div>
+                  </motion.div>
+
+                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                    Watch Our Introduction
+                  </h3>
+                  <p className="text-xs sm:text-sm text-teal-200 mt-1 font-medium drop-shadow">
+                    Click to play the 1080p MediCare platform walkthrough
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3 — INTERACTIVE STORY & MISSION / VISION / SECURITY TABS
+          ========================================================================= */}
       <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -513,7 +788,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* 3. CORE ARCHITECTURAL PILLARS (6 CARDS WITH HOVER ACCENTS) */}
+      {/* =========================================================================
+          SECTION 4 — CORE ARCHITECTURAL PILLARS (6 CARDS WITH HOVER ACCENTS)
+          ========================================================================= */}
       <section className="py-20 bg-slate-50 dark:bg-[#0b1120]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -572,7 +849,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* 4. PLATFORM MILESTONES & TELEMETRY WITH ANIMATED COUNTUP */}
+      {/* =========================================================================
+          SECTION 5 — PLATFORM MILESTONES & TELEMETRY WITH ANIMATED COUNTUP
+          ========================================================================= */}
       <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-700 to-cyan-700 text-white shadow-2xl relative overflow-hidden">
         {/* BACKGROUND ORB ACCENTS */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -617,7 +896,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* 5. MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM */}
+      {/* =========================================================================
+          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM
+          ========================================================================= */}
       <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -687,7 +968,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* 6. HIGH-CONVERSION BOTTOM CALL TO ACTION */}
+      {/* =========================================================================
+          SECTION 7 — HIGH-CONVERSION BOTTOM CALL TO ACTION
+          ========================================================================= */}
       <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(#00a896_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none" />
         
