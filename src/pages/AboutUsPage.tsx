@@ -579,66 +579,90 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch"
               >
                 {/* MISSION CARD */}
-                <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-teal-500/5 via-slate-50 to-white dark:from-teal-950/20 dark:via-slate-800/90 dark:to-slate-800/80 border border-teal-500/20 dark:border-slate-700/80 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-[#00a896]/50 transition-colors">
-                  <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#00a896]/15 border border-[#00a896]/30 text-[#00a896] dark:text-cyan-400 flex items-center justify-center shadow-sm">
-                      <Target className="w-7 h-7 stroke-[2.2]" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
+                <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-teal-500/10 via-emerald-50/70 to-white dark:from-teal-950/40 dark:via-emerald-950/20 dark:to-slate-900 border-2 border-teal-500/25 dark:border-teal-500/40 shadow-xl hover:shadow-2xl hover:border-[#00a896]/60 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                  {/* BACKGROUND GLOWS & WATERMARK */}
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-teal-400/20 dark:bg-teal-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-400/30 transition-all" />
+                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-emerald-400/15 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
+                  <Target className="absolute top-6 right-6 w-36 h-36 text-teal-600/5 dark:text-teal-400/5 pointer-events-none stroke-[1.2]" />
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#00a896] to-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
+                        <Target className="w-8 h-8 stroke-[2.2]" />
+                      </div>
+                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono">
                         Our Mission
                       </span>
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-                        Democratizing Lifetime Health Ownership
-                      </h3>
                     </div>
+
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                      Democratizing Lifetime Health Ownership
+                    </h3>
+
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       To empower every citizen with complete sovereignty over their clinical history — eliminating lost paperwork, avoiding redundant diagnostic tests, and accelerating emergency response by turning scattered medical data into a single unified lifeline.
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+                  <div className="pt-4 border-t border-teal-500/20 dark:border-teal-700/40 space-y-3 relative z-10">
                     {[
                       'Instant access to prescriptions, discharge summaries & lab tests',
                       'Zero-data-selling pledge with strict cryptographic patient gates',
                       'Direct doctor sharing with revocable QR and timed consent OTPs',
                     ].map((bullet, i) => (
-                      <div key={i} className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                        <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
-                        <span>{bullet}</span>
+                      <div 
+                        key={i} 
+                        className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-teal-500/20 dark:border-teal-700/40 flex items-center gap-3 shadow-xs hover:border-[#00a896]/50 transition-colors"
+                      >
+                        <div className="p-1 rounded-lg bg-teal-500/15 text-[#00a896] dark:text-cyan-400 shrink-0">
+                          <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{bullet}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* VISION CARD */}
-                <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-cyan-500/5 via-slate-50 to-white dark:from-cyan-950/20 dark:via-slate-800/90 dark:to-slate-800/80 border border-cyan-500/20 dark:border-slate-700/80 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
-                  <div className="space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-sm">
-                      <Eye className="w-7 h-7 stroke-[2.2]" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-mono">
+                <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-cyan-500/10 via-sky-50/70 to-white dark:from-cyan-950/40 dark:via-sky-950/20 dark:to-slate-900 border-2 border-cyan-500/25 dark:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:border-cyan-500/60 transition-all flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                  {/* BACKGROUND GLOWS & WATERMARK */}
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-cyan-400/20 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-400/30 transition-all" />
+                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-blue-400/15 dark:bg-blue-500/15 rounded-full blur-2xl pointer-events-none" />
+                  <Eye className="absolute top-6 right-6 w-36 h-36 text-cyan-600/5 dark:text-cyan-400/5 pointer-events-none stroke-[1.2]" />
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
+                        <Eye className="w-8 h-8 stroke-[2.2]" />
+                      </div>
+                      <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-mono">
                         Our Vision
                       </span>
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-                        India’s Most Trusted Healthcare Ecosystem
-                      </h3>
                     </div>
+
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                      India’s Most Trusted Healthcare Ecosystem
+                    </h3>
+
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       Building the national standard for interoperable digital health where 1.4 billion citizens, thousands of hospitals, and emergency personnel connect seamlessly under ABDM standards, creating proactive, preventive, and life-saving healthcare.
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+                  <div className="pt-4 border-t border-cyan-500/20 dark:border-cyan-700/40 space-y-3 relative z-10">
                     {[
                       'Universal ABHA ID linkage across 100,000+ empanelled health facilities',
                       'Intelligent AI health trend indicators & proactive vital alerts',
                       'Multi-generational caregiver monitoring for senior citizens & children',
                     ].map((bullet, i) => (
-                      <div key={i} className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                        <CheckCircle2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                        <span>{bullet}</span>
+                      <div 
+                        key={i} 
+                        className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-cyan-500/20 dark:border-cyan-700/40 flex items-center gap-3 shadow-xs hover:border-cyan-500/50 transition-colors"
+                      >
+                        <div className="p-1 rounded-lg bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 shrink-0">
+                          <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{bullet}</span>
                       </div>
                     ))}
                   </div>
@@ -658,7 +682,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 {journeySteps.map((step, idx) => (
                   <div 
                     key={idx}
-                    className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-md flex flex-col justify-between space-y-4 hover:border-[#00a896]/60 transition-all group"
+                    className="p-6 rounded-3xl bg-gradient-to-br from-teal-500/5 via-white to-slate-50 dark:from-slate-800/90 dark:via-slate-800/80 dark:to-slate-900 border border-slate-200/90 dark:border-slate-700/80 shadow-md hover:shadow-xl hover:border-[#00a896]/60 transition-all group flex flex-col justify-between space-y-4"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
