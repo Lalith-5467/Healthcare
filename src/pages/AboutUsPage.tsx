@@ -102,29 +102,29 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
-  const [activePillarIndex, setActivePillarIndex] = useState(0);
-  const [isPillarHovered, setIsPillarHovered] = useState(false);
+  const [activeLeadershipIndex, setActiveLeadershipIndex] = useState(0);
+  const [isLeadershipHovered, setIsLeadershipHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
-  // Continuous auto-play for 3D Cover-Flow Carousel (pauses on user hover/interaction)
+  // Continuous auto-play for 3D Cover-Flow Carousel on Leadership Team (pauses on user hover/interaction)
   useEffect(() => {
-    if (isPillarHovered) return;
+    if (isLeadershipHovered) return;
     const timer = setInterval(() => {
-      setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
+      setActiveLeadershipIndex((prev) => (prev + 1) % leadership.length);
     }, 3500);
     return () => clearInterval(timer);
-  }, [isPillarHovered, corePillars.length]);
+  }, [isLeadershipHovered, leadership.length]);
 
-  const handlePrevPillar = () => {
-    setActivePillarIndex((prev) => (prev - 1 + corePillars.length) % corePillars.length);
+  const handlePrevLeadership = () => {
+    setActiveLeadershipIndex((prev) => (prev - 1 + leadership.length) % leadership.length);
   };
 
-  const handleNextPillar = () => {
-    setActivePillarIndex((prev) => (prev + 1) % corePillars.length);
+  const handleNextLeadership = () => {
+    setActiveLeadershipIndex((prev) => (prev + 1) % leadership.length);
   };
 
   const handlePlayVideo = () => {
@@ -880,162 +880,60 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             </p>
           </div>
 
-          {/* 3D HORIZONTAL COVER-FLOW CAROUSEL CONTAINER */}
-          <div 
-            className="relative w-full max-w-6xl mx-auto h-[530px] flex items-center justify-center overflow-visible"
-            onMouseEnter={() => setIsPillarHovered(true)}
-            onMouseLeave={() => setIsPillarHovered(false)}
-            style={{ perspective: '1200px' }}
-          >
-            {/* 3D CAROUSEL TRACK */}
-            <div className="relative w-full h-full flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-              {corePillars.map((pillar, idx) => {
-                const Icon = pillar.icon;
-                const len = corePillars.length;
-                let diff = (idx - activePillarIndex) % len;
-                if (diff > len / 2) diff -= len;
-                if (diff < -len / 2) diff += len;
+          {/* SECTION 4 GRID OF 6 CORE CAPABILITY CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {corePillars.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ 
+                    duration: 0.55, 
+                    delay: idx * 0.1, 
+                    ease: [0.22, 1, 0.36, 1] 
+                  }}
+                  animate={{ y: [-2.5, 2.5, -2.5] }}
+                  whileHover={{ scale: 1.03, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onStartJourney}
+                  className="p-7 rounded-[22px] bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-teal-500/20 dark:border-teal-500/30 shadow-xl hover:shadow-2xl hover:shadow-teal-500/20 hover:border-teal-400/70 flex flex-col justify-between space-y-6 group transition-all duration-300 cursor-pointer relative overflow-hidden"
+                >
+                  {/* CINEMATIC AMBIENT GRADIENT & GLOW ACCENTS */}
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-teal-400/15 dark:bg-teal-500/15 rounded-full blur-2xl group-hover:opacity-100 opacity-60 transition-opacity duration-300 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                const isCenter = diff === 0;
-                const isVisible = Math.abs(diff) <= 2;
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex items-center justify-between">
+                      {/* CATEGORY LABEL */}
+                      <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/25 font-mono shadow-xs">
+                        {pillar.category}
+                      </span>
 
-                if (!isVisible) return null;
-
-                // 3D Cover-Flow Interpolation
-                let xOffset = 0;
-                let scale = 1;
-                let rotateY = 0;
-                let zIndex = 30;
-                let opacity = 1;
-
-                if (diff === 0) {
-                  xOffset = 0;
-                  scale = 1.0;
-                  rotateY = 0;
-                  zIndex = 30;
-                  opacity = 1.0;
-                } else if (Math.abs(diff) === 1) {
-                  xOffset = diff * 295;
-                  scale = 0.88;
-                  rotateY = diff * -16;
-                  zIndex = 20;
-                  opacity = 0.78;
-                } else if (Math.abs(diff) === 2) {
-                  xOffset = diff * 490;
-                  scale = 0.74;
-                  rotateY = diff * -28;
-                  zIndex = 10;
-                  opacity = 0.42;
-                }
-
-                return (
-                  <motion.div
-                    key={idx}
-                    animate={{
-                      x: xOffset,
-                      scale: scale,
-                      rotateY: rotateY,
-                      zIndex: zIndex,
-                      opacity: opacity,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 240,
-                      damping: 26,
-                      mass: 0.8
-                    }}
-                    onClick={() => {
-                      if (!isCenter) {
-                        setActivePillarIndex(idx);
-                      } else {
-                        onStartJourney();
-                      }
-                    }}
-                    style={{ transformStyle: 'preserve-3d' }}
-                    className={`absolute w-[320px] sm:w-[360px] h-[440px] p-7 rounded-[24px] flex flex-col justify-between cursor-pointer transition-colors duration-300 select-none ${
-                      isCenter
-                        ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-2 border-[#00a896] dark:border-cyan-400 shadow-2xl shadow-teal-500/25 ring-4 ring-teal-500/10'
-                        : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-lg hover:border-[#00a896]/50'
-                    }`}
-                  >
-                    {/* AMBIENT GLOW ON CENTER CARD */}
-                    {isCenter && (
-                      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-teal-400/25 dark:bg-teal-500/25 rounded-full blur-2xl pointer-events-none" />
-                    )}
-
-                    <div className="space-y-4 relative z-10">
-                      <div className="flex items-center justify-between">
-                        {/* CATEGORY LABEL */}
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full font-mono shadow-xs ${
-                          isCenter
-                            ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                        }`}>
-                          {pillar.category}
-                        </span>
-
-                        {/* ICON BADGE */}
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                          isCenter
-                            ? 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-lg shadow-teal-500/30 scale-105'
-                            : 'bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400'
-                        }`}>
-                          <Icon className="w-6 h-6 stroke-[2.3]" />
-                        </div>
+                      {/* ICON BADGE WITH PULSE HOVER */}
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-teal-500/25 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(0,168,150,0.6)] transition-all duration-300">
+                        <Icon className="w-5 h-5 stroke-[2.3]" />
                       </div>
-
-                      <h3 className={`text-xl font-black transition-colors ${
-                        isCenter ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
-                      }`}>
-                        {pillar.title}
-                      </h3>
-
-                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                        {pillar.desc}
-                      </p>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-[#00a896] dark:text-cyan-400 relative z-10">
-                      <span className="font-black">{isCenter ? 'Explore integration' : 'Click to Focus'}</span>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isCenter ? 'translate-x-0' : 'opacity-60'}`} />
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
+                      {pillar.title}
+                    </h3>
 
-            {/* PREVIOUS / NEXT FLOATING NAV BUTTONS */}
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePrevPillar(); }}
-              aria-label="Previous Card"
-              className="absolute left-2 sm:left-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
-            >
-              <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
-            </button>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                      {pillar.desc}
+                    </p>
+                  </div>
 
-            <button
-              onClick={(e) => { e.stopPropagation(); handleNextPillar(); }}
-              aria-label="Next Card"
-              className="absolute right-2 sm:right-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
-            >
-              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* CAROUSEL PAGINATION INDICATOR DOTS */}
-          <div className="flex items-center justify-center gap-2 pt-6">
-            {corePillars.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActivePillarIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                  activePillarIndex === idx 
-                    ? 'w-8 bg-[#00a896] shadow-md shadow-teal-500/40' 
-                    : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
-                }`}
-              />
-            ))}
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-[#00a896] dark:text-cyan-400 relative z-10">
+                    <span className="group-hover:underline font-bold">Explore integration</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
         </div>
@@ -1089,9 +987,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       </section>
 
       {/* =========================================================================
-          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM (CINEMATIC POSTER UI)
+          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM (3D COVER-FLOW CAROUSEL)
           ========================================================================= */}
-      <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800">
+      <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
@@ -1106,65 +1004,172 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {leadership.map((mem, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  duration: 0.55, 
-                  delay: idx * 0.12, 
-                  ease: [0.22, 1, 0.36, 1] 
-                }}
-                animate={{ y: [-2.5, 2.5, -2.5] }}
-                whileHover={{ scale: 1.03, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-                className="rounded-[22px] bg-slate-950 border border-teal-500/20 dark:border-teal-500/30 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-teal-500/25 hover:border-teal-400/70 group transition-all duration-300 flex flex-col justify-between relative cursor-pointer"
-              >
-                {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
-                <div className="h-72 overflow-hidden relative">
-                  <img 
-                    src={mem.img} 
-                    alt={mem.name} 
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                  />
-                  
-                  {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-                  
-                  {/* TOP CORNER FLOATING BADGE CHIP */}
-                  <div className="absolute top-3.5 right-3.5 z-10">
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-cyan-300 border border-cyan-400/30 font-mono shadow-md">
-                      {mem.badge}
-                    </span>
-                  </div>
+          {/* 3D HORIZONTAL COVER-FLOW CAROUSEL FOR LEADERSHIP */}
+          <div 
+            className="relative w-full max-w-5xl mx-auto h-[550px] flex items-center justify-center overflow-visible"
+            onMouseEnter={() => setIsLeadershipHovered(true)}
+            onMouseLeave={() => setIsLeadershipHovered(false)}
+            style={{ perspective: '1200px' }}
+          >
+            {/* 3D TRACK */}
+            <div className="relative w-full h-full flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
+              {leadership.map((mem, idx) => {
+                const len = leadership.length;
+                let diff = (idx - activeLeadershipIndex) % len;
+                if (diff > len / 2) diff -= len;
+                if (diff < -len / 2) diff += len;
 
-                  {/* OVERLAID NAME AND TITLE */}
-                  <div className="absolute bottom-3 left-4 right-4 text-white z-10">
-                    <h4 className="text-lg font-black tracking-tight drop-shadow-sm">{mem.name}</h4>
-                    <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
-                  </div>
-                </div>
+                const isCenter = diff === 0;
+                const isVisible = Math.abs(diff) <= 2;
 
-                {/* LOWER INFORMATION CONTENT */}
-                <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-800/80">
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-bold text-slate-400 font-mono">
-                      {mem.credentials}
+                if (!isVisible) return null;
+
+                // 3D Cover-Flow Positioning & Scale
+                let xOffset = 0;
+                let scale = 1;
+                let rotateY = 0;
+                let zIndex = 30;
+                let opacity = 1;
+
+                if (diff === 0) {
+                  xOffset = 0;
+                  scale = 1.0;
+                  rotateY = 0;
+                  zIndex = 30;
+                  opacity = 1.0;
+                } else if (Math.abs(diff) === 1) {
+                  xOffset = diff * 290;
+                  scale = 0.88;
+                  rotateY = diff * -16;
+                  zIndex = 20;
+                  opacity = 0.78;
+                } else if (Math.abs(diff) === 2) {
+                  xOffset = diff * 480;
+                  scale = 0.74;
+                  rotateY = diff * -28;
+                  zIndex = 10;
+                  opacity = 0.42;
+                }
+
+                return (
+                  <motion.div
+                    key={idx}
+                    animate={{
+                      x: xOffset,
+                      scale: scale,
+                      rotateY: rotateY,
+                      zIndex: zIndex,
+                      opacity: opacity,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 240,
+                      damping: 26,
+                      mass: 0.8
+                    }}
+                    onClick={() => {
+                      if (!isCenter) {
+                        setActiveLeadershipIndex(idx);
+                      }
+                    }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                    className={`absolute w-[300px] sm:w-[340px] md:w-[350px] h-[480px] rounded-[24px] bg-slate-950 overflow-hidden shadow-xl flex flex-col justify-between cursor-pointer select-none transition-all duration-300 ${
+                      isCenter
+                        ? 'border-2 border-[#00a896] dark:border-cyan-400 shadow-2xl shadow-teal-500/30 ring-4 ring-teal-500/15'
+                        : 'border border-slate-700/80 shadow-lg hover:border-teal-400/50'
+                    }`}
+                  >
+                    {/* AMBIENT GLOW ON CENTER CARD */}
+                    {isCenter && (
+                      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-teal-400/25 dark:bg-teal-500/25 rounded-full blur-2xl pointer-events-none" />
+                    )}
+
+                    {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
+                    <div className="h-72 overflow-hidden relative">
+                      <img 
+                        src={mem.img} 
+                        alt={mem.name} 
+                        className={`w-full h-full object-cover transition-transform duration-500 ${isCenter ? 'scale-105' : 'scale-100'}`}
+                      />
+                      
+                      {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+                      
+                      {/* TOP CORNER FLOATING BADGE CHIP */}
+                      <div className="absolute top-3.5 right-3.5 z-10">
+                        <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md font-mono shadow-md ${
+                          isCenter 
+                            ? 'bg-slate-950/90 text-cyan-300 border border-cyan-400/40 ring-1 ring-cyan-400/20' 
+                            : 'bg-slate-950/80 text-slate-300 border border-slate-700'
+                        }`}>
+                          {mem.badge}
+                        </span>
+                      </div>
+
+                      {/* OVERLAID NAME AND TITLE */}
+                      <div className="absolute bottom-3 left-4 right-4 text-white z-10">
+                        <h4 className="text-lg font-black tracking-tight drop-shadow-sm">{mem.name}</h4>
+                        <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                      {mem.specialty}
-                    </p>
-                  </div>
 
-                  <div className="pt-2 border-t border-slate-800/60 flex items-center gap-1.5 text-[11px] font-bold text-teal-400">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Verified Clinical Advisor</span>
-                  </div>
-                </div>
-              </motion.div>
+                    {/* LOWER INFORMATION CONTENT */}
+                    <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-800/80">
+                      <div className="space-y-1.5">
+                        <div className="text-[11px] font-bold text-slate-400 font-mono">
+                          {mem.credentials}
+                        </div>
+                        <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                          {mem.specialty}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] font-bold text-teal-400">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Verified Clinical Advisor</span>
+                        </div>
+                        {!isCenter && (
+                          <span className="text-[10px] text-cyan-300 font-mono underline">Focus</span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* PREVIOUS / NEXT FLOATING NAV BUTTONS */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handlePrevLeadership(); }}
+              aria-label="Previous Leadership Member"
+              className="absolute left-2 sm:left-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+            </button>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); handleNextLeadership(); }}
+              aria-label="Next Leadership Member"
+              className="absolute right-2 sm:right-4 z-40 w-12 h-12 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:scale-110 active:scale-95 transition-all cursor-pointer"
+            >
+              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* CAROUSEL PAGINATION INDICATOR DOTS */}
+          <div className="flex items-center justify-center gap-2 pt-6">
+            {leadership.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveLeadershipIndex(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeLeadershipIndex === idx 
+                    ? 'w-8 bg-[#00a896] shadow-md shadow-teal-500/40' 
+                    : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                }`}
+              />
             ))}
           </div>
 
