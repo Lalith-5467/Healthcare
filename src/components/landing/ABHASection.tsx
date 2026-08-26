@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Sparkles
 } from 'lucide-react';
+import { SpotlightCard } from '../ui/SpotlightCard';
 
 interface ABHASectionProps {
   onManageConnection: () => void;
@@ -45,83 +46,87 @@ const ABHACard: React.FC<{
           duration: 0.65,
           ease: [0.4, 0, 0.2, 1]
         }}
-        className={`relative p-5 sm:p-6 rounded-[22px] bg-white dark:bg-slate-800/95 border-2 transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-md select-none overflow-hidden ${
-          isHovered 
-            ? 'border-[#00a896] dark:border-cyan-400 shadow-2xl shadow-teal-500/20 ring-4 ring-teal-500/10' 
-            : 'border-slate-200 dark:border-slate-700/90 hover:border-teal-400/50'
-        }`}
       >
-        {/* TOP ACCENT LINE ANIMATION (TEAL MEDICARE BRANDING) */}
-        <motion.div
-          initial={false}
-          animate={{
-            width: isHovered ? '100%' : '28%',
-            opacity: isHovered ? 1 : 0.85,
-          }}
-          transition={{
-            duration: 0.65,
-            ease: [0.4, 0, 0.2, 1]
-          }}
-          className="absolute top-0 left-0 h-1.5 bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 rounded-t-full shadow-sm"
-        />
+        <SpotlightCard
+          spotlightColor="rgba(0, 168, 150, 0.25)"
+          className={`relative p-5 sm:p-6 rounded-[22px] bg-white dark:bg-slate-800/95 border-2 transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-md select-none h-full ${
+            isHovered 
+              ? 'border-[#00a896] dark:border-cyan-400 shadow-2xl shadow-teal-500/20 ring-4 ring-teal-500/10' 
+              : 'border-slate-200 dark:border-slate-700/90 hover:border-teal-400/50'
+          }`}
+        >
+          {/* TOP ACCENT LINE ANIMATION (TEAL MEDICARE BRANDING) */}
+          <motion.div
+            initial={false}
+            animate={{
+              width: isHovered ? '100%' : '28%',
+              opacity: isHovered ? 1 : 0.85,
+            }}
+            transition={{
+              duration: 0.65,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="absolute top-0 left-0 h-1.5 bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 rounded-t-full shadow-sm z-10"
+          />
 
-        {/* CARD HEADER: ICON + HIGH-CONTRAST CATEGORY PILL + STEP CHIP */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${
-              isHovered 
-                ? 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-lg shadow-teal-500/30 scale-105' 
-                : 'bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 border border-teal-500/30'
-            }`}>
-              <Icon className="w-5 h-5 stroke-[2.4]" />
+          {/* CARD HEADER: ICON + HIGH-CONTRAST CATEGORY PILL + STEP CHIP */}
+          <div className="flex items-center justify-between gap-2 relative z-10">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                isHovered 
+                  ? 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-lg shadow-teal-500/30 scale-105' 
+                  : 'bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-400 border border-teal-500/30'
+              }`}>
+                <Icon className="w-5 h-5 stroke-[2.4]" />
+              </div>
+              <span className={`text-[11px] font-black uppercase tracking-wider font-mono px-2.5 py-1 rounded-lg border transition-colors duration-300 ${
+                isHovered
+                  ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/40 shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-700/80 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-600'
+              }`}>
+                {item.category}
+              </span>
             </div>
-            <span className={`text-[11px] font-black uppercase tracking-wider font-mono px-2.5 py-1 rounded-lg border transition-colors duration-300 ${
-              isHovered
-                ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/40 shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-700/80 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-600'
+
+            <span className={`text-xs font-mono font-black px-2.5 py-1 rounded-lg border shadow-xs transition-colors duration-300 shrink-0 ${
+              isHovered 
+                ? 'text-white bg-[#00a896] border-[#00a896]' 
+                : 'text-[#00a896] dark:text-cyan-400 bg-teal-500/10 dark:bg-teal-500/20 border-teal-500/30'
             }`}>
-              {item.category}
+              {item.step}
             </span>
           </div>
 
-          <span className={`text-xs font-mono font-black px-2.5 py-1 rounded-lg border shadow-xs transition-colors duration-300 shrink-0 ${
-            isHovered 
-              ? 'text-white bg-[#00a896] border-[#00a896]' 
-              : 'text-[#00a896] dark:text-cyan-400 bg-teal-500/10 dark:bg-teal-500/20 border-teal-500/30'
-          }`}>
-            {item.step}
-          </span>
-        </div>
-
-        {/* MAIN HEADING */}
-        <div className="space-y-1 mt-2.5">
-          <h3 className={`text-lg sm:text-xl font-black tracking-tight transition-colors duration-300 ${
-            isHovered ? 'text-[#00a896] dark:text-cyan-300' : 'text-slate-900 dark:text-white'
-          }`}>
-            {item.title}
-          </h3>
-        </div>
-
-        {/* EXPANDING SUPPORTING DESCRIPTION CARD (HIGH CONTRAST & CLEAR READABILITY) */}
-        <motion.div
-          initial={false}
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            height: isHovered ? 'auto' : 0,
-            marginTop: isHovered ? 8 : 0,
-          }}
-          transition={{
-            duration: 0.55,
-            ease: [0.4, 0, 0.2, 1]
-          }}
-          className="overflow-hidden"
-        >
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80">
-            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-semibold">
-              {item.desc}
-            </p>
+          {/* MAIN HEADING */}
+          <div className="space-y-1 mt-2.5 relative z-10">
+            <h3 className={`text-lg sm:text-xl font-black tracking-tight transition-colors duration-300 ${
+              isHovered ? 'text-[#00a896] dark:text-cyan-300' : 'text-slate-900 dark:text-white'
+            }`}>
+              {item.title}
+            </h3>
           </div>
-        </motion.div>
+
+          {/* EXPANDING SUPPORTING DESCRIPTION CARD */}
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: isHovered ? 1 : 0,
+              height: isHovered ? 'auto' : 0,
+              marginTop: isHovered ? 8 : 0,
+            }}
+            transition={{
+              duration: 0.55,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="overflow-hidden relative z-10"
+          >
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80">
+              <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-semibold">
+                {item.desc}
+              </p>
+            </div>
+          </motion.div>
+        </SpotlightCard>
       </motion.div>
 
       {/* CONNECTING ARROW BETWEEN CARDS */}
@@ -201,8 +206,11 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
           ))}
         </div>
 
-        {/* INTERACTIVE ABHA CONNECTED STATUS CARD */}
-        <div className="max-w-2xl mx-auto p-6 sm:p-8 rounded-[24px] bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-xl">
+        {/* INTERACTIVE ABHA CONNECTED STATUS SPOTLIGHT CARD */}
+        <SpotlightCard
+          spotlightColor="rgba(0, 168, 150, 0.22)"
+          className="max-w-2xl mx-auto p-6 sm:p-8 rounded-[24px] bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-xl"
+        >
           {/* AMBIENT CORNER GLOW */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -268,7 +276,7 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
               <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
             </motion.button>
           </div>
-        </div>
+        </SpotlightCard>
       </div>
     </section>
   );

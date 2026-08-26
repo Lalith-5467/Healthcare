@@ -21,6 +21,7 @@ import {
   FileCheck2,
   BellRing
 } from 'lucide-react';
+import { SpotlightCard } from '../ui/SpotlightCard';
 
 interface FeaturesSectionProps {
   onExploreFeature?: (featureId: string) => void;
@@ -54,6 +55,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: FileText,
       badge: '100% Encrypted',
       themeColor: 'teal',
+      spotlightColor: 'rgba(0, 168, 150, 0.28)',
       glowBg: 'from-teal-500/25 via-cyan-500/15 to-transparent',
       activeRing: 'border-teal-500 ring-4 ring-teal-500/20 shadow-teal-500/25',
       activeBadge: 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/30',
@@ -82,6 +84,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: Pill,
       badge: 'Smart Alerts',
       themeColor: 'purple',
+      spotlightColor: 'rgba(168, 85, 247, 0.28)',
       glowBg: 'from-purple-500/25 via-indigo-500/15 to-transparent',
       activeRing: 'border-purple-500 ring-4 ring-purple-500/20 shadow-purple-500/25',
       activeBadge: 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30',
@@ -110,6 +113,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: QrCode,
       badge: 'Consent Ready',
       themeColor: 'cyan',
+      spotlightColor: 'rgba(6, 182, 212, 0.28)',
       glowBg: 'from-cyan-500/25 via-blue-500/15 to-transparent',
       activeRing: 'border-cyan-500 ring-4 ring-cyan-500/20 shadow-cyan-500/25',
       activeBadge: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30',
@@ -138,6 +142,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: ShieldAlert,
       badge: 'Instant Access',
       themeColor: 'rose',
+      spotlightColor: 'rgba(244, 63, 94, 0.28)',
       glowBg: 'from-rose-500/25 via-pink-500/15 to-transparent',
       activeRing: 'border-rose-500 ring-4 ring-rose-500/20 shadow-rose-500/25',
       activeBadge: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30',
@@ -208,20 +213,19 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
           </motion.p>
         </div>
 
-        {/* INTERACTIVE 4 FEATURE TAB SELECTOR (PERFECTLY ALIGNED) */}
+        {/* INTERACTIVE 4 FEATURE TAB SELECTOR WITH SPOTLIGHT EFFECT */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
           {featureCategories.map((cat, index) => {
             const Icon = cat.icon;
             const isActive = activeTab === index;
             return (
-              <motion.button
+              <SpotlightCard
                 key={cat.id}
-                whileHover={{ scale: 1.025, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                spotlightColor={cat.spotlightColor}
                 onClick={() => setActiveTab(index)}
-                className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden shadow-sm h-full min-h-[145px] ${
+                className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative shadow-sm h-full min-h-[145px] ${
                   isActive
-                    ? `bg-white/95 dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl`
+                    ? `bg-white/95 dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl scale-[1.02]`
                     : 'bg-white/70 dark:bg-slate-850/60 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800/80 backdrop-blur-md'
                 }`}
               >
@@ -255,12 +259,12 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                     {cat.subtitle}
                   </p>
                 </div>
-              </motion.button>
+              </SpotlightCard>
             );
           })}
         </div>
 
-        {/* ACTIVE FEATURE DISPLAY SHOWCASE */}
+        {/* ACTIVE FEATURE DISPLAY SHOWCASE WITH DYNAMIC SPOTLIGHT */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeFeature.id}
@@ -268,192 +272,195 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.98 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-3xl bg-white/95 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden text-slate-900 dark:text-white"
           >
-            {/* AMBIENT CORNER AURA */}
-            <div className={`absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br ${activeFeature.glowBg} rounded-full blur-3xl pointer-events-none opacity-80`} />
+            <SpotlightCard
+              spotlightColor={activeFeature.spotlightColor}
+              className="rounded-3xl bg-white/95 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl relative text-slate-900 dark:text-white"
+            >
+              {/* AMBIENT CORNER AURA */}
+              <div className={`absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br ${activeFeature.glowBg} rounded-full blur-3xl pointer-events-none opacity-80`} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
-              
-              {/* LEFT FEATURE DETAILS */}
-              <div className="lg:col-span-6 space-y-6">
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-13 h-13 rounded-2xl ${activeFeature.iconBgActive} flex items-center justify-center shadow-lg`}>
-                    {React.createElement(activeFeature.icon, { className: "w-6 h-6 stroke-[2.4]" })}
-                  </div>
-                  <div>
-                    <span className={`text-xs font-black uppercase tracking-wider font-mono ${activeFeature.subtitleColor}`}>
-                      {activeFeature.subtitle}
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                      {activeFeature.title}
-                    </h3>
-                  </div>
-                </div>
-
-                <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                  {activeFeature.description}
-                </p>
-
-                {/* INTERACTIVE CHECKLIST PILLS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  {activeFeature.bullets.map((bullet, idx) => (
-                    <motion.div 
-                      key={idx} 
-                      whileHover={{ scale: 1.02, x: 2 }}
-                      className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs group"
-                    >
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 group-hover:scale-110 transition-transform ${activeFeature.checkColor}`} />
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
-                        {bullet}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* CTA BUTTON MATCHING FEATURE THEME */}
-                <div className="pt-2">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => onExploreFeature && onExploreFeature(activeFeature.id)}
-                    className={`inline-flex items-center gap-2.5 px-7 py-3.5 text-sm font-black text-white ${activeFeature.ctaButton} rounded-xl shadow-lg transition-all cursor-pointer`}
-                  >
-                    <span>Explore {activeFeature.title}</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
-                </div>
-              </div>
-
-              {/* RIGHT LIVE INTERACTIVE PREVIEW MOCKUP */}
-              <div className="lg:col-span-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
                 
-                {/* 1. DIGITAL HEALTH RECORDS MOCKUP */}
-                {activeFeature.id === 'phr-locker' && (
-                  <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-teal-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                    {/* SIMULATED SCANNING LASER */}
-                    <motion.div 
-                      animate={{ y: [0, 240, 0] }}
-                      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,1)] pointer-events-none z-20"
-                    />
-
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-                      <div className="flex items-center gap-2">
-                        <FileCheck2 className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs font-black uppercase text-slate-300 font-mono">Encrypted Medical Vault</span>
-                      </div>
-                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
-                        ABDM Verified
+                {/* LEFT FEATURE DETAILS */}
+                <div className="lg:col-span-6 space-y-6">
+                  <div className="flex items-center gap-3.5">
+                    <div className={`w-13 h-13 rounded-2xl ${activeFeature.iconBgActive} flex items-center justify-center shadow-lg`}>
+                      {React.createElement(activeFeature.icon, { className: "w-6 h-6 stroke-[2.4]" })}
+                    </div>
+                    <div>
+                      <span className={`text-xs font-black uppercase tracking-wider font-mono ${activeFeature.subtitleColor}`}>
+                        {activeFeature.subtitle}
                       </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">Pathology Lab Diagnostics.pdf</span>
-                        <span className="text-[10px] text-teal-400 font-mono font-bold">2.4 MB · AES-256</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-[10px] font-mono">
-                        <span className="px-2 py-0.5 rounded-md bg-teal-500/20 text-cyan-300 border border-teal-500/30">Lipid Profile</span>
-                        <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">HbA1c: 5.6%</span>
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Normal</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2.5 text-center">
-                      {activeFeature.previewStats.map((st, i) => (
-                        <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                          <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
-                          <strong className="text-xs font-black text-teal-300 mt-0.5 block">{st.value}</strong>
-                        </div>
-                      ))}
+                      <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                        {activeFeature.title}
+                      </h3>
                     </div>
                   </div>
-                )}
 
-                {/* 2. MEDICINE REMINDERS MOCKUP */}
-                {activeFeature.id === 'med-reminder' && (
-                  <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-purple-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-                      <div className="flex items-center gap-2">
-                        <BellRing className="w-4 h-4 text-purple-400" />
-                        <span className="text-xs font-black uppercase text-slate-300 font-mono">Daily Dosage Schedule</span>
-                      </div>
-                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
-                        99.4% Adherence
-                      </span>
-                    </div>
+                  <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                    {activeFeature.description}
+                  </p>
 
-                    <div className="space-y-2.5">
-                      {/* DOSE 1 */}
-                      <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-                            <Check className="w-4 h-4 stroke-[3]" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-black text-white block">Metformin 500mg</span>
-                            <span className="text-[10px] text-slate-400 font-mono">08:00 AM · After Breakfast</span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-black text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded">Taken</span>
-                      </div>
-
-                      {/* DOSE 2 (INTERACTIVE) */}
-                      <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/40 flex items-center justify-between ring-1 ring-purple-500/30">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
-                            doseTaken 
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                              : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                          }`}>
-                            <Pill className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-black text-white block">Vitamin D3 60k UI</span>
-                            <span className="text-[10px] text-purple-300 font-mono">01:30 PM · Due Now</span>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => setDoseTaken(!doseTaken)}
-                          className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg border transition-all cursor-pointer ${
-                            doseTaken 
-                              ? 'bg-emerald-500 text-white border-emerald-400' 
-                              : 'bg-purple-500 hover:bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/30'
-                          }`}
-                        >
-                          {doseTaken ? 'Taken ✓' : 'Mark Taken'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2.5 text-center">
-                      {activeFeature.previewStats.map((st, i) => (
-                        <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                          <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
-                          <strong className="text-xs font-black text-purple-300 mt-0.5 block">{st.value}</strong>
-                        </div>
-                      ))}
-                    </div>
+                  {/* INTERACTIVE CHECKLIST PILLS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {activeFeature.bullets.map((bullet, idx) => (
+                      <motion.div 
+                        key={idx} 
+                        whileHover={{ scale: 1.02, x: 2 }}
+                        className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs group"
+                      >
+                        <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 group-hover:scale-110 transition-transform ${activeFeature.checkColor}`} />
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
+                          {bullet}
+                        </span>
+                      </motion.div>
+                    ))}
                   </div>
-                )}
 
-                {/* 3. DOCTOR & CLINIC SHARING MOCKUP */}
-                {activeFeature.id === 'doctor-share' && (
-                  <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-cyan-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-                      <div className="flex items-center gap-2">
-                        <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-                        <span className="text-xs font-black uppercase text-slate-300 font-mono">Active Consent Session</span>
+                  {/* CTA BUTTON MATCHING FEATURE THEME */}
+                  <div className="pt-2">
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => onExploreFeature && onExploreFeature(activeFeature.id)}
+                      className={`inline-flex items-center gap-2.5 px-7 py-3.5 text-sm font-black text-white ${activeFeature.ctaButton} rounded-xl shadow-lg transition-all cursor-pointer`}
+                    >
+                      <span>Explore {activeFeature.title}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* RIGHT LIVE INTERACTIVE PREVIEW MOCKUP */}
+                <div className="lg:col-span-6">
+                  
+                  {/* 1. DIGITAL HEALTH RECORDS MOCKUP */}
+                  {activeFeature.id === 'phr-locker' && (
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-teal-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      {/* SIMULATED SCANNING LASER */}
+                      <motion.div 
+                        animate={{ y: [0, 240, 0] }}
+                        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                        className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,1)] pointer-events-none z-20"
+                      />
+
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                        <div className="flex items-center gap-2">
+                          <FileCheck2 className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Encrypted Medical Vault</span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
+                          ABDM Verified
+                        </span>
                       </div>
-                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full font-mono border ${
-                        isAccessRevoked 
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
-                          : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                      }`}>
-                        {isAccessRevoked ? 'Session Revoked' : `Expires in ${formatCountdown(countdown)}`}
-                      </span>
+
+                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white">Pathology Lab Diagnostics.pdf</span>
+                          <span className="text-[10px] text-teal-400 font-mono font-bold">2.4 MB · AES-256</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                          <span className="px-2 py-0.5 rounded-md bg-teal-500/20 text-cyan-300 border border-teal-500/30">Lipid Profile</span>
+                          <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">HbA1c: 5.6%</span>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Normal</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 text-center">
+                        {activeFeature.previewStats.map((st, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                            <strong className="text-xs font-black text-teal-300 mt-0.5 block">{st.value}</strong>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  )}
+
+                  {/* 2. MEDICINE REMINDERS MOCKUP */}
+                  {activeFeature.id === 'med-reminder' && (
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-purple-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                        <div className="flex items-center gap-2">
+                          <BellRing className="w-4 h-4 text-purple-400" />
+                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Daily Dosage Schedule</span>
+                        </div>
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                          99.4% Adherence
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {/* DOSE 1 */}
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                              <Check className="w-4 h-4 stroke-[3]" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-black text-white block">Metformin 500mg</span>
+                              <span className="text-[10px] text-slate-400 font-mono">08:00 AM · After Breakfast</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-black text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded">Taken</span>
+                        </div>
+
+                        {/* DOSE 2 (INTERACTIVE) */}
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/40 flex items-center justify-between ring-1 ring-purple-500/30">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
+                              doseTaken 
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
+                                : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                            }`}>
+                              <Pill className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-black text-white block">Vitamin D3 60k UI</span>
+                              <span className="text-[10px] text-purple-300 font-mono">01:30 PM · Due Now</span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setDoseTaken(!doseTaken)}
+                            className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg border transition-all cursor-pointer ${
+                              doseTaken 
+                                ? 'bg-emerald-500 text-white border-emerald-400' 
+                                : 'bg-purple-500 hover:bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/30'
+                            }`}
+                          >
+                            {doseTaken ? 'Taken ✓' : 'Mark Taken'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 text-center">
+                        {activeFeature.previewStats.map((st, i) => (
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                            <strong className="text-xs font-black text-purple-300 mt-0.5 block">{st.value}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. DOCTOR & CLINIC SHARING MOCKUP */}
+                  {activeFeature.id === 'doctor-share' && (
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-cyan-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                        <div className="flex items-center gap-2">
+                          <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Active Consent Session</span>
+                        </div>
+                        <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full font-mono border ${
+                          isAccessRevoked 
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
+                            : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+                        }`}>
+                          {isAccessRevoked ? 'Session Revoked' : `Expires in ${formatCountdown(countdown)}`}
+                        </span>
+                      </div>
 
                     <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
                       <div className="flex items-center justify-between">
@@ -533,8 +540,9 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
               </div>
 
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </SpotlightCard>
+        </motion.div>
+      </AnimatePresence>
 
       </div>
     </section>
