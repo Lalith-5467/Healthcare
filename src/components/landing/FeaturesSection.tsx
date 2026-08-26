@@ -54,9 +54,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: FileText,
       badge: '100% Encrypted',
       themeColor: 'teal',
-      glowBg: 'from-teal-500/20 via-cyan-500/15 to-transparent',
-      activeRing: 'border-teal-500 ring-4 ring-teal-500/15 shadow-teal-500/20',
+      glowBg: 'from-teal-500/25 via-cyan-500/15 to-transparent',
+      activeRing: 'border-teal-500 ring-4 ring-teal-500/20 shadow-teal-500/25',
       activeBadge: 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/30',
+      iconBgActive: 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-md shadow-teal-500/30',
+      titleColorActive: 'text-[#00a896] dark:text-cyan-300',
+      subtitleColor: 'text-[#00a896] dark:text-cyan-400',
+      checkColor: 'text-[#00a896] dark:text-cyan-400',
+      ctaButton: 'bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-teal-500/25 border-teal-400/30',
       description: 'Store, categorize, and manage your lifetime medical history, lab reports, prescriptions, and vaccination certificates securely in one digital vault.',
       bullets: [
         'Automatic OCR categorization for diagnostic reports',
@@ -77,9 +82,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: Pill,
       badge: 'Smart Alerts',
       themeColor: 'purple',
-      glowBg: 'from-purple-500/20 via-indigo-500/15 to-transparent',
-      activeRing: 'border-purple-500 ring-4 ring-purple-500/15 shadow-purple-500/20',
+      glowBg: 'from-purple-500/25 via-indigo-500/15 to-transparent',
+      activeRing: 'border-purple-500 ring-4 ring-purple-500/20 shadow-purple-500/25',
       activeBadge: 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30',
+      iconBgActive: 'bg-gradient-to-tr from-purple-500 to-indigo-500 text-white shadow-md shadow-purple-500/30',
+      titleColorActive: 'text-purple-600 dark:text-purple-300',
+      subtitleColor: 'text-purple-600 dark:text-purple-400',
+      checkColor: 'text-purple-500 dark:text-purple-400',
+      ctaButton: 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/25 border-purple-400/30',
       description: 'Never miss an essential dose with intelligent notification reminders, dosage schedules, refill alerts, and daily adherence tracking.',
       bullets: [
         'Customizable recurring schedule (Morning, Noon, Night)',
@@ -100,9 +110,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: QrCode,
       badge: 'Consent Ready',
       themeColor: 'cyan',
-      glowBg: 'from-cyan-500/20 via-blue-500/15 to-transparent',
-      activeRing: 'border-cyan-500 ring-4 ring-cyan-500/15 shadow-cyan-500/20',
+      glowBg: 'from-cyan-500/25 via-blue-500/15 to-transparent',
+      activeRing: 'border-cyan-500 ring-4 ring-cyan-500/20 shadow-cyan-500/25',
       activeBadge: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30',
+      iconBgActive: 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/30',
+      titleColorActive: 'text-cyan-600 dark:text-cyan-300',
+      subtitleColor: 'text-cyan-600 dark:text-cyan-400',
+      checkColor: 'text-cyan-500 dark:text-cyan-400',
+      ctaButton: 'bg-gradient-to-r from-cyan-600 via-blue-600 to-sky-600 hover:from-cyan-700 hover:to-blue-700 shadow-cyan-500/25 border-cyan-400/30',
       description: 'Share specific medical records with doctors, hospitals, or diagnostic labs via secure QR code scan, temporary web link, or OTP verification.',
       bullets: [
         'Time-limited access pins (15 mins, 1 hour, 24 hours)',
@@ -123,9 +138,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
       icon: ShieldAlert,
       badge: 'Instant Access',
       themeColor: 'rose',
-      glowBg: 'from-rose-500/20 via-pink-500/15 to-transparent',
-      activeRing: 'border-rose-500 ring-4 ring-rose-500/15 shadow-rose-500/20',
+      glowBg: 'from-rose-500/25 via-pink-500/15 to-transparent',
+      activeRing: 'border-rose-500 ring-4 ring-rose-500/20 shadow-rose-500/25',
       activeBadge: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30',
+      iconBgActive: 'bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/30',
+      titleColorActive: 'text-rose-600 dark:text-rose-300',
+      subtitleColor: 'text-rose-600 dark:text-rose-400',
+      checkColor: 'text-rose-500 dark:text-rose-400',
+      ctaButton: 'bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 hover:from-rose-700 hover:to-pink-700 shadow-rose-500/25 border-rose-400/30',
       description: 'Equip first responders and emergency care teams with immediate offline-ready access to blood group, severe allergies, and primary contact details.',
       bullets: [
         'Offline QR card viewable even without active internet',
@@ -188,8 +208,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
           </motion.p>
         </div>
 
-        {/* INTERACTIVE 4 FEATURE TAB SELECTOR */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* INTERACTIVE 4 FEATURE TAB SELECTOR (PERFECTLY ALIGNED) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
           {featureCategories.map((cat, index) => {
             const Icon = cat.icon;
             const isActive = activeTab === index;
@@ -199,7 +219,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                 whileHover={{ scale: 1.025, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab(index)}
-                className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden shadow-sm ${
+                className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden shadow-sm h-full min-h-[145px] ${
                   isActive
                     ? `bg-white/95 dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl`
                     : 'bg-white/70 dark:bg-slate-850/60 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800/80 backdrop-blur-md'
@@ -210,10 +230,10 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${cat.glowBg} rounded-full blur-2xl pointer-events-none`} />
                 )}
 
-                <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="flex items-center justify-between mb-4 relative z-10 w-full">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
                     isActive 
-                      ? 'bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white shadow-md shadow-teal-500/30 scale-105' 
+                      ? `${cat.iconBgActive} scale-105` 
                       : 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300'
                   }`}>
                     <Icon className="w-5 h-5 stroke-[2.3]" />
@@ -227,7 +247,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                 <div className="relative z-10 space-y-1">
                   <h3 className={`text-base font-black transition-colors ${
-                    isActive ? 'text-[#00a896] dark:text-cyan-300' : 'text-slate-900 dark:text-white'
+                    isActive ? cat.titleColorActive : 'text-slate-900 dark:text-white'
                   }`}>
                     {cat.title}
                   </h3>
@@ -258,11 +278,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
               {/* LEFT FEATURE DETAILS */}
               <div className="lg:col-span-6 space-y-6">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-[#00a896] to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/25">
+                  <div className={`w-13 h-13 rounded-2xl ${activeFeature.iconBgActive} flex items-center justify-center shadow-lg`}>
                     {React.createElement(activeFeature.icon, { className: "w-6 h-6 stroke-[2.4]" })}
                   </div>
                   <div>
-                    <span className="text-xs font-black uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
+                    <span className={`text-xs font-black uppercase tracking-wider font-mono ${activeFeature.subtitleColor}`}>
                       {activeFeature.subtitle}
                     </span>
                     <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -283,7 +303,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                       whileHover={{ scale: 1.02, x: 2 }}
                       className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs group"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 group-hover:scale-110 transition-transform ${activeFeature.checkColor}`} />
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
                         {bullet}
                       </span>
@@ -291,13 +311,13 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                   ))}
                 </div>
 
-                {/* CTA BUTTON */}
+                {/* CTA BUTTON MATCHING FEATURE THEME */}
                 <div className="pt-2">
                   <motion.button
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => onExploreFeature && onExploreFeature(activeFeature.id)}
-                    className="inline-flex items-center gap-2.5 px-7 py-3.5 text-sm font-black text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 rounded-xl shadow-lg shadow-teal-500/25 transition-all cursor-pointer border border-teal-400/30"
+                    className={`inline-flex items-center gap-2.5 px-7 py-3.5 text-sm font-black text-white ${activeFeature.ctaButton} rounded-xl shadow-lg transition-all cursor-pointer`}
                   >
                     <span>Explore {activeFeature.title}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
