@@ -245,40 +245,41 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       <div className="absolute bottom-10 -right-32 w-[500px] h-[500px] bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* TOP NAVIGATION BACK BAR */}
-      <div className={`mx-auto w-full mb-6 flex items-center justify-between relative z-10 transition-all duration-300 ${
-        mode === 'register' ? 'max-w-2xl' : 'max-w-6xl'
-      }`}>
+      {/* CORNER NAVIGATION: TOP-LEFT BACK TO HOME BUTTON */}
+      <div className="fixed top-4 left-4 sm:top-6 sm:left-8 z-50">
         <motion.button
-          whileHover={{ x: -3, scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
+          whileHover={{ x: -3, scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onNavigateHome}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 text-xs font-black text-slate-800 dark:text-slate-100 hover:text-[#00a896] dark:hover:text-cyan-300 border border-slate-200/90 dark:border-slate-700 shadow-sm backdrop-blur-md transition-all cursor-pointer group"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 dark:bg-slate-850/95 hover:bg-white dark:hover:bg-slate-800 text-xs font-black text-slate-800 dark:text-slate-100 hover:text-[#00a896] dark:hover:text-cyan-300 border border-slate-200/90 dark:border-slate-700 shadow-md backdrop-blur-xl transition-all cursor-pointer group"
+          title="Return to MediCare Landing Page"
         >
           <ChevronLeft className="w-4 h-4 stroke-[2.5] text-[#00a896] dark:text-cyan-400 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Home</span>
         </motion.button>
+      </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleQuickDemoFill}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-teal-500/15 hover:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black transition-all cursor-pointer shadow-xs"
-            title="Auto-fill with role-specific demo credentials"
-          >
-            <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
-            <span>Quick Demo Fill ({role.toUpperCase()})</span>
-          </button>
+      {/* CORNER CONTROLS: TOP-RIGHT DEMO FILL & SECURITY BADGE */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleQuickDemoFill}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-teal-500/15 hover:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black transition-all cursor-pointer shadow-md backdrop-blur-xl"
+          title="Auto-fill with role-specific demo credentials"
+        >
+          <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
+          <span className="hidden sm:inline">Quick Demo Fill</span>
+          <span>({role.toUpperCase()})</span>
+        </button>
 
-          <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-[#00a896]" />
-            <span>256-Bit Encrypted</span>
-          </div>
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400 backdrop-blur-md shadow-xs">
+          <ShieldCheck className="w-4 h-4 text-[#00a896]" />
+          <span>256-Bit Encrypted</span>
         </div>
       </div>
 
       {/* MAIN CONTAINER (CENTERED ON REGISTER, 2-COLUMN ON LOGIN) */}
-      <div className={`mx-auto w-full relative z-10 ${
+      <div className={`mx-auto w-full relative z-10 pt-10 sm:pt-6 ${
         mode === 'register' 
           ? 'max-w-2xl' 
           : 'max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch'
