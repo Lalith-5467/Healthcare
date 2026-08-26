@@ -82,25 +82,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [abhaId, setAbhaId] = useState('');
   const [dob, setDob] = useState('');
   const [age, setAge] = useState('');
-  const [gender, setGender] = useState('Male');
-  const [bloodGroup, setBloodGroup] = useState('O+');
+  const [gender, setGender] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('');
   const [familyPhone, setFamilyPhone] = useState('');
   const [emergencyContactName, setEmergencyContactName] = useState('');
   const [allergies, setAllergies] = useState('');
 
   // Caregiver Specific States
-  const [caregiverType, setCaregiverType] = useState('Family Member');
+  const [caregiverType, setCaregiverType] = useState('');
   const [caregiverGovId, setCaregiverGovId] = useState('');
   const [patientName, setPatientName] = useState('');
-  const [patientRelation, setPatientRelation] = useState('Parent');
+  const [patientRelation, setPatientRelation] = useState('');
   const [patientAbhaId, setPatientAbhaId] = useState('');
-  const [authorizationScope, setAuthorizationScope] = useState('Full Medical Proxy');
+  const [authorizationScope, setAuthorizationScope] = useState('');
 
   // Doctor Specific States
   const [medicalCouncilRegNo, setMedicalCouncilRegNo] = useState('');
-  const [specialization, setSpecialization] = useState('Cardiology');
-  const [qualifications, setQualifications] = useState('MBBS, MD');
-  const [experienceYears, setExperienceYears] = useState('10');
+  const [specialization, setSpecialization] = useState('');
+  const [qualifications, setQualifications] = useState('');
+  const [experienceYears, setExperienceYears] = useState('');
   const [hospitalAffiliation, setHospitalAffiliation] = useState('');
   const [hprAddress, setHprAddress] = useState('');
   const [teleConsultReady, setTeleConsultReady] = useState(true);
@@ -516,10 +516,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div className="sm:col-span-4">
                           <label className={labelClass}>Gender</label>
                           <select
+                            required
                             value={gender}
                             onChange={(e) => setGender(e.target.value)}
-                            className={inputClass}
+                            className={`${inputClass} ${!gender ? 'text-slate-400' : ''}`}
                           >
+                            <option value="" disabled>Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
@@ -532,10 +534,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Blood Group</label>
                           <select
+                            required
                             value={bloodGroup}
                             onChange={(e) => setBloodGroup(e.target.value)}
-                            className={`${inputClass} font-bold text-[#00a896] dark:text-cyan-300`}
+                            className={`${inputClass} ${bloodGroup ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-400'}`}
                           >
+                            <option value="" disabled>Select Blood Group</option>
                             {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
                               <option key={bg} value={bg}>{bg}</option>
                             ))}
@@ -653,10 +657,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Caregiver Classification</label>
                           <select
+                            required
                             value={caregiverType}
                             onChange={(e) => setCaregiverType(e.target.value)}
-                            className={inputClass}
+                            className={`${inputClass} ${!caregiverType ? 'text-slate-400' : ''}`}
                           >
+                            <option value="" disabled>Select Classification</option>
                             <option value="Family Member">Family Member / Next-of-Kin</option>
                             <option value="Professional Nurse / Aide">Professional Nurse / Medical Aide</option>
                             <option value="Legal Guardian">Designated Legal Guardian</option>
@@ -700,10 +706,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Relationship to Patient</label>
                           <select
+                            required
                             value={patientRelation}
                             onChange={(e) => setPatientRelation(e.target.value)}
-                            className={inputClass}
+                            className={`${inputClass} ${!patientRelation ? 'text-slate-400' : ''}`}
                           >
+                            <option value="" disabled>Select Relationship</option>
                             <option value="Parent">Parent (Father / Mother)</option>
                             <option value="Spouse">Spouse (Husband / Wife)</option>
                             <option value="Child">Child (Son / Daughter)</option>
@@ -732,10 +740,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Caregiving Proxy Scope</label>
                           <select
+                            required
                             value={authorizationScope}
                             onChange={(e) => setAuthorizationScope(e.target.value)}
-                            className={`${inputClass} font-bold text-[#00a896] dark:text-cyan-300`}
+                            className={`${inputClass} ${authorizationScope ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-400'}`}
                           >
+                            <option value="" disabled>Select Authorization Scope</option>
                             <option value="Full Medical Proxy">Full Medical Proxy (Manage All)</option>
                             <option value="Medication & Vitals Supervisor">Medication & Vitals Supervisor</option>
                             <option value="View Health Records Only">View Health Records Only</option>
@@ -803,10 +813,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Primary Specialization</label>
                           <select
+                            required
                             value={specialization}
                             onChange={(e) => setSpecialization(e.target.value)}
-                            className={`${inputClass} font-bold text-cyan-600 dark:text-cyan-300`}
+                            className={`${inputClass} ${specialization ? 'font-bold text-cyan-600 dark:text-cyan-300' : 'text-slate-400'}`}
                           >
+                            <option value="" disabled>Select Specialization</option>
                             <option value="Cardiology">Cardiology (Heart Specialist)</option>
                             <option value="Neurology">Neurology (Brain & Spine)</option>
                             <option value="Orthopedics">Orthopedic Surgery (Bones & Joints)</option>
