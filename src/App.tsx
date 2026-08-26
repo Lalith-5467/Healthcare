@@ -337,12 +337,14 @@ export const App: React.FC = () => {
     handleNavigate('register');
   };
 
+  const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
+
   return (
     <ThemeProvider>
-      <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${currentPage !== 'dashboard' ? 'pt-20' : ''}`}>
+      <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
         
-        {/* HEADER & TOP BAR (HIDE ON DASHBOARD) */}
-        {currentPage !== 'dashboard' && (
+        {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+        {showHeaderAndFooter && (
           <Header 
             onNavigate={handleNavigate} 
             isLoggedIn={isLoggedIn}
@@ -417,8 +419,8 @@ export const App: React.FC = () => {
           </main>
         )}
 
-        {/* FOOTER (HIDE ON DASHBOARD) */}
-        {currentPage !== 'dashboard' && <Footer onNavigate={handleNavigate} />}
+        {/* FOOTER (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+        {showHeaderAndFooter && <Footer onNavigate={handleNavigate} />}
 
         {/* MODALS */}
         <ABHAModal 
