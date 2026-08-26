@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Star, MapPin, Clock, Phone, Navigation, Heart, Share2, Calendar, ShieldCheck, Check, Building2, User } from 'lucide-react';
+import { X, Star, MapPin, Phone, Navigation, Heart, Share2, Calendar, Check, Building2, User } from 'lucide-react';
 import type { HospitalItem } from './hospitalsData';
 
 interface HospitalDetailsDrawerProps {
@@ -11,7 +11,7 @@ interface HospitalDetailsDrawerProps {
   onOpenCall: (hosp: HospitalItem) => void;
   onOpenAppointment: (hosp: HospitalItem) => void;
   onOpenShareFamily: (hosp: HospitalItem) => void;
-  onToggleSave: (hosp: HospitalItem) => void;
+  onToggleSave: (hosp: HospitalItem, suppressToast?: boolean) => void;
 }
 
 export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
@@ -72,64 +72,145 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-1 font-sans">
+            <div className="flex items-center gap-1.5 font-sans">
               <button
-                onClick={() => onToggleSave(hospital)}
-                className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                onClick={() => onToggleSave(hospital, true)}
+                className={`p-2 rounded-xl border flex items-center justify-center cursor-pointer transition-colors ${
                   isSaved
-                    ? 'bg-rose-500/15 text-rose-600 border-rose-500/30'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                 }`}
+                title={isSaved ? 'Saved' : 'Save'}
               >
-                <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500' : ''}`} />
+                <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
               </button>
+
               <button
                 onClick={() => onOpenShareFamily(hospital)}
-                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center cursor-pointer"
+                title="Share"
               >
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
           </div>
+
+          {/* TAB BAR */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 font-sans text-xs">
+            {(
+              [
+                { id: 'overview', label: 'Overview' },
+                { id: 'departments', label: 'Departments' },
+                { id: 'services', label: 'Services' },
+                { id: 'reviews', label: 'Reviews' },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                  activeTab === tab.id
+                    ? 'bg-[#00a896] text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* BODY */}
-        <div className="space-y-4 py-4 flex-1 overflow-y-auto text-xs font-medium">
-          {/* TIMINGS & CONTACT */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#00a896]" />
-              <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Emergency & OPD</span>
-                <strong className="text-slate-800 dark:text-slate-200">{hospital.timings}</strong>
+        {/* TAB BODY CONTENT */}
+        <div className="py-4 overflow-y-auto space-y-4 text-xs font-medium flex-1">
+          {isSaved && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 p-3 text-xs font-bold rounded-2xl flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>Saved {hospital.name} to favorites</span>
+            </div>
+          )}
+
+          {activeTab === 'overview' && (
+            <div className="space-y-4">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 space-y-2">
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Facility Overview</h4>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {hospital.name} is a top-rated {hospital.type} providing high-quality healthcare. 
+                  Operating {hospital.openingHours.toLowerCase()}, the facility features {hospital.bedsAvailable} inpatient beds 
+                  and a dedicated team of {hospital.doctorsCount} specialized medical professionals.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 font-mono">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Insurance Status</span>
+                  <strong className="text-purple-700 dark:text-purple-400 text-xs font-extrabold block truncate">{hospital.insuranceAccepted}</strong>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Patient Rating</span>
+                  <strong className="text-amber-700 dark:text-amber-400 text-sm font-extrabold flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {hospital.rating} <span className="text-xs text-slate-400">({hospital.reviewsCount})</span>
+                  </strong>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Cashless ABDM</span>
-                <strong className="text-slate-800 dark:text-slate-200">{hospital.cashlessAvailable ? 'Empanelled' : 'Self-Pay'}</strong>
+          {activeTab === 'departments' && (
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Medical Specialties</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {hospital.specialties.map((specialty, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{specialty}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* DEPARTMENTS */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
-              Specialized Departments
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {hospital.departments.map((dept) => (
-                <span
-                  key={dept}
-                  className="px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20 text-[11px] font-bold"
-                >
-                  {dept}
-                </span>
-              ))}
+          {activeTab === 'services' && (
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Available Facilities & Services</h4>
+              <div className="space-y-2">
+                {hospital.facilities.map((facility, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{facility}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Patient Testimonials</h4>
+              <div className="space-y-3">
+                {hospital.reviewsList && hospital.reviewsList.length > 0 ? (
+                  hospital.reviewsList.map((review) => (
+                    <div key={review.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-[#00a896]" /> {review.patientName}
+                        </span>
+                        <div className="flex items-center gap-1 text-amber-500 font-bold font-mono">
+                          <Star className="w-3 h-3 fill-amber-500" /> {review.rating}
+                        </div>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-300 italic text-[11px] leading-relaxed">"{review.comment}"</p>
+                      <div className="text-[10px] text-slate-400 font-mono text-right">{review.date}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center p-4 text-slate-500 text-xs italic bg-slate-50 dark:bg-slate-800/60 rounded-2xl">
+                    No reviews available yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* FOOTER ACTIONS */}

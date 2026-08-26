@@ -21,43 +21,43 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-[60] bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
               <Navigation className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Route & Directions</h3>
-              <p className="text-xs text-slate-400">Estimated route to {hospital.name}</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Route & Directions</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Estimated route to {hospital.name}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* ROUTE SUMMARY HERO */}
-        <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
           <div className="flex items-center justify-between font-mono">
-            <span className="text-slate-400">Distance: <strong className="text-cyan-300">{hospital.distance}</strong></span>
-            <span className="text-slate-400">Drive Time: <strong className="text-teal-400">5–8 mins</strong></span>
+            <span className="text-slate-500 dark:text-slate-400">Distance: <strong className="text-cyan-600 dark:text-cyan-300">{hospital.distance}</strong></span>
+            <span className="text-slate-500 dark:text-slate-400">Drive Time: <strong className="text-teal-600 dark:text-teal-400">5–8 mins</strong></span>
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-slate-800 text-[11px]">
-            <div className="flex items-center gap-2 text-slate-300">
+          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px]">
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
               <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
               <span>Your Current Location (Camp Road, Selaiyur)</span>
             </div>
-            <div className="w-0.5 h-4 bg-slate-700 ml-1" />
-            <div className="flex items-center gap-2 text-white font-bold">
-              <MapPin className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="w-0.5 h-4 bg-slate-300 dark:bg-slate-700 ml-1" />
+            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
+              <MapPin className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
               <span>{hospital.name} ({hospital.address})</span>
             </div>
           </div>
@@ -65,19 +65,19 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
 
         {/* DEMO TURN BY TURN STEPS */}
         <div className="space-y-2 text-xs">
-          <h4 className="font-extrabold text-slate-400 text-[10px] uppercase tracking-wider">Demo Route Steps</h4>
-          <div className="space-y-1.5 font-mono text-[11px] text-slate-300">
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">1. Head East on Camp Road Main St (800m)</div>
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">2. Turn Right onto Healthcare Parkway (400m)</div>
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">3. Hospital gate is on your left</div>
+          <h4 className="font-extrabold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">Demo Route Steps</h4>
+          <div className="space-y-1.5 font-mono text-[11px] text-slate-700 dark:text-slate-300">
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">1. Head East on Camp Road Main St (800m)</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">2. Turn Right onto Healthcare Parkway (400m)</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">3. Hospital gate is on your left</div>
           </div>
         </div>
 
         {/* ACTIONS */}
-        <div className="pt-4 border-t border-slate-800 flex justify-between gap-3">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs cursor-pointer"
           >
             Close
           </button>
