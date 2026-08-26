@@ -25,13 +25,15 @@ interface HeaderProps {
   isLoggedIn?: boolean;
   userName?: string;
   onLogout?: () => void;
+  showProgressBar?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onNavigate,
   isLoggedIn = false,
   userName,
-  onLogout
+  onLogout,
+  showProgressBar = true
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
@@ -166,10 +168,12 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       {/* ANIMATED SCROLL PROGRESS BAR */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 origin-left z-50 shadow-[0_0_12px_#00a896]"
-        style={{ scaleX }}
-      />
+      {showProgressBar && (
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 origin-left z-50 shadow-[0_0_12px_#00a896]"
+          style={{ scaleX }}
+        />
+      )}
 
       {/* MAIN NAVBAR */}
       <div
