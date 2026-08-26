@@ -225,8 +225,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                 onClick={() => setActiveTab(index)}
                 className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative shadow-sm h-full min-h-[145px] ${
                   isActive
-                    ? `bg-white/95 dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl scale-[1.02]`
-                    : 'bg-white/70 dark:bg-slate-850/60 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800/80 backdrop-blur-md'
+                    ? `bg-white dark:bg-slate-850 border-2 ${cat.activeRing} shadow-xl backdrop-blur-xl scale-[1.02]`
+                    : 'bg-white/80 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800 backdrop-blur-md'
                 }`}
               >
                 {/* ACTIVE TAB ACCENT GRADIENT GLOW */}
@@ -238,12 +238,12 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
                     isActive 
                       ? `${cat.iconBgActive} scale-105` 
-                      : 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'
                   }`}>
                     <Icon className="w-5 h-5 stroke-[2.3]" />
                   </div>
                   <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border font-mono ${
-                    isActive ? cat.activeBadge : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                    isActive ? cat.activeBadge : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                   }`}>
                     {cat.badge}
                   </span>
