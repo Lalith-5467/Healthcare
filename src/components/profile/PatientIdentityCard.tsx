@@ -21,7 +21,7 @@ export const PatientIdentityCard: React.FC<PatientIdentityCardProps> = ({
   onOpenQR
 }) => {
   return (
-    <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-[#0c192e] dark:to-slate-900 border border-teal-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6 group font-sans">
+    <div className="p-6 h-full rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-[#0c192e] dark:to-slate-900 border border-teal-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6 group font-sans">
       {/* AMBIENT GLOW */}
       <div className="absolute -top-12 -left-12 w-36 h-36 bg-teal-500/10 dark:bg-cyan-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan-500/20 transition-all" />
 

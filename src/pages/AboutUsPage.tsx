@@ -12,6 +12,8 @@ import {
   Sparkles
 } from 'lucide-react';
 
+import { CountUp } from '../components/ui/CountUp';
+
 interface AboutUsPageProps {
   onNavigateHome: () => void;
   onStartJourney: () => void;
@@ -19,7 +21,7 @@ interface AboutUsPageProps {
 }
 
 export const AboutUsPage: React.FC<AboutUsPageProps> = ({ 
-  onNavigateHome, 
+  onNavigateHome: _onNavigateHome, 
   onStartJourney, 
   onExploreFeatures 
 }) => {
@@ -55,10 +57,32 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   ];
 
   const milestones = [
-    { number: '100%', label: 'Encrypted Records' },
-    { number: 'ABDM', label: 'Official ABHA Integrated' },
-    { number: '< 2s', label: 'Offline Emergency SOS Access' },
-    { number: '24/7', label: 'Dedicated Care Support' },
+    {
+      target: 100,
+      suffix: '%',
+      label: 'Encrypted Health Records',
+      subtext: '256-bit HIPAA compliance',
+    },
+    {
+      target: 50000,
+      prefix: '',
+      suffix: '+',
+      separator: ',',
+      label: 'ABHA IDs Linked',
+      subtext: 'Across Indian health network',
+    },
+    {
+      target: 99.8,
+      suffix: '%',
+      label: 'OCR Accuracy Rate',
+      subtext: 'Smart prescription digitizer',
+    },
+    {
+      target: 24,
+      suffix: '/7',
+      label: 'Emergency SOS Readiness',
+      subtext: 'Offline QR instant access',
+    },
   ];
 
   const team = [
@@ -66,7 +90,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       name: 'Dr. Rajesh Varma',
       role: 'Chief Medical Officer',
       specialty: 'Cardiology & Healthcare Tech',
-      img: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80',
+      img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=400&q=80',
     },
     {
       name: 'Priya Sharma',
@@ -85,53 +109,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300">
       
-      {/* 1. HERO BANNER */}
-      <section className="relative py-20 lg:py-28 bg-slate-900 text-white overflow-hidden">
-        {/* BACKGROUND GLOWS */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#00a896]/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-3xl mx-auto space-y-6"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00a896]/20 border border-[#00a896]/30 text-teal-300 text-xs font-extrabold uppercase tracking-wider shadow-sm">
-              <Sparkles className="w-4 h-4 text-[#00a896] animate-pulse" />
-              <span>About MediCare Healthcare</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-              Empowering Every Patient <br />
-              <span className="text-[#00a896]">Through Digital Innovation</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
-              MediCare is an advanced Personal Health Record (PHR) and digital healthcare platform engineered to organize lifetime medical records, enable instant emergency SOS access, and connect patients with doctors securely.
-            </p>
-
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-              <button
-                onClick={onStartJourney}
-                className="px-8 py-3.5 text-base font-bold text-white bg-[#00a896] hover:bg-[#00897b] rounded-xl shadow-xl shadow-teal-950/50 transition-all active:scale-98 cursor-pointer flex items-center gap-2 border border-teal-500/30"
-              >
-                <span>Get Started Now</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={onNavigateHome}
-                className="px-7 py-3.5 text-base font-semibold text-slate-200 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-xl transition-all shadow-md cursor-pointer"
-              >
-                Back to Home
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* 2. OUR MISSION & VISION */}
       <section className="py-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -237,15 +214,46 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* 4. PLATFORM MILESTONES & STATS */}
-      <section className="py-16 bg-[#00a896] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      {/* 4. PLATFORM MILESTONES & STATS WITH REACT BITS COUNTUP ANIMATION */}
+      <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 text-white shadow-xl relative overflow-hidden">
+        {/* BACKGROUND ACCENTS */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-900/20 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+            <span className="text-xs font-black uppercase tracking-widest text-teal-100 bg-white/15 px-3.5 py-1 rounded-full border border-white/20">
+              Live Impact & Telemetry
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Trusted Across Healthcare
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             {milestones.map((st, idx) => (
-              <div key={idx} className="space-y-1">
-                <h3 className="text-3xl sm:text-4xl font-black">{st.number}</h3>
-                <p className="text-xs sm:text-sm font-semibold text-teal-100">{st.label}</p>
-              </div>
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl space-y-2 shadow-lg"
+              >
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-mono flex items-center justify-center">
+                  {st.prefix && <span>{st.prefix}</span>}
+                  <CountUp
+                    to={st.target}
+                    from={0}
+                    separator={st.separator || ''}
+                    duration={2.2}
+                    className="font-black"
+                  />
+                  {st.suffix && <span>{st.suffix}</span>}
+                </div>
+                <h4 className="text-sm font-extrabold text-white">{st.label}</h4>
+                <p className="text-[11px] font-medium text-teal-100/90">{st.subtext}</p>
+              </motion.div>
             ))}
           </div>
         </div>

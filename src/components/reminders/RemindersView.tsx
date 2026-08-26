@@ -39,11 +39,13 @@ interface UserProfile {
 interface RemindersViewProps {
   user?: UserProfile;
   onNavigate: (page: string) => void;
+  initialViewMode?: 'list' | 'timeline' | 'calendar';
 }
 
 export const RemindersView: React.FC<RemindersViewProps> = ({
   user: _user,
   onNavigate: _onNavigate,
+  initialViewMode = 'list'
 }) => {
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -54,7 +56,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [settings, setSettings] = useState<NotificationSettingsState>(DEFAULT_NOTIFICATION_SETTINGS);
 
   // VIEW SWITCHER: 'list' | 'timeline' | 'calendar'
-  const [viewMode, setViewMode] = useState<'list' | 'timeline' | 'calendar'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'timeline' | 'calendar'>(initialViewMode);
+
+  useEffect(() => {
+    if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
 
   // SEARCH & FILTERS
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,8 +80,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = useState(false);
 
-  // Load from localStorage on mount & simulate short skeleton
-  useEffect(() => {
+  const loadAllData = () => {
     const savedReminders = localStorage.getItem('user_reminders');
     if (savedReminders) {
       try {
@@ -98,8 +105,18 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         console.error(e);
       }
     }
+  };
+
+  // Load from localStorage on mount & listen for updates
+  useEffect(() => {
+    loadAllData();
+    const handleUpdate = () => loadAllData();
+    window.addEventListener('notifications_updated', handleUpdate);
     const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    return () => {
+      window.removeEventListener('notifications_updated', handleUpdate);
+      clearTimeout(timer);
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -110,11 +127,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const saveRemindersState = (newReminders: ReminderItem[]) => {
     setReminders(newReminders);
     localStorage.setItem('user_reminders', JSON.stringify(newReminders));
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const saveNotificationsState = (newNotifs: NotificationLog[]) => {
     setNotifications(newNotifs);
     localStorage.setItem('user_notifications', JSON.stringify(newNotifs));
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const saveSettingsState = (newSetts: NotificationSettingsState) => {
@@ -518,8 +537,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                   </div>
                   <div>
                     <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">{notif.title}</h4>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 font-medium">{notif.message}</p>
-                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1 block">{notif.timestamp}</span>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 font-medium">{notif.description}</p>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1 block">{notif.timeAgo}</span>
                   </div>
                 </div>
 
@@ -536,7 +555,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       <CreateReminderModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSave={handleSaveNewReminder}
+        onSaveReminder={handleSaveNewReminder}
       />
 
       <RemindersFilterDrawer
@@ -550,6 +569,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         item={detailTarget}
         isOpen={!!detailTarget}
         onClose={() => setDetailTarget(null)}
+        onNavigateModule={(mod) => _onNavigate(mod)}
         onDismiss={handleDismissReminder}
       />
 
@@ -564,7 +584,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         isOpen={settingsDrawerOpen}
         onClose={() => setSettingsDrawerOpen(false)}
         settings={settings}
-        onSaveSettings={handleSaveSettings}
+        onUpdateSettings={handleSaveSettings}
+        onShowToast={showToast}
       />
 
       <ConfirmClearHistoryModal

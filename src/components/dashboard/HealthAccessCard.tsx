@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { QrCode, ShieldCheck, Share2, ExternalLink } from 'lucide-react';
+import { QrCode, CheckCircle2, Share2, ExternalLink, Copy, Check } from 'lucide-react';
 import { QRModal } from './QRModal';
+import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 
 interface HealthAccessCardProps {
   abhaId?: string;
@@ -15,70 +16,112 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   onToast
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const handleShare = () => {
+  const handleCopy = () => {
     navigator.clipboard.writeText(abhaId);
+    setCopied(true);
     if (onToast) onToast('✓ ABHA Health ID copied to clipboard!');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <>
       <motion.div
-        whileHover={{ y: -4, scale: 1.01 }}
+        whileHover={{ y: -4, scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className="p-6 rounded-3xl bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-[#0c182e] dark:to-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-white shadow-xl relative overflow-hidden flex flex-col justify-between group font-sans"
+        style={{
+          background: 'linear-gradient(145deg,#f0fff4 0%,#dcfce7 35%,#f8fffe 70%,#ffffff 100%)',
+          border: '1.5px solid rgba(16,185,129,.18)',
+          boxShadow: '0 4px 32px rgba(16,185,129,.09), 0 1px 4px rgba(0,0,0,.04)'
+        }}
+        className="p-6 rounded-3xl text-slate-900 dark:text-white relative overflow-hidden flex flex-col justify-between group font-sans dark:bg-slate-900/90 dark:border-slate-800"
       >
-        {/* GLOW BACKGROUND EFFECT */}
-        <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/20 transition-all" />
+        {/* BACKGROUND AMBIENT GLOWS */}
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(16,185,129,.15) 0%,transparent 70%)' }} />
+        <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-2xl pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(20,184,166,.10) 0%,transparent 70%)' }} />
 
         {/* HEADER */}
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-cyan-500/15 text-[#00a896] dark:text-cyan-400 border border-cyan-500/30">
+            {/* Circular gradient icon — matches reference */}
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-md"
+              style={{ background: 'linear-gradient(135deg,#34d399,#059669)', boxShadow: '0 4px 14px rgba(16,185,129,.35)' }}
+            >
               <QrCode className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
                 Health Access ID
               </h3>
-              <span className="text-xs text-slate-600 dark:text-slate-300 font-mono font-medium">ABDM Digital Health Vault</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
+                ABDM Digital Health Vault
+              </span>
             </div>
           </div>
-          <span className="px-3 py-1 text-[10px] font-black uppercase bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-500/30 flex items-center gap-1.5 font-mono">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Verified ABHA</span>
+
+          <span className="px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 shadow-xs" style={{ background: 'rgba(16,185,129,.12)', color: '#059669', border: '1px solid rgba(16,185,129,.25)' }}>
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Verified</span>
           </span>
         </div>
 
-        {/* CENTER CONTENT */}
-        <div className="my-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 relative z-10 shadow-xs">
-          <div className="space-y-1 min-w-0">
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+        {/* BODY: TEXT ON LEFT, QR CODE ON RIGHT — frosted glass inner box */}
+        <div className="my-4 p-4 rounded-2xl flex items-center justify-between gap-4 relative z-10"
+          style={{ background: 'rgba(255,255,255,.75)', border: '1px solid rgba(20,184,166,.15)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 12px rgba(20,184,166,.06)' }}
+        >
+          <div className="space-y-1.5 min-w-0">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
               Securely share your patient health record.
             </p>
-            <p className="text-xs font-mono text-[#00a896] dark:text-cyan-300 font-extrabold truncate">
+            <p className="text-xs font-mono font-black truncate" style={{ color: '#00897b' }}>
               {abhaId}
             </p>
           </div>
 
+          {/* QR Code container — same as before */}
           <motion.div
-            whileHover={{ scale: 1.08 }}
+            whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setModalOpen(true)}
-            className="p-2.5 rounded-xl bg-[#00a896] dark:bg-white text-white dark:text-slate-900 shrink-0 shadow-md cursor-pointer transition-transform"
-            title="Click to expand QR Code"
+            className="p-1.5 bg-white rounded-2xl border shadow-md cursor-pointer shrink-0 relative overflow-hidden group/qr"
+            style={{ borderColor: 'rgba(20,184,166,.2)' }}
+            title="Click to view & scan full size QR Pass"
           >
-            <QrCode className="w-8 h-8" />
+            <motion.div
+              animate={{ y: [-36, 36, -36] }}
+              transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+              className="absolute left-0 right-0 top-1/2 h-0.5 bg-[#00a896] shadow-[0_0_8px_#00a896] z-20 pointer-events-none opacity-80"
+            />
+            <ABDMQRCodeSVG value={abhaId} size={72} className="block" />
           </motion.div>
         </div>
 
-        {/* BUTTONS */}
-        <div className="pt-2 flex items-center gap-3 relative z-10 font-sans">
+        {/* ICON-TRIO ROW (Share / Verified / Filter) — matches reference design */}
+        <div className="flex items-center justify-around mb-3 relative z-10">
+          {[
+            { icon: Share2, label: 'Share', color: '#059669', bg: 'rgba(16,185,129,.1)' },
+            { icon: CheckCircle2, label: 'Verified', color: '#0891b2', bg: 'rgba(6,182,212,.1)' },
+            { icon: Copy, label: 'Filter', color: '#7c3aed', bg: 'rgba(124,58,237,.1)' },
+          ].map(({ icon: IconComp, label, color, bg }) => (
+            <button key={label} className="flex flex-col items-center gap-1 cursor-pointer group/ico">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover/ico:scale-110" style={{ background: bg }}>
+                <IconComp className="w-4 h-4" style={{ color }} />
+              </div>
+              <span className="text-[9px] font-bold text-slate-500" style={{ color }}>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* FOOTER BUTTONS — unchanged logic */}
+        <div className="flex items-center gap-3 relative z-10 font-sans">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setModalOpen(true)}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            className="flex-1 py-2.5 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+            style={{ background: 'linear-gradient(135deg,#00a896,#00897b)', boxShadow: '0 4px 14px rgba(0,168,150,.3)' }}
           >
             <ExternalLink className="w-4 h-4" />
             <span>View QR Card</span>
@@ -87,11 +130,14 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleShare}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-extrabold border border-slate-300 dark:border-slate-700 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            onClick={handleCopy}
+            className="flex-1 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
           >
-            <Share2 className="w-4 h-4" />
-            <span>Copy ID</span>
+            {copied ? (
+              <><Check className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600">Copied</span></>
+            ) : (
+              <><Share2 className="w-4 h-4" /><span>Copy ID</span></>
+            )}
           </motion.button>
         </div>
       </motion.div>

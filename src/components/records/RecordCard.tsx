@@ -80,18 +80,19 @@ export const RecordCard: React.FC<RecordCardProps> = ({
   };
 
   return (
-    <div className={`p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#0f172a] border transition-all duration-300 relative group ${
+    <div className={`p-5 rounded-3xl bg-white dark:bg-[#0f172a] border transition-all duration-300 relative group flex flex-col h-full ${
       isSelected
-        ? 'border-[#00a896] bg-[#00a896]/5 shadow-lg shadow-teal-500/10'
-        : 'border-slate-200/80 dark:border-slate-800 hover:border-teal-500/40 hover:shadow-xl'
+        ? 'border-[#00a896] bg-[#00a896]/5 shadow-lg shadow-teal-500/10 -translate-y-1'
+        : 'border-slate-200/80 dark:border-slate-800 hover:border-teal-500/40 hover:shadow-xl hover:-translate-y-1'
     }`}>
-      <div className="flex items-start sm:items-center justify-between gap-3">
-        {/* LEFT: CHECKBOX & TYPE ICON */}
-        <div className="flex items-center gap-3 shrink-0">
+      
+      {/* HEADER: ICON, CHECKBOX & ACTIONS */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
           {onToggleSelect && (
             <button
               onClick={() => onToggleSelect(record.id)}
-              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer mt-0.5 ${
                 isSelected
                   ? 'bg-[#00a896] border-[#00a896] text-white'
                   : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-transparent hover:border-[#00a896]'
@@ -106,108 +107,80 @@ export const RecordCard: React.FC<RecordCardProps> = ({
           </div>
         </div>
 
-        {/* CENTER: TITLE & METADATA */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 
-              onClick={() => onView(record)}
-              className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white truncate hover:text-[#00a896] cursor-pointer transition-colors"
-            >
-              {record.title}
-            </h3>
-
-            {/* STAR BUTTON */}
-            <button
-              onClick={() => onToggleImportant(record.id)}
-              className="p-1 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
-              title={record.isImportant ? 'Unstar Record' : 'Star as Important'}
-            >
-              <Star className={`w-3.5 h-3.5 ${record.isImportant ? 'fill-amber-400 text-amber-400' : ''}`} />
-            </button>
-          </div>
-
-          <p className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="font-semibold text-teal-600 dark:text-cyan-400">{record.type}</span>
-            <span>•</span>
-            <span className="truncate">{record.hospital}</span>
-            <span>•</span>
-            <span className="font-medium text-slate-600 dark:text-slate-300">{record.doctor}</span>
-            <span>•</span>
-            <span className="font-mono text-slate-400">{record.date}</span>
-          </p>
-        </div>
-
-        {/* RIGHT: STATUS & ACTIONS */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${getStatusBadge()}`}>
-            {record.status}
-          </span>
-
+        <div className="flex items-center gap-1">
+          {/* STAR BUTTON */}
           <button
-            onClick={() => onView(record)}
-            className="hidden sm:flex px-3.5 py-1.5 rounded-xl bg-[#00a896]/10 hover:bg-[#00a896]/20 text-cyan-300 border border-teal-500/20 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+            onClick={() => onToggleImportant(record.id)}
+            className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
+            title={record.isImportant ? 'Unstar Record' : 'Star as Important'}
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span>View</span>
+            <Star className={`w-4 h-4 ${record.isImportant ? 'fill-amber-400 text-amber-400' : ''}`} />
           </button>
 
           {/* THREE-DOT MENU */}
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
 
             {menuOpen && (
               <>
-                <div
-                  onClick={() => setMenuOpen(false)}
-                  className="fixed inset-0 z-20"
-                />
+                <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20" />
                 <div className="absolute right-0 top-10 w-44 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl text-white z-30 space-y-1 text-xs">
-                  <button
-                    onClick={() => { setMenuOpen(false); onView(record); }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>View Report</span>
-                  </button>
-                  <button
-                    onClick={() => { setMenuOpen(false); onDownload(record); }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Download</span>
-                  </button>
-                  <button
-                    onClick={() => { setMenuOpen(false); onShare(record); }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Share Record</span>
-                  </button>
-                  <button
-                    onClick={() => { setMenuOpen(false); onRename(record); }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Rename</span>
-                  </button>
+                  <button onClick={() => { setMenuOpen(false); onView(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Eye className="w-3.5 h-3.5 text-cyan-400" /><span>View Report</span></button>
+                  <button onClick={() => { setMenuOpen(false); onDownload(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Download className="w-3.5 h-3.5 text-emerald-400" /><span>Download</span></button>
+                  <button onClick={() => { setMenuOpen(false); onShare(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Share2 className="w-3.5 h-3.5 text-indigo-400" /><span>Share Record</span></button>
+                  <button onClick={() => { setMenuOpen(false); onRename(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Edit2 className="w-3.5 h-3.5 text-amber-400" /><span>Rename</span></button>
                   <div className="border-t border-slate-800 my-1" />
-                  <button
-                    onClick={() => { setMenuOpen(false); onDelete(record); }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Delete Record</span>
-                  </button>
+                  <button onClick={() => { setMenuOpen(false); onDelete(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer"><Trash2 className="w-3.5 h-3.5 text-rose-400" /><span>Delete Record</span></button>
                 </div>
               </>
             )}
           </div>
         </div>
+      </div>
+
+      {/* CONTENT: TITLE & METADATA */}
+      <div className="flex-1 space-y-3 mb-5">
+        <h3 
+          onClick={() => onView(record)}
+          className="text-base font-extrabold text-slate-900 dark:text-white line-clamp-2 hover:text-[#00a896] cursor-pointer transition-colors leading-tight"
+        >
+          {record.title}
+        </h3>
+
+        <div className="space-y-1.5">
+          <p className="text-[13px] font-bold text-teal-600 dark:text-cyan-400 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+            {record.type}
+          </p>
+          <p className="text-[13px] font-medium text-slate-600 dark:text-slate-300 truncate">
+            {record.hospital}
+          </p>
+          <p className="text-[12px] text-slate-400 flex items-center gap-2">
+            <span>{record.doctor}</span>
+            <span>•</span>
+            <span className="font-mono">{record.date}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* FOOTER: STATUS & ACTIONS */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
+        <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold border ${getStatusBadge()}`}>
+          {record.status}
+        </span>
+
+        <button
+          onClick={() => onView(record)}
+          className="flex px-4 py-2 rounded-xl bg-[#00a896]/10 hover:bg-[#00a896]/20 text-[#00897b] dark:text-cyan-400 border border-[#00a896]/20 text-[13px] font-bold transition-all items-center gap-1.5 cursor-pointer"
+        >
+          <Eye className="w-4 h-4" />
+          <span>View</span>
+        </button>
       </div>
     </div>
   );
