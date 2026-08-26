@@ -487,8 +487,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
           </motion.div>
         </div>
       </section>
-        </div>
-      </section>
 
       {/* =========================================================================
           SECTION 2 — INTRODUCTION VIDEO SECTION
