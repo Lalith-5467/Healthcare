@@ -350,7 +350,6 @@ export const App: React.FC = () => {
             isLoggedIn={isLoggedIn}
             userName={user?.name}
             onLogout={handleLogout}
-            showProgressBar={currentPage !== 'login' && currentPage !== 'register'}
           />
         )}
 
