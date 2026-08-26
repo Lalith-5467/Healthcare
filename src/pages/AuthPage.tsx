@@ -246,14 +246,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* TOP NAVIGATION BACK BAR */}
-      <div className="max-w-6xl mx-auto w-full mb-6 flex items-center justify-between relative z-10">
+      <div className={`mx-auto w-full mb-6 flex items-center justify-between relative z-10 transition-all duration-300 ${
+        mode === 'register' ? 'max-w-2xl' : 'max-w-6xl'
+      }`}>
         <motion.button
-          whileHover={{ x: -3 }}
+          whileHover={{ x: -3, scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={onNavigateHome}
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-400 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 text-xs font-black text-slate-800 dark:text-slate-100 hover:text-[#00a896] dark:hover:text-cyan-300 border border-slate-200/90 dark:border-slate-700 shadow-sm backdrop-blur-md transition-all cursor-pointer group"
         >
-          <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+          <ChevronLeft className="w-4 h-4 stroke-[2.5] text-[#00a896] dark:text-cyan-400 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Home</span>
         </motion.button>
 
@@ -261,7 +263,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           <button
             type="button"
             onClick={handleQuickDemoFill}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-teal-500/15 hover:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black transition-all cursor-pointer shadow-xs"
             title="Auto-fill with role-specific demo credentials"
           >
             <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
@@ -270,7 +272,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
             <ShieldCheck className="w-4 h-4 text-[#00a896]" />
-            <span>256-Bit Encrypted Portal</span>
+            <span>256-Bit Encrypted</span>
           </div>
         </div>
       </div>
