@@ -1212,8 +1212,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               <ChevronRight className="w-5 h-5 stroke-[2.5]" />
             </motion.button>
           </div>
-          </div>
-
         </div>
       </section>
 
