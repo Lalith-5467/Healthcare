@@ -368,58 +368,87 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
           </div>
 
-          {/* 5 FEATURE CARDS STRIP (FROM APPROVED MOCKUP) */}
+          {/* 5 FEATURE CARDS STRIP WITH INTERACTIVE THEMED HOVER EFFECTS */}
           <motion.div 
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="p-4 sm:p-6 rounded-3xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
+            className="p-4 sm:p-6 rounded-3xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4.5"
           >
             {[
               {
                 icon: ShieldCheck,
                 title: 'Secure & Private',
                 desc: '100% encrypted and ABDM-integrated for complete data security.',
-                color: 'text-teal-600 bg-teal-50 dark:bg-teal-950/60 dark:text-teal-300',
+                badge: 'ABDM Verified',
+                hoverCard: 'hover:bg-gradient-to-b hover:from-teal-50/90 hover:via-emerald-50/50 hover:to-white dark:hover:from-teal-950/40 dark:hover:via-slate-900 dark:hover:to-slate-900 hover:border-teal-500/60 hover:shadow-xl hover:shadow-teal-500/15',
+                iconBg: 'bg-gradient-to-tr from-teal-500 to-emerald-500 text-white shadow-md shadow-teal-500/30',
+                glow: 'bg-teal-400/30 dark:bg-teal-500/30',
+                titleColor: 'group-hover:text-teal-700 dark:group-hover:text-teal-300',
               },
               {
                 icon: Link2,
                 title: 'Unified Ecosystem',
                 desc: 'Connects patients, doctors, hospitals & emergency responders seamlessly.',
-                color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/60 dark:text-cyan-300',
+                badge: 'Multi-Connect',
+                hoverCard: 'hover:bg-gradient-to-b hover:from-cyan-50/90 hover:via-sky-50/50 hover:to-white dark:hover:from-cyan-950/40 dark:hover:via-slate-900 dark:hover:to-slate-900 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/15',
+                iconBg: 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/30',
+                glow: 'bg-cyan-400/30 dark:bg-cyan-500/30',
+                titleColor: 'group-hover:text-cyan-700 dark:group-hover:text-cyan-300',
               },
               {
                 icon: Zap,
                 title: 'Instant Access',
                 desc: 'Quick and easy access to healthcare services anytime, anywhere.',
-                color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300',
+                badge: 'Zero-Latency',
+                hoverCard: 'hover:bg-gradient-to-b hover:from-amber-50/90 hover:via-orange-50/50 hover:to-white dark:hover:from-amber-950/40 dark:hover:via-slate-900 dark:hover:to-slate-900 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/15',
+                iconBg: 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30',
+                glow: 'bg-amber-400/30 dark:bg-amber-500/30',
+                titleColor: 'group-hover:text-amber-700 dark:group-hover:text-amber-300',
               },
               {
                 icon: HeartPulse,
                 title: 'Better Outcomes',
                 desc: 'Streamlined care coordination for faster diagnosis and better treatment.',
-                color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/60 dark:text-rose-300',
+                badge: 'Proactive Care',
+                hoverCard: 'hover:bg-gradient-to-b hover:from-rose-50/90 hover:via-pink-50/50 hover:to-white dark:hover:from-rose-950/40 dark:hover:via-slate-900 dark:hover:to-slate-900 hover:border-rose-500/60 hover:shadow-xl hover:shadow-rose-500/15',
+                iconBg: 'bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/30',
+                glow: 'bg-rose-400/30 dark:bg-rose-500/30',
+                titleColor: 'group-hover:text-rose-700 dark:group-hover:text-rose-300',
               },
               {
                 icon: Users,
                 title: 'Built for Everyone',
                 desc: 'Designed for patients, doctors, hospitals, and communities.',
-                color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-300',
+                badge: 'Universal',
+                hoverCard: 'hover:bg-gradient-to-b hover:from-purple-50/90 hover:via-indigo-50/50 hover:to-white dark:hover:from-purple-950/40 dark:hover:via-slate-900 dark:hover:to-slate-900 hover:border-purple-500/60 hover:shadow-xl hover:shadow-purple-500/15',
+                iconBg: 'bg-gradient-to-tr from-purple-500 to-indigo-500 text-white shadow-md shadow-purple-500/30',
+                glow: 'bg-purple-400/30 dark:bg-purple-500/30',
+                titleColor: 'group-hover:text-purple-700 dark:group-hover:text-purple-300',
               },
             ].map((feat, idx) => {
               const Icon = feat.icon;
               return (
                 <div 
                   key={idx}
-                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 flex flex-col items-center text-center space-y-2.5 group hover:border-[#00a896]/50 hover:bg-white dark:hover:bg-slate-800 transition-all"
+                  className={`p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center text-center space-y-3 relative overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 ${feat.hoverCard}`}
                 >
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${feat.color} shadow-xs group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-5 h-5 stroke-[2.2]" />
+                  {/* AMBIENT CORNER GLOW ON HOVER */}
+                  <div className={`absolute -top-10 -right-10 w-24 h-24 ${feat.glow} rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+
+                  {/* ICON BADGE */}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${feat.iconBg} relative z-10 group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-5 h-5 stroke-[2.3]" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">{feat.title}</h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                    {feat.desc}
-                  </p>
+
+                  <div className="space-y-1 relative z-10">
+                    <h4 className={`text-xs font-black text-slate-900 dark:text-white transition-colors duration-200 ${feat.titleColor}`}>
+                      {feat.title}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                      {feat.desc}
+                    </p>
+                  </div>
                 </div>
               );
             })}
