@@ -259,25 +259,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </motion.button>
       </div>
 
-      {/* CORNER CONTROLS: TOP-RIGHT DEMO FILL & SECURITY BADGE */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-8 z-50 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleQuickDemoFill}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-teal-500/15 hover:bg-teal-500/25 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black transition-all cursor-pointer shadow-md backdrop-blur-xl"
-          title="Auto-fill with role-specific demo credentials"
-        >
-          <Zap className="w-3.5 h-3.5 fill-[#00a896]" />
-          <span className="hidden sm:inline">Quick Demo Fill</span>
-          <span>({role.toUpperCase()})</span>
-        </button>
-
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400 backdrop-blur-md shadow-xs">
-          <ShieldCheck className="w-4 h-4 text-[#00a896]" />
-          <span>256-Bit Encrypted</span>
-        </div>
-      </div>
-
       {/* MAIN CONTAINER (CENTERED ON REGISTER, 2-COLUMN ON LOGIN) */}
       <div className={`mx-auto w-full relative z-10 pt-10 sm:pt-6 ${
         mode === 'register' 
