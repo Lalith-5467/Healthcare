@@ -39,7 +39,7 @@ const ABHACard: React.FC<{
         onMouseLeave={() => setIsHovered(false)}
         initial={false}
         animate={{
-          height: isHovered ? 135 : 215,
+          height: isHovered ? 220 : 135,
         }}
         transition={{
           duration: 0.7,
@@ -47,12 +47,12 @@ const ABHACard: React.FC<{
         }}
         className="relative p-6 rounded-[22px] bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-md hover:shadow-2xl backdrop-blur-xl overflow-hidden cursor-pointer flex flex-col justify-between transition-colors duration-300 select-none"
       >
-        {/* TOP ACCENT LINE ANIMATION (TEAL MEDICARE BRANDING) */}
+        {/* TOP ACCENT LINE ANIMATION (TEAL MEDICARE BRANDING: EXPANDS TO 100% ON HOVER) */}
         <motion.div
           initial={false}
           animate={{
-            width: isHovered ? '24%' : '100%',
-            opacity: isHovered ? 0.9 : 1,
+            width: isHovered ? '100%' : '24%',
+            opacity: isHovered ? 1 : 0.85,
           }}
           transition={{
             duration: 0.7,
@@ -77,25 +77,31 @@ const ABHACard: React.FC<{
               </span>
             </div>
           </div>
-          <span className="text-xs font-mono font-black text-[#00a896] dark:text-cyan-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 shadow-xs">
+          <span className={`text-xs font-mono font-black px-2.5 py-0.5 rounded-full border shadow-xs transition-colors duration-300 ${
+            isHovered 
+              ? 'text-white bg-[#00a896] border-[#00a896]' 
+              : 'text-[#00a896] dark:text-cyan-400 bg-teal-500/10 border-teal-500/20'
+          }`}>
             {item.step}
           </span>
         </div>
 
         {/* MAIN HEADING */}
         <div className="space-y-1 mt-2">
-          <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
+          <h3 className={`text-lg font-black tracking-tight transition-colors duration-300 ${
+            isHovered ? 'text-[#00a896] dark:text-cyan-300' : 'text-slate-900 dark:text-white'
+          }`}>
             {item.title}
           </h3>
         </div>
 
-        {/* COLLAPSIBLE SUPPORTING DESCRIPTION (SMOOTH CLIPPING & FADE) */}
+        {/* EXPANDING SUPPORTING DESCRIPTION (SMOOTH REVEAL ON HOVER) */}
         <motion.div
           initial={false}
           animate={{
-            opacity: isHovered ? 0 : 1,
-            height: isHovered ? 0 : 'auto',
-            marginTop: isHovered ? 0 : 8,
+            opacity: isHovered ? 1 : 0,
+            height: isHovered ? 'auto' : 0,
+            marginTop: isHovered ? 8 : 0,
           }}
           transition={{
             duration: 0.6,
