@@ -29,7 +29,6 @@ import {
   Hash
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
-import { SpotlightCard } from '../components/ui/SpotlightCard';
 
 interface AuthPageProps {
   initialMode?: 'login' | 'register';
@@ -234,10 +233,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             transition={{ duration: 0.6 }}
             className="lg:col-span-5"
           >
-            <SpotlightCard
-              spotlightColor="rgba(0, 168, 150, 0.3)"
-              className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-700/60"
-            >
+            <div className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-700/60">
               {/* AMBIENT MESH OVERLAY */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
@@ -308,7 +304,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <span>★ 4.9/5 Rating</span>
                 </div>
               </div>
-            </SpotlightCard>
+            </div>
           </motion.div>
         )}
 
@@ -319,10 +315,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           transition={{ duration: 0.5 }}
           className={mode === 'register' ? 'w-full' : 'lg:col-span-7'}
         >
-          <SpotlightCard
-            spotlightColor="rgba(0, 168, 150, 0.22)"
-            className="h-full rounded-3xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl flex flex-col justify-between"
-          >
+          <div className="h-full rounded-3xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl flex flex-col justify-between">
             <div>
               {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) */}
               <div className="p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 flex items-center mb-6 relative">
@@ -776,7 +769,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </p>
             </div>
-          </SpotlightCard>
+          </div>
         </motion.div>
 
       </div>
