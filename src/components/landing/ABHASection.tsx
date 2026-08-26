@@ -172,12 +172,12 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
   ];
 
   return (
-    <section id="abha" className="py-24 bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white relative overflow-hidden transition-colors duration-300">
+    <section id="abha" className="py-14 sm:py-16 bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white relative overflow-hidden transition-colors duration-300">
       {/* GLOW DECORATIONS */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
         {/* HEADER */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-[#00a896] dark:text-cyan-400 text-xs font-black uppercase tracking-wider">

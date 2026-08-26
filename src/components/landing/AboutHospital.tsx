@@ -15,7 +15,7 @@ export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => 
   ];
 
   return (
-    <section id="about" className="py-20 bg-slate-50 dark:bg-[#0f172a] transition-colors overflow-hidden">
+    <section id="about" className="py-14 sm:py-16 bg-slate-50 dark:bg-[#0f172a] transition-colors overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           

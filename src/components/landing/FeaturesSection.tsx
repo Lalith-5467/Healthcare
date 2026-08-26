@@ -173,12 +173,12 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
   const activeFeature = featureCategories[activeTab];
 
   return (
-    <section id="features" className="py-20 sm:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#090e1a] dark:via-[#0b1120] dark:to-[#090e1a] text-slate-900 dark:text-white relative overflow-hidden transition-colors duration-300">
+    <section id="features" className="py-12 sm:py-16 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#090e1a] dark:via-[#0b1120] dark:to-[#090e1a] text-slate-900 dark:text-white relative overflow-hidden transition-colors duration-300">
       {/* DYNAMIC AMBIENT GLOW BACKGROUND ACCENTS */}
       <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-br ${activeFeature.glowBg} rounded-full blur-3xl pointer-events-none transition-all duration-700 opacity-60`} />
       <div className="absolute inset-0 bg-[radial-gradient(#00a896_0.75px,transparent_0.75px)] [background-size:32px_32px] opacity-10 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         
         {/* SECTION HEADER */}
         <div className="text-center max-w-3xl mx-auto space-y-3">

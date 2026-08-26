@@ -42,11 +42,11 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
   ];
 
   return (
-    <section id="doctors" className="py-20 bg-white dark:bg-[#0b1120] transition-colors">
+    <section id="doctors" className="py-14 sm:py-16 bg-white dark:bg-[#0b1120] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#00a896] dark:text-cyan-400">
               Expert Healthcare Team
