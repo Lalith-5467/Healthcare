@@ -22,13 +22,13 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
   let containerClass = 'group relative flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer select-none w-full ';
 
   if (isActive) {
-    containerClass += 'bg-[#00a896]/15 dark:bg-cyan-500/20 border border-[#00a896]/40 dark:border-cyan-500/40 text-[#00a896] dark:text-cyan-300 font-extrabold shadow-sm ';
+    containerClass += 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 font-bold shadow-sm border border-transparent ';
   } else if (isEmergency) {
     containerClass += 'bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 ';
   } else if (isAI) {
     containerClass += 'bg-purple-50 dark:bg-indigo-950/30 border border-purple-200 dark:border-indigo-500/20 text-purple-700 dark:text-indigo-200 hover:bg-purple-100 dark:hover:bg-indigo-900/40 ';
   } else {
-    containerClass += 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white border border-transparent ';
+    containerClass += 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white border border-transparent ';
   }
 
   return (
@@ -45,14 +45,14 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
           <motion.span
             layoutId="sidebarActiveGlow"
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-r-full bg-[#00a896] dark:bg-cyan-400 shadow-md shadow-[#00a896]"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-r-full bg-teal-500 dark:bg-teal-400 shadow-sm shadow-teal-500/20"
           />
         )}
 
         {/* ICON */}
         <div className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
           isActive 
-            ? 'text-[#00a896] dark:text-cyan-400' 
+            ? 'text-teal-600 dark:text-teal-400' 
             : isEmergency 
             ? 'text-rose-600 dark:text-rose-400' 
             : isAI 

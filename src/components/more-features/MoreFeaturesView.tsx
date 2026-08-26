@@ -23,7 +23,11 @@ import {
   Lock, 
   PhoneCall, 
   X,
-  ChevronRight
+  ChevronRight,
+  Activity,
+  Heart,
+  BadgeCheck,
+  HelpCircle
 } from 'lucide-react';
 
 interface UserProfile {
@@ -201,37 +205,68 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
         )}
       </AnimatePresence>
 
-      {/* 1. PAGE HEADER */}
-      <PageHeader
-        title="More Healthcare Features"
-        subtitle="Explore specialized clinical services, AI diagnostics, in-home care, and security controls."
-        badgeText="Healthcare Marketplace"
-        badgeIcon={<Grid className="w-3.5 h-3.5" />}
-        rightElement={
-          <div className="flex items-center gap-3">
+      {/* 1. HERO SECTION */}
+      <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-r from-[#e0f7fa]/60 via-white to-[#e3f2fd]/60 border border-slate-100 p-8 sm:p-12 pb-24 shadow-sm mb-[-60px]">
+        {/* Background Decorative Mesh Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row items-center justify-between relative z-10 gap-8">
+          {/* Left Text Content */}
+          <div className="max-w-xl space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">More Healthcare Features</h1>
+              <span className="px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                <Grid className="w-3.5 h-3.5" />
+                Healthcare Marketplace
+              </span>
+            </div>
+            <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed max-w-lg">
+              Explore specialized clinical services, AI diagnostics, in-home care, and security controls — all in one place.
+            </p>
+          </div>
+
+          {/* Right Abstract Graphic & Action Button */}
+          <div className="flex flex-col items-end gap-8 w-full md:w-auto relative">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+              className="px-5 py-2.5 rounded-full font-bold text-xs text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm cursor-pointer z-20"
             >
               <span>Back to Dashboard</span>
             </button>
+            
+            {/* Abstract Graphic representing the Doctor/Services */}
+            <div className="relative w-48 h-32 hidden md:block">
+              {/* Floating Orbs */}
+              <div className="absolute top-0 left-0 w-12 h-12 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 -translate-x-6 -translate-y-4 z-10">
+                <Activity className="w-6 h-6 text-blue-500" />
+              </div>
+              <div className="absolute top-8 right-0 w-10 h-10 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 delay-150 translate-x-4 -translate-y-6 z-10">
+                <Heart className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="absolute bottom-0 left-8 w-14 h-14 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 delay-300 -translate-y-2 z-10">
+                <ShieldCheck className="w-7 h-7 text-emerald-500" />
+              </div>
+              {/* Abstract Avatar Placeholder */}
+              <div className="absolute bottom-0 right-8 w-32 h-32 bg-gradient-to-t from-cyan-200 to-cyan-50 rounded-full shadow-inner border-4 border-white opacity-80" />
+            </div>
           </div>
-        }
-      />
+        </div>
+      </div>
 
-      {/* 2. FILTER & SEARCH BAR */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 rounded-3xl shadow-xl font-sans">
+      {/* 2. FILTER & SEARCH BAR (Floating) */}
+      <div className="relative z-20 mx-4 sm:mx-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-100 p-2 sm:p-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] font-sans">
         
         {/* CATEGORY TABS */}
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-x-auto w-full sm:w-auto font-mono text-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto font-mono text-xs pl-2">
           {['All', 'Clinical Services', 'AI & Diagnostics', 'Security'].map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat as any)}
-              className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer font-sans whitespace-nowrap ${
+              className={`px-4 py-2 rounded-full font-bold transition-all cursor-pointer font-sans whitespace-nowrap ${
                 activeCategory === cat
                   ? 'bg-[#00a896] text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {cat}
@@ -239,16 +274,21 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
           ))}
         </div>
 
-        {/* SEARCH INPUT */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search features (e.g. Lab, Janitor, Nurse)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
-          />
+        {/* SEARCH & FILTER BUTTON */}
+        <div className="flex items-center gap-2 w-full md:w-auto pr-2">
+          <div className="relative flex-1 sm:w-80">
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search features (e.g. Lab, Janitor, Nurse)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+            />
+          </div>
+          <button className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer shrink-0">
+            <Filter className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -261,60 +301,128 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               key={card.id}
               whileHover={{ y: -5, scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between group font-sans"
+              className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xl shadow-slate-200/40 relative overflow-hidden flex flex-col justify-between group font-sans"
             >
               {/* GRADIENT DECORATION */}
-              <div className={`absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br ${card.color} opacity-10 rounded-full blur-2xl pointer-events-none group-hover:opacity-20 transition-opacity`} />
+              <div className={`absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br ${card.color} opacity-[0.03] rounded-full blur-2xl pointer-events-none group-hover:opacity-[0.08] transition-opacity`} />
 
               <div className="space-y-4 relative z-10">
                 {/* TOP HEADER */}
                 <div className="flex items-center justify-between">
-                  <div className={`p-3 rounded-2xl bg-gradient-to-br ${card.color} text-white shadow-md`}>
+                  <div className={`p-3.5 rounded-full bg-gradient-to-br ${card.color} text-white shadow-lg shadow-current/20`}>
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className={`px-3 py-1 text-[10px] font-extrabold rounded-full border ${card.badgeBg} font-mono shadow-xs`}>
+                  <span className={`px-4 py-1.5 text-[10px] font-extrabold rounded-full ${card.badgeBg}`}>
                     {card.badge}
                   </span>
                 </div>
 
                 {/* TITLE & DESCRIPTION */}
-                <div className="space-y-1">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-[#00a896] dark:group-hover:text-cyan-300 transition-colors">
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-slate-700 transition-colors">
                     {card.title}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
                     {card.description}
                   </p>
                 </div>
 
                 {/* HIGHLIGHT LIST */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                  {card.highlights.map((h, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#00a896] shrink-0" />
-                      <span>{h}</span>
-                    </div>
-                  ))}
+                <div className="space-y-2 pt-3 border-t border-slate-100">
+                  {card.highlights.map((h, i) => {
+                    const textCol = card.badgeBg.split(' ').find(c => c.startsWith('text-')) || 'text-[#00a896]';
+                    return (
+                      <div key={i} className="flex items-center gap-2.5 text-[11px] text-slate-600 font-medium">
+                        <CheckCircle2 className={`w-4 h-4 ${textCol} shrink-0`} />
+                        <span>{h}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* FOOTER ACTION & RATING */}
-              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between relative z-10 font-mono text-xs">
-                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                  {card.rating}
-                </span>
+              <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{card.rating.replace('★', '')}</span>
+                </div>
 
                 <button
                   onClick={() => handleCardClick(card.id)}
-                  className="px-4 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md flex items-center gap-1.5 cursor-pointer font-sans"
+                  className={`px-5 py-2 rounded-full bg-gradient-to-r ${card.color} hover:brightness-110 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer`}
                 >
                   <span>{card.actionText}</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </motion.div>
           );
         })}
+        {/* EMPTY SPACE GRAPHIC (Only on "All" view) */}
+        {activeCategory === 'All' && (
+          <div className="hidden md:flex lg:col-span-2 md:col-span-1 items-center justify-center rounded-3xl p-8 relative overflow-hidden group">
+            {/* Soft background glow */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-50/50 to-transparent pointer-events-none" />
+            
+            <div className="relative w-64 h-48 flex items-center justify-center">
+              {/* Base Pedestal */}
+              <div className="absolute bottom-4 w-48 h-12 bg-white rounded-[100%] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-slate-100" />
+              <div className="absolute bottom-6 w-32 h-8 bg-slate-50 rounded-[100%] shadow-inner border border-slate-100" />
+              
+              {/* Central Shield */}
+              <div className="relative z-10 w-24 h-28 bg-gradient-to-b from-teal-400 to-cyan-500 rounded-2xl shadow-xl flex items-center justify-center group-hover:-translate-y-2 transition-transform duration-500" style={{ clipPath: 'polygon(50% 0%, 100% 20%, 100% 80%, 50% 100%, 0% 80%, 0% 20%)' }}>
+                <Lock className="w-10 h-10 text-white drop-shadow-md" />
+              </div>
+              
+              {/* Floating Icons */}
+              <div className="absolute top-4 left-4 p-2 bg-white rounded-xl shadow-lg animate-bounce duration-1000 z-0">
+                <FileSearch className="w-5 h-5 text-teal-600" />
+              </div>
+              <div className="absolute top-10 right-2 p-2 bg-white rounded-xl shadow-lg animate-bounce duration-1000 delay-150 z-0">
+                <Shield className="w-5 h-5 text-cyan-500" />
+              </div>
+              <div className="absolute bottom-12 left-0 p-1.5 bg-white rounded-xl shadow-lg animate-bounce duration-1000 delay-300 z-20">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. TRUST BADGES */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-10 pb-4">
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-6 h-6 text-emerald-600" />
+          </div>
+          <h4 className="font-extrabold text-sm text-slate-900">Secure & Private</h4>
+          <p className="text-[11px] font-medium text-slate-500 max-w-[160px]">Your privacy and data security are our priority.</p>
+        </div>
+        
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center shadow-sm">
+            <BadgeCheck className="w-6 h-6 text-orange-500" />
+          </div>
+          <h4 className="font-extrabold text-sm text-slate-900">Trusted & Verified</h4>
+          <p className="text-[11px] font-medium text-slate-500 max-w-[160px]">All services are verified and quality checked.</p>
+        </div>
+
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shadow-sm">
+            <HelpCircle className="w-6 h-6 text-blue-600" />
+          </div>
+          <h4 className="font-extrabold text-sm text-slate-900">Expert Support</h4>
+          <p className="text-[11px] font-medium text-slate-500 max-w-[160px]">24/7 support from our care specialists.</p>
+        </div>
+
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shadow-sm">
+            <Shield className="w-6 h-6 text-purple-600" />
+          </div>
+          <h4 className="font-extrabold text-sm text-slate-900">Safe & Reliable</h4>
+          <p className="text-[11px] font-medium text-slate-500 max-w-[160px]">Advanced protocols for your complete safety.</p>
+        </div>
       </div>
 
       {/* 4. MODALS & DRAWERS FOR ACTIONS */}

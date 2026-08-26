@@ -54,23 +54,23 @@ export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
               <Pill className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Share Medication Reminder</h3>
-              <p className="text-xs text-slate-400">Select family members to share routine dose alerts</p>
+              <h3 className="text-lg font-extrabold text-slate-900">Share Medication Reminder</h3>
+              <p className="text-xs text-slate-500">Select family members to share routine dose alerts</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -79,17 +79,17 @@ export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">Reminder Name</label>
+            <label className="block text-slate-500 font-bold uppercase tracking-wider mb-1.5">Reminder Name</label>
             <input
               type="text"
               value={reminderTitle}
               onChange={(e) => setReminderTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-semibold text-sm focus:outline-none focus:border-[#00a896]"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-sm focus:outline-none focus:border-[#00a896]"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-bold uppercase tracking-wider mb-2">Select Family Members</label>
+            <label className="block text-slate-500 font-bold uppercase tracking-wider mb-2">Select Family Members</label>
             <div className="space-y-2">
               {members.map((m) => {
                 const selected = selectedMemberIds.includes(m.id);
@@ -100,26 +100,26 @@ export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
                     onClick={() => toggleMember(m.id)}
                     className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-colors cursor-pointer ${
                       selected
-                        ? 'bg-amber-500/20 text-white border-amber-500/40'
-                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
                       <img src={m.avatarUrl} alt={m.name} className="w-7 h-7 rounded-full object-cover" />
                       <span className="font-bold">{m.name} ({m.relationship})</span>
                     </div>
-                    {selected && <Check className="w-4 h-4 text-amber-400" />}
+                    {selected && <Check className="w-4 h-4 text-amber-600" />}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+          <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer transition-colors"
             >
               Cancel
             </button>
