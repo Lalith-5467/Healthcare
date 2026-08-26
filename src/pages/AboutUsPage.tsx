@@ -19,6 +19,8 @@ import {
   Zap,
   Building2,
   ChevronRight,
+  ChevronLeft,
+  Star,
   Clock,
   QrCode,
   Check,
@@ -44,11 +46,29 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 }) => {
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [activeLeaderIndex, setActiveLeaderIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    const interval = setInterval(() => {
+      setActiveLeaderIndex((prev) => (prev + 1) % 5);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
+
+  const nextLeader = () => {
+    setActiveLeaderIndex((prev) => (prev + 1) % 5);
+  };
+
+  const prevLeader = () => {
+    setActiveLeaderIndex((prev) => (prev - 1 + 5) % 5);
+  };
 
   const handlePlayVideo = () => {
     setIsPlayingVideo(true);
@@ -186,7 +206,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       credentials: 'MD, DM (Cardiology), AIIMS New Delhi',
       specialty: 'Clinical Governance & Digital Health Standards',
       img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
-      badge: '20+ Yrs Clinical Exp',
+      badge: '20+ Yrs Exp',
+      rating: '9.9',
+      platform: 'AIIMS Delhi',
     },
     {
       name: 'Priya Sharma',
@@ -195,6 +217,8 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
       img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
       badge: 'Data Security Pioneer',
+      rating: '9.8',
+      platform: 'Stanford Fellow',
     },
     {
       name: 'Dr. Ananya Sen',
@@ -203,6 +227,8 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       specialty: 'Golden-Hour SOS Systems & Paramedic Workflows',
       img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
       badge: 'Trauma Care Expert',
+      rating: '9.9',
+      platform: 'MRCEM (UK)',
     },
     {
       name: 'Karthik Ramanathan',
@@ -211,6 +237,18 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       specialty: 'OCR Prescription Parsing & Predictive Analytics',
       img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
       badge: 'Health AI Researcher',
+      rating: '9.8',
+      platform: 'IISc AI Lab',
+    },
+    {
+      name: 'Dr. Vikramaditya Rao',
+      role: 'Director of Tele-Surgery & Robotics',
+      credentials: 'MS, MCh (Neurosurgery), PGIMER',
+      specialty: 'Remote Surgical Systems & Robot-Assisted Care',
+      img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80',
+      badge: 'Surgical Robotics Lead',
+      rating: '9.9',
+      platform: 'PGIMER',
     },
   ];
 
@@ -939,75 +977,200 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       </section>
 
       {/* =========================================================================
-          SECTION 6 — MEDICAL ADVISORY & CLINICAL LEADERSHIP TEAM (CINEMATIC POSTER UI)
+          SECTION 6 — 3D CINEMATIC COVERFLOW SPECIALISTS CAROUSEL
           ========================================================================= */}
-      <section className="py-20 bg-white dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-24 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative overflow-hidden border-b border-slate-800">
+        {/* CINEMATIC BACKGROUND GLOW */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-teal-500/10 blur-[120px] pointer-events-none rounded-full" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
           
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <span className="text-xs font-black uppercase tracking-widest text-[#00a896] dark:text-cyan-400 bg-teal-500/10 px-3.5 py-1 rounded-full border border-teal-500/20">
-              Clinical & Engineering Leadership
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-black uppercase tracking-widest text-[#00a896] dark:text-cyan-400 bg-teal-500/15 px-3.5 py-1 rounded-full border border-teal-500/30 inline-flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Cinematic Specialist Showcase</span>
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
               Guided by Foremost Medical Specialists
             </h2>
-            <p className="text-base text-slate-600 dark:text-slate-400 font-medium">
+            <p className="text-sm sm:text-base text-slate-300 font-medium max-w-2xl mx-auto">
               Our clinical advisory board ensures all data flows, emergency protocols, and telemedicine standards adhere to rigorous medical ethics.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {leadership.map((mem, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="rounded-[22px] bg-slate-950 border border-teal-500/20 dark:border-teal-500/30 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-teal-500/25 hover:border-teal-400/70 group hover:scale-[1.03] transition-all duration-300 flex flex-col justify-between relative"
-              >
-                {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
-                <div className="h-72 overflow-hidden relative">
-                  <img 
-                    src={mem.img} 
-                    alt={mem.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  
-                  {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-                  
-                  {/* TOP CORNER FLOATING BADGE CHIP */}
-                  <div className="absolute top-3.5 right-3.5 z-10">
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-cyan-300 border border-cyan-400/30 font-mono shadow-md">
-                      {mem.badge}
-                    </span>
-                  </div>
+          {/* 3D COVERFLOW PERSPECTIVE STAGE */}
+          <div 
+            className="relative h-[490px] sm:h-[540px] flex items-center justify-center overflow-hidden [perspective:1200px]"
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
+          >
+            {/* CARDS CONTAINER */}
+            <div className="relative w-full max-w-5xl h-full flex items-center justify-center [transform-style:preserve-3d]">
+              {leadership.map((mem, idx) => {
+                const total = leadership.length;
+                let offset = (idx - activeLeaderIndex) % total;
+                if (offset > total / 2) offset -= total;
+                if (offset < -total / 2) offset += total;
 
-                  {/* OVERLAID NAME AND TITLE */}
-                  <div className="absolute bottom-3 left-4 right-4 text-white z-10">
-                    <h4 className="text-lg font-black tracking-tight drop-shadow-sm">{mem.name}</h4>
-                    <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
-                  </div>
-                </div>
+                const isCenter = offset === 0;
+                const isLeft1 = offset === -1;
+                const isRight1 = offset === 1;
+                const isLeft2 = offset <= -2;
+                const isRight2 = offset >= 2;
 
-                {/* LOWER INFORMATION CONTENT */}
-                <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-800/80">
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-bold text-slate-400 font-mono">
-                      {mem.credentials}
+                let translateX = 0;
+                let rotateY = 0;
+                let scale = 1;
+                let zIndex = 10;
+                let opacity = 1;
+                let blur = 0;
+
+                if (isCenter) {
+                  translateX = 0;
+                  rotateY = 0;
+                  scale = 1.1;
+                  zIndex = 30;
+                  opacity = 1;
+                  blur = 0;
+                } else if (isLeft1) {
+                  translateX = -280;
+                  rotateY = 32;
+                  scale = 0.88;
+                  zIndex = 20;
+                  opacity = 0.75;
+                  blur = 0.5;
+                } else if (isRight1) {
+                  translateX = 280;
+                  rotateY = -32;
+                  scale = 0.88;
+                  zIndex = 20;
+                  opacity = 0.75;
+                  blur = 0.5;
+                } else if (isLeft2) {
+                  translateX = -480;
+                  rotateY = 48;
+                  scale = 0.72;
+                  zIndex = 10;
+                  opacity = 0.35;
+                  blur = 2;
+                } else if (isRight2) {
+                  translateX = 480;
+                  rotateY = -48;
+                  scale = 0.72;
+                  zIndex = 10;
+                  opacity = 0.35;
+                  blur = 2;
+                }
+
+                return (
+                  <motion.div
+                    key={idx}
+                    onClick={() => setActiveLeaderIndex(idx)}
+                    animate={{
+                      x: translateX,
+                      rotateY: rotateY,
+                      scale: scale,
+                      zIndex: zIndex,
+                      opacity: opacity,
+                      filter: `blur(${blur}px)`,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 240,
+                      damping: 24,
+                    }}
+                    className={`absolute w-72 sm:w-80 h-[430px] sm:h-[470px] rounded-[26px] bg-slate-900 border-2 overflow-hidden cursor-pointer select-none [transform-style:preserve-3d] shadow-2xl transition-colors duration-300 ${
+                      isCenter 
+                        ? 'border-[#00a896] shadow-teal-500/40 ring-4 ring-[#00a896]/20' 
+                        : 'border-slate-800 hover:border-teal-500/50'
+                    }`}
+                  >
+                    {/* POSTER IMAGE */}
+                    <div className="w-full h-full relative">
+                      <img
+                        src={mem.img}
+                        alt={mem.name}
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* DARK GRADIENT CINEMATIC OVERLAY */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+
+                      {/* TOP BADGES */}
+                      <div className="absolute top-4 inset-x-4 flex items-center justify-between z-10">
+                        {/* PLATFORM BADGE */}
+                        <div className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-black tracking-wider text-teal-300 font-mono flex items-center gap-1.5 shadow-md">
+                          <span className="w-2 h-2 rounded-full bg-[#00a896] animate-pulse" />
+                          <span>{mem.platform}</span>
+                        </div>
+
+                        {/* RATING / METRIC PILL (STREAMING STYLE) */}
+                        <div className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/40 text-xs font-black text-amber-300 flex items-center gap-1 font-mono shadow-md">
+                          <span>{mem.rating}</span>
+                          <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
+                        </div>
+                      </div>
+
+                      {/* BOTTOM OVERLAID DETAILS */}
+                      <div className="absolute bottom-0 inset-x-0 p-5 space-y-2 z-10 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-14">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-cyan-300 font-mono">
+                            {mem.badge}
+                          </span>
+                          <h4 className="text-xl font-black text-white tracking-tight leading-tight">
+                            {mem.name}
+                          </h4>
+                          <p className="text-xs text-teal-300 font-bold">
+                            {mem.role}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/10 space-y-1">
+                          <p className="text-[11px] text-slate-300 font-mono">
+                            {mem.credentials}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-medium line-clamp-1">
+                            {mem.specialty}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                      {mem.specialty}
-                    </p>
-                  </div>
+                  </motion.div>
+                );
+              })}
+            </div>
 
-                  <div className="pt-2 border-t border-slate-800/60 flex items-center gap-1.5 text-[11px] font-bold text-teal-400">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Verified Clinical Advisor</span>
-                  </div>
-                </div>
-              </motion.div>
+            {/* FLOATING NAVIGATION BUTTONS */}
+            <button
+              onClick={prevLeader}
+              aria-label="Previous Specialist"
+              className="absolute left-2 sm:left-6 z-40 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-[#00a896] text-white border border-white/20 backdrop-blur-md flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={nextLeader}
+              aria-label="Next Specialist"
+              className="absolute right-2 sm:right-6 z-40 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-[#00a896] text-white border border-white/20 backdrop-blur-md flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* DOT INDICATORS */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {leadership.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveLeaderIndex(idx)}
+                aria-label={`Go to leader ${idx + 1}`}
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeLeaderIndex === idx 
+                    ? 'w-8 bg-[#00a896] shadow-md shadow-teal-500/40' 
+                    : 'w-2.5 bg-slate-700 hover:bg-slate-500'
+                }`}
+              />
             ))}
           </div>
 
