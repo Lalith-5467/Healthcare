@@ -202,53 +202,71 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
         </div>
 
         {/* INTERACTIVE ABHA CONNECTED STATUS CARD */}
-        <div className="max-w-2xl mx-auto p-8 rounded-3xl bg-white dark:bg-gradient-to-r dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-xl space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-700/80 pb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center font-black text-xl">
+        <div className="max-w-2xl mx-auto p-6 sm:p-8 rounded-[24px] bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-xl">
+          {/* AMBIENT CORNER GLOW */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* TOP HEADER ROW WITH PERFECT ALIGNMENT */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-700/80 relative z-10">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500/15 to-cyan-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center font-black text-sm border border-teal-500/30 shadow-xs">
                 ABHA
               </div>
-              <div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Ayushman Bharat Health Account</span>
-                  <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">ABDM Integration Status: Linked & Verified</p>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    Ayushman Bharat Health Account
+                  </h3>
+                  <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  ABDM Integration Status: <span className="text-[#00a896] dark:text-cyan-400 font-bold">Linked & Verified</span>
+                </p>
               </div>
             </div>
 
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono">
-              ✓ Connected
+            <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Connected
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-semibold mb-1 font-mono">ABHA Number</p>
-              <p className="font-mono text-lg font-bold text-[#00a896] dark:text-cyan-400 tracking-wider">
+          {/* TWO DATA BOXES: PERFECTLY SIZED & ALIGNED BASELINES */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
+              <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider font-mono">
+                ABHA Number
+              </span>
+              <p className="font-mono text-base sm:text-lg font-black text-[#00a896] dark:text-cyan-400 tracking-wider">
                 14-XXXX-XXXX-8921
               </p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-semibold mb-1 font-mono">ABHA Address</p>
-              <p className="font-mono text-base font-bold text-slate-900 dark:text-white">
+            
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
+              <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider font-mono">
+                ABHA Address
+              </span>
+              <p className="font-mono text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-wide">
                 lalith.patel@abdm
               </p>
             </div>
           </div>
 
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          {/* FOOTER ACTION ROW */}
+          <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-relaxed text-center sm:text-left">
               MediCare routes authorization requests strictly through official ABDM gateway protocols.
             </p>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.025 }}
+              whileTap={{ scale: 0.98 }}
               onClick={onManageConnection}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-full text-xs font-bold text-white bg-[#00a896] hover:bg-[#00897b] shadow-md transition-all gap-2 shrink-0 cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/25 transition-all gap-2 shrink-0 cursor-pointer border border-teal-400/30"
             >
               <span>Manage Connection</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+              <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
+            </motion.button>
           </div>
         </div>
       </div>
