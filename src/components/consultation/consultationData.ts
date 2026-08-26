@@ -45,7 +45,7 @@ export const MOCK_CONSULTATION_DOCTOR: ConsultationDoctor = {
   experienceYears: 12,
   languages: ['English', 'Tamil', 'Hindi'],
   hospital: 'Apollo Hospital, Chennai',
-  avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&q=80',
+  avatarUrl: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
   bio: 'Senior Consultant Physician specializing in preventive health checkups, cardiovascular wellness, and chronic disease management.'
 };
 
