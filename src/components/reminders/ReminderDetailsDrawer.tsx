@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Bell, Pill, Calendar, Package, Video, ExternalLink, Trash2 } from 'lucide-react';
+import { X, Bell, Pill, Calendar, Package, Video, ExternalLink, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import type { ReminderItem, NotificationLog } from './remindersData';
 
 interface ReminderDetailsDrawerProps {
@@ -8,6 +8,8 @@ interface ReminderDetailsDrawerProps {
   onClose: () => void;
   onNavigateModule: (module: string) => void;
   onDismiss: (id: string) => void;
+  onAcceptFollowUp?: (id: string) => void;
+  onDeclineFollowUp?: (id: string) => void;
 }
 
 export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
@@ -16,10 +18,14 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
   onClose,
   onNavigateModule,
   onDismiss,
+  onAcceptFollowUp,
+  onDeclineFollowUp,
 }) => {
   if (!isOpen || !item) return null;
 
   const isReminder = 'repeat' in item;
+  const remItem = isReminder ? (item as ReminderItem) : null;
+  const isFollowUp = !!remItem?.sourcePrescriptionId || !!remItem?.followUpStatus;
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
@@ -41,49 +47,69 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
               {getCategoryIcon(item.category)}
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-cyan-400 font-mono">
-                {item.category} • {item.id}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-cyan-400 font-mono">
+                  {item.category} • {item.id}
+                </span>
+                {remItem?.sourcePrescriptionId ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                    Scheduled
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                    Upcoming
+                  </span>
+                )}
+              </div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{item.title}</h3>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* BODY */}
-        <div className="space-y-4 py-4 flex-1 overflow-y-auto text-xs">
-          <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60">
+        {/* CONTENT BODY */}
+        <div className="py-4 space-y-4 text-xs font-sans">
+          <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
             {item.description}
           </p>
 
-          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl space-y-2.5 font-mono">
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 font-mono text-[11px]">
             <div className="flex justify-between">
-              <span className="text-slate-500 font-sans">{isReminder ? 'Scheduled Time:' : 'Time:'}</span>
-              <strong className="text-slate-800 dark:text-slate-200">
-                {'time' in item ? item.time : item.timeAgo}
-              </strong>
+              <span className="text-slate-500 font-sans">Scheduled Date:</span>
+              <strong className="text-slate-900 dark:text-white">{item.date}</strong>
             </div>
-            <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
-              <span className="text-slate-500 font-sans">Date:</span>
-              <strong className="text-slate-800 dark:text-slate-200">{item.date}</strong>
-            </div>
+
             {isReminder && (
-              <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Time:</span>
+                <strong className="text-slate-900 dark:text-white">{(item as ReminderItem).time}</strong>
+              </div>
+            )}
+
+            {remItem?.sourcePrescriptionId && (
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Source Prescription:</span>
+                <strong className="text-[#00a896] dark:text-cyan-300">{remItem.sourcePrescriptionId}</strong>
+              </div>
+            )}
+
+            {isReminder && (
+              <div className="flex justify-between">
                 <span className="text-slate-500 font-sans">Frequency:</span>
-                <strong className="text-teal-600 dark:text-teal-400">{(item as ReminderItem).repeat}</strong>
+                <strong className="text-[#00a896] dark:text-cyan-400">{(item as ReminderItem).repeat}</strong>
               </div>
             )}
           </div>
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0 space-y-2 font-sans">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0 space-y-2.5 font-sans">
           {item.relatedModule && (
             <button
               onClick={() => {
@@ -93,19 +119,16 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
               className="w-full py-2.5 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
             >
               <ExternalLink className="w-4 h-4" />
-              <span>Go to {item.category} Page</span>
+              <span>Go to {item.category} Module</span>
             </button>
           )}
 
           <button
-            onClick={() => {
-              onDismiss(item.id);
-              onClose();
-            }}
-            className="w-full py-2 text-rose-600 hover:text-rose-700 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+            onClick={() => onDismiss(item.id)}
+            className="w-full py-2 rounded-xl text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Dismiss Notification</span>
+            <span>Dismiss Reminder</span>
           </button>
         </div>
       </div>

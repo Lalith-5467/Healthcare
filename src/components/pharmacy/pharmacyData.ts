@@ -33,6 +33,18 @@ export interface OrderItem {
   unitPrice: number;
 }
 
+export type PharmacyOrderStatus =
+  | 'Pending Pharmacist Verification'
+  | 'Processing'
+  | 'Order Received'
+  | 'Confirmed'
+  | 'Preparing'
+  | 'Ready for Pickup'
+  | 'Out for Delivery'
+  | 'Delivered'
+  | 'Declined by Pharmacist'
+  | 'Cancelled';
+
 export interface PharmacyOrder {
   id: string; // e.g. "RX-2026-00482"
   date: string;
@@ -42,7 +54,7 @@ export interface PharmacyOrder {
   deliveryMethod: 'Home Delivery' | 'Pickup';
   deliveryAddress: string;
   totalAmount: number;
-  status: 'Order Received' | 'Confirmed' | 'Preparing' | 'Ready for Pickup' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+  status: PharmacyOrderStatus;
   estimatedDelivery: string; // e.g. "Today, 10:45 AM – 11:15 AM"
   progressPercent: number; // 0 to 100
 }

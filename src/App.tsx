@@ -13,6 +13,7 @@ import { AboutUsPage } from './pages/AboutUsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { PharmacistDashboardPage } from './pages/PharmacistDashboardPage';
 
 // MODALS
 import { ABHAModal } from './components/modals/ABHAModal';
@@ -21,12 +22,20 @@ import { EmergencyQRModal } from './components/modals/EmergencyQRModal';
 import { AuthModal } from './components/modals/AuthModal';
 
 const DEFAULT_PATIENT_USER = {
-  name: 'Lalith Patel',
-  email: 'lalith.patel@abdm.in',
+  name: 'Ragul Kumar',
+  email: 'ragul.kumar@abdm.in',
   role: 'Patient',
   abhaId: '91-8472-9104-5821@abdm',
   bloodGroup: 'O+',
   age: 34
+};
+
+const DEFAULT_PHARMACIST_USER = {
+  name: 'Registered Pharmacist',
+  email: 'pharmacist@apollocentral.in',
+  role: 'Pharmacist',
+  bloodGroup: 'B+',
+  age: 38
 };
 
 const NAV_MAP: Record<string, string> = {
@@ -59,15 +68,21 @@ const NAV_MAP: Record<string, string> = {
   'profile': 'profile',
   'records': 'records',
   'scan': 'scan',
-  'dashboard': 'dashboard'
+  'dashboard': 'dashboard',
+  'orders': 'orders',
+  'prescriptions': 'prescriptions',
+  'patients': 'patients'
 };
 
-const getURLPathForRoute = (page: string, navId?: string) => {
+const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Patient') => {
   if (page === 'about') return '/about';
   if (page === 'login') return '/login';
   if (page === 'register') return '/register';
   if (page === 'dashboard') {
     const nav = navId || 'dashboard';
+    if (userRole === 'Pharmacist') {
+      return `/pharmacist/${nav}`;
+    }
     if (nav === 'family' || nav === 'family-connect') return '/user/family-connect';
     if (nav === 'consultation' || nav === 'video-consultation') return '/user/video-consultation';
     if (nav === 'analytics' || nav === 'health-analytics') return '/user/health-analytics';
@@ -84,23 +99,57 @@ const getURLPathForRoute = (page: string, navId?: string) => {
 const getInitialAppState = () => {
   const path = window.location.pathname.toLowerCase();
   const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
-  const target = path.startsWith('/user/')
-    ? path.replace('/user/', '')
-    : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash);
+
+  const isUserPath = path.startsWith('/user');
+  const isPharmacistPath = path.startsWith('/pharmacist');
+
+  const target = isUserPath
+    ? path.replace('/user/', '').replace('/user', '')
+    : isPharmacistPath
+    ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
+    : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash.startsWith('pharmacist/') ? rawHash.replace('pharmacist/', '') : rawHash);
 
   const savedNav = localStorage.getItem('app_active_nav_id');
   const savedUser = localStorage.getItem('app_user');
   const savedLoggedIn = localStorage.getItem('app_is_logged_in');
 
-  const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : false;
-  const userData = savedUser ? JSON.parse(savedUser) : (loggedIn ? DEFAULT_PATIENT_USER : null);
+  let loggedIn = false;
+  try {
+    if (savedLoggedIn !== null) {
+      loggedIn = savedLoggedIn === 'true' || JSON.parse(savedLoggedIn) === true;
+    }
+  } catch {
+    loggedIn = savedLoggedIn === 'true';
+  }
+
+  let userData = null;
+  try {
+    if (savedUser) {
+      userData = JSON.parse(savedUser);
+    }
+  } catch {
+    userData = null;
+  }
+
+  if (isUserPath) {
+    if (!userData || userData.role !== 'Patient') {
+      userData = DEFAULT_PATIENT_USER;
+    }
+    loggedIn = true;
+  } else if (isPharmacistPath) {
+    if (!userData || userData.role !== 'Pharmacist') {
+      userData = DEFAULT_PHARMACIST_USER;
+    }
+    loggedIn = true;
+  } else if (!userData && loggedIn) {
+    userData = DEFAULT_PATIENT_USER;
+  }
 
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
-  let nav = savedNav || 'dashboard';
+  let nav = target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard';
 
-  // ROUTE DETERMINATION DERIVED STRICTLY FROM URL PATH
+  // ROUTE DETERMINATION DERIVED FROM URL PATH
   if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
-    // Root URL MUST ALWAYS render the Landing Page
     page = 'home';
   } else if (path === '/about') {
     page = 'about';
@@ -108,19 +157,16 @@ const getInitialAppState = () => {
     page = 'login';
   } else if (path === '/register') {
     page = 'register';
-  } else if (path.startsWith('/user/') || (target && NAV_MAP[target])) {
-    // Protected Patient Dashboard Route
+  } else if (isUserPath || isPharmacistPath || (target && NAV_MAP[target])) {
     if (loggedIn) {
       page = 'dashboard';
       if (target && NAV_MAP[target]) {
         nav = NAV_MAP[target];
       }
     } else {
-      // Unauthenticated access to protected route redirects to /login
       page = 'login';
     }
   } else {
-    // Wildcard / Fallback route -> Landing Page
     page = 'home';
   }
 
@@ -137,9 +183,9 @@ export const App: React.FC = () => {
     name: string;
     email: string;
     role: string;
-    abhaId: string;
-    bloodGroup: string;
-    age: number;
+    abhaId?: string;
+    bloodGroup?: string;
+    age?: number;
   } | null>(initialState.userData);
   const [initialNavId, setInitialNavId] = useState<string>(initialState.nav);
 
@@ -154,7 +200,7 @@ export const App: React.FC = () => {
       localStorage.removeItem('app_user');
     }
 
-    const targetUrl = getURLPathForRoute(currentPage, initialNavId);
+    const targetUrl = getURLPathForRoute(currentPage, initialNavId, user?.role || 'Patient');
     if (window.location.pathname !== targetUrl) {
       window.history.pushState(null, '', targetUrl);
     }
@@ -165,11 +211,22 @@ export const App: React.FC = () => {
     const handlePopState = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
+      const isPharmacistPath = path.startsWith('/pharmacist/');
       const target = path.startsWith('/user/')
         ? path.replace('/user/', '')
-        : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash);
+        : path.startsWith('/pharmacist/')
+        ? path.replace('/pharmacist/', '')
+        : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash.startsWith('pharmacist/') ? rawHash.replace('pharmacist/', '') : rawHash);
+
       const savedLoggedIn = localStorage.getItem('app_is_logged_in');
-      const loggedIn = savedLoggedIn !== null ? JSON.parse(savedLoggedIn) : false;
+      let loggedIn = false;
+      try {
+        if (savedLoggedIn !== null) {
+          loggedIn = savedLoggedIn === 'true' || JSON.parse(savedLoggedIn) === true;
+        }
+      } catch {
+        loggedIn = savedLoggedIn === 'true';
+      }
 
       if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
         setCurrentPage('home');
@@ -179,7 +236,7 @@ export const App: React.FC = () => {
         setCurrentPage('login');
       } else if (path === '/register') {
         setCurrentPage('register');
-      } else if (path.startsWith('/user/') || (target && NAV_MAP[target])) {
+      } else if (path.startsWith('/user/') || path.startsWith('/pharmacist/') || (target && NAV_MAP[target])) {
         if (loggedIn) {
           setCurrentPage('dashboard');
           if (target && NAV_MAP[target]) {
@@ -205,22 +262,27 @@ export const App: React.FC = () => {
   const handleSuccessLogin = (userData: { 
     name: string; 
     email: string; 
+    role?: string;
     abhaId?: string;
     bloodGroup?: string;
     age?: number;
     phone?: string;
     emergencyContact?: string;
   }) => {
+    const userRole = userData.role || 'Patient';
+    const isPharm = userRole === 'Pharmacist';
+
     const newUser = {
-      name: userData.name || 'Lalith Patel',
-      email: userData.email || 'lalith.patel@abdm.in',
-      role: 'Patient',
-      abhaId: userData.abhaId || '91-8472-9104-5821@abdm',
+      name: userData.name || (isPharm ? 'Suresh Nair' : 'Ragul Kumar'),
+      email: userData.email || (isPharm ? 'suresh.nair@apollopharmacy.in' : 'ragul.kumar@abdm.in'),
+      role: userRole,
+      abhaId: userData.abhaId || (isPharm ? 'pharm.apollo.central@abdm' : '91-8472-9104-5821@abdm'),
       bloodGroup: userData.bloodGroup || 'O+',
-      age: userData.age || 34,
+      age: userData.age || (isPharm ? 38 : 34),
       phone: userData.phone || '+91 98765 43210',
       emergencyContact: userData.emergencyContact || '+91 98765 11223'
     };
+
     setIsLoggedIn(true);
     setUser(newUser);
     setCurrentPage('dashboard');
@@ -244,6 +306,17 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // ROLE SWITCHING HELPERS (FOR EFFORTLESS TESTING BETWEEN PATIENT & PHARMACIST)
+  const handleSwitchToPharmacist = () => {
+    setIsLoggedIn(true);
+    setUser(DEFAULT_PHARMACIST_USER);
+    setCurrentPage('dashboard');
+    setInitialNavId('dashboard');
+    localStorage.setItem('app_user', JSON.stringify(DEFAULT_PHARMACIST_USER));
+    localStorage.setItem('app_is_logged_in', 'true');
+    window.history.pushState(null, '', '/pharmacist/dashboard');
+  };
+
   const handleNavigate = (id: string) => {
     if (id === 'about') {
       setCurrentPage('about');
@@ -260,32 +333,6 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
-    const SERVICE_TO_DASHBOARD_MAP: Record<string, string> = {
-      'medical-records': 'records',
-      'timeline': 'records',
-      'medication': 'medicines',
-      'doctor-sharing': 'records',
-      'emergency-sos': 'emergency',
-      'vitals': 'analytics',
-      'caregiver': 'family',
-      'ai-assistance': 'ai-assistant',
-      'home-care': 'consultation',
-      'wearables': 'analytics'
-    };
-
-    // Services Mega-Menu Item Click Handler
-    if (SERVICE_TO_DASHBOARD_MAP[id]) {
-      if (!isLoggedIn) {
-        // Direct unauthenticated users to register page
-        setCurrentPage('register');
-        window.scrollTo({ top: 0, behavior: 'instant' });
-        return;
-      }
-      setInitialNavId(SERVICE_TO_DASHBOARD_MAP[id]);
-      setCurrentPage('dashboard');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      return;
-    }
 
     const protectedModules = [
       'dashboard', 'profile', 'records', 'appointments', 'appointment',
@@ -294,12 +341,11 @@ export const App: React.FC = () => {
       'reminders', 'reminder', 'notifications', 'notification',
       'analytics', 'health-analytics', 'family', 'family-connect',
       'checkup', 'health-checkup', 'settings', 'ai-assistant', 'assistant',
-      'more-features'
+      'more-features', 'orders', 'prescriptions', 'patients'
     ];
 
     if (protectedModules.includes(id)) {
       if (!isLoggedIn) {
-        // Protected route attempted without authentication -> redirect to register / login
         setCurrentPage('register');
         window.scrollTo({ top: 0, behavior: 'instant' });
         return;
@@ -347,6 +393,8 @@ export const App: React.FC = () => {
     handleNavigate('register');
   };
 
+  const isUserPath = window.location.pathname.toLowerCase().startsWith('/user');
+  const isPharmacist = !isUserPath && ((user?.role === 'Pharmacist') || window.location.pathname.toLowerCase().startsWith('/pharmacist'));
   const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
 
   return (
@@ -383,14 +431,23 @@ export const App: React.FC = () => {
             onSuccessLogin={handleSuccessLogin}
           />
         ) : currentPage === 'dashboard' ? (
-          <DashboardPage
-            user={user || undefined}
-            initialNavId={initialNavId}
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-            onOpenEmergencyModal={() => setEmergencyModalOpen(true)}
-            onOpenAbhaModal={() => setAbhaModalOpen(true)}
-          />
+          isPharmacist ? (
+            <PharmacistDashboardPage
+              user={user || undefined}
+              initialNavId={initialNavId}
+              onLogout={handleLogout}
+              onNavigate={handleNavigate}
+            />
+          ) : (
+            <DashboardPage
+              user={user as any || undefined}
+              initialNavId={initialNavId}
+              onLogout={handleLogout}
+              onNavigate={handleNavigate}
+              onOpenEmergencyModal={() => setEmergencyModalOpen(true)}
+              onOpenAbhaModal={() => setAbhaModalOpen(true)}
+            />
+          )
         ) : (
           <main>
             {/* HERO SECTION */}
@@ -454,5 +511,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-
-

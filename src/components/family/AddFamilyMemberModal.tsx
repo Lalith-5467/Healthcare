@@ -5,17 +5,19 @@ import type { FamilyMember, PendingRequest } from './familyData';
 interface AddFamilyMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendInvitation: (newRequest: PendingRequest) => void;
+  onSendInvitation?: (newRequest: PendingRequest) => void;
+  onSendInvite?: (newRequest: PendingRequest) => void;
 }
 
 export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
   isOpen,
   onClose,
   onSendInvitation,
+  onSendInvite,
 }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState('');
-  const [relationship, setRelationship] = useState<FamilyMember['relationship']>('Parent');
+  const [relationship, setRelationship] = useState<FamilyMember['relationship']>('Mother');
   const [age, setAge] = useState<string>('55');
   const [contact, setContact] = useState('');
   const [sending, setSending] = useState(false);
@@ -41,7 +43,8 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
     setTimeout(() => {
       setSending(false);
       setSentSuccess(true);
-      onSendInvitation(newReq);
+      if (onSendInvitation) onSendInvitation(newReq);
+      if (onSendInvite) onSendInvite(newReq);
     }, 1200);
   };
 

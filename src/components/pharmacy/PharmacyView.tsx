@@ -20,9 +20,16 @@ import {
   INITIAL_ORDERS,
   INITIAL_PRESCRIPTIONS
 } from './pharmacyData';
+import {
+  getPharmacyOrders as getStoredPharmacyOrders,
+  getLinkedPrescriptions as getStoredLinkedPrescriptions,
+  getLatestWorkflow
+} from '../../utils/healthWorkflowStorage';
+import type { ExtendedPharmacyOrder } from '../../utils/healthWorkflowStorage';
 import { RefillModal } from './RefillModal';
 import { PharmacyDetailsDrawer } from './PharmacyDetailsDrawer';
 import { OrderTrackingModal } from './OrderTrackingModal';
+import { PharmacyFilterDrawer } from './PharmacyFilterDrawer';
 import { CancelOrderModal } from './CancelOrderModal';
 
 interface UserProfile {
@@ -49,8 +56,8 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   // STATE & LOCALSTORAGE PERSISTENCE
   const [pharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
   const [stockItems] = useState<StockItem[]>(INITIAL_MEDICINE_STOCK);
-  const [orders, setOrders] = useState<PharmacyOrder[]>(INITIAL_ORDERS);
-  const [prescriptions] = useState<LinkedPrescription[]>(INITIAL_PRESCRIPTIONS);
+  const [orders, setOrders] = useState<ExtendedPharmacyOrder[]>(INITIAL_ORDERS as ExtendedPharmacyOrder[]);
+  const [prescriptions, setPrescriptions] = useState<LinkedPrescription[]>(INITIAL_PRESCRIPTIONS);
 
   // SEARCH & FILTERS
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,18 +74,36 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [trackingOrder, setTrackingOrder] = useState<PharmacyOrder | null>(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState<PharmacyOrder | null>(null);
 
-  // Load from localStorage on mount & simulate short skeleton
+  const loadAllData = () => {
+    const loadedOrders = getStoredPharmacyOrders();
+    setOrders(loadedOrders);
+    const loadedPrescriptions = getStoredLinkedPrescriptions();
+    setPrescriptions(loadedPrescriptions);
+  };
+
+  // Load from localStorage on mount & listen to workflow updates
   useEffect(() => {
-    const savedOrders = localStorage.getItem('user_pharmacy_orders');
-    if (savedOrders) {
-      try {
-        setOrders(JSON.parse(savedOrders));
-      } catch (e) {
-        console.error(e);
+    loadAllData();
+    const handleUpdate = () => loadAllData();
+    window.addEventListener('health_workflow_updated', handleUpdate);
+    const timer = setTimeout(() => {
+      setLoading(false);
+      // If user came after verifying a prescription, auto-open the tracking modal for that order
+      const latestWf = getLatestWorkflow();
+      if (latestWf && latestWf.pharmacyOrder) {
+        const loaded = getStoredPharmacyOrders();
+        const found = loaded.find(
+          (o) => o.id === latestWf.pharmacyOrder?.id || o.sourcePrescriptionId === latestWf.prescription?.id
+        );
+        if (found) {
+          setTrackingOrder(found);
+        }
       }
-    }
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    }, 300);
+    return () => {
+      window.removeEventListener('health_workflow_updated', handleUpdate);
+      clearTimeout(timer);
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -86,9 +111,10 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const saveOrdersState = (newOrders: PharmacyOrder[]) => {
+  const saveOrdersState = (newOrders: ExtendedPharmacyOrder[]) => {
     setOrders(newOrders);
     localStorage.setItem('user_pharmacy_orders', JSON.stringify(newOrders));
+    window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   // ORDER ACTIONS
@@ -123,7 +149,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const completedOrdersCount = orders.filter((o) => o.status === 'Delivered').length;
 
   const lowStockItem = stockItems.find((s) => s.stockLevel === 'Low Stock') || stockItems[0];
-  const activePendingOrder = orders.find((o) => o.status !== 'Delivered' && o.status !== 'Cancelled');
+  const activePendingOrder = orders.find((o) => o.status !== 'Delivered' && o.status !== 'Cancelled') || orders[0];
 
   // FILTERED STOCK ITEMS
   const filteredStock = stockItems.filter((s) => {
@@ -163,24 +189,23 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
             <button
               onClick={() => {
-                const el = document.getElementById('history-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                const historyEl = document.getElementById('history-section');
+                historyEl?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-extrabold text-xs border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Clock className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
               <span>Order History</span>
             </button>
-
             <button
               onClick={() => {
                 setPreSelectedMedId(null);
                 setRefillModalOpen(true);
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Truck className="w-4 h-4" />
-              <span>Request Refill</span>
+              <Pill className="w-4 h-4" />
+              <span>New Refill</span>
             </button>
           </div>
         }
@@ -217,7 +242,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Pending Orders</span>
-            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:teal-400 border border-teal-500/20">
               <Truck className="w-4 h-4" />
             </div>
           </div>
@@ -299,33 +324,63 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider">
                   <Truck className="w-4 h-4" />
-                  <span>Active Refill Order</span>
+                  <span>Live Refill Order</span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30">
-                  {activePendingOrder.id}
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                  activePendingOrder.status === 'Pending Pharmacist Verification'
+                    ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                    : activePendingOrder.status === 'Declined by Pharmacist' || activePendingOrder.status === 'Cancelled'
+                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                    : activePendingOrder.status === 'Processing'
+                    ? 'bg-blue-500/15 text-blue-700 dark:text-cyan-300 border-blue-500/30'
+                    : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                }`}>
+                  {activePendingOrder.status}
                 </span>
               </div>
 
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{activePendingOrder.pharmacyName}</h3>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                  Order #{activePendingOrder.id} • {activePendingOrder.pharmacyName}
+                </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-                  Est. Delivery: <strong className="text-emerald-700 dark:text-emerald-400 font-extrabold">{activePendingOrder.estimatedDelivery}</strong>
+                  {activePendingOrder.status === 'Pending Pharmacist Verification' ? (
+                    <span className="text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1 mt-1">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block shrink-0" />
+                      <span>Prescription received • Awaiting Pharmacist review & dispensing approval</span>
+                    </span>
+                  ) : activePendingOrder.status === 'Processing' ? (
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1 mt-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Verified by {activePendingOrder.pharmacistName || 'Pharmacist'} • Dispensing in progress</span>
+                    </span>
+                  ) : activePendingOrder.status === 'Declined by Pharmacist' ? (
+                    <span className="text-rose-700 dark:text-rose-400 font-bold block mt-1">
+                      ✕ Declined by Pharmacist: {activePendingOrder.declineReason || 'Item unavailable'}
+                    </span>
+                  ) : (
+                    <span>Est. Delivery: <strong className="text-emerald-700 dark:text-emerald-400 font-extrabold">{activePendingOrder.estimatedDelivery}</strong></span>
+                  )}
                 </p>
               </div>
 
               {/* MINI ROUTE SIMULATOR */}
               <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 font-mono">
                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                  <span>Pharmacy</span>
+                  <span>Prescription Placed</span>
                   <span className="text-[#00a896] dark:text-cyan-400 font-extrabold">{activePendingOrder.status}</span>
-                  <span>Home</span>
+                  <span>Delivered</span>
                 </div>
                 <div className="relative w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: '0%' }}
-                    animate={{ width: `${activePendingOrder.progressPercent}%` }}
+                    animate={{ width: `${activePendingOrder.progressPercent || 20}%` }}
                     transition={{ duration: 1 }}
-                    className="h-full bg-gradient-to-r from-[#00a896] to-cyan-500 rounded-full"
+                    className={`h-full rounded-full ${
+                      activePendingOrder.status === 'Declined by Pharmacist'
+                        ? 'bg-rose-500'
+                        : 'bg-gradient-to-r from-[#00a896] to-cyan-500'
+                    }`}
                   />
                 </div>
               </div>
@@ -492,21 +547,36 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-sans"
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{order.id}</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                     order.status === 'Delivered'
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                      : order.status === 'Cancelled'
+                      : order.status === 'Declined by Pharmacist' || order.status === 'Cancelled'
                       ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
+                      : order.status === 'Processing'
+                      ? 'bg-blue-500/15 text-blue-700 dark:text-cyan-300 border border-blue-500/30'
+                      : order.status === 'Pending Pharmacist Verification'
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                       : 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border border-teal-500/30'
                   }`}>
-                    {order.status}
+                    {order.status === 'Processing' ? 'Processing • Verified by Pharmacist' : order.status}
                   </span>
+                  {order.sourcePrescriptionId && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono">
+                      Source: Prescription #{order.sourcePrescriptionId}
+                    </span>
+                  )}
                 </div>
                 <p className="text-slate-600 dark:text-slate-400 font-medium">
                   {order.date} • <strong className="text-slate-900 dark:text-slate-200 font-extrabold">{order.pharmacyName}</strong> ({order.deliveryMethod})
+                  {order.doctorName ? ` • Prescribed by ${order.doctorName}` : ''}
                 </p>
+                {order.status === 'Declined by Pharmacist' && order.declineReason && (
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold">
+                    Reason: {order.declineReason} {order.pharmacistNotes ? `(${order.pharmacistNotes})` : ''}
+                  </p>
+                )}
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                   Items: {order.items.map((i) => `${i.name} (${i.quantity})`).join(', ')}
                 </p>

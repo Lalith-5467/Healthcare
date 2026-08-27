@@ -44,73 +44,73 @@ export const AddSurgeryModal: React.FC<AddSurgeryModalProps> = ({ isOpen, onClos
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md font-sans">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl text-white space-y-4 relative"
+          className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white space-y-4 relative"
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+            <div className="p-2 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20">
               <ShieldCheck className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-extrabold text-white">Add Previous Surgery</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Add Previous Surgery</h3>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
             <div>
-              <label className="block font-bold text-slate-300 mb-1">Surgery Procedure Name</label>
+              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Surgery Procedure Name</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Appendectomy, ACL Reconstruction"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a896]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a896]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block font-bold text-slate-300 mb-1">Year</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Year</label>
                 <input
                   type="text"
                   required
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
                   placeholder="e.g. 2022"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-300 mb-1">Hospital / Clinic</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Hospital / Clinic</label>
                 <input
                   type="text"
                   value={hospital}
                   onChange={(e) => setHospital(e.target.value)}
                   placeholder="e.g. Apollo Hospital"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block font-bold text-slate-300 mb-1">Surgeon / Doctor (Optional)</label>
+              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Surgeon / Doctor (Optional)</label>
               <input
                 type="text"
                 value={doctor}
                 onChange={(e) => setDoctor(e.target.value)}
                 placeholder="e.g. Dr. Rajesh Kumar"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00a896]"
               />
             </div>
 
@@ -118,7 +118,7 @@ export const AddSurgeryModal: React.FC<AddSurgeryModalProps> = ({ isOpen, onClos
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Cancel
               </button>

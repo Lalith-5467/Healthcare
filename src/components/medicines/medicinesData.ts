@@ -18,6 +18,7 @@ export interface MedicineItem {
   totalStock: number;
   reminderEnabled: boolean;
   notes?: string;
+  sourcePrescriptionId?: string;
 }
 
 export interface DoseRecord {
