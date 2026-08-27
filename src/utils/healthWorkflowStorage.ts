@@ -112,7 +112,7 @@ export const updateReminderFollowUpStatus = (
       updatedItem = {
         ...r,
         followUpStatus: newStatus,
-        status: newStatus === 'Accepted' ? 'Upcoming' : 'Dismissed'
+        status: newStatus === 'Accepted' ? 'Confirmed' : 'Declined'
       };
       return updatedItem;
     }

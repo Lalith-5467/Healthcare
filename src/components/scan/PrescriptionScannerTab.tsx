@@ -52,6 +52,7 @@ interface PrescriptionScannerTabProps {
   onClearCapturedImage?: () => void;
   onNavigate: (module: string) => void;
   onToast: (message: string) => void;
+  onOpenScanner: () => void;
 }
 
 export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
@@ -59,7 +60,8 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   capturedImage,
   onClearCapturedImage,
   onNavigate,
-  onToast
+  onToast,
+  onOpenScanner
 }) => {
   // PROGRESSIVE STEPS: 1 = 'upload', 2 = 'scanning', 3 = 'review', 4 = 'success'
   const [step, setStep] = useState<'upload' | 'scanning' | 'review' | 'success'>('upload');
@@ -169,6 +171,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setScanError(null);
+      
+      // Auto-trigger extraction
+      runExtractionWorkflow(file);
     }
   };
 
@@ -181,7 +186,11 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
 
   // TRIGGER OCR SCANNING
   const handleStartScan = () => {
-    runExtractionWorkflow();
+    if (selectedFile) {
+      runExtractionWorkflow();
+    } else {
+      onOpenScanner();
+    }
   };
 
   // EDIT HANDLERS FOR EXTRACTED MEDICINES

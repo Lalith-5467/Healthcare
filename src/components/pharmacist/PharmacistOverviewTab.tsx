@@ -256,7 +256,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
                 key={order.id}
                 className="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="space-y-1">
+                <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-extrabold text-xs text-slate-900 dark:text-white">
                       #{order.id}
@@ -265,10 +265,10 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
                       Pending Verification
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 truncate">
                     Patient: <strong className="text-slate-900 dark:text-white">{order.patientName || 'Ragul Kumar'}</strong> • Prescribed by {order.doctorName || 'Dr. Arun Kumar'}
                   </p>
-                  <p className="text-[11px] text-[#00a896] dark:text-cyan-300 font-mono">
+                  <p className="text-[11px] text-[#00a896] dark:text-cyan-300 font-mono truncate" title={`Rx: ${order.items.map((i) => `${i.name} (${i.dosage})`).join(', ')}`}>
                     Rx: {order.items.map((i) => `${i.name} (${i.dosage})`).join(', ')}
                   </p>
                 </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bell, Pill, Calendar as CalendarIcon, Video, Settings, Plus, Search, Filter,
-  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, User, MoreHorizontal, AlertCircle
+  Bell, Pill, Calendar as CalendarIcon, Video, Settings,
+  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, AlertCircle, X, RefreshCw
 } from 'lucide-react';
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
@@ -37,6 +37,87 @@ interface RemindersViewProps {
   onNavigate: (page: string) => void;
   initialViewMode?: 'list' | 'timeline' | 'calendar';
 }
+
+const addMinutesToTimeStr = (timeStr: string, minutes: number): string => {
+  const match = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+  if (!match) return timeStr;
+  let hours = parseInt(match[1], 10);
+  const mins = parseInt(match[2], 10);
+  const ampm = match[3].toUpperCase();
+  if (ampm === 'PM' && hours < 12) hours += 12;
+  if (ampm === 'AM' && hours === 12) hours = 0;
+  
+  const date = new Date();
+  date.setHours(hours, mins + minutes, 0, 0);
+  
+  let newHours = date.getHours();
+  const newMins = date.getMinutes();
+  const newAmpm = newHours >= 12 ? 'PM' : 'AM';
+  
+  newHours = newHours % 12;
+  if (newHours === 0) newHours = 12;
+  
+  return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')} ${newAmpm}`;
+};
+
+const formatFullDate = (dStr: string) => {
+  const months: Record<string, string> = {
+    Jan: 'January', Feb: 'February', Mar: 'March', Apr: 'April', May: 'May', Jun: 'June',
+    Jul: 'July', Aug: 'August', Sep: 'September', Oct: 'October', Nov: 'November', Dec: 'December'
+  };
+  const parts = dStr.split(' ');
+  if (parts.length === 3) {
+    const monthPart = parts[1];
+    const monthFull = months[monthPart] || monthPart;
+    return `${parts[0]} ${monthFull} ${parts[2]}`;
+  }
+  return dStr;
+};
+
+const getCardTitle = (item: ReminderItem) => {
+  if (item.category === 'Appointment') {
+    return `Doctor Follow-up — ${item.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  return item.title;
+};
+
+const getPastCardTitle = (rem: ReminderItem) => {
+  if (rem.status === 'Declined' || rem.followUpStatus === 'Declined') {
+    return `Doctor Follow-up — ${rem.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  if (rem.status === 'Completed' && rem.category === 'Appointment') {
+    return 'Follow-up Appointment';
+  }
+  if (rem.status === 'Cancelled' && rem.category === 'Appointment') {
+    return `Cancelled Doctor Follow-up — ${rem.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  return rem.title;
+};
+
+const getTomorrowDateStr = (dateStr: string): string => {
+  try {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const parts = dateStr.trim().split(/\s+/);
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const monthIdx = months.indexOf(parts[1]);
+      const year = parseInt(parts[2], 10);
+      if (day > 0 && monthIdx >= 0 && year > 0) {
+        const d = new Date(year, monthIdx, day);
+        d.setDate(d.getDate() + 1);
+        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() + 1);
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+    return dateStr;
+  } catch (e) {
+    return dateStr;
+  }
+};
 
 export const RemindersView: React.FC<RemindersViewProps> = ({
   user: _user,
@@ -77,16 +158,16 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [snoozeTarget, setSnoozeTarget] = useState<ReminderItem | null>(null);
   const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [declineConfirmTarget, setDeclineConfirmTarget] = useState<ReminderItem | null>(null);
 
   const loadAllData = () => {
     const loadedReminders = getStoredReminders();
-    if (loadedReminders && loadedReminders.length > 0) {
-      setReminders(loadedReminders);
-    }
+    setReminders(loadedReminders);
+
     const loadedNotifs = getStoredNotifications();
-    if (loadedNotifs && loadedNotifs.length > 0) {
-      setNotifications(loadedNotifs);
-    }
+    setNotifications(loadedNotifs);
+
     const savedSetts = localStorage.getItem('user_notification_settings');
     if (savedSetts) {
       try {
@@ -112,7 +193,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const saveRemindersState = (newReminders: ReminderItem[]) => {
@@ -131,19 +212,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const saveSettingsState = (newSetts: NotificationSettingsState) => {
     setSettings(newSetts);
     localStorage.setItem('user_notification_settings', JSON.stringify(newSetts));
-  };
-
-  // ACCEPT & DECLINE DOCTOR FOLLOW-UPS
-  const handleAcceptFollowUp = (id: string) => {
-    updateReminderFollowUpStatus(id, 'Accepted');
-    loadAllData();
-    showToast('✓ Appointment Accepted! Follow-up confirmed with doctor.');
-  };
-
-  const handleDeclineFollowUp = (id: string) => {
-    updateReminderFollowUpStatus(id, 'Declined');
-    loadAllData();
-    showToast('✕ Appointment Declined.');
   };
 
   // REMINDER ACTIONS
@@ -172,15 +240,87 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     showToast('Reminder dismissed');
   };
 
+  const handleAcceptFollowUp = async (id: string) => {
+    if (confirmingId) return; // Prevent duplicate clicks
+    setConfirmingId(id);
+    // Mimic quick api/loading latency
+    await new Promise((r) => setTimeout(r, 600));
+
+    try {
+      const target = reminders.find(r => r.id === id);
+      if (!target) {
+        throw new Error('Appointment not found');
+      }
+      const docName = target.doctorName || 'Dr. Arun Kumar';
+
+      // 1. Update in local storage
+      updateReminderFollowUpStatus(id, 'Accepted');
+      
+      // 2. Reload state
+      loadAllData();
+      setDetailTarget(null);
+
+      showToast('Appointment confirmed\nYour appointment has been confirmed and a reminder has been added to your schedule.');
+    } catch (e) {
+      showToast(`Unable to confirm appointment\nPlease try again.`);
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  const handleDeclineFollowUp = (id: string) => {
+    const req = reminders.find(r => r.id === id);
+    if (req) {
+      setDeclineConfirmTarget(req);
+    }
+  };
+
+  const handleDeclineFollowUpConfirm = (id: string) => {
+    try {
+      // 1. Update in local storage
+      updateReminderFollowUpStatus(id, 'Declined');
+      
+      // 2. Reload state
+      loadAllData();
+      setDetailTarget(null);
+      setDeclineConfirmTarget(null);
+
+      showToast('Appointment declined\nThe appointment request has been declined.');
+    } catch (e) {
+      showToast(`Unable to decline appointment\nPlease try again.`);
+    }
+  };
+
   const handleSnoozeConfirm = (id: string, mins: number) => {
+    const target = reminders.find(r => r.id === id);
+    if (!target) return;
+
+    let newTime = target.time;
+    let newDate = target.date;
+    let toastMessageText = '';
+
+    if (mins === 1440) {
+      newDate = getTomorrowDateStr(target.date);
+      toastMessageText = `Reminder snoozed\nReminder moved to tomorrow.`;
+    } else {
+      newTime = addMinutesToTimeStr(target.time, mins);
+      toastMessageText = `Reminder snoozed\nReminder moved to ${newTime}.`;
+    }
+
     const updated = reminders.map((r) => {
       if (r.id === id) {
-        return { ...r, status: 'Snoozed' as const, snoozedUntil: `${mins}m later` };
+        return {
+          ...r,
+          time: newTime,
+          date: newDate,
+          status: 'Snoozed' as const
+        };
       }
       return r;
     });
+
     saveRemindersState(updated);
-    showToast(`Snoozed reminder for ${mins} minutes`);
+    showToast(toastMessageText);
   };
 
   const handleSaveNewReminder = (newRem: Partial<ReminderItem>) => {
@@ -232,27 +372,70 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   };
 
   // METRICS & COMPUTED DATA
-  const todayDateStr = '24 Aug 2026'; // Hardcoded for this mockup
-  const totalReminders = reminders.length;
-  const todayRemindersCount = reminders.filter((r) => r.date === todayDateStr).length;
-  const upcomingRemindersCount = reminders.filter((r) => r.status === 'Upcoming' && r.date !== todayDateStr).length;
-  const completedRemindersCount = reminders.filter((r) => r.status === 'Completed').length;
+  const todayDateStr = '24 Aug 2026'; // Hardcoded today's date
+
+  // Filter out pending, declined, completed, and cancelled reminders to get active ones
+  const activeReminders = reminders.filter(r => r && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined' && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled'
+  );
+  const totalRemindersCount = activeReminders.length;
+  const todayRemindersCount = activeReminders.filter((r) => r && r.date === todayDateStr).length;
+  const upcomingRemindersCount = activeReminders.filter((r) => r && r.date !== todayDateStr).length;
+  const completedRemindersCount = reminders.filter((r) => r && r.status === 'Completed').length;
 
   const filteredReminders = reminders.filter((r) => {
+    if (!r) return false;
     if (filters.category !== 'All' && r.category !== filters.category) return false;
     if (filters.status !== 'All' && r.status !== filters.status) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      if (!r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q)) return false;
+      const title = r.title || '';
+      const desc = r.description || '';
+      if (!title.toLowerCase().includes(q) && !desc.toLowerCase().includes(q)) return false;
     }
     return true;
   });
 
-  const todaysReminders = filteredReminders.filter(r => r.date === todayDateStr).sort((a,b) => a.time.localeCompare(b.time));
-  const futureReminders = filteredReminders.filter(r => r.date !== todayDateStr).sort((a,b) => a.date.localeCompare(b.date));
+  // Today's Schedule - active/confirmed only
+  const todaysReminders = filteredReminders.filter(r => r && 
+    r.date === todayDateStr && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled' && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined'
+  ).sort((a,b) => (a.time || '').localeCompare(b.time || ''));
+  
+  // Future Confirmed Reminders - active/confirmed only
+  const futureReminders = filteredReminders.filter(r => r && 
+    r.date !== todayDateStr && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled' && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined'
+  ).sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+
+  // Completed & History Reminders
+  const completedAndHistoryReminders = reminders.filter(r => r && (
+    r.status === 'Completed' || 
+    r.status === 'Cancelled' || 
+    r.status === 'Declined' || 
+    r.followUpStatus === 'Declined'
+  ));
+
+  // Pending Appointment Requests
+  const pendingRequests = reminders.filter(r => r && (r.status === 'Pending' || r.followUpStatus === 'Pending'));
 
   // Determine "Next Reminder" (first upcoming today)
-  const nextReminder = todaysReminders.find(r => r.status === 'Upcoming');
+  const nextReminder = todaysReminders.find(r => r.status === 'Upcoming' || r.status === 'Snoozed');
 
   // ICON HELPER
   const getCategoryBadge = (category: string) => {
@@ -286,8 +469,18 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
   const getDayReminders = (dayNum: number) => {
     const monthStr = calendarDate.toLocaleString('en-US', { month: 'short' });
-    const formattedDate = `${dayNum.toString().padStart(2, '0')} ${monthStr} ${calendarDate.getFullYear()}`;
-    return reminders.filter(r => r.date === formattedDate);
+    const formattedDate1 = `${dayNum.toString().padStart(2, '0')} ${monthStr} ${calendarDate.getFullYear()}`;
+    const formattedDate2 = `${dayNum} ${monthStr} ${calendarDate.getFullYear()}`;
+    return reminders.filter(r => {
+      if (!r) return false;
+      const onThisDate = (r.date === formattedDate1 || r.date === formattedDate2);
+      if (!onThisDate) return false;
+      
+      // Show only Confirmed or Completed items; hide Pending, Declined, and Cancelled events
+      const isConfirmed = r.status === 'Confirmed' || r.status === 'Upcoming' || r.status === 'Snoozed' || r.status === 'Due Now' || r.followUpStatus === 'Accepted';
+      const isCompleted = r.status === 'Completed';
+      return isConfirmed || isCompleted;
+    });
   };
 
   return (
@@ -296,12 +489,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-slate-700"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-6 right-6 z-[9999] bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-slate-700 whitespace-pre-line"
           >
-            <CheckCircle2 className="w-4 h-4 text-teal-400" />
+            <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
             <span>{toastMessage}</span>
           </motion.div>
         )}
@@ -321,23 +515,16 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Reminders & Notifications</h1>
             </div>
             <p className="text-slate-500 font-medium text-sm sm:text-base max-w-xl leading-relaxed">
-              Stay organized and never miss an important health reminder. Manage your medications, appointments, and wellness tasks in one place.
+              Stay organized and never miss an important health reminder. Your medications, pharmacy updates, and accepted follow-ups are automatically updated here.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setSettingsDrawerOpen(true)}
-              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2"
+              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </button>
-            <button
-              onClick={() => { setEditingReminder(null); setCreateModalOpen(true); }}
-              className="px-6 py-3.5 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 hover:shadow-lg hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Add Reminder</span>
+              <span>Settings</span>
             </button>
           </div>
         </div>
@@ -346,7 +533,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       {/* 2. SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Total Reminders', value: totalReminders, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-100 via-blue-50 to-white' },
+          { label: 'Total Reminders', value: totalRemindersCount, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-100 via-blue-50 to-white' },
           { label: 'Today', value: todayRemindersCount, icon: Clock, color: 'text-teal-600', hoverBg: 'bg-gradient-to-br from-teal-100 via-teal-50 to-white' },
           { label: 'Upcoming', value: upcomingRemindersCount, icon: Activity, color: 'text-purple-600', hoverBg: 'bg-gradient-to-br from-purple-100 via-purple-50 to-white' },
           { label: 'Completed', value: completedRemindersCount, icon: CheckCircle2, color: 'text-emerald-600', hoverBg: 'bg-gradient-to-br from-emerald-100 via-emerald-50 to-white' },
@@ -359,7 +546,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
             whileHover={{ y: -6, scale: 1.02 }}
             className="relative p-6 rounded-3xl bg-white border border-white/80 shadow-xl shadow-slate-200/50 transition-all duration-300 flex flex-col justify-between h-32 cursor-pointer group overflow-hidden"
           >
-            {/* Hover Background overlay */}
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${stat.hoverBg}`} />
             
             <div className="relative z-10 flex items-center justify-between">
@@ -380,7 +566,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           animate={{ opacity: 1, y: 0 }}
           className="relative bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
         >
-          {/* Subtle abstract background element */}
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-40 -bottom-20 w-48 h-48 bg-purple-400/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -392,7 +577,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               <span className="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1 block">Next Reminder</span>
               <h2 className="text-2xl font-extrabold text-slate-900 mb-1">{nextReminder.title}</h2>
               <p className="text-slate-500 text-sm font-medium">
-                Today · {nextReminder.time} <span className="mx-2 text-slate-300">•</span> <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">In 42 minutes</span>
+                Today · {nextReminder.time} <span className="mx-2 text-slate-300">•</span> <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Scheduled Time</span>
               </p>
             </div>
           </div>
@@ -400,13 +585,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="relative z-10 flex items-center gap-3 shrink-0 w-full sm:w-auto">
             <button 
               onClick={() => setDetailTarget(nextReminder)}
-              className="flex-1 sm:flex-none px-4 py-3 rounded-xl font-bold text-sm text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+              className="flex-1 sm:flex-none px-4 py-3 rounded-xl font-bold text-sm text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
             >
               Details
             </button>
             <button 
               onClick={() => handleMarkComplete(nextReminder.id, nextReminder.title)}
-              className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Mark as Done</span>
@@ -418,122 +603,183 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       {/* 4. MAIN LAYOUT (2 COLUMNS) */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         
-        {/* LEFT COLUMN: TODAY'S REMINDERS */}
+        {/* LEFT COLUMN: TODAY'S SCHEDULE */}
         <div className="xl:col-span-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-extrabold text-slate-900">Today's Schedule</h3>
-            <span className="text-xs font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
-              {todayDateStr}
-            </span>
-          </div>
 
-          {todaysReminders.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-200/30">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-10 h-10 text-slate-300" />
+          {/* APPOINTMENT REQUESTS SECTION */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-black text-slate-900">Appointment Requests</h3>
+                {pendingRequests.length > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-black bg-amber-500/10 text-amber-600 rounded-full border border-amber-500/20 font-mono">
+                    {pendingRequests.length} Pending
+                  </span>
+                )}
               </div>
-              <h4 className="text-lg font-bold text-slate-900 mb-1">All caught up!</h4>
-              <p className="text-sm text-slate-500 mb-6">You have no more reminders scheduled for today.</p>
-              <button 
-                onClick={() => { setEditingReminder(null); setCreateModalOpen(true); }}
-                className="px-5 py-2.5 rounded-xl font-bold text-sm text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors"
-              >
-                + Create Reminder
-              </button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {todaysReminders.map((rem) => {
-                const badge = getCategoryBadge(rem.category);
-                const Icon = badge.icon;
-                const isCompleted = rem.status === 'Completed';
 
-                return (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={rem.id} 
-                    className={`group bg-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/40 border hover:-translate-y-0.5 ${
-                      isCompleted ? 'border-slate-100 opacity-60 bg-slate-50' : 'border-slate-200'
-                    }`}
+            {pendingRequests.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingRequests.map((req) => (
+                  <motion.div
+                    key={req.id}
+                    layoutId={`request-card-${req.id}`}
+                    className="p-5 rounded-3xl bg-amber-500/[0.03] border border-amber-500/20 shadow-md shadow-amber-500/5 flex flex-col justify-between gap-4"
                   >
-                    <div className="flex items-center gap-4 w-full">
-                      <button 
-                        onClick={() => !isCompleted && handleMarkComplete(rem.id, rem.title)}
-                        className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer border-2 shadow-sm ${
-                          isCompleted 
-                            ? 'bg-teal-500 border-teal-500 text-white shadow-teal-500/30 scale-95' 
-                            : 'bg-slate-50 border-slate-200 hover:border-teal-400 hover:bg-teal-50 hover:scale-110 hover:shadow-md hover:shadow-teal-500/20'
-                        }`}
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-mono">
+                          Appointment Request
+                        </span>
+                        <span className="text-slate-500 text-[10px] font-bold font-mono">
+                          {req.id}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-extrabold text-slate-900 leading-snug break-words">
+                        {req.doctorName || 'Dr. R. S. Raman, MD (Internal Medicine)'}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        {req.clinicName || 'Apollo Multispeciality Hospital, Chennai'}
+                      </p>
+
+                      <p className="mt-3 text-xs font-bold text-slate-800 bg-slate-100/50 border border-slate-200/40 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>{req.date} • {req.time}</span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-3 border-t border-dashed border-amber-500/10">
+                      <button
+                        type="button"
+                        disabled={confirmingId === req.id}
+                        onClick={() => handleAcceptFollowUp(req.id)}
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-black text-white bg-teal-500 hover:bg-teal-400 disabled:bg-teal-500/50 shadow-sm disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <CheckCircle2 className={`w-5 h-5 transition-all duration-300 ${isCompleted ? 'text-white' : 'text-teal-400 opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100'}`} />
+                        {confirmingId === req.id ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Confirming...</span>
+                          </>
+                        ) : (
+                          <span>Accept</span>
+                        )}
                       </button>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h4 className={`text-sm font-extrabold truncate ${isCompleted ? 'text-slate-500 line-through' : 'text-slate-900 dark:text-white'}`}>
-                            {rem.title}
-                          </h4>
-                          {rem.sourcePrescriptionId ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
-                              Scheduled
-                            </span>
-                          ) : rem.status === 'Completed' ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                              Completed
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                              Upcoming
-                            </span>
-                          )}
-                          {rem.priority === 'High Priority' && !isCompleted && (
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded-md border ${badge.bg} ${badge.text} ${badge.border} flex items-center gap-1`}>
-                            <Icon className="w-3 h-3" />
-                            {rem.category}
-                          </span>
-                          {rem.sourcePrescriptionId && (
-                            <span className="text-[10px] font-mono text-[#00a896] dark:text-cyan-400 bg-teal-500/10 px-1.5 py-0.5 rounded border border-teal-500/20">
-                              Rx: {rem.sourcePrescriptionId}
-                            </span>
-                          )}
-                          <span>•</span>
-                          <span className="truncate">{rem.description}</span>
-                        </div>
-                      </div>
-                    </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeclineFollowUp(req.id)}
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                      >
+                        Decline
+                      </button>
 
-                    <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-between sm:justify-end pl-10 sm:pl-0 flex-wrap">
-                      <span className={`text-sm font-bold font-mono ${isCompleted ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
-                        {rem.time}
-                      </span>
-                      
-                      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => { setEditingReminder(rem); setCreateModalOpen(true); }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                          title="Edit reminder"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteReminder(rem.id, rem.title)}
-                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                          title="Delete reminder"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDetailTarget(req)}
+                        className="py-2 px-3 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                      >
+                        View
+                      </button>
                     </div>
                   </motion.div>
-                );
-              })}
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/60 text-center space-y-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                  <CalendarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-800">No pending appointment requests</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">New appointment requests from doctors will appear here.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* TODAY'S SCHEDULE SECTION */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-extrabold text-slate-900">Today's Schedule</h3>
+              <span className="text-xs font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
+                {todayDateStr}
+              </span>
             </div>
-          )}
+
+            {todaysReminders.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-200/30">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                  <CalendarDays className="w-10 h-10" />
+                </div>
+                <h4 className="text-base font-bold text-slate-900 mb-1">No appointments scheduled for today</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
+                  Your confirmed appointments and reminders for today will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {todaysReminders.map((rem) => {
+                  const badge = getCategoryBadge(rem.category);
+                  const Icon = badge.icon;
+
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={rem.id} 
+                      className="group bg-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-350 hover:shadow-xl hover:shadow-slate-200/40 border border-slate-200 hover:-translate-y-0.5"
+                    >
+                      <div className="flex items-center gap-4 w-full">
+                        <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border} shrink-0`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">
+                              {getCardTitle(rem)}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono">
+                              Confirmed
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap font-sans">
+                            <span>Today • {rem.time}</span>
+                            <span>•</span>
+                            <span className="break-words">{rem.description}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end pl-14 sm:pl-0 flex-wrap">
+                        <button
+                          onClick={() => setDetailTarget(rem)}
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-colors cursor-pointer"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => setSnoozeTarget(rem)}
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-655 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                        >
+                          Snooze
+                        </button>
+                        <button
+                          onClick={() => handleMarkComplete(rem.id, rem.title)}
+                          className="p-2 rounded-xl text-teal-650 hover:bg-teal-50 transition-colors cursor-pointer"
+                          title="Complete Activity"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* RIGHT COLUMN: CALENDAR */}
@@ -548,8 +794,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                 {calendarDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
               </span>
               <div className="flex gap-1">
-                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
 
@@ -568,7 +814,11 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                 const hasReminders = dayReminders.length > 0;
 
                 return (
-                  <div key={idx} className="relative flex justify-center group cursor-pointer">
+                  <div 
+                    key={idx} 
+                    onClick={() => hasReminders && setDetailTarget(dayReminders[0])}
+                    className="relative flex justify-center group cursor-pointer"
+                  >
                     <div className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
                       isToday 
                         ? 'bg-teal-500 text-white shadow-md shadow-teal-500/30 group-hover:bg-teal-400' 
@@ -591,22 +841,26 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                </div>
                <button 
                  onClick={() => setFilterDrawerOpen(true)}
-                 className="w-full py-2.5 rounded-xl font-bold text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+                 className="w-full py-2.5 rounded-xl font-bold text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
                >
                  Filter Calendar View
                </button>
-            </div>
-          </div>
-        </div>
-      </div>
+             </div>
+           </div>
+         </div>
+       </div>
 
-      {/* 5. UPCOMING REMINDERS TIMELINE */}
-      <div className="space-y-6 pt-8">
+      {/* 5. UPCOMING REMINDERS SECTION */}
+      <div className="space-y-6 pt-8 border-t border-slate-200">
         <h3 className="text-xl font-extrabold text-slate-900">Upcoming Reminders</h3>
         
         {futureReminders.length === 0 ? (
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 text-center">
-            <p className="text-sm font-bold text-slate-500">No upcoming reminders scheduled.</p>
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center shadow-md">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400">
+              <CalendarIcon className="w-8 h-8" />
+            </div>
+            <h4 className="text-base font-bold text-slate-900 mb-0.5">No upcoming reminders</h4>
+            <p className="text-xs text-slate-500 font-medium">Your future confirmed appointments and reminders will appear here.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -614,26 +868,20 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               const badge = getCategoryBadge(rem.category);
               const Icon = badge.icon;
               return (
-                <div key={rem.id} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-md shadow-slate-200/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
+                <div key={rem.id} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform duration-300">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border} shrink-0`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{rem.title}</h4>
-                        {rem.sourcePrescriptionId ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
-                            Scheduled
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                            Upcoming
-                          </span>
-                        )}
+                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">{getCardTitle(rem)}</h4>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono font-mono">
+                          Confirmed
+                        </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 truncate">
-                        {rem.date} • {rem.time} {rem.sourcePrescriptionId ? `• Rx: ${rem.sourcePrescriptionId}` : ''}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 font-sans">
+                        {formatFullDate(rem.date)} • {rem.time}
                       </p>
                     </div>
                   </div>
@@ -643,21 +891,80 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       onClick={() => setDetailTarget(rem)}
                       className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-colors cursor-pointer"
                     >
-                      View Details
+                      View
                     </button>
                     <button 
-                      onClick={() => { setEditingReminder(rem); setCreateModalOpen(true); }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      title="Edit reminder"
+                      onClick={() => setSnoozeTarget(rem)}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      Snooze
                     </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 6. COMPLETED & HISTORY SECTION */}
+      <div className="space-y-6 pt-8 border-t border-slate-200">
+        <h3 className="text-xl font-extrabold text-slate-900">Completed & Past History</h3>
+
+        {completedAndHistoryReminders.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center shadow-md">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h4 className="text-base font-bold text-slate-900 mb-0.5">No completed appointments yet</h4>
+            <p className="text-xs text-slate-500 font-medium">Completed appointments will appear here after your visits.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {completedAndHistoryReminders.map(rem => {
+              const badge = getCategoryBadge(rem.category);
+              const Icon = badge.icon;
+              const isDeclined = rem.status === 'Declined' || rem.followUpStatus === 'Declined';
+              const isCompleted = rem.status === 'Completed';
+              const isCancelled = rem.status === 'Cancelled';
+
+              return (
+                <div key={rem.id} className="bg-white rounded-2xl p-4 border border-slate-100 opacity-75 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-extrabold text-slate-700 leading-snug break-words">{getPastCardTitle(rem)}</h4>
+                        {isCompleted && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-mono font-mono">
+                            Completed
+                          </span>
+                        )}
+                        {isDeclined && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20 font-mono font-mono">
+                            Declined
+                          </span>
+                        )}
+                        {isCancelled && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-500/10 text-slate-600 border border-slate-500/20 font-mono">
+                            Cancelled
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium mt-1 font-sans">
+                        {formatFullDate(rem.date)} • {rem.time}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                     <button 
-                      onClick={() => handleDeleteReminder(rem.id, rem.title)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                      title="Delete reminder"
+                      onClick={() => setDetailTarget(rem)}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      View
                     </button>
                   </div>
                 </div>
@@ -690,6 +997,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         onDismiss={handleDismissReminder}
         onAcceptFollowUp={handleAcceptFollowUp}
         onDeclineFollowUp={handleDeclineFollowUp}
+        onSnoozeReminder={(id) => {
+          const rem = reminders.find(r => r.id === id);
+          if (rem) {
+            setDetailTarget(null);
+            setSnoozeTarget(rem);
+          }
+        }}
       />
 
       <SnoozeModal
@@ -712,6 +1026,51 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         onClose={() => setClearHistoryOpen(false)}
         onConfirmClear={handleConfirmClearHistory}
       />
+
+      {/* Decline Appointment Confirmation Dialog */}
+      <AnimatePresence>
+        {declineConfirmTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
+              onClick={() => setDeclineConfirmTarget(null)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-center font-sans"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-500/25">
+                <X className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Decline appointment?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
+                Are you sure you want to decline this appointment request?
+              </p>
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setDeclineConfirmTarget(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeclineFollowUpConfirm(declineConfirmTarget.id)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-black text-white bg-rose-500 hover:bg-rose-600 shadow-md transition-colors cursor-pointer"
+                >
+                  Decline Appointment
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
