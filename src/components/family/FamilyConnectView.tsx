@@ -70,8 +70,8 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
   // MAIN STATE & LOCALSTORAGE
   const [members, setMembers] = useState<FamilyMember[]>(INITIAL_FAMILY_MEMBERS);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>(INITIAL_PENDING_REQUESTS);
-  const [sharedAppointments] = useState<SharedAppointment[]>(INITIAL_SHARED_APPOINTMENTS);
-  const [sharedReminders] = useState<SharedReminder[]>(INITIAL_SHARED_REMINDERS);
+  const [sharedAppointments, setSharedAppointments] = useState<SharedAppointment[]>(INITIAL_SHARED_APPOINTMENTS);
+  const [sharedReminders, setSharedReminders] = useState<SharedReminder[]>(INITIAL_SHARED_REMINDERS);
   const [activities] = useState<FamilyActivityItem[]>(INITIAL_FAMILY_ACTIVITIES);
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(INITIAL_EMERGENCY_CONTACTS);
   const [permissions, setPermissions] = useState<SharingPermissionState[]>(DEFAULT_SHARING_PERMISSIONS);

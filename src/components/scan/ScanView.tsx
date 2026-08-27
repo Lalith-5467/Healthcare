@@ -27,6 +27,7 @@ import { MultiScanModal } from './MultiScanModal';
 import { CancelConfirmModal } from './CancelConfirmModal';
 import { RecentUploadsSection } from './RecentUploadsSection';
 import { ScanTipsSection } from './ScanTipsSection';
+import { PrescriptionScannerTab } from './PrescriptionScannerTab';
 
 interface UserProfile {
   name: string;
@@ -43,9 +44,18 @@ interface ScanViewProps {
 }
 
 export const ScanView: React.FC<ScanViewProps> = ({
-  user: _user,
+  user,
   onNavigate,
 }) => {
+  // MAIN MODE: 'prescription' | 'general'
+  const [scanMode, setScanMode] = useState<'prescription' | 'general'>('prescription');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   // WORKFLOW STEPS: 'idle' | 'uploading' | 'editing' | 'info' | 'success'
   const [flowStep, setFlowStep] = useState<'idle' | 'uploading' | 'editing' | 'info' | 'success'>('idle');
 
@@ -164,8 +174,15 @@ export const ScanView: React.FC<ScanViewProps> = ({
   // EDITOR CONTINUE HANDLER
   const handleEditorContinue = (editedSrc: string) => {
     setEditorOpen(false);
-    if (editedSrc) setCapturedImage(editedSrc);
-    setFlowStep('info');
+    const finalImage = editedSrc || capturedImage;
+    if (finalImage) {
+      setCapturedImage(finalImage);
+    }
+    if (scanMode === 'prescription') {
+      showToast('✓ Optical prescription scan received. Extracting clinical data...');
+    } else {
+      setFlowStep('info');
+    }
   };
 
   // SAVE SINGLE RECORD TO LOCAL STORAGE & STATE
@@ -239,11 +256,26 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 pb-16 font-sans">
+      {/* TOAST NOTIFICATION */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Scan & Upload Health Records"
-        subtitle="Digitize physical prescriptions, lab reports and diagnostic scans into your ABDM Vault."
-        badgeText="Smart Digitizer"
+        title="Scan & Digitization Hub"
+        subtitle="Extract prescriptions into actionable reminders & pharmacy workflows, or digitize diagnostic reports."
+        badgeText="Smart Health Digitizer"
         badgeIcon={<Camera className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-2.5 self-stretch sm:self-auto font-sans">
@@ -259,12 +291,52 @@ export const ScanView: React.FC<ScanViewProps> = ({
               onClick={() => setScannerOpen(true)}
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Camera className="w-4 h-4" />
-              <span>Start Camera</span>
+              <Scan className="w-4 h-4" />
+              <span>Start Scan</span>
             </button>
           </div>
         }
       />
+
+      {/* SCAN WORKFLOW MODE TABS */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setScanMode('prescription')}
+          className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            scanMode === 'prescription'
+              ? 'bg-[#00a896] text-white shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Prescription Scanner & Follow-up Workflow</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setScanMode('general')}
+          className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            scanMode === 'general'
+              ? 'bg-[#00a896] text-white shadow-md'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>General Document & Report Upload</span>
+        </button>
+      </div>
+
+      {scanMode === 'prescription' ? (
+        <PrescriptionScannerTab
+          user={user}
+          capturedImage={capturedImage}
+          onClearCapturedImage={() => setCapturedImage(null)}
+          onNavigate={onNavigate}
+          onToast={showToast}
+        />
+      ) : (
+        <div className="space-y-6">
 
       {/* HIDDEN FILE INPUT */}
       <input
@@ -371,8 +443,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
                   }}
                   className="w-full py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Camera className="w-4 h-4" />
-                  <span>Start Camera Scan</span>
+                  <Scan className="w-4 h-4" />
+                  <span>Start Scan</span>
                 </button>
               </div>
             </div>
@@ -465,6 +537,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
               )}
             </div>
           </div>
+        </div>
+      )}
 
           {/* 3 SECURITY & OCR PILLARS BANNER */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -498,18 +572,18 @@ export const ScanView: React.FC<ScanViewProps> = ({
               </div>
             </div>
           </div>
+
+          {/* 4. RECENT UPLOADS & SCAN TIPS (GENERAL MODE ONLY) */}
+          <RecentUploadsSection
+            records={records}
+            onNavigateRecords={() => onNavigate('records')}
+            onStartScan={() => setScannerOpen(true)}
+            onStartUpload={() => fileInputRef.current?.click()}
+          />
+
+          <ScanTipsSection />
         </div>
       )}
-
-      {/* 4. RECENT UPLOADS & SCAN TIPS */}
-      <RecentUploadsSection
-        records={records}
-        onNavigateRecords={() => onNavigate('records')}
-        onStartScan={() => setScannerOpen(true)}
-        onStartUpload={() => fileInputRef.current?.click()}
-      />
-
-      <ScanTipsSection />
 
       {/* MODALS */}
       <ScannerModal

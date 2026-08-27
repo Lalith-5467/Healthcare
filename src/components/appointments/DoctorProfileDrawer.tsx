@@ -6,7 +6,8 @@ interface DoctorProfileDrawerProps {
   doctor: Doctor | null;
   isOpen: boolean;
   onClose: () => void;
-  onBookDoctor: (doc: Doctor) => void;
+  onBookDoctor?: (doc: Doctor) => void;
+  onBookAppointment?: (doc: Doctor) => void;
 }
 
 export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
@@ -14,6 +15,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
   isOpen,
   onClose,
   onBookDoctor,
+  onBookAppointment,
 }) => {
   if (!isOpen || !doctor) return null;
 
@@ -101,7 +103,8 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
           <button
             onClick={() => {
               onClose();
-              onBookDoctor(doctor);
+              if (onBookDoctor) onBookDoctor(doctor);
+              if (onBookAppointment) onBookAppointment(doctor);
             }}
             className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >

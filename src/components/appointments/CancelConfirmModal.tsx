@@ -6,7 +6,8 @@ interface CancelConfirmModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
   onClose: () => void;
-  onConfirmCancel: (aptId: string, reason: string) => void;
+  onConfirmCancel?: (aptId: string, reason: string) => void;
+  onConfirm?: (aptId: string, reason: string) => void;
 }
 
 export const CancelConfirmModal: React.FC<CancelConfirmModalProps> = ({
@@ -14,6 +15,7 @@ export const CancelConfirmModal: React.FC<CancelConfirmModalProps> = ({
   appointment,
   onClose,
   onConfirmCancel,
+  onConfirm,
 }) => {
   const [reason, setReason] = useState('Schedule conflict');
 
@@ -27,7 +29,8 @@ export const CancelConfirmModal: React.FC<CancelConfirmModalProps> = ({
   ];
 
   const handleConfirm = () => {
-    onConfirmCancel(appointment.id, reason);
+    if (onConfirmCancel) onConfirmCancel(appointment.id, reason);
+    if (onConfirm) onConfirm(appointment.id, reason);
     onClose();
   };
 

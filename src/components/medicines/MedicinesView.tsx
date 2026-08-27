@@ -24,6 +24,11 @@ import {
   MOCK_HISTORY_LOGS,
   MOCK_WEEKLY_ADHERENCE
 } from './medicinesData';
+import {
+  getMedications as getStoredMedications,
+  getTodayDoses as getStoredTodayDoses,
+} from '../../utils/healthWorkflowStorage';
+import type { ExtendedMedicineItem } from '../../utils/healthWorkflowStorage';
 import { AddMedicineModal } from './AddMedicineModal';
 import { MedicineDetailsDrawer } from './MedicineDetailsDrawer';
 import { EditMedicineModal } from './EditMedicineModal';
@@ -54,7 +59,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // MEDICINES & TODAY'S DOSES STATE (Persisted in localStorage)
-  const [medicines, setMedicines] = useState<MedicineItem[]>(INITIAL_MEDICINES);
+  const [medicines, setMedicines] = useState<ExtendedMedicineItem[]>(INITIAL_MEDICINES as ExtendedMedicineItem[]);
   const [todayDoses, setTodayDoses] = useState<DoseRecord[]>(INITIAL_TODAY_DOSES);
   const [historyLogs, setHistoryLogs] = useState<DoseRecord[]>(MOCK_HISTORY_LOGS);
 
@@ -76,26 +81,27 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     sortBy: 'Newest'
   });
 
-  // Load from localStorage on mount
+  const loadAllData = () => {
+    const loadedMeds = getStoredMedications();
+    if (loadedMeds && loadedMeds.length > 0) {
+      setMedicines(loadedMeds);
+    }
+    const loadedDoses = getStoredTodayDoses();
+    if (loadedDoses && loadedDoses.length > 0) {
+      setTodayDoses(loadedDoses);
+    }
+  };
+
+  // Load from localStorage on mount & listen to workflow updates
   useEffect(() => {
-    const savedMeds = localStorage.getItem('user_medicines');
-    if (savedMeds) {
-      try {
-        setMedicines(JSON.parse(savedMeds));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const savedDoses = localStorage.getItem('user_today_doses');
-    if (savedDoses) {
-      try {
-        setTodayDoses(JSON.parse(savedDoses));
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    loadAllData();
+    const handleUpdate = () => loadAllData();
+    window.addEventListener('health_workflow_updated', handleUpdate);
     const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    return () => {
+      window.removeEventListener('health_workflow_updated', handleUpdate);
+      clearTimeout(timer);
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -103,14 +109,16 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const saveMedicinesState = (updatedMeds: MedicineItem[]) => {
+  const saveMedicinesState = (updatedMeds: ExtendedMedicineItem[]) => {
     setMedicines(updatedMeds);
     localStorage.setItem('user_medicines', JSON.stringify(updatedMeds));
+    window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   const saveTodayDosesState = (updatedDoses: DoseRecord[]) => {
     setTodayDoses(updatedDoses);
     localStorage.setItem('user_today_doses', JSON.stringify(updatedDoses));
+    window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   // MARK DOSE AS TAKEN
@@ -182,7 +190,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   };
 
   // SKIP DOSE HANDLER
-  const handleConfirmSkipDose = (doseId: string, reason: string) => {
+  const handleConfirmSkipDose = (doseId: string, reason?: string) => {
     const updatedDoses = todayDoses.map((d) => {
       if (d.id === doseId) {
         return { ...d, status: 'Skipped' as const, actualTime: null };
@@ -708,6 +716,14 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                     <span>Prescribed by:</span>
                     <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{med.prescribedBy}</span>
                   </div>
+                  {med.sourcePrescriptionId && (
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-100 dark:border-slate-800/60">
+                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold">Source:</span>
+                      <span className="text-[10px] font-mono text-teal-600 dark:text-cyan-400 font-bold">
+                        Prescription #{med.sourcePrescriptionId}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 text-xs font-mono">

@@ -31,7 +31,8 @@ import {
   FileCheck2,
   Video,
   Shield,
-  Briefcase
+  Briefcase,
+  Pill
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 
@@ -66,7 +67,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   }, [initialMode]);
 
   // Role Selection
-  const [role, setRole] = useState<'patient' | 'doctor' | 'caregiver'>('patient');
+  const [role, setRole] = useState<'patient' | 'doctor' | 'caregiver' | 'pharmacist'>('patient');
 
   // Common Form States
   const [email, setEmail] = useState('');
@@ -105,6 +106,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [hprAddress, setHprAddress] = useState('');
   const [teleConsultReady, setTeleConsultReady] = useState(true);
 
+  // Pharmacist Specific States
+  const [pharmacyName, setPharmacyName] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [pciNumber, setPciNumber] = useState('');
+  const [pharmacyAddress, setPharmacyAddress] = useState('');
+  const [pharmacyType, setPharmacyType] = useState('Retail Pharmacy');
+
   // Status feedback states
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -128,26 +136,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   // Password strength calculation
-  const getPasswordStrength = (pass: string) => {
-    if (!pass) return { score: 0, label: '', color: 'bg-slate-700' };
-    let score = 0;
-    if (pass.length >= 8) score += 1;
-    if (/[A-Z]/.test(pass)) score += 1;
-    if (/[0-9]/.test(pass)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+  const getPasswordStrength = (pass: string): { score: number; label: string; color: string } => {
+    if (!pass) return { score: 0, label: 'Empty', color: 'bg-slate-300 dark:bg-slate-700' };
+    let s = 0;
+    if (pass.length >= 8) s += 1;
+    if (/[A-Z]/.test(pass)) s += 1;
+    if (/[0-9]/.test(pass)) s += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) s += 1;
 
-    switch (score) {
-      case 1:
-        return { score: 25, label: 'Weak', color: 'bg-rose-500' };
-      case 2:
-        return { score: 50, label: 'Fair', color: 'bg-amber-500' };
-      case 3:
-        return { score: 75, label: 'Good', color: 'bg-teal-500' };
-      case 4:
-        return { score: 100, label: 'Strong', color: 'bg-emerald-500' };
-      default:
-        return { score: 15, label: 'Very Weak', color: 'bg-rose-600' };
-    }
+    if (s <= 1) return { score: 25, label: 'Weak', color: 'bg-rose-500' };
+    if (s === 2) return { score: 50, label: 'Fair', color: 'bg-amber-500' };
+    if (s === 3) return { score: 75, label: 'Good', color: 'bg-teal-500' };
+    return { score: 100, label: 'Strong', color: 'bg-emerald-500' };
   };
 
   const strength = getPasswordStrength(password);
@@ -175,23 +175,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       setTimeout(() => {
         setSubmitted(false);
         if (onSuccessLogin) {
+          const isPharm = role === 'pharmacist';
+          const isDoc = role === 'doctor';
+          const isCare = role === 'caregiver';
+
           onSuccessLogin({
-            name: fullName || (email ? email.split('@')[0] : (role === 'doctor' ? 'Dr. Rajesh Varma' : 'Lalith Patel')),
-            email: email || 'lalith.patel@abdm.in',
-            role: role === 'doctor' ? 'Doctor' : (role === 'caregiver' ? 'Caregiver' : 'Patient'),
-            abhaId: role === 'doctor' ? (hprAddress || 'dr.varma@hpr.abdm') : (abhaId || '91-8472-9104-5821@abdm'),
+            name: fullName || (isPharm ? (email ? email.split('@')[0] : 'Registered Pharmacist') : isDoc ? 'Dr. Rajesh Varma' : (email ? email.split('@')[0] : 'Ragul Kumar')),
+            email: email || (isPharm ? 'pharmacist@apollocentral.in' : isDoc ? 'dr.varma@hpr.abdm' : 'ragul.kumar@abdm.in'),
+            role: isPharm ? 'Pharmacist' : isDoc ? 'Doctor' : isCare ? 'Caregiver' : 'Patient',
+            abhaId: isPharm ? undefined : isDoc ? (hprAddress || 'dr.varma@hpr.abdm') : (abhaId || '91-8472-9104-5821@abdm'),
             bloodGroup: bloodGroup || 'O+',
             age: age ? parseInt(age, 10) : 34,
             phone: phone || '+91 98765 43210',
             emergencyContact: familyPhone || '+91 98765 11223',
-            specialization: role === 'doctor' ? specialization : undefined,
-            hospitalAffiliation: role === 'doctor' ? hospitalAffiliation : undefined
+            specialization: isDoc ? specialization : undefined,
+            hospitalAffiliation: isDoc ? hospitalAffiliation : (isPharm ? (pharmacyName || 'Apollo Central Pharmacy') : undefined)
           });
         } else {
           onNavigateHome();
         }
-      }, 1200);
-    }, 900);
+      }, 1000);
+    }, 800);
   };
 
   // Consistent Input Field Class
@@ -356,7 +360,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     <span>
                       Welcome back to <span className="text-slate-900 dark:text-white font-extrabold">Medi</span><span className="text-[#00a896] dark:text-cyan-400 font-extrabold">Care</span>
                     </span>
-                  ) : (role === 'doctor' 
+                  ) : (role === 'pharmacist'
+                      ? 'Pharmacist & Pharmacy Portal Registration'
+                      : role === 'doctor' 
                       ? 'Doctor & Healthcare Provider Portal' 
                       : (role === 'caregiver' 
                           ? 'Caregiver & Guardian Portal Registration' 
@@ -365,7 +371,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   {mode === 'login'
                     ? 'Enter your credentials to securely access your medical records and care circle.'
-                    : (role === 'doctor'
+                    : (role === 'pharmacist'
+                        ? 'Register your pharmacy store, drug license (DL No.), and PCI registration credentials.'
+                        : role === 'doctor'
                         ? 'Register your clinical credentials, medical license, and hospital affiliations.'
                         : (role === 'caregiver'
                             ? 'Set up family or professional proxy access to oversee patient vitals and medications.'
@@ -415,11 +423,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider font-mono">
                       Account Role
                     </label>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
                         { id: 'patient', label: 'Patient', icon: User },
-                        { id: 'caregiver', label: 'Caregiver', icon: HeartHandshake },
-                        { id: 'doctor', label: 'Doctor', icon: Stethoscope }
+                        { id: 'pharmacist', label: 'Pharmacist', icon: Pill },
+                        { id: 'doctor', label: 'Doctor', icon: Stethoscope },
+                        { id: 'caregiver', label: 'Caregiver', icon: HeartHandshake }
                       ].map((item) => {
                         const ItemIcon = item.icon;
                         const isSelected = role === item.id;
@@ -428,14 +437,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             key={item.id}
                             type="button"
                             onClick={() => { setRole(item.id as any); setErrorMsg(''); }}
-                            className={`h-11 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            className={`h-11 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-teal-500/15 border-[#00a896] dark:border-cyan-400 text-[#00a896] dark:text-cyan-300 shadow-sm ring-2 ring-teal-500/20'
                                 : 'bg-slate-50/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
                             }`}
                           >
-                            <ItemIcon className="w-4 h-4" />
-                            <span>{item.label}</span>
+                            <ItemIcon className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{item.label}</span>
                           </button>
                         );
                       })}
@@ -911,19 +920,164 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </div>
                   )}
 
-                  {/* EMAIL ADDRESS (COMMON FOR ALL ROLES) */}
+                  {/* =========================================================================
+                      PHARMACIST REGISTRATION FORM
+                      ========================================================================= */}
+                  {mode === 'register' && role === 'pharmacist' && (
+                    <div className="space-y-4">
+                      {/* ROW 1: PHARMACIST NAME & CONTACT PHONE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>
+                            Pharmacist Full Name <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Suresh Nair"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className={inputWithIconClass}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={labelClass}>
+                            Official Contact Phone <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="tel"
+                              required
+                              placeholder="+91 98401 23456"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              className={inputWithIconClass}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ROW 2: PHARMACY STORE NAME & DISPENSARY TYPE */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>
+                            Pharmacy / Store Name <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Apollo Central Pharmacy"
+                              value={pharmacyName}
+                              onChange={(e) => setPharmacyName(e.target.value)}
+                              className={inputWithIconClass}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={labelClass}>Dispensary Type <span className="text-rose-500">*</span></label>
+                          <select
+                            required
+                            value={pharmacyType}
+                            onChange={(e) => setPharmacyType(e.target.value)}
+                            className={inputClass}
+                          >
+                            <option value="Retail Pharmacy">Retail Community Pharmacy</option>
+                            <option value="Hospital Pharmacy">Hospital In-House Pharmacy</option>
+                            <option value="24x7 Emergency Pharmacy">24x7 Emergency Pharmacy</option>
+                            <option value="Jan Aushadhi Kendra">Pradhan Mantri Jan Aushadhi Kendra</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* ROW 3: DRUG LICENSE & PCI REGISTRATION NO. */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className={labelClass}>
+                            Drug License No. (DL No.) <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. DL-TN-2024-PH-8941"
+                              value={licenseNumber}
+                              onChange={(e) => setLicenseNumber(e.target.value)}
+                              className={`${inputWithIconClass} font-mono`}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={labelClass}>
+                            PCI Registration No. <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. PCI-TN-84910"
+                              value={pciNumber}
+                              onChange={(e) => setPciNumber(e.target.value)}
+                              className={`${inputWithIconClass} font-mono`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ROW 4: STORE ADDRESS / LOCATION */}
+                      <div>
+                        <label className={labelClass}>
+                          Pharmacy Store Physical Address <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Plot 42, Anna Salai, Guindy, Chennai, Tamil Nadu - 600032"
+                          value={pharmacyAddress}
+                          onChange={(e) => setPharmacyAddress(e.target.value)}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* EMAIL / IDENTIFIER (COMMON FOR ALL ROLES) */}
                   <div>
                     <label className={labelClass}>
                       {mode === 'login' 
-                        ? 'Email Address or Health ID' 
-                        : (role === 'doctor' ? 'Official Professional Email' : 'Email Address')}
+                        ? (role === 'pharmacist' 
+                            ? 'Pharmacy Email or License ID' 
+                            : role === 'doctor' 
+                            ? 'Professional Email or Doctor ID' 
+                            : 'Email Address or ABHA Health ID')
+                        : (role === 'pharmacist' 
+                            ? 'Official Pharmacy Email' 
+                            : role === 'doctor' 
+                            ? 'Official Professional Email' 
+                            : 'Email Address')}
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
-                        type="email"
+                        type={mode === 'login' ? 'text' : 'email'}
                         required
-                        placeholder={role === 'doctor' ? 'e.g. dr.varma@apollohealthcare.in' : 'e.g. user@abdm.in'}
+                        placeholder={
+                          role === 'pharmacist'
+                            ? 'e.g. pharmacy@apollo.in or DL-TN-1024'
+                            : role === 'doctor'
+                            ? 'e.g. dr.varma@apollohealthcare.in'
+                            : 'e.g. user@abdm.in or 91-8472-9104-5821'
+                        }
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className={inputWithIconClass}

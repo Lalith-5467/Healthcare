@@ -13,6 +13,11 @@ export interface ReminderItem {
   completedTime?: string;
   snoozedUntil?: string;
   relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  sourcePrescriptionId?: string;
+  doctorName?: string;
+  clinicName?: string;
+  followUpStatus?: 'Pending' | 'Accepted' | 'Declined';
+  followUpDate?: string;
 }
 
 export interface NotificationLog {

@@ -30,13 +30,12 @@ export const SIDEBAR_NAV_ITEMS: NavItemConfig[] = [
   { id: 'pharmacy', label: 'Pharmacy Tracking', icon: Truck, path: '/pharmacy' },
   { id: 'consultation', label: 'Video Consultation', icon: Video, path: '/consultation' },
   { id: 'family', label: 'Family Connect', icon: Users, path: '/family' },
-  { id: 'reminders', label: 'Reminders', icon: Bell, path: '/reminders' },
   { id: 'checkup', label: 'Health Check-up', icon: Activity, path: '/checkup' },
   { id: 'hospitals', label: 'Nearby Hospitals', icon: Building2, path: '/hospitals' },
   { id: 'insurance', label: 'Insurance', icon: Shield, path: '/insurance' },
   { id: 'more-features', label: 'More Features', icon: Grid, path: '/more-features', badge: 'New' },
   { id: 'emergency', label: 'SOS & Emergency', icon: AlertTriangle, path: '/emergency', isSpecial: 'sos' },
   { id: 'analytics', label: 'Health Analytics', icon: BarChart3, path: '/analytics' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications', badge: '3' },
+  { id: 'reminders', label: 'Reminders & Notifications', icon: Bell, path: '/reminders', badge: '3' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
 ];

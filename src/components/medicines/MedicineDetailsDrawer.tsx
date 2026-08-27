@@ -70,7 +70,7 @@ export const MedicineDetailsDrawer: React.FC<MedicineDetailsDrawerProps> = ({
           <div className="space-y-2">
             <span className="text-[10px] font-bold uppercase text-slate-500">Scheduled Intake Timings</span>
             <div className="flex flex-wrap gap-2">
-              {medicine.timings.map((time, idx) => (
+              {(medicine.times || []).map((time: string, idx: number) => (
                 <div
                   key={idx}
                   className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center gap-1.5 text-xs font-mono font-bold"
@@ -85,7 +85,7 @@ export const MedicineDetailsDrawer: React.FC<MedicineDetailsDrawerProps> = ({
           {/* INSTRUCTIONS */}
           <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-500/20 text-teal-800 dark:text-teal-200 text-xs">
             <span className="font-bold block mb-0.5">Instructions:</span>
-            <span>{medicine.instructions} • {medicine.mealRelation}</span>
+            <span>{medicine.instructions} • {medicine.foodInstruction || 'After Food'}</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export const MedicineDetailsDrawer: React.FC<MedicineDetailsDrawerProps> = ({
             className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
           >
             <Bell className="w-4 h-4 text-amber-500" />
-            <span>{medicine.reminderActive ? 'Reminder ON' : 'Turn ON Reminder'}</span>
+            <span>{medicine.reminderEnabled ? 'Reminder ON' : 'Turn ON Reminder'}</span>
           </button>
 
           <button

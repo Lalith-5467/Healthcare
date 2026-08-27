@@ -6,7 +6,7 @@ interface FamilyProfileDrawerProps {
   member: FamilyMember | null;
   isOpen: boolean;
   onClose: () => void;
-  onOpenChat: (member: FamilyMember) => void;
+  onOpenChat?: (member: FamilyMember) => void;
   onOpenPermissions: (member: FamilyMember) => void;
   onRemoveConnection: (memberId: string) => void;
 }
@@ -15,7 +15,7 @@ export const FamilyProfileDrawer: React.FC<FamilyProfileDrawerProps> = ({
   member,
   isOpen,
   onClose,
-  onOpenChat,
+  onOpenChat = () => {},
   onOpenPermissions,
   onRemoveConnection,
 }) => {

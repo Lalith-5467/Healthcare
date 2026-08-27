@@ -7,7 +7,7 @@ import { RecordsHeader } from './RecordsHeader';
 import { RecordSummaryCards } from './RecordSummaryCards';
 import { RecordCategoryTabs } from './RecordCategoryTabs';
 import { RecordsSearchSortBar } from './RecordsSearchSortBar';
-import type { FilterState } from './RecordFilterDrawer';
+import type { RecordFilterState as FilterState } from './recordsData';
 import { RecordFilterDrawer } from './RecordFilterDrawer';
 import { RecentlyViewedStrip } from './RecentlyViewedStrip';
 import { RecordCard } from './RecordCard';
@@ -214,10 +214,10 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
         }
 
         // Filter Drawer Filters
-        if (filters.type !== 'All' && rec.type !== filters.type) return false;
-        if (filters.status !== 'All' && rec.status !== filters.status) return false;
-        if (filters.doctor !== 'All' && rec.doctor !== filters.doctor) return false;
-        if (filters.hospital !== 'All' && !rec.hospital.includes(filters.hospital)) return false;
+        if (filters.type && filters.type !== 'All' && rec.type !== filters.type) return false;
+        if (filters.status && filters.status !== 'All' && rec.status !== filters.status) return false;
+        if (filters.doctor && filters.doctor !== 'All' && rec.doctor !== filters.doctor) return false;
+        if (filters.hospital && filters.hospital !== 'All' && !rec.hospital.includes(filters.hospital)) return false;
 
         return true;
       })
