@@ -64,8 +64,10 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
 
           <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl space-y-2.5 font-mono">
             <div className="flex justify-between">
-              <span className="text-slate-500 font-sans">Scheduled Time:</span>
-              <strong className="text-slate-800 dark:text-slate-200">{item.time}</strong>
+              <span className="text-slate-500 font-sans">{isReminder ? 'Scheduled Time:' : 'Time:'}</span>
+              <strong className="text-slate-800 dark:text-slate-200">
+                {'time' in item ? item.time : item.timeAgo}
+              </strong>
             </div>
             <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
               <span className="text-slate-500 font-sans">Date:</span>
@@ -82,11 +84,11 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
 
         {/* FOOTER ACTIONS */}
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0 space-y-2 font-sans">
-          {item.targetModule && (
+          {item.relatedModule && (
             <button
               onClick={() => {
                 onClose();
-                onNavigateModule(item.targetModule!);
+                onNavigateModule(item.relatedModule!);
               }}
               className="w-full py-2.5 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
             >

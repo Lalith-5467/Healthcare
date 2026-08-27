@@ -42,7 +42,6 @@ const NAV_MAP: Record<string, string> = {
   'hospitals': 'hospitals',
   'insurance': 'insurance',
   'more-features': 'more-features',
-  'features': 'more-features',
   'emergency': 'emergency',
   'sos': 'emergency',
   'settings': 'settings',
@@ -203,14 +202,24 @@ export const App: React.FC = () => {
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
 
-  const handleSuccessLogin = (userData: { name: string; email: string; abhaId?: string }) => {
+  const handleSuccessLogin = (userData: { 
+    name: string; 
+    email: string; 
+    abhaId?: string;
+    bloodGroup?: string;
+    age?: number;
+    phone?: string;
+    emergencyContact?: string;
+  }) => {
     const newUser = {
       name: userData.name || 'Lalith Patel',
       email: userData.email || 'lalith.patel@abdm.in',
       role: 'Patient',
       abhaId: userData.abhaId || '91-8472-9104-5821@abdm',
-      bloodGroup: 'O+',
-      age: 34
+      bloodGroup: userData.bloodGroup || 'O+',
+      age: userData.age || 34,
+      phone: userData.phone || '+91 98765 43210',
+      emergencyContact: userData.emergencyContact || '+91 98765 11223'
     };
     setIsLoggedIn(true);
     setUser(newUser);
@@ -285,7 +294,7 @@ export const App: React.FC = () => {
       'reminders', 'reminder', 'notifications', 'notification',
       'analytics', 'health-analytics', 'family', 'family-connect',
       'checkup', 'health-checkup', 'settings', 'ai-assistant', 'assistant',
-      'more-features', 'features'
+      'more-features'
     ];
 
     if (protectedModules.includes(id)) {
@@ -322,23 +331,15 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    if (id === 'abha') {
-      const element = document.getElementById('abha');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-      return;
-    }
-    if (id === 'contact' || id === 'appointment') {
-      const element = document.getElementById('appointment');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-    }
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const topOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - topOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -346,12 +347,14 @@ export const App: React.FC = () => {
     handleNavigate('register');
   };
 
+  const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
+
   return (
     <ThemeProvider>
-      <div className="min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white">
+      <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
         
-        {/* HEADER & TOP BAR (HIDE ON DASHBOARD) */}
-        {currentPage !== 'dashboard' && (
+        {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+        {showHeaderAndFooter && (
           <Header 
             onNavigate={handleNavigate} 
             isLoggedIn={isLoggedIn}
@@ -425,8 +428,8 @@ export const App: React.FC = () => {
           </main>
         )}
 
-        {/* FOOTER (HIDE ON DASHBOARD) */}
-        {currentPage !== 'dashboard' && <Footer onNavigate={handleNavigate} />}
+        {/* FOOTER (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+        {showHeaderAndFooter && <Footer onNavigate={handleNavigate} />}
 
         {/* MODALS */}
         <ABHAModal 
