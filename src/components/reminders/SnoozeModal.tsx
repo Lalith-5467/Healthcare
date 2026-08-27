@@ -18,7 +18,7 @@ export const SnoozeModal: React.FC<SnoozeModalProps> = ({
   if (!isOpen || !reminder) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl text-slate-900 dark:text-white">
         <div className="w-14 h-14 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-[#00a896] dark:text-cyan-400 mx-auto">
           <Clock className="w-7 h-7" />
@@ -33,10 +33,10 @@ export const SnoozeModal: React.FC<SnoozeModalProps> = ({
 
         <div className="grid grid-cols-2 gap-2 pt-1 text-xs font-bold">
           {[
-            { label: '5 Minutes', mins: 5 },
             { label: '10 Minutes', mins: 10 },
             { label: '30 Minutes', mins: 30 },
-            { label: '1 Hour', mins: 60 }
+            { label: '1 Hour', mins: 60 },
+            { label: 'Tomorrow', mins: 1440 }
           ].map((opt) => (
             <button
               key={opt.mins}
