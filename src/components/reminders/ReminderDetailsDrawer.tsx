@@ -27,10 +27,11 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
 
   const isReminder = 'repeat' in item;
   const remItem = isReminder ? (item as ReminderItem) : null;
-  const isPending = remItem?.followUpStatus === 'Pending';
-  const isConfirmed = remItem?.followUpStatus === 'Accepted' || (!isPending && remItem?.category === 'Appointment');
-  const isDeclined = remItem?.followUpStatus === 'Declined';
+  const isPending = remItem?.status === 'Pending' || remItem?.followUpStatus === 'Pending';
+  const isConfirmed = remItem?.status === 'Confirmed' || remItem?.status === 'Upcoming' || remItem?.status === 'Snoozed' || remItem?.status === 'Due Now' || remItem?.followUpStatus === 'Accepted';
+  const isDeclined = remItem?.status === 'Declined' || remItem?.followUpStatus === 'Declined';
   const isCompleted = remItem?.status === 'Completed';
+  const isCancelled = remItem?.status === 'Cancelled';
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
@@ -74,23 +75,28 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
                   {item.category} Details
                 </span>
                 {isPending && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 font-mono font-mono">
                     Pending
                   </span>
                 )}
-                {isConfirmed && !isCompleted && !isDeclined && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                {isConfirmed && !isCompleted && !isDeclined && !isCancelled && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono">
                     Confirmed
                   </span>
                 )}
                 {isCompleted && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-mono font-mono">
                     Completed
                   </span>
                 )}
                 {isDeclined && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20 font-mono">
                     Declined
+                  </span>
+                )}
+                {isCancelled && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-500/10 text-slate-600 border border-slate-500/20 font-mono">
+                    Cancelled
                   </span>
                 )}
               </div>
@@ -217,7 +223,7 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
                   onDeclineFollowUp(item.id);
                   onClose();
                 }}
-                className="flex-1 py-3 px-4 rounded-xl bg-rose-55 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="flex-1 py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
                 Decline
               </button>
@@ -225,7 +231,7 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
           )}
 
           {/* CONFIRMED ACTIONS */}
-          {isConfirmed && !isCompleted && !isDeclined && onSnoozeReminder && (
+          {isConfirmed && !isCompleted && !isDeclined && !isCancelled && onSnoozeReminder && (
             <button
               onClick={() => {
                 onSnoozeReminder(remItem!.id);
@@ -238,7 +244,7 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
             </button>
           )}
 
-          {item.relatedModule && (
+          {item.relatedModule && !isPending && !isCompleted && !isDeclined && !isCancelled && (
             <button
               onClick={() => {
                 onClose();
@@ -252,7 +258,7 @@ export const ReminderDetailsDrawer: React.FC<ReminderDetailsDrawerProps> = ({
           )}
 
           {/* Only show dismiss for non-pending and non-completed reminders */}
-          {!isPending && !isCompleted && !isDeclined && (
+          {!isPending && !isCompleted && !isDeclined && !isCancelled && (
             <button
               onClick={() => onDismiss(item.id)}
               className="w-full py-2 rounded-xl text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"

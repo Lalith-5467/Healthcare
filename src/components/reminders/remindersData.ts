@@ -8,7 +8,7 @@ export interface ReminderItem {
   repeat: 'Does not repeat' | 'Daily' | 'Weekly' | 'Monthly' | 'Custom';
   customDays?: string[];
   timing: 'At scheduled time' | '5 minutes before' | '15 minutes before' | '30 minutes before' | '1 hour before' | '1 day before';
-  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed';
+  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled';
   priority: 'Normal' | 'Important' | 'High Priority';
   completedTime?: string;
   snoozedUntil?: string;
@@ -55,7 +55,7 @@ export const INITIAL_REMINDERS: ReminderItem[] = [
     time: '10:30 AM',
     repeat: 'Does not repeat',
     timing: '1 day before',
-    status: 'Upcoming',
+    status: 'Pending',
     priority: 'High Priority',
     doctorName: 'Dr. Arun Kumar',
     clinicName: 'General Medicine',
@@ -71,7 +71,7 @@ export const INITIAL_REMINDERS: ReminderItem[] = [
     time: '02:00 PM',
     repeat: 'Does not repeat',
     timing: '15 minutes before',
-    status: 'Upcoming',
+    status: 'Pending',
     priority: 'Normal',
     doctorName: 'Dr. Meena Iyer',
     clinicName: 'Cardiology',

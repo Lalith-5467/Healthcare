@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Camera, Zap, ZapOff, Image, ArrowLeft, X, Upload,
   Sparkles, RefreshCw, CheckCircle2, Scan, ShieldCheck,
-  FileText, Lock, Cpu, Activity, Eye, Crosshair,
+  FileText, Lock, Cpu, Activity, Eye, Crosshair, Sun, Moon, AlertCircle
 } from 'lucide-react';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface ScannerModalProps {
   isOpen: boolean;
@@ -55,7 +56,10 @@ type ScanPhase = 'prompt' | 'scanning' | 'done';
 export const ScannerModal: React.FC<ScannerModalProps> = ({
   isOpen, onClose, onCapture, onSwitchToUpload,
 }) => {
+  const { theme, toggleTheme } = useTheme();
   const [phase, setPhase] = useState<ScanPhase>('prompt');
+  const [scannerState, setScannerState] = useState<'idle' | 'permission_required' | 'scanning' | 'processing' | 'success' | 'error'>('idle');
+  const [resultImage, setResultImage] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   const [cameraGranted, setCameraGranted] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -93,6 +97,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       clearAllTimers();
       stopCamera();
       setPhase('prompt');
+      setScannerState('idle');
+      setResultImage(null);
       setCameraGranted(false);
       setScanProgress(0);
       setDetectedFields([]);
@@ -100,8 +106,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       setRevealedMeds(0);
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   // ── file / gallery select ─────────────────────────────────────────────────
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,10 +126,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       if (videoRef.current) videoRef.current.srcObject = stream;
       setCameraGranted(true);
       setPhase('scanning');
+      setScannerState('scanning');
     } catch {
       // No camera - go to demo mode
       setCameraGranted(false);
       setPhase('scanning');
+      setScannerState('scanning');
     }
   };
 
@@ -207,6 +213,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   // ── main scan pipeline ────────────────────────────────────────────────────
   const startScan = useCallback(() => {
     setPhase('scanning');
+    setScannerState('scanning');
     setScanProgress(0);
     setDetectedFields([]);
     setConfidence(0);
@@ -224,6 +231,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       prog = Math.min(prog + Math.random() * 5 + 2, 95);
       setScanProgress(Math.round(prog));
       setConfidence(parseFloat((prog * 0.998).toFixed(1)));
+      if (prog >= 80) {
+        setScannerState('processing');
+        setScanStatusMsg('Running AI OCR & extracting health metrics...');
+      }
     }, 80);
 
     // Status messages
@@ -251,9 +262,35 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       setPhase('done');
 
       const result = cameraGranted ? (captureVideoFrame() ?? buildCanvas()) : buildCanvas();
-      setTimeout(() => onCapture(result), 600);
+      setResultImage(result);
+      setScannerState('success');
     }, 2000);
   }, [preset, cameraGranted]);
+
+  const handleCaptureDocument = () => {
+    clearAllTimers();
+    const result = cameraGranted ? (captureVideoFrame() ?? buildCanvas()) : buildCanvas();
+    setResultImage(result);
+    setScanProgress(100);
+    setConfidence(99.8);
+    setScanStatusMsg('✓ Capture complete');
+    setPhase('done');
+    setScannerState('success');
+    stopCamera();
+  };
+
+  const handleResetScanner = () => {
+    clearAllTimers();
+    stopCamera();
+    setPhase('prompt');
+    setScannerState('idle');
+    setResultImage(null);
+    setCameraGranted(false);
+    setScanProgress(0);
+    setDetectedFields([]);
+    setConfidence(0);
+    setRevealedMeds(0);
+  };
 
   // ── If camera already granted and we enter scanning phase, auto-start ─────
   const handleStartCamera = async () => {
@@ -264,9 +301,332 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   // ── triggered when phase switches to 'scanning' from camera path ──────────
   useEffect(() => {
     if (phase === 'scanning' && !intervalRef.current && scanProgress === 0) {
-      // Only auto-start if triggered by camera (demo path calls startScan directly)
+      startScan();
     }
-  }, [phase]);
+  }, [phase, startScan]);
+
+  const renderViewfinderContent = () => {
+    switch (scannerState) {
+      case 'idle':
+        return (
+          <div className="my-auto flex flex-col items-center text-center space-y-4 py-8 px-4">
+            <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-[#00a896] dark:text-teal-400">
+              <Scan className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Ready to scan</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
+                Position your document inside the frame and start the camera.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setScannerState('permission_required')}
+                className="px-4 py-2 bg-[#00a896] hover:bg-[#00897b] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Start Camera</span>
+              </button>
+              <button
+                type="button"
+                onClick={onSwitchToUpload}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
+              >
+                <span>Upload File</span>
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'scanning':
+        return (
+          <>
+            {flashOn && <div className="absolute inset-0 z-30 pointer-events-none bg-yellow-200/5" />}
+
+            {cameraGranted ? (
+              <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+            ) : (
+              <div 
+                className="absolute inset-0 rounded-xl overflow-hidden" 
+                style={{
+                  background: theme === 'dark' ? 'linear-gradient(to bottom, #1e293b, #020617)' : 'linear-gradient(to bottom, #f1f5f9, #e2e8f0)',
+                  backgroundImage: theme === 'dark' 
+                    ? 'linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px)'
+                    : 'linear-gradient(rgba(14,116,144,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(14,116,144,0.05) 1px, transparent 1px)',
+                  backgroundSize: '18px 18px',
+                }}
+              >
+                {/* Document card slides in */}
+                <AnimatePresence>
+                  {scanProgress > 25 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: 12 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute inset-3 rounded-lg overflow-hidden shadow-lg flex flex-col border border-slate-200 dark:border-slate-700"
+                      style={{ backgroundColor: '#ffffff', zIndex: 5 }}
+                    >
+                      {/* Header */}
+                      <div className="px-3 py-1.5 flex justify-between items-center shrink-0 bg-teal-800">
+                        <div>
+                          <div className="text-[9px] font-black text-white">{preset.hospital}</div>
+                          <div className="text-[7px] text-teal-200">{preset.dept}</div>
+                        </div>
+                        <div className="text-right text-[7px] text-teal-200 font-mono">
+                          <div>{preset.rxRef}</div>
+                          <div>{new Date().toLocaleDateString('en-IN')}</div>
+                        </div>
+                      </div>
+
+                      {/* Patient Details */}
+                      <div className="px-3 py-1 flex justify-between text-[8px] font-bold border-b shrink-0 bg-slate-50 text-slate-800 border-slate-200">
+                        <span>Patient: {preset.patient}</span>
+                        <span>Age: {preset.age}</span>
+                      </div>
+
+                      {/* Doctor */}
+                      <div className="px-3 py-0.5 text-[7px] border-b shrink-0 text-slate-500 border-slate-100">
+                        {preset.doctor} · {preset.specialty}
+                      </div>
+
+                      {/* Medicines */}
+                      <div className="flex-1 px-3 py-1.5 space-y-1 overflow-hidden bg-white">
+                        <div className="text-[8px] font-black uppercase mb-0.5 text-slate-600">Prescribed Medicines</div>
+                        {preset.medicines.map((m, i) => (
+                          <AnimatePresence key={i}>
+                            {revealedMeds > i && (
+                              <motion.div
+                                initial={{ opacity: 0, x: -6 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="p-1 rounded text-[7px] bg-teal-55 text-slate-900 border border-teal-100"
+                              >
+                                <div className="font-bold flex justify-between text-slate-900">
+                                  <span>{i + 1}. {m.name}</span>
+                                  <span className="text-teal-600">{m.dur}</span>
+                                </div>
+                                <div className="text-[6.5px] text-slate-500">{m.dosage}</div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        ))}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="px-3 py-1 flex justify-between items-center border-t shrink-0 border-slate-200 bg-slate-50">
+                        <span className="px-1 py-0.5 rounded text-[6.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          Follow-up: {preset.followUp}
+                        </span>
+                        <div className="text-right text-[7px] font-bold text-slate-700">{preset.doctor}</div>
+                      </div>
+
+                      {/* Scan line overlay */}
+                      <motion.div
+                        className="absolute left-0 right-0 h-0.5 z-10 pointer-events-none"
+                        animate={{ top: ['5%', '95%', '5%'] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ background: 'linear-gradient(to right, transparent, rgba(20,184,166,0.8), transparent)', boxShadow: '0 0 8px #00a896' }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Laser line animation overlay */}
+            <motion.div
+              className="absolute left-0 right-0 h-0.5 z-20 pointer-events-none"
+              animate={{ top: ['0%', '100%', '0%'] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ background: 'linear-gradient(to right, transparent, #00a896, transparent)', boxShadow: '0 0 10px #00a896' }}
+            />
+
+            {/* Center crosshair */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <motion.div animate={{ opacity: [0.15, 0.45, 0.15] }} transition={{ duration: 2.2, repeat: Infinity }}>
+                <Crosshair className="w-10 h-10 text-teal-400 opacity-25" />
+              </motion.div>
+            </div>
+
+            {/* Capture Button Overlay (if camera is active, allow manual capture) */}
+            {cameraGranted && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center z-40">
+                <button
+                  type="button"
+                  onClick={handleCaptureDocument}
+                  className="px-4 py-2 bg-[#00a896] hover:bg-[#00897b] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Capture Document</span>
+                </button>
+              </div>
+            )}
+          </>
+        );
+
+      case 'processing':
+        return (
+          <div className="my-auto flex flex-col items-center text-center space-y-4 py-8 px-4">
+            <div className="w-14 h-14 rounded-full border-2 border-teal-500/20 border-t-teal-500 animate-spin flex items-center justify-center text-[#00a896]">
+              <RefreshCw className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Processing document...</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Analyzing your document securely
+              </p>
+            </div>
+            
+            {/* Upload/Extraction progress bar */}
+            <div className="w-full max-w-xs space-y-1">
+              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-teal-50 transition-all duration-100" style={{ width: `${scanProgress}%` }} />
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono font-medium">
+                <span>AI OCR Extraction</span>
+                <span>{scanProgress}%</span>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'success':
+        return (
+          <div className="my-auto flex flex-col items-center text-center space-y-4 py-8 px-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="w-9 h-9 animate-bounce" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Document captured successfully</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
+                Extraction complete. Vitals, doctor details, and prescriptions have been verified.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (resultImage) onCapture(resultImage);
+                }}
+                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Review Document</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleResetScanner}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
+              >
+                <span>Scan Another</span>
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'error':
+        return (
+          <div className="my-auto flex flex-col items-center text-center space-y-4 py-8 px-4">
+            <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+              <AlertCircle className="w-9 h-9" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Unable to scan document</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
+                Please reposition the document and try again.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setScannerState('scanning');
+                  startScan();
+                }}
+                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Try Again</span>
+              </button>
+              <button
+                type="button"
+                onClick={onSwitchToUpload}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
+              >
+                <span>Upload Instead</span>
+              </button>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  const renderTelemetryContent = () => {
+    return (
+      <>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-teal-500/10 text-[#00a896] dark:text-teal-450 border border-teal-500/20">
+              <Activity className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-black tracking-wide text-slate-700 dark:text-slate-300">Live OCR Extraction</span>
+          </div>
+          {scannerState === 'scanning' && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-teal-655 dark:text-teal-400 border border-teal-500/20 bg-teal-500/10 animate-pulse">
+              PROCESSING
+            </span>
+          )}
+        </div>
+
+        {/* Progress */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>Extraction Progress</span>
+            <span className="text-teal-600 dark:text-teal-400 font-bold">{scanProgress}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-[#00a896] transition-all duration-100" style={{ width: `${scanProgress}%` }} />
+          </div>
+        </div>
+
+        {/* Detected fields */}
+        <div className="space-y-2 flex-1">
+          <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Detected Fields</div>
+          <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
+            {detectedFields.length === 0 ? (
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic font-mono">Awaiting scan initiation...</p>
+            ) : (
+              detectedFields.map((f, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>{f}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Trust credentials metrics */}
+        <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800/80">
+          <div className="flex justify-between text-xs font-mono">
+            <span className="text-slate-500">Confidence Score</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">{confidence > 0 ? `${confidence}%` : '—'}</span>
+          </div>
+          <div className="flex justify-between text-xs font-mono">
+            <span className="text-slate-500">ABDM Compliant</span>
+            <span className="font-bold text-[#00a896] dark:text-teal-450">{confidence > 50 ? 'VERIFIED' : 'PENDING'}</span>
+          </div>
+          <div className="flex justify-between text-xs font-mono">
+            <span className="text-slate-500">Processing Engine</span>
+            <span className="font-bold text-purple-600 dark:text-purple-405 font-medium">Tesseract OCR v4 + NLP</span>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  if (!isOpen) return null;
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -438,153 +798,57 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               >
                 {flashOn && <div className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundColor: 'rgba(254,240,138,0.1)' }} />}
 
-                {/* Camera stream OR animated dark bg */}
-                {cameraGranted ? (
-                  <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(to bottom, #1e293b, #020617)',
-                    backgroundImage: 'linear-gradient(rgba(6,182,212,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.07) 1px, transparent 1px)',
-                    backgroundSize: '18px 18px',
-                  }}>
-                    {/* Document card slides in */}
-                    <AnimatePresence>
-                      {scanProgress > 25 && (
+                {renderViewfinderContent()}
+
+                {/* HUD overlay - only rendered during active scanning */}
+                {scannerState === 'scanning' && (
+                  <div className="absolute inset-0 z-20 pointer-events-none p-3 flex flex-col justify-between">
+                    {/* Top status pill */}
+                    <div className="flex justify-between items-center text-[10px] font-mono text-cyan-300 px-3 py-1.5 rounded-full border"
+                      style={{ backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(34,211,238,0.3)', backdropFilter: 'blur(8px)' }}>
+                      <span className="flex items-center gap-1.5">
+                        <motion.span
+                          className="w-2 h-2 rounded-full bg-emerald-400"
+                          animate={{ opacity: [1, 0.3, 1] }}
+                          transition={{ duration: 0.7, repeat: Infinity }}
+                        />
+                        {scanStatusMsg}
+                      </span>
+                      <span className="font-bold text-emerald-300">{confidence > 0 ? `${confidence}%` : 'READY'}</span>
+                    </div>
+
+                    {/* Corners */}
+                    <div className="relative flex-1 my-2">
+                      {[
+                        'top-0 left-0 border-t-2 border-l-2 rounded-tl-xl',
+                        'top-0 right-0 border-t-2 border-r-2 rounded-tr-xl',
+                        'bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl',
+                        'bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl',
+                      ].map((cls, i) => (
+                        <motion.div key={i} className={`absolute w-8 h-8 ${cls}`}
+                          animate={{ borderColor: scanProgress > 80 ? ['#22d3ee','#34d399','#22d3ee'] : '#22d3ee' }}
+                          transition={{ duration: 1.2, repeat: Infinity }}
+                          style={{ borderColor: '#22d3ee' }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Bottom progress */}
+                    <div className="space-y-1.5">
+                      <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(30,41,59,0.8)' }}>
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.88, y: 16 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          transition={{ duration: 0.4 }}
-                          className="absolute inset-4 rounded-xl overflow-hidden shadow-2xl flex flex-col"
-                          style={{ backgroundColor: '#ffffff', zIndex: 5 }}
-                        >
-                          {/* Header */}
-                          <div className="px-3 py-2 flex justify-between items-center shrink-0" style={{ backgroundColor: '#0f766e' }}>
-                            <div>
-                              <div className="text-[10px] font-black text-white">{preset.hospital}</div>
-                              <div className="text-[8px] text-teal-200">{preset.dept}</div>
-                            </div>
-                            <div className="text-right text-[8px] text-teal-200 font-mono">
-                              <div>{preset.rxRef}</div>
-                              <div>{new Date().toLocaleDateString('en-IN')}</div>
-                            </div>
-                          </div>
-
-                          {/* Patient */}
-                          <div className="px-3 py-1.5 flex justify-between text-[9px] font-bold border-b shrink-0" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#0f172a' }}>
-                            <span>Patient: {preset.patient}</span>
-                            <span>Age: {preset.age}</span>
-                          </div>
-
-                          {/* Doctor */}
-                          <div className="px-3 py-1 text-[8px] border-b shrink-0" style={{ color: '#64748b', borderColor: '#f1f5f9' }}>
-                            {preset.doctor} · {preset.specialty}
-                          </div>
-
-                          {/* Medicines */}
-                          <div className="flex-1 px-3 py-2 space-y-1.5 overflow-hidden">
-                            <div className="text-[9px] font-black uppercase mb-1" style={{ color: '#475569' }}>Prescribed Medicines</div>
-                            {preset.medicines.map((m, i) => (
-                              <AnimatePresence key={i}>
-                                {revealedMeds > i && (
-                                  <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="p-1.5 rounded-lg text-[8px]"
-                                    style={{ backgroundColor: '#f0fdfa', border: '1px solid #ccfbf1' }}
-                                  >
-                                    <div className="font-bold flex justify-between" style={{ color: '#0f172a' }}>
-                                      <span>{i + 1}. {m.name}</span>
-                                      <span style={{ color: '#00a896' }}>{m.dur}</span>
-                                    </div>
-                                    <div className="mt-0.5" style={{ color: '#64748b' }}>{m.dosage}</div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            ))}
-                          </div>
-
-                          {/* Footer */}
-                          <div className="px-3 py-1.5 flex justify-between items-center border-t shrink-0" style={{ borderColor: '#e2e8f0' }}>
-                            <span className="px-1.5 py-0.5 rounded text-[7px] font-mono font-bold" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-                              Follow-up: {preset.followUp}
-                            </span>
-                            <div className="text-right text-[8px] font-bold" style={{ color: '#334155' }}>{preset.doctor}</div>
-                          </div>
-
-                          {/* Scan line overlay */}
-                          <motion.div
-                            className="absolute left-0 right-0 h-0.5 z-10 pointer-events-none"
-                            animate={{ top: ['5%', '95%', '5%'] }}
-                            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                            style={{ background: 'linear-gradient(to right, transparent, rgba(34,211,238,0.8), transparent)', boxShadow: '0 0 10px #22d3ee' }}
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          className="h-full rounded-full"
+                          style={{ width: `${scanProgress}%`, background: 'linear-gradient(to right, #00a896, #22d3ee)', boxShadow: '0 0 8px #22d3ee' }}
+                          transition={{ duration: 0.1 }}
+                        />
+                      </div>
+                      <div className="text-center text-[11px] font-mono px-2 py-1 rounded-xl border"
+                        style={{ color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                        {scanStatusMsg}
+                      </div>
+                    </div>
                   </div>
                 )}
-
-                {/* HUD overlay */}
-                <div className="absolute inset-0 z-20 pointer-events-none p-3 flex flex-col justify-between">
-                  {/* Top status pill */}
-                  <div className="flex justify-between items-center text-[10px] font-mono text-cyan-300 px-3 py-1.5 rounded-full border"
-                    style={{ backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(34,211,238,0.3)', backdropFilter: 'blur(8px)' }}>
-                    <span className="flex items-center gap-1.5">
-                      <motion.span
-                        className="w-2 h-2 rounded-full bg-emerald-400"
-                        animate={{ opacity: [1, 0.3, 1] }}
-                        transition={{ duration: 0.7, repeat: Infinity }}
-                      />
-                      {scanStatusMsg}
-                    </span>
-                    <span className="font-bold text-emerald-300">{confidence > 0 ? `${confidence}%` : 'READY'}</span>
-                  </div>
-
-                  {/* Corners + laser */}
-                  <div className="relative flex-1 my-2">
-                    {[
-                      'top-0 left-0 border-t-2 border-l-2 rounded-tl-xl',
-                      'top-0 right-0 border-t-2 border-r-2 rounded-tr-xl',
-                      'bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl',
-                      'bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl',
-                    ].map((cls, i) => (
-                      <motion.div key={i} className={`absolute w-8 h-8 ${cls}`}
-                        animate={{ borderColor: scanProgress > 80 ? ['#22d3ee','#34d399','#22d3ee'] : '#22d3ee' }}
-                        transition={{ duration: 1.2, repeat: Infinity }}
-                        style={{ borderColor: '#22d3ee' }}
-                      />
-                    ))}
-                    {/* Main scanning laser */}
-                    <motion.div
-                      className="absolute left-0 right-0 h-0.5 z-10"
-                      animate={{ top: ['0%', '100%', '0%'] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      style={{ background: 'linear-gradient(to right, transparent, #22d3ee, transparent)', boxShadow: '0 0 12px #22d3ee' }}
-                    />
-                    {/* Center crosshair */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <motion.div animate={{ opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 2, repeat: Infinity }}>
-                        <Crosshair className="w-8 h-8 text-cyan-400 opacity-30" />
-                      </motion.div>
-                    </div>
-                  </div>
-
-                  {/* Bottom progress */}
-                  <div className="space-y-1.5">
-                    <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(30,41,59,0.8)' }}>
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ width: `${scanProgress}%`, background: 'linear-gradient(to right, #00a896, #22d3ee)', boxShadow: '0 0 8px #22d3ee' }}
-                        transition={{ duration: 0.1 }}
-                      />
-                    </div>
-                    <div className="text-center text-[11px] font-mono px-2 py-1 rounded-xl border"
-                      style={{ color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                      {scanStatusMsg}
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* ── RIGHT SIDE EXTRACTION PANEL ──────────────────────── */}
@@ -595,64 +859,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 className="w-full max-w-xs rounded-2xl p-4 space-y-3 shadow-2xl border border-slate-800"
                 style={{ backgroundColor: 'rgba(15,23,42,0.98)' }}
               >
-                <div className="flex items-center gap-2 text-xs font-bold text-white">
-                  <div className="p-1.5 rounded-lg text-cyan-400 border border-teal-500/30" style={{ backgroundColor: 'rgba(20,184,166,0.15)' }}>
-                    <Eye className="w-3.5 h-3.5" />
-                  </div>
-                  <span>Live OCR Extraction</span>
-                  <motion.span
-                    className="ml-auto text-[9px] font-mono text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/20"
-                    animate={{ opacity: [1, 0.4, 1] }}
-                    transition={{ duration: 0.8, repeat: Infinity }}
-                    style={{ backgroundColor: 'rgba(16,185,129,0.12)' }}
-                  >
-                    LIVE
-                  </motion.span>
-                </div>
-
-                {/* Progress */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[10px] font-mono" style={{ color: '#64748b' }}>
-                    <span>Extraction Progress</span>
-                    <span className="text-cyan-300 font-bold">{scanProgress}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1e293b' }}>
-                    <div className="h-full rounded-full transition-all duration-100" style={{ width: `${scanProgress}%`, background: 'linear-gradient(to right, #00a896, #22d3ee)' }} />
-                  </div>
-                </div>
-
-                {/* Detected fields */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#475569' }}>Detected Fields</div>
-                  <div className="space-y-1 max-h-40 overflow-hidden">
-                    {detectedFields.length === 0 ? (
-                      <div className="text-[11px] font-mono" style={{ color: '#334155' }}>Awaiting scan...</div>
-                    ) : detectedFields.map(f => (
-                      <motion.div key={f} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}
-                        className="flex items-center gap-2 text-[11px]" style={{ color: '#cbd5e1' }}>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>{f}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Confidence meters */}
-                <div className="pt-2 space-y-1.5 border-t border-slate-800">
-                  <div className="flex justify-between text-[10px] font-mono">
-                    <span className="flex items-center gap-1 text-slate-400"><Activity className="w-3 h-3" /> Confidence</span>
-                    <span className="text-emerald-300 font-bold">{confidence > 0 ? `${confidence}%` : '—'}</span>
-                  </div>
-                  <div className="flex justify-between text-[10px] font-mono">
-                    <span className="flex items-center gap-1 text-slate-400"><ShieldCheck className="w-3 h-3" /> ABDM Verified</span>
-                    <motion.span animate={{ opacity: confidence > 50 ? [1, 0.5, 1] : 0.3 }} transition={{ duration: 0.8, repeat: Infinity }}
-                      className="font-bold text-teal-300">{confidence > 50 ? 'YES' : '---'}</motion.span>
-                  </div>
-                  <div className="flex justify-between text-[10px] font-mono">
-                    <span className="text-slate-400">Engine</span>
-                    <span className="font-bold text-purple-300">Tesseract-v4 + Med-NLP</span>
-                  </div>
-                </div>
+                {renderTelemetryContent()}
               </motion.div>
             </motion.div>
           )}
