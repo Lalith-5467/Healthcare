@@ -336,6 +336,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
           onClearCapturedImage={() => setCapturedImage(null)}
           onNavigate={onNavigate}
           onToast={showToast}
+          onOpenScanner={() => setScannerOpen(true)}
         />
       ) : (
         <div className="space-y-6">
