@@ -201,7 +201,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Heart className="w-3.5 h-3.5 text-white animate-bounce" style={{ animationDuration: '2s' }} />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 block">Heart Rate</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Heart Rate</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">72 BPM</span>
               </div>
             </motion.div>
@@ -216,7 +216,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Zap className="w-3.5 h-3.5 text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 block">Blood SpO2</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood SpO2</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">98%</span>
               </div>
             </motion.div>
@@ -231,7 +231,7 @@ export const HealthScoreCard: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5 text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 block">Blood Press.</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood Press.</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">120/80</span>
               </div>
             </motion.div>
@@ -246,7 +246,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Moon className="w-3.5 h-3.5 text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 block">Sleep Avg.</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Sleep Avg.</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">7.8 hrs</span>
               </div>
             </motion.div>
@@ -322,7 +322,7 @@ export const HealthScoreCard: React.FC = () => {
 
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>

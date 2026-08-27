@@ -209,7 +209,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSupportModalOpen(true)}
-              className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <HelpCircle className="w-4 h-4 text-amber-500" />
               <span className="hidden sm:inline">Insurance Support</span>
@@ -240,7 +240,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Active Policies</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Active Policies</span>
             <strong className="text-xl font-black text-slate-900 dark:text-white">{safePolicies.length}</strong>
           </div>
         </div>
@@ -258,7 +258,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Sum Insured</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Sum Insured</span>
             <strong className="text-xl font-black text-blue-700 dark:text-blue-400">
               ₹{((primaryPolicy?.coverageAmount || 1000000) / 100000).toFixed(0)} Lakhs
             </strong>
@@ -278,7 +278,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Claims Handled</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Claims Handled</span>
             <strong className="text-xl font-black text-emerald-700 dark:text-emerald-400">{claims.length}</strong>
           </div>
         </div>
@@ -296,7 +296,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Vault Documents</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Vault Documents</span>
             <strong className="text-xl font-black text-purple-700 dark:text-purple-400">{documents.length}</strong>
           </div>
         </div>
@@ -532,15 +532,15 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Pay Policy Premium</h3>
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500 font-sans">Plan:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-sans">Plan:</span>
                 <strong className="text-slate-900 dark:text-white">{primaryPolicy.planName}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 font-sans">Premium Due:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-sans">Premium Due:</span>
                 <strong className="text-emerald-600 dark:text-emerald-400 text-sm font-extrabold">₹{primaryPolicy.premiumAmount}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 font-sans">Due Date:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-sans">Due Date:</span>
                 <strong className="text-amber-600 dark:text-amber-300">01 Sep 2026</strong>
               </div>
             </div>

@@ -182,7 +182,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 const el = document.getElementById('history-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-slate-200/40"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-slate-200/40 dark:shadow-none"
             >
               <Clock className="w-4 h-4 text-teal-500" />
               <span>View History</span>
@@ -214,8 +214,8 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               <Stethoscope className="w-3.5 h-3.5" />
               <span>Interactive Digital Health Check</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Start Your Health Check-Up</h2>
-            <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Start Your Health Check-Up</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
               Answer a few simple questions about your current health, wellness, sleep, hydration, and daily routine.
             </p>
 
@@ -252,7 +252,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(true);
                 setWizardOpen(true);
               }}
-              className="w-full lg:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm text-slate-700 bg-white hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-slate-200/50 hover:-translate-y-0.5"
+              className="w-full lg:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 transition-all border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-slate-200/50 dark:shadow-none hover:-translate-y-0.5"
             >
               <Sparkles className="w-4 h-4 text-teal-500" />
               <span>Quick Check-Up (2 min)</span>
@@ -269,8 +269,8 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               <RotateCcw className="w-5 h-5 animate-spin" />
             </div>
             <div>
-              <h4 className="font-extrabold text-slate-900 text-sm">Check-Up In Progress</h4>
-              <p className="text-slate-600 font-mono text-[11px] mt-0.5 font-bold">
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Check-Up In Progress</h4>
+              <p className="text-slate-600 dark:text-slate-400 font-mono text-[11px] mt-0.5 font-bold">
                 Saved at Step {savedDraftStep} of 12 ({Math.round((savedDraftStep / 12) * 100)}% completed)
               </p>
             </div>
@@ -279,7 +279,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
           <div className="flex items-center gap-2 self-stretch sm:self-auto font-sans">
             <button
               onClick={handleDiscardDraft}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold cursor-pointer border border-slate-200 shadow-sm"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold cursor-pointer border border-slate-200 dark:border-slate-800 shadow-sm"
             >
               Discard
             </button>
@@ -301,8 +301,8 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900">Health Assessment Analytics</h3>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Overview of your current check-up completion status</p>
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Health Assessment Analytics</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Overview of your current check-up completion status</p>
           </div>
           <div className="flex items-center gap-3">
              <div className="flex items-center gap-2 bg-teal-50 px-4 py-2.5 rounded-xl border border-teal-100 shadow-sm">
@@ -317,7 +317,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-white/80 backdrop-blur-sm border border-slate-200/60 p-5 rounded-3xl flex flex-col items-center text-center space-y-4 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+            <div key={cat.id} className="bg-white/80 backdrop-blur-sm border border-slate-200/60 p-5 rounded-3xl flex flex-col items-center text-center space-y-4 shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
               <div className="relative w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                   <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
@@ -346,7 +346,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 <div className="text-2xl font-extrabold text-slate-800 font-mono tracking-tighter">
                   {cat.progressPercentage}<span className="text-xs text-slate-400 ml-0.5">%</span>
                 </div>
-                <h4 className="font-bold text-slate-700 text-xs mt-1 leading-tight">{cat.title}</h4>
+                <h4 className="font-bold text-slate-700 dark:text-slate-300 text-xs mt-1 leading-tight">{cat.title}</h4>
               </div>
 
               <span className={`text-[10px] font-extrabold font-mono px-3 py-1 rounded-full border shadow-sm w-full mt-auto ${
@@ -354,7 +354,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : cat.status === 'In Progress'
                   ? 'bg-teal-50 text-teal-700 border-teal-200'
-                  : 'bg-slate-50 text-slate-600 border-slate-200'
+                  : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
               }`}>
                 {cat.status}
               </span>
@@ -375,11 +375,11 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       </div>
 
       {/* 6. PREVIOUS CHECK-UPS HISTORY LOG */}
-      <div id="history-section" className="bg-white/60 backdrop-blur-md border border-white/60 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/50">
+      <div id="history-section" className="bg-white/60 backdrop-blur-md border border-white/60 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/50 dark:shadow-none">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900">Previous Check-Ups</h3>
-            <p className="text-xs text-slate-500 font-medium mt-1">Review your past completed health assessments</p>
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Previous Check-Ups</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Review your past completed health assessments</p>
           </div>
 
           <div className="flex items-center gap-2 self-stretch sm:self-auto">
@@ -390,12 +390,12 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search history..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 font-medium shadow-sm transition-all"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 font-medium shadow-sm transition-all"
               />
             </div>
             <button
               onClick={() => setFilterDrawerOpen(true)}
-              className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 transition-colors border border-slate-200 cursor-pointer shadow-sm"
+              className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-800 cursor-pointer shadow-sm"
             >
               <Filter className="w-4 h-4 text-teal-600" />
             </button>
@@ -404,15 +404,15 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <div className="space-y-4 text-xs">
           {filteredHistory.map((item) => (
-            <div key={item.id} className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:-translate-y-0.5">
+            <div key={item.id} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm hover:shadow-md hover:border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:-translate-y-0.5">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/60 flex items-center justify-center shrink-0">
                   <Calendar className="w-4 h-4 text-slate-400" />
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-extrabold text-teal-600 uppercase tracking-wider">{item.date} • {item.time}</span>
-                  <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">{item.type}</h4>
-                  <p className="text-[11px] text-slate-500 font-mono mt-1 font-bold">
+                  <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">{item.type}</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-1 font-bold">
                     Score: <strong className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-1">{item.completionScore}%</strong>
                   </p>
                 </div>
@@ -421,13 +421,13 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               <div className="flex items-center gap-2 font-sans">
                 <button
                   onClick={() => setHistoryDrawerTarget(item)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 cursor-pointer transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-800 cursor-pointer transition-colors"
                 >
                   View Details
                 </button>
                 <button
                   onClick={() => handleDeleteRecord(item.id)}
-                  className="p-2.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
+                  className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -435,7 +435,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
             </div>
           ))}
           {filteredHistory.length === 0 && (
-            <div className="text-center py-10 text-slate-500 font-medium">
+            <div className="text-center py-10 text-slate-500 dark:text-slate-400 font-medium">
               No check-ups found matching your criteria.
             </div>
           )}
@@ -446,53 +446,53 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => onNavigate('appointments')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-teal-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-teal-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
           <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
             <Calendar className="w-5 h-5 text-teal-600 group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-900 text-sm">Appointments</h4>
-            <p className="text-xs text-slate-500 font-medium mt-1">Schedule consultation →</p>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Appointments</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Schedule consultation →</p>
           </div>
         </button>
 
         <button
           onClick={() => onNavigate('medicines')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-purple-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-purple-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
           <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
             <Pill className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-900 text-sm">Medicines</h4>
-            <p className="text-xs text-slate-500 font-medium mt-1">Review prescriptions →</p>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Medicines</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Review prescriptions →</p>
           </div>
         </button>
 
         <button
           onClick={() => onNavigate('records')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-amber-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-amber-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
             <FileText className="w-5 h-5 text-amber-600 group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-900 text-sm">Medical Records</h4>
-            <p className="text-xs text-slate-500 font-medium mt-1">Inspect lab reports →</p>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Medical Records</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Inspect lab reports →</p>
           </div>
         </button>
 
         <button
           onClick={() => onNavigate('analytics')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-cyan-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-cyan-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
           <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
             <Activity className="w-5 h-5 text-cyan-600 group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-900 text-sm">Analytics</h4>
-            <p className="text-xs text-slate-500 font-medium mt-1">Track vital trends →</p>
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Analytics</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Track vital trends →</p>
           </div>
         </button>
       </div>

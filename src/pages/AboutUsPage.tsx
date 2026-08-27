@@ -1215,57 +1215,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 7 — HIGH-CONVERSION BOTTOM CALL TO ACTION
-          ========================================================================= */}
-      <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#00a896_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none" />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider">
-            <Heart className="w-3.5 h-3.5 fill-teal-400 text-teal-400" />
-            <span>Lifelong Health Empowerment</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-            Take Full Control of Your Family’s Health Records Today
-          </h2>
-
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium">
-            Join over 50,000+ patients who manage their prescriptions, lab tests, ABHA health records, and emergency SOS medical cards with zero compromise on privacy.
-          </p>
-
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={onStartJourney}
-              className="px-9 py-4 text-sm font-black text-white bg-[#00a896] hover:bg-[#00897b] rounded-2xl shadow-xl shadow-teal-500/20 hover:scale-105 transition-all cursor-pointer flex items-center gap-2"
-            >
-              <span>Get Started Free with ABHA</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onNavigateHome}
-              className="px-8 py-4 text-sm font-extrabold text-slate-300 bg-slate-800/90 hover:bg-slate-700 hover:text-white rounded-2xl border border-slate-700 transition-all cursor-pointer"
-            >
-              Back to Home
-            </button>
-          </div>
-
-          <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-teal-400" /> Free Lifetime Access
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-teal-400" /> 100% ABDM Compliant
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-teal-400" /> Zero Data Selling Pledge
-            </span>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 };

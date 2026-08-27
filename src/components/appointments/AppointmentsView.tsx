@@ -20,7 +20,9 @@ import {
   UserCheck,
   Building2,
   CalendarCheck2,
-  ChevronRight
+  ChevronRight,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import type { Appointment, Doctor } from './appointmentsData';
 import { INITIAL_APPOINTMENTS, MOCK_DOCTORS } from './appointmentsData';
@@ -31,6 +33,10 @@ import { CalendarViewModal } from './CalendarViewModal';
 import { RescheduleModal } from './RescheduleModal';
 import { CancelConfirmModal } from './CancelConfirmModal';
 import { ReminderModal } from './ReminderModal';
+import {
+  getReminders as getStoredReminders,
+  updateReminderFollowUpStatus
+} from '../../utils/healthWorkflowStorage';
 
 interface UserProfile {
   name: string;
@@ -71,6 +77,17 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [reminderTarget, setReminderTarget] = useState<Appointment | null>(null);
 
+  // PENDING APPOINTMENT REQUESTS FROM PRESC SCAN
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [declineConfirmTarget, setDeclineConfirmTarget] = useState<any | null>(null);
+  const [pendingDetailTarget, setPendingDetailTarget] = useState<any | null>(null);
+
+  const loadRequests = () => {
+    const loadedReminders = getStoredReminders();
+    const pending = loadedReminders.filter((r: any) => r.followUpStatus === 'Pending');
+    setPendingRequests(pending);
+  };
+
   // COUNTDOWN TIMER STATE
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
     hours: 1,
@@ -80,6 +97,10 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
   // Load from localStorage on mount & initial skeleton simulation
   useEffect(() => {
+    loadRequests();
+    const handleUpdate = () => loadRequests();
+    window.addEventListener('health_workflow_updated', handleUpdate);
+
     const saved = localStorage.getItem('user_appointments');
     if (saved) {
       try {
@@ -97,7 +118,10 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       }
     }
     const timer = setTimeout(() => setLoading(false), 200);
-    return () => clearTimeout(timer);
+    return () => {
+      window.removeEventListener('health_workflow_updated', handleUpdate);
+      clearTimeout(timer);
+    };
   }, []);
 
   // Real-time Countdown timer tick
@@ -127,6 +151,56 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   const saveAppointments = (newApts: Appointment[]) => {
     setAppointments(newApts);
     localStorage.setItem('user_appointments', JSON.stringify(newApts));
+  };
+
+  const handleAcceptFollowUp = (id: string) => {
+    const remindersList = getStoredReminders();
+    const target = remindersList.find(r => r.id === id);
+    if (!target) return;
+
+    const docName = target.doctorName || 'Dr. Arun Kumar';
+
+    // 1. Update status in workflow storage (updates followUpStatus and active reminder)
+    updateReminderFollowUpStatus(id, 'Accepted');
+
+    // 2. Create actual confirmed Appointment in Appointments list
+    const newApt: Appointment = {
+      id: `APT-FLW-${Date.now().toString().slice(-4)}`,
+      doctorId: target.id || 'DOC-FLW',
+      doctorName: docName,
+      doctorPhoto: MOCK_DOCTORS[0]?.photoUrl || '',
+      speciality: target.clinicName || 'General Medicine',
+      date: target.date,
+      time: target.time,
+      timestamp: Date.now() + 86400000,
+      type: 'In-Person',
+      status: 'Confirmed',
+      hospital: target.clinicName || 'General Medicine Clinic',
+      fee: 0
+    };
+
+    const saved = localStorage.getItem('user_appointments');
+    let currentApts: Appointment[] = INITIAL_APPOINTMENTS;
+    if (saved) {
+      try { currentApts = JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    const updated = [newApt, ...currentApts];
+    saveAppointments(updated);
+
+    // Reload local requests state
+    loadRequests();
+
+    // 3. Dispatch events to notify other tabs
+    window.dispatchEvent(new Event('health_workflow_updated'));
+
+    showToast(`✓ Appointment confirmed\nYour appointment with ${docName} has been confirmed and a reminder has been added.`);
+  };
+
+  const handleDeclineFollowUpConfirm = (id: string) => {
+    updateReminderFollowUpStatus(id, 'Declined');
+    loadRequests();
+    window.dispatchEvent(new Event('health_workflow_updated'));
+    showToast(`Appointment declined\nThe appointment request has been declined.`);
   };
 
   // HANDLERS
@@ -413,6 +487,85 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             <Clock className="w-6 h-6" />
           </div>
         </div>
+      </div>
+
+      {/* PENDING APPOINTMENT REQUESTS */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Appointment Requests</h3>
+          {pendingRequests.length > 0 && (
+            <span className="bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm">
+              {pendingRequests.length}
+            </span>
+          )}
+        </div>
+
+        {pendingRequests.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xs">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+              <CheckCircle2 className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+            </div>
+            <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No pending appointment requests</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-450">You're all caught up. New appointment requests will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {pendingRequests.map((req) => (
+              <motion.div
+                key={req.id}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-300 hover:shadow-lg"
+              >
+                <div className="flex items-center gap-4 w-full min-w-0">
+                  <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 text-amber-600 dark:text-amber-400 shrink-0">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                        Appointment Request
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                        Pending Decision
+                      </span>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      {req.doctorName || 'Dr. Arun Kumar'}
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 mt-1 flex-wrap">
+                      <span>{req.clinicName || 'General Medicine'}</span>
+                      <span>•</span>
+                      <span>{req.date} • {req.time}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end pl-14 sm:pl-0">
+                  <button
+                    onClick={() => handleAcceptFollowUp(req.id)}
+                    className="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#00a896] hover:bg-[#00897b] shadow-md shadow-teal-500/10 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => setDeclineConfirmTarget(req)}
+                    className="px-4 py-2 rounded-xl text-xs font-extrabold text-rose-600 hover:bg-rose-50 border border-rose-200 dark:border-rose-900 transition-colors cursor-pointer"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => setPendingDetailTarget(req)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-750 transition-colors cursor-pointer"
+                  >
+                    View
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 4. APPOINTMENT TABS, TYPE FILTER & SEARCH */}
@@ -777,6 +930,123 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         onClose={() => setReminderTarget(null)}
         onSave={handleSaveReminder}
       />
+
+      {/* Decline Appointment Confirmation Dialog */}
+      <AnimatePresence>
+        {declineConfirmTarget && (
+          <div className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl text-slate-900 dark:text-white">
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 mx-auto">
+                <AlertCircle className="w-7 h-7" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Decline appointment?</h3>
+                <p className="text-xs text-slate-650 dark:text-slate-300 mt-1.5 leading-relaxed font-semibold">
+                  Are you sure you want to decline this appointment request?
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    handleDeclineFollowUpConfirm(declineConfirmTarget.id);
+                    setDeclineConfirmTarget(null);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 transition-colors text-xs cursor-pointer shadow-md"
+                >
+                  Decline Appointment
+                </button>
+                <button
+                  onClick={() => setDeclineConfirmTarget(null)}
+                  className="w-full py-2.5 px-4 rounded-xl font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-250 dark:hover:bg-slate-700 transition-colors text-xs cursor-pointer border border-slate-200 dark:border-slate-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Pending Request Details Drawer / Modal */}
+      <AnimatePresence>
+        {pendingDetailTarget && (
+          <div className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[90vh] rounded-3xl flex flex-col justify-between shadow-2xl p-6 sm:p-7 overflow-y-auto text-slate-900 dark:text-white relative">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 shrink-0 font-sans">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 text-amber-600">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 font-mono">
+                      Appointment Request
+                    </span>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
+                      Request Details
+                    </h3>
+                  </div>
+                </div>
+                <button onClick={() => setPendingDetailTarget(null)} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="py-4 space-y-4 text-xs font-sans">
+                <p className="text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
+                  You have received an appointment follow-up request from the doctor.
+                </p>
+
+                <div className="space-y-3.5 pt-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Doctor</div>
+                      <div className="text-xs font-extrabold text-slate-950 dark:text-white">{pendingDetailTarget.doctorName || 'Dr. Arun Kumar'}</div>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Department</div>
+                      <div className="text-xs font-extrabold text-slate-955 dark:text-white">{pendingDetailTarget.clinicName || 'General Medicine'}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Date</div>
+                      <div className="text-xs font-extrabold text-slate-950 dark:text-white">{pendingDetailTarget.date}</div>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Time</div>
+                      <div className="text-xs font-extrabold text-slate-955 dark:text-white">{pendingDetailTarget.time}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex gap-2.5">
+                <button
+                  onClick={() => {
+                    handleAcceptFollowUp(pendingDetailTarget.id);
+                    setPendingDetailTarget(null);
+                  }}
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs shadow-md transition-colors cursor-pointer"
+                >
+                  Accept Request
+                </button>
+                <button
+                  onClick={() => {
+                    setPendingDetailTarget(null);
+                    setDeclineConfirmTarget(pendingDetailTarget);
+                  }}
+                  className="flex-1 py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs border border-rose-250 transition-colors cursor-pointer"
+                >
+                  Decline Request
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

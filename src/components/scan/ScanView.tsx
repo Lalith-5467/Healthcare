@@ -167,22 +167,24 @@ export const ScanView: React.FC<ScanViewProps> = ({
     setScannerOpen(false);
     setCapturedImage(dataUrl);
     setSelectedFile(null);
-    setFlowStep('editing');
-    setEditorOpen(true);
+    if (scanMode === 'prescription') {
+      // Prescription mode: skip editor, go straight to AI extraction in PrescriptionScannerTab
+      showToast('✓ Scan captured. Extracting prescription data...');
+    } else {
+      // General mode: open editor for crop/adjust
+      setFlowStep('editing');
+      setEditorOpen(true);
+    }
   };
 
-  // EDITOR CONTINUE HANDLER
+  // EDITOR CONTINUE HANDLER (general mode only)
   const handleEditorContinue = (editedSrc: string) => {
     setEditorOpen(false);
     const finalImage = editedSrc || capturedImage;
     if (finalImage) {
       setCapturedImage(finalImage);
     }
-    if (scanMode === 'prescription') {
-      showToast('✓ Optical prescription scan received. Extracting clinical data...');
-    } else {
-      setFlowStep('info');
-    }
+    setFlowStep('info');
   };
 
   // SAVE SINGLE RECORD TO LOCAL STORAGE & STATE
@@ -334,6 +336,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
           onClearCapturedImage={() => setCapturedImage(null)}
           onNavigate={onNavigate}
           onToast={showToast}
+          onOpenScanner={() => setScannerOpen(true)}
         />
       ) : (
         <div className="space-y-6">
