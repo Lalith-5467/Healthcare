@@ -15,7 +15,7 @@ export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => 
   ];
 
   return (
-    <section id="about" className="py-20 bg-slate-50 dark:bg-[#0f172a] transition-colors overflow-hidden">
+    <section id="about" className="py-14 sm:py-16 bg-slate-50 dark:bg-[#0f172a] transition-colors overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -80,12 +80,9 @@ export const AboutHospital: React.FC<AboutHospitalProps> = ({ onLearnMore }) => 
             <div className="relative mx-auto max-w-lg lg:max-w-none">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 group">
                 <img 
-                  src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=1000&q=80" 
-                  alt="MediCare Digital Health"
-                  className="w-full h-[360px] sm:h-[420px] object-cover group-hover:scale-105 transition-transform duration-700"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80";
-                  }}
+                  src="/about-us-phr.jpg" 
+                  alt="MediCare Digital Health Records & Consultation"
+                  className="w-full h-[360px] sm:h-[420px] object-cover object-[center_35%] group-hover:scale-105 transition-transform duration-700"
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
