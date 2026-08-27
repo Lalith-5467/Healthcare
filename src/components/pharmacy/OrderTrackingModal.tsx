@@ -18,19 +18,31 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 }) => {
   if (!isOpen || !order) return null;
 
-  const trackingSteps = [
-    { label: 'Order Received',     time: '10:02 AM', done: true,  active: false },
-    { label: 'Pharmacy Confirmed', time: '10:08 AM', done: true,  active: false },
-    { label: 'Preparing Medicines',time: '10:15 AM', done: true,  active: false },
-    { label: 'Ready for Dispatch', time: '10:25 AM', done: true,  active: false },
-    { label: 'Out for Delivery',   time: '10:30 AM', done: order.status === 'Delivered', active: order.status === 'Out for Delivery' },
-    { label: 'Delivered to Home',  time: 'Pending',  done: order.status === 'Delivered', active: false },
-  ];
+  const isDeclined = order.status === 'Declined by Pharmacist' || order.status === 'Cancelled';
+  const isPending = order.status === 'Pending Pharmacist Verification';
+  const isProcessing = order.status === 'Processing' || order.status === 'Preparing' || order.status === 'Confirmed';
+  const isReady = order.status === 'Ready for Pickup' || order.status === 'Out for Delivery';
+  const isDelivered = order.status === 'Delivered';
 
-  const canCancel = ['Order Received', 'Confirmed', 'Preparing'].includes(order.status);
+  const trackingSteps = isDeclined
+    ? [
+        { label: 'Prescription Order Placed', time: '10:02 AM', done: true, active: false },
+        { label: 'Pharmacist Clinical Review', time: '10:08 AM', done: true, active: false },
+        { label: 'Order Declined by Pharmacist', time: '10:10 AM', done: false, active: true, isError: true },
+      ]
+    : [
+        { label: 'Prescription Order Placed', time: '10:02 AM', done: true, active: false },
+        { label: 'Pharmacist Verified & Accepted', time: (order as any).verifiedAt || '10:08 AM', done: !isPending, active: isPending },
+        { label: 'Dispensing & Packaging', time: isProcessing ? 'In Progress' : isReady || isDelivered ? 'Completed' : 'Pending', done: isReady || isDelivered, active: isProcessing },
+        { label: 'Out for Delivery / Ready', time: isReady ? 'In Transit' : isDelivered ? '10:30 AM' : 'Pending', done: isDelivered, active: isReady },
+        { label: 'Delivered to Home', time: isDelivered ? 'Delivered' : 'Pending', done: isDelivered, active: false },
+      ];
+
+  const canCancel = isPending || order.status === 'Order Received';
 
   /* Dot colours */
-  const getDotStyle = (step: typeof trackingSteps[0]) => {
+  const getDotStyle = (step: any) => {
+    if (step.isError) return { bg: '#e11d48', border: '#f43f5e', glow: 'rgba(225,29,72,.35)' };
     if (step.done)   return { bg: '#10b981', border: '#34d399', glow: 'rgba(16,185,129,.35)' };
     if (step.active) return { bg: '#00a896', border: '#5eead4', glow: 'rgba(0,168,150,.35)' };
     return            { bg: '#ffffff',    border: '#d1d5db', glow: 'transparent' };
@@ -228,8 +240,33 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               </div>
             </div>
 
+            {/* ── DECLINED OR VERIFIED ALERTS ── */}
+            {isDeclined && (
+              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-700 dark:text-rose-300 space-y-1">
+                <div className="font-extrabold flex items-center gap-1.5">
+                  <Ban className="w-4 h-4 text-rose-600" />
+                  <span>Order Declined by Pharmacist</span>
+                </div>
+                <p className="text-[11px] font-medium">
+                  <strong>Reason:</strong> {(order as any).declineReason || 'Medicines currently unavailable or prescription details unclear'}
+                </p>
+                {(order as any).pharmacistNotes && (
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                    <strong>Pharmacist Notes:</strong> {(order as any).pharmacistNotes}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {!isDeclined && !isPending && (
+              <div className="p-2.5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-800 dark:text-cyan-300 flex items-center justify-between">
+                <span>✓ Verified by <strong>{(order as any).pharmacistName || 'Registered Pharmacist'}</strong></span>
+                <span className="font-mono text-[10px] text-slate-500">{(order as any).verifiedAt || 'Verified Today'}</span>
+              </div>
+            )}
+
             {/* ── PHARMACY & ADDRESS ── */}
-            <div className="space-y-1.5 pt-3" style={{ borderTop: '1px solid rgba(20,184,166,.12)' }}>
+            <div className="space-y-1.5 pt-2" style={{ borderTop: '1px solid rgba(20,184,166,.12)' }}>
               <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: 'rgba(20,184,166,.1)' }}>
@@ -242,7 +279,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   style={{ background: 'rgba(20,184,166,.1)' }}>
                   <MapPin className="w-3 h-3" style={{ color: '#00a896' }} />
                 </div>
-                <span>Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">12, Green Park Avenue, New Delhi</strong></span>
+                <span>Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">{(order as any).deliveryAddress || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai'}</strong></span>
               </div>
             </div>
 

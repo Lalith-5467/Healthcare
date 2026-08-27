@@ -16,6 +16,7 @@ export interface EmergencyMedicalInfo {
   medications: string;
   preferredHospital: string;
   medicalId: string;
+  organDonor?: boolean;
 }
 
 export interface EmergencyServiceItem {

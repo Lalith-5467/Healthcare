@@ -12,7 +12,7 @@ interface FamilyFilterDrawerProps {
   onClose: () => void;
   filters: FamilyFilterState;
   onApplyFilters: (newFilters: FamilyFilterState) => void;
-  onResetFilters: () => void;
+  onResetFilters?: () => void;
 }
 
 export const FamilyFilterDrawer: React.FC<FamilyFilterDrawerProps> = ({
@@ -20,7 +20,7 @@ export const FamilyFilterDrawer: React.FC<FamilyFilterDrawerProps> = ({
   onClose,
   filters,
   onApplyFilters,
-  onResetFilters,
+  onResetFilters = () => {},
 }) => {
   const [localFilters, setLocalFilters] = useState<FamilyFilterState>(filters);
 

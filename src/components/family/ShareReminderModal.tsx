@@ -6,7 +6,8 @@ interface ShareReminderModalProps {
   members: FamilyMember[];
   isOpen: boolean;
   onClose: () => void;
-  onConfirmShare: (newReminder: SharedReminder) => void;
+  onConfirmShare?: (newReminder: SharedReminder) => void;
+  onShare?: (newReminder: SharedReminder) => void;
 }
 
 export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
@@ -14,6 +15,7 @@ export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
   isOpen,
   onClose,
   onConfirmShare,
+  onShare,
 }) => {
   const [reminderTitle, setReminderTitle] = useState('Metformin Dose (500mg)');
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -47,7 +49,8 @@ export const ShareReminderModal: React.FC<ShareReminderModalProps> = ({
     };
 
     setTimeout(() => {
-      onConfirmShare(newRem);
+      if (onConfirmShare) onConfirmShare(newRem);
+      if (onShare) onShare(newRem);
       setSaving(false);
       onClose();
     }, 800);

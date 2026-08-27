@@ -6,7 +6,8 @@ interface ShareAppointmentModalProps {
   members: FamilyMember[];
   isOpen: boolean;
   onClose: () => void;
-  onConfirmShare: (newAppointment: SharedAppointment) => void;
+  onConfirmShare?: (newAppointment: SharedAppointment) => void;
+  onShare?: (newAppointment: SharedAppointment) => void;
 }
 
 export const ShareAppointmentModal: React.FC<ShareAppointmentModalProps> = ({
@@ -14,6 +15,7 @@ export const ShareAppointmentModal: React.FC<ShareAppointmentModalProps> = ({
   isOpen,
   onClose,
   onConfirmShare,
+  onShare,
 }) => {
   const [doctorName, setDoctorName] = useState('Dr. Rajesh Kumar');
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -49,7 +51,8 @@ export const ShareAppointmentModal: React.FC<ShareAppointmentModalProps> = ({
     };
 
     setTimeout(() => {
-      onConfirmShare(newApt);
+      if (onConfirmShare) onConfirmShare(newApt);
+      if (onShare) onShare(newApt);
       setSaving(false);
       onClose();
     }, 800);

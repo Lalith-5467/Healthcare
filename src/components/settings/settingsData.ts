@@ -38,9 +38,14 @@ export interface NotificationSettingsState {
   channelEmail: boolean;
   channelSMS: boolean;
   channelPush: boolean;
+  emailNotifications?: boolean;
+  smsAlerts?: boolean;
+  pushNotifications?: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;
+  quietStart?: string;
+  quietEnd?: string;
 }
 
 export interface PrivacySettingsState {
@@ -50,11 +55,15 @@ export interface PrivacySettingsState {
   activityTracking: boolean;
   locationAccess: boolean;
   personalizedExperience: boolean;
+  shareDoctor?: boolean;
+  shareFamily?: boolean;
+  allowResearchData?: boolean;
+  allowAnalytics?: boolean;
 }
 
 export interface AppearanceSettingsState {
   theme: 'Dark' | 'Light' | 'System';
-  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Teal' | 'Rose';
+  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Green' | 'Rose' | 'Teal';
   fontSize: 'Small' | 'Medium' | 'Large' | 'Extra Large';
   reducedMotion: boolean;
 }
@@ -63,6 +72,7 @@ export interface HealthPreferencesSettingsState {
   healthcareType: 'General Care' | 'Specialist Care' | 'Preventive Care';
   language: 'English' | 'Tamil' | 'Hindi' | 'Spanish' | 'Telugu';
   units: 'Metric' | 'Imperial';
+  measurementSystem?: 'Metric' | 'Imperial';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   timeFormat: '12 Hour' | '24 Hour';
   remindersMedication: boolean;
@@ -70,6 +80,9 @@ export interface HealthPreferencesSettingsState {
   remindersCheckUp: boolean;
   remindersInsurance: boolean;
   remindersHydration: boolean;
+  waterReminder?: boolean;
+  vitalsReminder?: boolean;
+  vaccinationSync?: boolean;
 }
 
 export interface ConnectedServiceItem {

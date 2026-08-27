@@ -24,6 +24,7 @@ import {
   RecentActivityTimeline,
   DashboardSkeleton
 } from '../components/dashboard';
+import { RecentPrescriptionTrackCard } from '../components/dashboard/RecentPrescriptionTrackCard';
 
 import { ProfileView } from '../components/profile';
 import { RecordsView } from '../components/records';
@@ -327,6 +328,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
             {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}
             <DashboardStatsGrid onNavigate={handleSelectNav} />
+
+            {/* 2.5 LIVE VERIFIED PRESCRIPTION & PHARMACY TRACKING CARD */}
+            <RecentPrescriptionTrackCard
+              onNavigate={handleSelectNav}
+              onToast={showToast}
+            />
 
             {/* 3. HEALTH OVERVIEW HERO GRID (HEALTH SCORE + HEALTH ACCESS) */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">

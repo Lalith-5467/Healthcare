@@ -14,6 +14,22 @@ export interface MedicalRecordItem {
   metrics?: { name: string; value: string; status: 'Normal' | 'High' | 'Low' }[];
 }
 
+export interface RecordFilterState {
+  type?: string;
+  year?: string;
+  doctor?: string;
+  hospital?: string;
+  sortBy?: string;
+  dateRange?: string;
+  status?: string;
+  recordTypes?: string[];
+  doctors?: string[];
+  hospitals?: string[];
+  onlyImportant?: boolean;
+}
+
+export type FilterState = RecordFilterState;
+
 export const INITIAL_RECORDS: MedicalRecordItem[] = [
   {
     id: 'REC-2026-00842',

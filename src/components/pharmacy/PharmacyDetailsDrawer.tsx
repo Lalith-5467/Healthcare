@@ -66,7 +66,7 @@ export const PharmacyDetailsDrawer: React.FC<PharmacyDetailsDrawerProps> = ({
               <Truck className="w-4 h-4 text-emerald-600" />
               <div>
                 <span className="text-[10px] text-slate-400 block font-bold">Delivery Time</span>
-                <strong className="text-slate-800 dark:text-slate-200">{pharmacy.deliveryTimeMinutes} mins</strong>
+                <strong className="text-slate-800 dark:text-slate-200">{pharmacy.deliveryTime}</strong>
               </div>
             </div>
 
@@ -74,7 +74,7 @@ export const PharmacyDetailsDrawer: React.FC<PharmacyDetailsDrawerProps> = ({
               <CheckCircle2 className="w-4 h-4 text-[#00a896]" />
               <div>
                 <span className="text-[10px] text-slate-400 block font-bold">Home Delivery</span>
-                <strong className="text-slate-800 dark:text-slate-200">{pharmacy.homeDeliveryAvailable ? 'Available' : 'Unavailable'}</strong>
+                <strong className="text-slate-800 dark:text-slate-200">{pharmacy.deliveryAvailable ? 'Available' : 'Unavailable'}</strong>
               </div>
             </div>
           </div>

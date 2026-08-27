@@ -5,13 +5,15 @@ import type { EmergencyContact } from './familyData';
 interface AddEmergencyContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveContact: (newContact: EmergencyContact) => void;
+  onSaveContact?: (newContact: EmergencyContact) => void;
+  onAdd?: (newContact: EmergencyContact) => void;
 }
 
 export const AddEmergencyContactModal: React.FC<AddEmergencyContactModalProps> = ({
   isOpen,
   onClose,
   onSaveContact,
+  onAdd,
 }) => {
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('Father');
@@ -35,7 +37,8 @@ export const AddEmergencyContactModal: React.FC<AddEmergencyContactModalProps> =
     };
 
     setTimeout(() => {
-      onSaveContact(created);
+      if (onSaveContact) onSaveContact(created);
+      if (onAdd) onAdd(created);
       setSaving(false);
       onClose();
     }, 800);

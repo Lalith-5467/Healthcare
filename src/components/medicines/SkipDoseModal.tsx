@@ -6,7 +6,7 @@ interface SkipDoseModalProps {
   isOpen: boolean;
   dose: DoseRecord | null;
   onClose: () => void;
-  onConfirmSkip: (doseId: string) => void;
+  onConfirmSkip: (doseId: string, reason?: string) => void;
 }
 
 export const SkipDoseModal: React.FC<SkipDoseModalProps> = ({

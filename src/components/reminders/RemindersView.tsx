@@ -10,6 +10,11 @@ import {
   INITIAL_NOTIFICATIONS,
   DEFAULT_NOTIFICATION_SETTINGS
 } from './remindersData';
+import {
+  updateReminderFollowUpStatus,
+  getReminders as getStoredReminders,
+  getNotifications as getStoredNotifications
+} from '../../utils/healthWorkflowStorage';
 import { CreateReminderModal } from './CreateReminderModal';
 import { RemindersFilterDrawer } from './RemindersFilterDrawer';
 import type { RemindersFilterState } from './RemindersFilterDrawer';
@@ -74,21 +79,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [clearHistoryOpen, setClearHistoryOpen] = useState(false);
 
   const loadAllData = () => {
-    const savedReminders = localStorage.getItem('user_reminders');
-    if (savedReminders) {
-      try {
-        setReminders(JSON.parse(savedReminders));
-      } catch (e) {
-        console.error(e);
-      }
+    const loadedReminders = getStoredReminders();
+    if (loadedReminders && loadedReminders.length > 0) {
+      setReminders(loadedReminders);
     }
-    const savedNotifs = localStorage.getItem('user_notifications');
-    if (savedNotifs) {
-      try {
-        setNotifications(JSON.parse(savedNotifs));
-      } catch (e) {
-        console.error(e);
-      }
+    const loadedNotifs = getStoredNotifications();
+    if (loadedNotifs && loadedNotifs.length > 0) {
+      setNotifications(loadedNotifs);
     }
     const savedSetts = localStorage.getItem('user_notification_settings');
     if (savedSetts) {
@@ -104,9 +101,11 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     loadAllData();
     const handleUpdate = () => loadAllData();
     window.addEventListener('notifications_updated', handleUpdate);
+    window.addEventListener('health_workflow_updated', handleUpdate);
     const timer = setTimeout(() => setLoading(false), 300);
     return () => {
       window.removeEventListener('notifications_updated', handleUpdate);
+      window.removeEventListener('health_workflow_updated', handleUpdate);
       clearTimeout(timer);
     };
   }, []);
@@ -120,6 +119,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     setReminders(newReminders);
     localStorage.setItem('user_reminders', JSON.stringify(newReminders));
     window.dispatchEvent(new Event('notifications_updated'));
+    window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   const saveNotificationsState = (newNotifs: NotificationLog[]) => {
@@ -131,6 +131,19 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const saveSettingsState = (newSetts: NotificationSettingsState) => {
     setSettings(newSetts);
     localStorage.setItem('user_notification_settings', JSON.stringify(newSetts));
+  };
+
+  // ACCEPT & DECLINE DOCTOR FOLLOW-UPS
+  const handleAcceptFollowUp = (id: string) => {
+    updateReminderFollowUpStatus(id, 'Accepted');
+    loadAllData();
+    showToast('✓ Appointment Accepted! Follow-up confirmed with doctor.');
+  };
+
+  const handleDeclineFollowUp = (id: string) => {
+    updateReminderFollowUpStatus(id, 'Declined');
+    loadAllData();
+    showToast('✕ Appointment Declined.');
   };
 
   // REMINDER ACTIONS
@@ -457,34 +470,60 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       </button>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`text-sm font-extrabold truncate ${isCompleted ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h4 className={`text-sm font-extrabold truncate ${isCompleted ? 'text-slate-500 line-through' : 'text-slate-900 dark:text-white'}`}>
                             {rem.title}
                           </h4>
+                          {rem.sourcePrescriptionId ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                              Scheduled
+                            </span>
+                          ) : rem.status === 'Completed' ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                              Completed
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                              Upcoming
+                            </span>
+                          )}
                           {rem.priority === 'High Priority' && !isCompleted && (
                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
+                        <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap">
                           <span className={`px-2 py-0.5 rounded-md border ${badge.bg} ${badge.text} ${badge.border} flex items-center gap-1`}>
                             <Icon className="w-3 h-3" />
                             {rem.category}
                           </span>
+                          {rem.sourcePrescriptionId && (
+                            <span className="text-[10px] font-mono text-[#00a896] dark:text-cyan-400 bg-teal-500/10 px-1.5 py-0.5 rounded border border-teal-500/20">
+                              Rx: {rem.sourcePrescriptionId}
+                            </span>
+                          )}
                           <span>•</span>
                           <span className="truncate">{rem.description}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-end pl-10 sm:pl-0">
-                      <span className={`text-sm font-bold font-mono ${isCompleted ? 'text-slate-400' : 'text-slate-700'}`}>
+                    <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-between sm:justify-end pl-10 sm:pl-0 flex-wrap">
+                      <span className={`text-sm font-bold font-mono ${isCompleted ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
                         {rem.time}
                       </span>
                       
                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
+                          onClick={() => { setEditingReminder(rem); setCreateModalOpen(true); }}
+                          className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="Edit reminder"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
                           onClick={() => handleDeleteReminder(rem.id, rem.title)}
-                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                          title="Delete reminder"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -576,23 +615,51 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               const Icon = badge.icon;
               return (
                 <div key={rem.id} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-md shadow-slate-200/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border} shrink-0`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-900">{rem.title}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        {rem.date} • {rem.time}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{rem.title}</h4>
+                        {rem.sourcePrescriptionId ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                            Scheduled
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                            Upcoming
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 truncate">
+                        {rem.date} • {rem.time} {rem.sourcePrescriptionId ? `• Rx: ${rem.sourcePrescriptionId}` : ''}
                       </p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setDetailTarget(rem)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
-                  >
-                    View
-                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                    <button 
+                      onClick={() => setDetailTarget(rem)}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-colors cursor-pointer"
+                    >
+                      View Details
+                    </button>
+                    <button 
+                      onClick={() => { setEditingReminder(rem); setCreateModalOpen(true); }}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      title="Edit reminder"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteReminder(rem.id, rem.title)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      title="Delete reminder"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -621,6 +688,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         onClose={() => setDetailTarget(null)}
         onNavigateModule={(mod) => _onNavigate(mod)}
         onDismiss={handleDismissReminder}
+        onAcceptFollowUp={handleAcceptFollowUp}
+        onDeclineFollowUp={handleDeclineFollowUp}
       />
 
       <SnoozeModal

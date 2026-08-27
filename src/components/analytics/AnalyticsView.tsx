@@ -98,11 +98,23 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleSaveGoal = (newGoal: HealthGoal) => {
-    const updated = [newGoal, ...goals];
+  const handleSaveGoal = (newGoal: Partial<HealthGoal>) => {
+    const fullGoal: HealthGoal = {
+      id: newGoal.id || `GOAL-${Date.now().toString().slice(-4)}`,
+      title: newGoal.title || 'Health Target',
+      category: (newGoal.category as any) || 'Activity',
+      current: newGoal.current || 0,
+      target: newGoal.target || 100,
+      unit: newGoal.unit || 'pts',
+      startDate: newGoal.startDate || '27 Aug 2026',
+      endDate: newGoal.endDate || '30 Sep 2026',
+      progress: newGoal.progress || 0,
+      isPaused: newGoal.isPaused || false
+    };
+    const updated = [fullGoal, ...goals];
     setGoals(updated);
     localStorage.setItem('user_health_goals', JSON.stringify(updated));
-    showToast(`✓ Goal "${newGoal.title}" added successfully`);
+    showToast(`✓ Goal "${fullGoal.title}" added successfully`);
   };
 
   // FILTERED ACTIVITY LIST

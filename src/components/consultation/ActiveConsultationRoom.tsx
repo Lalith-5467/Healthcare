@@ -565,26 +565,26 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
 
       {/* KEYBOARD SHORTCUTS MODAL */}
       {shortcutsModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-white">Keyboard Shortcuts</h3>
-              <button onClick={() => setShortcutsModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 font-sans">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-slate-900 dark:text-white">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+              <button onClick={() => setShortcutsModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-600 dark:text-slate-300">
                 <span>Toggle Mute/Unmute:</span>
-                <kbd className="px-2 py-0.5 bg-slate-800 rounded font-mono text-cyan-400">M</kbd>
+                <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono text-[#00a896] dark:text-cyan-400 border border-slate-200 dark:border-slate-700">M</kbd>
               </div>
-              <div className="flex justify-between text-slate-300">
+              <div className="flex justify-between text-slate-600 dark:text-slate-300">
                 <span>Toggle Camera On/Off:</span>
-                <kbd className="px-2 py-0.5 bg-slate-800 rounded font-mono text-cyan-400">V</kbd>
+                <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono text-[#00a896] dark:text-cyan-400 border border-slate-200 dark:border-slate-700">V</kbd>
               </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Toggle Chat Panel:</span>
-                <kbd className="px-2 py-0.5 bg-slate-800 rounded font-mono text-cyan-400">C</kbd>
+              <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                <span>Toggle Fullscreen:</span>
+                <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono text-[#00a896] dark:text-cyan-400 border border-slate-200 dark:border-slate-700">F</kbd>
               </div>
             </div>
           </div>
