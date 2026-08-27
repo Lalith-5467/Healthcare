@@ -19,7 +19,7 @@ export const FamilySettingsSection: React.FC<FamilySettingsSectionProps> = ({
 
         <button
           onClick={onNavigateFamily}
-          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] opacity-90 hover:opacity-100 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
         >
           <span>Manage Family Connect</span>
           <ExternalLink className="w-3.5 h-3.5" />
@@ -40,7 +40,7 @@ export const FamilySettingsSection: React.FC<FamilySettingsSectionProps> = ({
 
         <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
           <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase block font-sans">Shared Emergency Records</span>
-          <strong className="text-purple-700 dark:text-purple-300 text-base font-extrabold font-sans">Medical ID Shared</strong>
+          <strong className="text-[#00a896] text-base font-extrabold font-sans">Medical ID Shared</strong>
         </div>
       </div>
     </div>

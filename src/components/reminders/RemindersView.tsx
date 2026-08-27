@@ -483,12 +483,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       
                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
-                          onClick={() => { setEditingReminder(rem); setCreateModalOpen(true); }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
                           onClick={() => handleDeleteReminder(rem.id, rem.title)}
                           className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         >

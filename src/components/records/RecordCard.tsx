@@ -89,19 +89,6 @@ export const RecordCard: React.FC<RecordCardProps> = ({
       {/* HEADER: ICON, CHECKBOX & ACTIONS */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          {onToggleSelect && (
-            <button
-              onClick={() => onToggleSelect(record.id)}
-              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer mt-0.5 ${
-                isSelected
-                  ? 'bg-[#00a896] border-[#00a896] text-white'
-                  : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-transparent hover:border-[#00a896]'
-              }`}
-            >
-              <Check className="w-3.5 h-3.5" />
-            </button>
-          )}
-
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
             {getIcon()}
           </div>

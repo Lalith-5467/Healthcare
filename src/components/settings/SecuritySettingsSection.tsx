@@ -92,7 +92,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
       {/* TWO-FACTOR AUTH */}
       <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-300 font-bold">
+          <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#00a896] font-bold">
             <Smartphone className="w-5 h-5" />
           </div>
           <div>
@@ -150,7 +150,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
                   type="password"
                   value={currentPass}
                   onChange={(e) => setCurrentPass(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896]"
                   required
                 />
               </div>
@@ -161,7 +161,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
                   type="password"
                   value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896]"
                   required
                 />
                 {newPass && (
@@ -185,14 +185,14 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
                   type="password"
                   value={confirmPass}
                   onChange={(e) => setConfirmPass(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896]"
                   required
                 />
               </div>
 
               <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 font-extrabold">
                 <button type="button" onClick={() => setChangePassOpen(false)} className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer border border-slate-300 dark:border-slate-700">Cancel</button>
-                <button type="submit" disabled={passSaving} className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white cursor-pointer flex items-center gap-1.5 shadow-md">
+                <button type="submit" disabled={passSaving} className="px-4 py-2 rounded-xl bg-[#00a896] opacity-90 hover:opacity-100 text-white cursor-pointer flex items-center gap-1.5 shadow-md">
                   {passSaving ? <Sparkles className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   <span>Update Password</span>
                 </button>
@@ -222,7 +222,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
                     setTwoFaModalOpen(false);
                     onShowToast(`✓ 2FA Enabled via ${method}`);
                   }}
-                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-left cursor-pointer"
+                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[#00a896] font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-left cursor-pointer"
                 >
                   Enable via {method} →
                 </button>

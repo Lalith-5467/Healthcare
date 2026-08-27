@@ -34,35 +34,40 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="mx-3 my-2 p-4 rounded-2xl bg-gradient-to-br from-purple-50 via-blue-50/50 to-teal-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 border border-purple-100/50 dark:border-slate-800 shadow-sm relative overflow-hidden group shrink-0 transition-all hover:shadow-md"
+      className="mx-3 my-2 p-5 rounded-3xl bg-white dark:bg-slate-900 border-[1.5px] border-purple-200 dark:border-purple-800 shadow-xl relative overflow-hidden group shrink-0 transition-all text-center flex flex-col items-center justify-center"
+      style={{ boxShadow: '0 10px 30px -10px rgba(147, 51, 234, 0.25)' }}
     >
       {/* GLOW DECORATION */}
-      <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-500/15 transition-all" />
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-50/80 to-transparent dark:from-purple-900/20 pointer-events-none" />
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 space-y-2.5 font-sans">
-        {/* CARD HEADER */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1 rounded-lg bg-purple-100/50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white tracking-tight">Premium Health</h4>
-          </div>
+      <div className="relative z-10 space-y-3 font-sans w-full">
+        {/* CARD HEADER (Centered, No Logo) */}
+        <div className="flex items-center justify-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <h4 className="text-[17px] font-serif font-extrabold text-[#2d1b69] dark:text-purple-100 tracking-tight leading-tight">
+            Premium Health
+          </h4>
         </div>
 
-        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium max-w-[90%]">
+        <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed font-medium mx-auto px-1">
           Unlock exclusive benefits and priority support.
         </p>
 
-        {/* GO PREMIUM BUTTON */}
+        {/* GO PREMIUM BUTTON (Glossy) */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={onOpenPremiumModal}
-          className="w-full py-2 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 font-bold text-[11px] border border-purple-200 dark:border-slate-700 shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+          className="w-full mt-3 py-2.5 px-4 rounded-full bg-gradient-to-r from-purple-700 to-blue-600 text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer relative overflow-hidden ring-[1.5px] ring-amber-200/70 dark:ring-amber-500/50 ring-offset-2 ring-offset-purple-50 dark:ring-offset-slate-900"
+          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
         >
-          <Crown className="w-3.5 h-3.5" />
-          <span>Upgrade Now</span>
+          {/* Inner glossy highlight */}
+          <div className="absolute top-0 left-1 right-1 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full pointer-events-none"></div>
+          
+          <Crown className="w-4 h-4 text-amber-300 drop-shadow-sm relative z-10" />
+          <span className="relative z-10 tracking-wide">Upgrade Now</span>
         </motion.button>
       </div>
     </motion.div>

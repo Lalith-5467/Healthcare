@@ -26,7 +26,7 @@ export const ConnectedServicesSection: React.FC<ConnectedServicesSectionProps> =
           <div key={serv.id} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between shadow-sm">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] text-purple-700 dark:text-purple-300 font-bold uppercase block font-sans">{serv.category}</span>
+                <span className="text-[10px] text-[#00a896] font-bold uppercase block font-sans">{serv.category}</span>
                 <h4 className="font-extrabold text-slate-900 dark:text-white text-sm font-sans">{serv.name}</h4>
               </div>
 
@@ -40,7 +40,7 @@ export const ConnectedServicesSection: React.FC<ConnectedServicesSectionProps> =
               <button
                 onClick={() => onToggleService(serv.id)}
                 className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  serv.enabled ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                  serv.enabled ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                 }`}
               >
                 <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${

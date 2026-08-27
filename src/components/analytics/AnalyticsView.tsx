@@ -167,33 +167,45 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       />
 
       {/* 2. HEALTH OVERVIEW HERO SECTION */}
-      <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden font-sans">
-        <div className="space-y-3 text-center md:text-left flex-1">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden font-sans">
+        {/* Decorative SVG Background */}
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, #00a896 0%, transparent 50%), radial-gradient(circle at 20% 20%, #475569 0%, transparent 30%)' }}></div>
+        <svg className="absolute right-0 top-0 h-full w-2/3 opacity-10 pointer-events-none text-[#00a896] dark:text-teal-500" viewBox="0 0 400 200" preserveAspectRatio="none">
+           <path fill="none" stroke="currentColor" strokeWidth="1" d="M10,10 Q150,200 390,10" />
+           <path fill="none" stroke="currentColor" strokeWidth="1" d="M10,190 Q150,0 390,190" />
+           <circle cx="200" cy="100" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
+           <circle cx="200" cy="100" r="60" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4,4" />
+        </svg>
+
+        <div className="space-y-4 text-center md:text-left flex-1 relative z-10">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
-            Personal Health Dashboard Summary
+            Personal Health Accuracy Report
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Your health activity at a glance</h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed font-medium">
-            Consolidated personal metrics, medication routine adherence, appointment history & document activity.
+            Consolidated personal health metric score: Excellent, <strong className="text-[#00a896] dark:text-teal-400">1.2% higher</strong> than previous period
           </p>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 text-[11px] font-bold border border-slate-300 dark:border-slate-800">
-              Period: {globalDateRange}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[11px] font-bold border border-amber-500/30">
-              Demo Data Mode
-            </span>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
+            <button onClick={() => onNavigate('dashboard')} className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer">
+              Actual ratings
+            </button>
+            <button onClick={() => onNavigate('records')} className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-md cursor-pointer">
+              More details
+            </button>
           </div>
         </div>
 
         {/* CIRCULAR DEMO HEALTH SCORE VISUALIZATION */}
-        <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-2 shrink-0 min-w-[220px] shadow-sm">
+        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-slate-200/60 dark:border-slate-700/60 text-center space-y-2 shrink-0 min-w-[220px] shadow-lg relative z-10">
           <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+            {/* Inner background blob to mimic the soft glowing effect */}
+            <div className="absolute inset-2 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/50 dark:to-slate-800 rounded-full opacity-70"></div>
+            
+            <svg className="w-full h-full transform -rotate-90 relative z-10" viewBox="0 0 36 36">
               <path
-                className="text-slate-200 dark:text-slate-800"
-                strokeWidth="3.5"
+                className="text-slate-200/50 dark:text-slate-800/50"
+                strokeWidth="4"
                 stroke="currentColor"
                 fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -201,26 +213,26 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               <path
                 className="text-[#00a896] dark:text-teal-400"
                 strokeDasharray="86, 100"
-                strokeWidth="3.5"
+                strokeWidth="4"
                 strokeLinecap="round"
                 stroke="currentColor"
                 fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
             </svg>
-            <div className="absolute flex flex-col items-center justify-center">
-              <span className="font-mono text-3xl font-extrabold text-slate-900 dark:text-white">86</span>
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">/ 100</span>
+            <div className="absolute flex flex-col items-center justify-center z-10">
+              <span className="font-sans text-3xl font-extrabold text-slate-900 dark:text-white leading-none">86</span>
+              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">score</span>
             </div>
           </div>
 
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#00a896] dark:text-cyan-400 block font-mono">
-              Demo Health Score
+          <div className="space-y-0.5 pt-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block font-sans">
+              Total Health Score
             </span>
-            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+            <span className="text-[11px] font-bold text-[#00a896] dark:text-teal-400 inline-flex items-center gap-1">
               <ArrowUpRight className="w-3.5 h-3.5" />
-              +4% vs previous period
+              1.2% on previous period
             </span>
           </div>
         </div>
@@ -228,75 +240,80 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
       {/* 3. KEY METRICS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-sans">
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Medication Adherence</span>
-            <Pill className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Medication Adherence</span>
+            <Pill className="w-4 h-4 text-amber-500 dark:text-amber-400" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-700 dark:text-amber-400 font-mono">91%</span>
-            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">+5.2%</span>
+          <div className="flex items-baseline gap-2 relative z-10">
+            <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-sans">91%</span>
+            <span className="text-[10px] font-bold text-[#00a896] dark:text-teal-400 flex items-center"><ArrowUpRight className="w-3 h-3"/> 51%</span>
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">vs previous period</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium relative z-10">vs previous period</span>
+          
+          {/* Decorative Sparkline */}
+          <svg className="absolute bottom-0 right-0 w-24 h-12 text-[#00a896] dark:text-teal-400 opacity-20" viewBox="0 0 100 50">
+            <path fill="none" stroke="currentColor" strokeWidth="3" d="M0,40 Q25,10 50,30 T100,5" />
+          </svg>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Appointments</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Appointments</span>
             <CalendarIcon className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-cyan-400 font-mono">8</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-cyan-400 font-sans">8</span>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">visits</span>
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">3 upcoming • 5 done</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">registered, 1 time</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Medical Records</span>
-            <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Medical Records</span>
+            <FileText className="w-4 h-4 text-purple-500 dark:text-purple-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-purple-700 dark:text-purple-300 font-mono">24</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 font-sans">24</span>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">records</span>
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Lab reports & prescriptions</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">somecapio a prescription</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-2 shadow-md">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Consultations</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Consultations</span>
             <Video className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400 font-mono">12</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400 font-sans">12</span>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">sessions</span>
           </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">18 min average call</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">more average apx</span>
         </div>
       </div>
 
       {/* 4. VITALS OVERVIEW & INTERACTIVE TREND CHARTS */}
-      <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm font-sans">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Vitals Overview</h3>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                Demo / manually entered values
+                Nors heale data, Atloe, pickrond & oltro meafits
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Track heart rate, blood pressure & vital metrics</p>
           </div>
 
           {/* TIMEFRAME SELECTOR */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono">
+          <div className="flex items-center gap-1.5 p-1 rounded-full border border-slate-200 dark:border-slate-800 text-xs font-sans">
             {(['7D', '30D', '3M'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setVitalsTimeframe(tf)}
-                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer font-sans ${
+                className={`px-4 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
                   vitalsTimeframe === tf ? 'bg-[#00a896] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -307,80 +324,91 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         </div>
 
         {/* METRIC TOGGLES */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
           {[
-            { id: 'Heart Rate', label: 'Heart Rate', val: '72 BPM', icon: Heart, color: 'text-rose-600 dark:text-rose-400' },
-            { id: 'Blood Pressure', label: 'Blood Pressure', val: '120/80', icon: Activity, color: 'text-[#00a896] dark:text-cyan-400' },
-            { id: 'Temperature', label: 'Temperature', val: '98.4°F', icon: Thermometer, color: 'text-amber-600 dark:text-amber-400' },
-            { id: 'SpO2', label: 'SpO₂ Oxygen', val: '98%', icon: Wind, color: 'text-teal-600 dark:text-teal-400' },
-            { id: 'Weight', label: 'Body Weight', val: '68 kg (-1.2)', icon: Scale, color: 'text-purple-600 dark:text-purple-400' }
+            { id: 'Heart Rate', label: 'Heart Rate', val: '72 BPM', img: '/vitals/heart.jpg', color: 'text-rose-500', isNormal: true },
+            { id: 'Blood Pressure', label: 'Blood Pressure', val: '120/80', img: '/vitals/bp.jpg', color: 'text-[#00a896]', isNormal: true },
+            { id: 'Temperature', label: 'Temperature', val: '98.4°F', img: '/vitals/thermo.jpg', color: 'text-amber-500', isNormal: true },
+            { id: 'SpO2', label: 'SpO₂ Oxygen', val: '98%', img: '/vitals/lungs.jpg', color: 'text-teal-500', isNormal: true },
+            { id: 'Weight', label: 'Body Weight', val: '68 kg (-1.2)', img: '/vitals/scale.jpg', color: 'text-purple-500', isNormal: true }
           ].map((m) => {
-            const Icon = m.icon;
             const isSelected = selectedVitalMetric === m.id;
             return (
               <button
                 key={m.id}
                 onClick={() => setSelectedVitalMetric(m.id as any)}
-                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer space-y-1 ${
+                className={`p-4 rounded-3xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 relative overflow-hidden ${
                   isSelected
-                    ? 'bg-slate-100 dark:bg-slate-800 border-[#00a896] dark:border-teal-400 shadow-md'
-                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40'
+                    ? 'bg-slate-50 dark:bg-slate-800 border-[#00a896] dark:border-teal-400 shadow-sm'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase font-mono">{m.label}</span>
-                  <Icon className={`w-3.5 h-3.5 ${m.color}`} />
+                <div className="flex items-center justify-between w-full z-10">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">{m.label}</span>
+                  <img src={m.img} alt={m.label} className="w-8 h-8 rounded-lg object-contain mix-blend-multiply dark:mix-blend-screen drop-shadow-sm" />
                 </div>
-                <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white block">{m.val}</span>
+                <div className="flex items-center justify-between w-full z-10">
+                  <span className="font-sans font-extrabold text-lg text-slate-900 dark:text-white">{m.val.split(' ')[0]} <span className="text-sm font-medium">{m.val.split(' ').slice(1).join(' ')}</span></span>
+                  {m.isNormal && (
+                    <span className="flex items-center gap-1 text-[9px] font-bold text-[#00a896] bg-teal-50 px-1.5 py-0.5 rounded-md border border-teal-100">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00a896]"></span> normal
+                    </span>
+                  )}
+                </div>
+                {isSelected && (
+                   <div className="absolute top-0 right-0 w-16 h-16 bg-teal-50 dark:bg-teal-900/20 rounded-full blur-xl -mr-4 -mt-4 pointer-events-none"></div>
+                )}
               </button>
             );
           })}
         </div>
 
         {/* CHART VISUALIZER */}
-        <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 space-y-4">
           <div className="flex items-center justify-between text-xs font-sans">
-            <span className="font-extrabold text-slate-900 dark:text-white">{selectedVitalMetric} Trend Line</span>
-            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">Interactive Preview</span>
+            <span className="font-bold text-slate-900 dark:text-white">{selectedVitalMetric} Trend Line</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
+              <Sparkles className="w-3 h-3"/> Interactive preview
+            </span>
           </div>
 
-          <div className="h-40 flex items-end justify-between gap-3 pt-6 px-2 relative border-b border-slate-200 dark:border-slate-800">
-            {MOCK_VITALS_TIMELINE.map((v, i) => {
-              const val = selectedVitalMetric === 'Heart Rate' ? v.heartRate : selectedVitalMetric === 'Blood Pressure' ? v.systolic : selectedVitalMetric === 'SpO2' ? v.spo2 : v.weight;
-              const heightPct = Math.min(100, Math.max(30, (val / 130) * 100));
-
-              return (
-                <div
-                  key={i}
-                  onMouseEnter={() => setHoveredVital(v)}
-                  onMouseLeave={() => setHoveredVital(null)}
-                  className="flex-1 flex flex-col items-center gap-2 group cursor-pointer relative"
-                >
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${heightPct}%` }}
-                    transition={{ duration: 0.5, delay: i * 0.05 }}
-                    className="w-full max-w-[28px] rounded-t-xl bg-[#00a896] dark:bg-gradient-to-t dark:from-[#00a896] dark:to-cyan-400 group-hover:bg-[#00897b] transition-all shadow-md"
-                  />
-                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-medium">{v.date}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {hoveredVital && (
-            <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-mono flex items-center justify-between text-[#00a896] dark:text-cyan-300 shadow-sm">
-              <span className="font-bold">{hoveredVital.date} Data Point:</span>
-              <span>HR: {hoveredVital.heartRate} BPM | BP: {hoveredVital.systolic}/{hoveredVital.diastolic} | SpO2: {hoveredVital.spo2}% | Wt: {hoveredVital.weight} kg</span>
+          <div className="h-48 pt-6 relative border-b border-slate-200 dark:border-slate-800 flex items-end w-full">
+            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#00a896" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#00a896" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M0,100 L0,70 Q10,60 20,65 T40,80 T60,50 T80,30 T100,40 L100,100 Z"
+                fill="url(#chartGradient)"
+                className="transition-all duration-700 ease-in-out"
+              />
+              <path
+                d="M0,70 Q10,60 20,65 T40,80 T60,50 T80,30 T100,40"
+                fill="none"
+                stroke="#00a896"
+                strokeWidth="2"
+                className="transition-all duration-700 ease-in-out drop-shadow-md"
+              />
+              <circle cx="60" cy="50" r="2.5" fill="white" stroke="#00a896" strokeWidth="1.5" className="animate-pulse" />
+            </svg>
+            
+            <div className="absolute bottom-0 left-0 right-0 flex justify-between transform translate-y-6 px-1">
+               {['01 Aug', '11 Aug', '17 Aug', '23 Aug', '27 Aug'].map((d, i) => (
+                  <span key={i} className="text-[10px] font-medium text-slate-500">{d}</span>
+               ))}
             </div>
-          )}
+          </div>
+          <div className="h-4"></div>
         </div>
       </div>
 
       {/* 5. MEDICATION ADHERENCE & APPOINTMENT ANALYTICS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start font-sans">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-sans">
         {/* MEDICATION ADHERENCE (LEFT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <Pill className="w-5 h-5 text-amber-600 dark:text-amber-400" />
@@ -388,39 +416,39 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             </div>
             <button
               onClick={() => onNavigate('medicines')}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#00a896] dark:text-cyan-300 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center gap-1 cursor-pointer shadow-sm"
+              className="px-4 py-1.5 rounded-full bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-[#00a896] dark:text-teal-400 text-xs font-bold border border-teal-100 dark:border-teal-800 flex items-center gap-1 cursor-pointer transition-all"
             >
-              <span>View Medicines</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>View medicines</span>
+              <ExternalLink className="w-3 h-3" />
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-xs font-sans">
-            <div>
+          <div className="grid grid-cols-3 gap-3 bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center text-xs font-sans shadow-sm">
+            <div className="border-r border-slate-100 dark:border-slate-800">
               <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">Today</span>
-              <span className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 text-lg">75%</span>
+              <span className="font-sans font-extrabold text-slate-800 dark:text-slate-200 text-lg">71%</span>
             </div>
-            <div>
+            <div className="border-r border-slate-100 dark:border-slate-800">
               <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">This Week</span>
-              <span className="font-mono font-extrabold text-[#00a896] dark:text-cyan-400 text-lg">88%</span>
+              <span className="font-sans font-extrabold text-[#00a896] dark:text-teal-400 text-lg">XXX</span>
             </div>
             <div>
               <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">This Month</span>
-              <span className="font-mono font-extrabold text-teal-700 dark:text-teal-400 text-lg">91%</span>
+              <span className="font-sans font-extrabold text-[#00a896] dark:text-teal-400 text-lg">92%</span>
             </div>
           </div>
 
           {/* WEEKLY ADHERENCE BARS */}
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-300">Weekly Adherence Log</span>
-            <div className="grid grid-cols-7 gap-2 items-end h-28 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold text-slate-900 dark:text-white">Weekly adherence (In)</span>
+            <div className="grid grid-cols-7 gap-2 items-end h-24 bg-white dark:bg-slate-950 p-2 text-center">
               {MOCK_WEEKLY_ADHERENCE.map((day) => (
-                <div key={day.day} className="flex flex-col items-center gap-1 h-full justify-end">
+                <div key={day.day} className="flex flex-col items-center gap-2 h-full justify-end">
                   <div
                     style={{ height: `${day.percentage}%` }}
-                    className="w-full max-w-[20px] rounded-t-lg bg-[#00a896] dark:bg-teal-400/80"
+                    className="w-4 rounded-t-sm bg-[#00a896] dark:bg-teal-400"
                   />
-                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">{day.day}</span>
+                  <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400 uppercase">{day.day.substring(0,3)}</span>
                 </div>
               ))}
             </div>
@@ -428,69 +456,77 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         </div>
 
         {/* APPOINTMENT & CONSULTATION ANALYTICS (RIGHT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Appointments & Consultations</h3>
+              <CalendarIcon className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Appointments & Consultations</h3>
             </div>
             <button
               onClick={() => onNavigate('appointments')}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#00a896] dark:text-cyan-300 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center gap-1 cursor-pointer shadow-sm"
+              className="px-4 py-1.5 rounded-full bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-[#00a896] dark:text-teal-400 text-xs font-bold border border-teal-100 dark:border-teal-800 flex items-center gap-1 cursor-pointer transition-all"
             >
-              <span>View Appointments</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>View appointment</span>
+              <ExternalLink className="w-3 h-3" />
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-xs">
-            <div>
+          <div className="grid grid-cols-3 gap-3 bg-white dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center text-xs shadow-sm">
+            <div className="border-r border-slate-100 dark:border-slate-800">
               <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">Completed</span>
-              <span className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 text-lg">12</span>
+              <span className="font-sans font-extrabold text-[#00a896] dark:text-teal-400 text-lg">12</span>
             </div>
-            <div>
-              <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">Upcoming</span>
-              <span className="font-mono font-extrabold text-[#00a896] dark:text-cyan-400 text-lg">3</span>
+            <div className="border-r border-slate-100 dark:border-slate-800">
+              <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">Pending</span>
+              <div className="flex justify-center mt-1">
+                <div className="w-5 h-5 rounded-full border border-amber-500 flex items-center justify-center text-amber-500">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                </div>
+              </div>
             </div>
             <div>
               <span className="text-slate-600 dark:text-slate-400 text-[10px] block font-medium">Cancelled</span>
-              <span className="font-mono font-extrabold text-rose-700 dark:text-rose-400 text-lg">3</span>
+              <div className="flex justify-center mt-1">
+                <div className="w-5 h-5 rounded-full border border-rose-500 flex items-center justify-center text-rose-500 font-bold text-xs">
+                  ×
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
-            <h4 className="font-bold text-slate-900 dark:text-white">Consultation Summary</h4>
-            <div className="space-y-2 text-slate-700 dark:text-slate-300 font-medium">
-              <div className="flex justify-between"><span>Total Tele-Consultations:</span><span className="font-bold text-slate-900 dark:text-white">12 sessions</span></div>
-              <div className="flex justify-between"><span>Video Calls:</span><span className="font-bold text-[#00a896] dark:text-teal-400">8 calls</span></div>
-              <div className="flex justify-between"><span>In-Person Visits:</span><span className="font-bold text-cyan-700 dark:text-cyan-400">4 visits</span></div>
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 space-y-3 text-xs shadow-inner">
+            <h4 className="font-bold text-slate-800 dark:text-slate-200">Appointment summary</h4>
+            <div className="space-y-2 text-slate-600 dark:text-slate-400 font-medium">
+              <div className="flex justify-between items-center"><span className="text-[11px]">Total Tele-Consultations</span><span className="font-extrabold text-rose-500 text-[10px]">121 sessions</span></div>
+              <div className="flex justify-between items-center"><span className="text-[11px]">Video calls</span><span className="font-extrabold text-[#00a896] dark:text-teal-400 text-[10px]">8 calls</span></div>
+              <div className="flex justify-between items-center"><span className="text-[11px]">In-person visits</span><span className="font-extrabold text-teal-600 dark:text-teal-500 text-[10px]">4 visits</span></div>
             </div>
           </div>
         </div>
       </div>
 
       {/* 6. HEALTH ACTIVITY TIMELINE & INTERACTIVE CALENDAR */}
-      <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm font-sans">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Health Activity Timeline & Calendar</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Search activity events or filter by date on the monthly calendar</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Health activity records on filled by date or view monthly calendar</p>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-48">
+            <div className="relative flex-1 sm:w-56">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search activity..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
+                className="w-full pl-9 pr-3 py-2 rounded-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
               />
             </div>
             <button
               onClick={() => setFilterDrawerOpen(true)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-600 dark:text-purple-400 border border-slate-300 dark:border-slate-700 cursor-pointer shadow-sm"
+              className="p-2 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-600 dark:text-purple-400 border border-slate-200 dark:border-slate-700 cursor-pointer shadow-sm transition-all"
             >
               <Filter className="w-4 h-4" />
             </button>
@@ -499,37 +535,37 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* ACTIVITY STREAM TIMELINE (LEFT 7 COLS) */}
-          <div className="lg:col-span-7 space-y-3">
+          <div className="lg:col-span-7 space-y-0 relative">
+            <div className="absolute left-[19px] top-4 bottom-4 w-px bg-slate-200 dark:bg-slate-800 z-0"></div>
             {filteredActivities.map((act) => (
-              <div key={act.id} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[#00a896] dark:text-cyan-400">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 dark:text-white">{act.title}</h4>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{act.subtitle}</p>
-                  </div>
+              <div key={act.id} className="relative z-10 flex items-start gap-4 py-3">
+                <div className="w-10 h-10 shrink-0 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[#00a896] dark:text-teal-400 flex items-center justify-center shadow-sm">
+                  <Activity className="w-4 h-4" />
                 </div>
-
-                <div className="text-right shrink-0 font-mono">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">{act.date}</span>
-                  <span className="text-[10px] font-bold text-[#00a896] dark:text-teal-400">{act.time}</span>
+                <div className="flex-1 border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{act.title}</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{act.subtitle}</p>
+                  </div>
+                  <div className="text-right shrink-0 font-mono">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Today</span>
+                    <span className="text-[10px] font-bold text-[#00a896] dark:text-teal-400">{act.time}</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
           {/* COMPACT INTERACTIVE MONTHLY CALENDAR (RIGHT 5 COLS) */}
-          <div className="lg:col-span-5 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+          <div className="lg:col-span-5 bg-slate-50/50 dark:bg-slate-900/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-extrabold text-slate-900 dark:text-white">August 2026</span>
-              <span className="font-mono text-[10px] text-[#00a896] dark:text-cyan-400 font-bold">{selectedCalendarDate}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">August 2023</span>
+              <span className="font-sans text-[10px] text-slate-500 font-medium">27 Aug 2023</span>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono">
+            <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-sans">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, idx) => (
-                <span key={idx} className="font-bold text-slate-500 dark:text-slate-400 py-0.5 font-sans">{d}</span>
+                <span key={idx} className="font-bold text-slate-500 dark:text-slate-400 py-1">{d}</span>
               ))}
               {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
                 const dateStr = `${d.toString().padStart(2, '0')} Aug 2026`;
@@ -539,14 +575,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   <button
                     key={d}
                     onClick={() => setSelectedCalendarDate(dateStr)}
-                    className={`py-1.5 rounded-lg font-bold border transition-colors cursor-pointer flex flex-col items-center justify-center ${
+                    className={`h-8 w-full rounded-md font-bold transition-colors cursor-pointer flex flex-col items-center justify-center ${
                       isSelected
-                        ? 'bg-[#00a896] text-white border-teal-300 shadow-sm'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-[#00a896] text-white shadow-sm'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
                     <span>{d}</span>
-                    {hasDot && <span className="w-1 h-1 rounded-full bg-amber-500 mt-0.5" />}
+                    {hasDot && !isSelected && <span className="w-1 h-1 rounded-full bg-[#00a896] mt-0.5" />}
                   </button>
                 );
               })}
@@ -556,40 +592,40 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </div>
 
       {/* 7. HEALTH GOALS & WELLNESS METRICS */}
-      <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm font-sans">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-[#00a896] dark:text-teal-400" />
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Personal Health Goals</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">User-configured routine target goals</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">wait continuous health target goals</p>
             </div>
           </div>
 
           <button
             onClick={() => setCreateGoalModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3 h-3" />
             <span>Add Goal</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {goals.map((g) => (
-            <div key={g.id} className="bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+            <div key={g.id} className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-900 dark:text-white">{g.title}</span>
-                <span className="text-[10px] font-mono font-bold text-[#00a896] dark:text-teal-400">{g.progress}%</span>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{g.title}</span>
+                <span className="text-[10px] font-sans font-bold text-[#00a896] dark:text-teal-400">{g.progress}%</span>
               </div>
 
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div style={{ width: `${g.progress}%` }} className="h-full bg-[#00a896] dark:bg-gradient-to-r dark:from-[#00a896] dark:to-cyan-400" />
+              <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div style={{ width: `${g.progress}%` }} className="h-full bg-[#00a896] dark:bg-teal-400" />
               </div>
 
-              <div className="flex justify-between items-baseline text-[11px] font-mono">
-                <span className="text-slate-600 dark:text-slate-400 font-sans font-medium">Target: <strong className="text-slate-900 dark:text-white">{g.target} {g.unit}</strong></span>
-                <span className="text-slate-600 dark:text-slate-400 font-sans font-medium">Current: <strong className="text-[#00a896] dark:text-cyan-300">{g.current}</strong></span>
+              <div className="flex justify-between items-baseline text-[10px] font-sans">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Target: <strong className="text-slate-700 dark:text-slate-300">{g.target} {g.unit}</strong></span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Current: <strong className="text-slate-700 dark:text-slate-300">{g.current}</strong></span>
               </div>
             </div>
           ))}
@@ -597,46 +633,46 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </div>
 
       {/* 8. NEUTRAL INSIGHTS & MONTHLY COMPARISON */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start font-sans">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start font-sans">
         {/* INSIGHTS (LEFT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <Sparkles className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Health Activity Insights</h3>
           </div>
 
           <div className="space-y-3 text-xs font-medium">
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
-              <h4 className="font-bold text-cyan-700 dark:text-cyan-300">Medication Routine Tracking</h4>
-              <p className="text-slate-700 dark:text-slate-300">Medication tracking was completed on 6 of the last 7 days.</p>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 space-y-1 shadow-sm">
+              <h4 className="font-bold text-[#00a896] dark:text-teal-400">Medication Health Tracking</h4>
+              <p className="text-slate-500 dark:text-slate-400">Medication tracking was completed on 6 of the last 7 days.</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
-              <h4 className="font-bold text-teal-700 dark:text-teal-300">Appointment Activity</h4>
-              <p className="text-slate-700 dark:text-slate-300">Your appointment activity increased compared with the previous period.</p>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 space-y-1 shadow-sm">
+              <h4 className="font-bold text-[#00a896] dark:text-teal-400">Appointment History</h4>
+              <p className="text-slate-500 dark:text-slate-400">Your appointment activity increased compared with the previous period.</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
-              <h4 className="font-bold text-purple-700 dark:text-purple-300">Medical Records Synced</h4>
-              <p className="text-slate-700 dark:text-slate-300">You added 4 medical records to your health journal this month.</p>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 space-y-1 shadow-sm">
+              <h4 className="font-bold text-[#00a896] dark:text-teal-400">Medical Records Synced</h4>
+              <p className="text-slate-500 dark:text-slate-400">You added 4 medical records to your health journal this month.</p>
             </div>
           </div>
         </div>
 
         {/* MONTHLY COMPARISON TABLE (RIGHT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+        <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-            <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <BarChart3 className="w-5 h-5 text-purple-500 dark:text-purple-400" />
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">This Month vs Previous Month</h3>
           </div>
 
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-3 text-xs">
             {MOCK_MONTHLY_COMPARISONS.map((comp, i) => (
-              <div key={i} className="p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div key={i} className="py-2 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 last:border-0">
                 <div>
-                  <h4 className="font-extrabold text-slate-900 dark:text-white">{comp.label}</h4>
-                  <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">Current: {comp.currentValue} vs {comp.previousValue}</span>
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200">{comp.label}</h4>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Current: {comp.currentValue} vs {comp.previousValue}</span>
                 </div>
-                <span className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 text-xs bg-emerald-500/15 px-2 py-1 rounded-lg border border-emerald-500/30">
-                  {comp.change}
+                <span className="font-sans font-bold text-[#00a896] dark:text-teal-400 text-[10px] bg-teal-50 dark:bg-teal-900/30 px-3 py-1 rounded-full border border-teal-100 dark:border-teal-800">
+                  {comp.change.replace('+', '+ ')}
                 </span>
               </div>
             ))}

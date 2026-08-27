@@ -54,14 +54,14 @@ export interface PrivacySettingsState {
 
 export interface AppearanceSettingsState {
   theme: 'Dark' | 'Light' | 'System';
-  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Green' | 'Rose';
+  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Teal' | 'Rose';
   fontSize: 'Small' | 'Medium' | 'Large' | 'Extra Large';
   reducedMotion: boolean;
 }
 
 export interface HealthPreferencesSettingsState {
   healthcareType: 'General Care' | 'Specialist Care' | 'Preventive Care';
-  language: 'English' | 'Tamil' | 'Hindi';
+  language: 'English' | 'Tamil' | 'Hindi' | 'Spanish' | 'Telugu';
   units: 'Metric' | 'Imperial';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   timeFormat: '12 Hour' | '24 Hour';
@@ -128,8 +128,8 @@ export const INITIAL_NOTIFICATION_SETTINGS: NotificationSettingsState = {
   channelSMS: false,
   channelPush: true,
   quietHoursEnabled: true,
-  quietHoursStart: '22:00',
-  quietHoursEnd: '07:00'
+  quietHoursStart: '10:00 PM',
+  quietHoursEnd: '07:00 AM'
 };
 
 export const INITIAL_PRIVACY_SETTINGS: PrivacySettingsState = {
