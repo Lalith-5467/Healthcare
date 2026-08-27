@@ -58,7 +58,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
               }}
               className={`py-2.5 px-3 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
                 privacy.profileVisibility === v
-                  ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+                  ? 'bg-[#00a896] text-white border-[#00a896] shadow-md'
                   : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -78,7 +78,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
         <button
           onClick={handleLocationToggle}
           className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-            privacy.locationAccess ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+            privacy.locationAccess ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
           }`}
         >
           <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -92,10 +92,10 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
         <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Data Sharing Permissions</h4>
         <div className="space-y-2">
           {[
-            { key: 'shareDoctor' as const, title: 'Share Health Records with Primary Doctor', desc: 'Allow assigned physicians to view your medical timeline' },
-            { key: 'shareFamily' as const, title: 'Share Emergency Info with Family', desc: 'Give family access to allergies & emergency medical ID' },
-            { key: 'allowResearchData' as const, title: 'Anonymous Health Research Data', desc: 'Help improve healthcare insights with anonymized data' },
-            { key: 'allowAnalytics' as const, title: 'App Performance Analytics', desc: 'Share anonymous app usage telemetry to fix bugs' }
+            { key: 'healthDataSharing' as const, title: 'Share Health Records with Primary Doctor', desc: 'Allow assigned physicians to view your medical timeline' },
+            { key: 'familyDataSharing' as const, title: 'Share Emergency Info with Family', desc: 'Give family access to allergies & emergency medical ID' },
+            { key: 'activityTracking' as const, title: 'Anonymous Health Research Data', desc: 'Help improve healthcare insights with anonymized data' },
+            { key: 'personalizedExperience' as const, title: 'App Performance Analytics', desc: 'Share anonymous app usage telemetry to fix bugs' }
           ].map((perm) => {
             const active = privacy[perm.key];
             return (
@@ -107,7 +107,7 @@ export const PrivacySettingsSection: React.FC<PrivacySettingsSectionProps> = ({
                 <button
                   onClick={() => toggleKey(perm.key)}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                    active ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${

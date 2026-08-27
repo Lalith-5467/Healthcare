@@ -189,6 +189,37 @@ export const App: React.FC = () => {
   } | null>(initialState.userData);
   const [initialNavId, setInitialNavId] = useState<string>(initialState.nav);
 
+  // Initialize Global Appearance Settings on Mount
+  React.useEffect(() => {
+    const savedAppear = localStorage.getItem('user_settings_appearance');
+    if (savedAppear) {
+      try {
+        const appearance = JSON.parse(savedAppear);
+        const sizes: Record<string, string> = { 'Small': '14px', 'Medium': '16px', 'Large': '18px', 'Extra Large': '20px' };
+        document.documentElement.style.fontSize = sizes[appearance.fontSize] || '16px';
+
+        const colors: Record<string, string> = { Teal: '#00a896', Blue: '#4f46e5', Cyan: '#06b6d4', Violet: '#7c3aed', Rose: '#e11d48' };
+        const hex = colors[appearance.accentColor] || '#00a896';
+        
+        let styleEl = document.getElementById('dynamic-accent-style');
+        if (!styleEl) {
+          styleEl = document.createElement('style');
+          styleEl.id = 'dynamic-accent-style';
+          document.head.appendChild(styleEl);
+        }
+        styleEl.innerHTML = `
+          .bg-\\[\\#00a896\\] { background-color: ${hex} !important; }
+          .text-\\[\\#00a896\\] { color: ${hex} !important; }
+          .border-\\[\\#00a896\\] { border-color: ${hex} !important; }
+          .fill-\\[\\#00a896\\] { fill: ${hex} !important; }
+          .ring-\\[\\#00a896\\] { --tw-ring-color: ${hex} !important; }
+        `;
+      } catch (e) {
+        console.error('Failed to parse appearance settings', e);
+      }
+    }
+  }, []);
+
   // Sync state to localStorage & URL path on change
   React.useEffect(() => {
     localStorage.setItem('app_current_page', currentPage);

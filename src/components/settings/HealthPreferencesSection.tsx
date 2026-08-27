@@ -71,12 +71,12 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => {
-              onUpdatePreferences({ ...preferences, measurementSystem: 'Metric' });
+              onUpdatePreferences({ ...preferences, units: 'Metric' as const });
               onShowToast('✓ Units set to Metric (kg, cm)');
             }}
             className={`p-3.5 rounded-2xl border font-bold text-center font-sans transition-all cursor-pointer ${
-              preferences.measurementSystem === 'Metric'
-                ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+              preferences.units === 'Metric'
+                ? 'bg-[#00a896] text-white border-[#00a896] shadow-md'
                 : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
             }`}
           >
@@ -85,12 +85,12 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
 
           <button
             onClick={() => {
-              onUpdatePreferences({ ...preferences, measurementSystem: 'Imperial' });
+              onUpdatePreferences({ ...preferences, units: 'Imperial' as const });
               onShowToast('✓ Units set to Imperial (lbs, ft)');
             }}
             className={`p-3.5 rounded-2xl border font-bold text-center font-sans transition-all cursor-pointer ${
-              preferences.measurementSystem === 'Imperial'
-                ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+              preferences.units === 'Imperial'
+                ? 'bg-[#00a896] text-white border-[#00a896] shadow-md'
                 : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
             }`}
           >
@@ -104,9 +104,9 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
         <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Automated Health Reminders</h4>
         <div className="space-y-2">
           {[
-            { key: 'waterReminder' as const, title: 'Hydration & Water Intake Reminders', desc: 'Alerts to log daily water consumption' },
-            { key: 'vitalsReminder' as const, title: 'Weekly Vital Sign Logging', desc: 'Prompts to record BP, SPO2 & body weight' },
-            { key: 'vaccinationSync' as const, title: 'Immunization & Vaccine Alerts', desc: 'Preventive vaccine due date notifications' }
+            { key: 'remindersHydration' as const, title: 'Hydration & Water Intake Reminders', desc: 'Alerts to log daily water consumption' },
+            { key: 'remindersCheckUp' as const, title: 'Weekly Vital Sign Logging', desc: 'Prompts to record BP, SPO2 & body weight' },
+            { key: 'remindersMedication' as const, title: 'Immunization & Vaccine Alerts', desc: 'Preventive vaccine due date notifications' }
           ].map((rem) => {
             const active = preferences[rem.key];
             return (
@@ -118,7 +118,7 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
                 <button
                   onClick={() => toggleReminder(rem.key)}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                    active ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${

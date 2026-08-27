@@ -11,6 +11,20 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
   settings,
   onUpdateSettings,
 }) => {
+  // Auto-convert existing 24h formats to AM/PM format for display
+  React.useEffect(() => {
+    let updated = false;
+    let newStart = settings.quietHoursStart;
+    let newEnd = settings.quietHoursEnd;
+
+    if (newStart === '22:00') { newStart = '10:00 PM'; updated = true; }
+    if (newEnd === '07:00') { newEnd = '07:00 AM'; updated = true; }
+
+    if (updated) {
+      onUpdateSettings({ ...settings, quietHoursStart: newStart, quietHoursEnd: newEnd });
+    }
+  }, [settings.quietHoursStart, settings.quietHoursEnd, settings, onUpdateSettings]);
+
   const toggleKey = (key: keyof NotificationSettingsState) => {
     onUpdateSettings({
       ...settings,
@@ -50,7 +64,7 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
                 <button
                   onClick={() => toggleKey(cat.key)}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                    active ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -68,22 +82,22 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
         <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Delivery Channels</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
           {[
-            { key: 'emailNotifications' as const, label: 'Email Notifications', icon: Mail },
-            { key: 'smsAlerts' as const, label: 'SMS Alerts', icon: MessageSquare },
-            { key: 'pushNotifications' as const, label: 'App Push Alerts', icon: Smartphone }
+            { key: 'channelEmail' as const, label: 'Email Notifications', icon: Mail },
+            { key: 'channelSMS' as const, label: 'SMS Alerts', icon: MessageSquare },
+            { key: 'channelPush' as const, label: 'App Push Alerts', icon: Smartphone }
           ].map((ch) => {
             const Icon = ch.icon;
             const active = settings[ch.key];
             return (
               <div key={ch.key} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2 font-sans font-bold text-slate-900 dark:text-white text-xs">
-                  <Icon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <Icon className="w-4 h-4 text-[#00a896]" />
                   <span>{ch.label}</span>
                 </div>
                 <button
                   onClick={() => toggleKey(ch.key)}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                    active ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -106,7 +120,7 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
           <button
             onClick={() => toggleKey('quietHoursEnabled')}
             className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-              settings.quietHoursEnabled ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+              settings.quietHoursEnabled ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
             }`}
           >
             <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -121,8 +135,8 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
               <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold font-sans">Start Time</label>
               <input
                 type="text"
-                value={settings.quietStart}
-                onChange={(e) => onUpdateSettings({ ...settings, quietStart: e.target.value })}
+                value={settings.quietHoursStart}
+                onChange={(e) => onUpdateSettings({ ...settings, quietHoursStart: e.target.value })}
                 className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
               />
             </div>
@@ -130,8 +144,8 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
               <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold font-sans">End Time</label>
               <input
                 type="text"
-                value={settings.quietEnd}
-                onChange={(e) => onUpdateSettings({ ...settings, quietEnd: e.target.value })}
+                value={settings.quietHoursEnd}
+                onChange={(e) => onUpdateSettings({ ...settings, quietHoursEnd: e.target.value })}
                 className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
               />
             </div>

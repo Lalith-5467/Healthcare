@@ -70,7 +70,7 @@ export interface AppearanceSettingsState {
 
 export interface HealthPreferencesSettingsState {
   healthcareType: 'General Care' | 'Specialist Care' | 'Preventive Care';
-  language: 'English' | 'Tamil' | 'Hindi';
+  language: 'English' | 'Tamil' | 'Hindi' | 'Spanish' | 'Telugu';
   units: 'Metric' | 'Imperial';
   measurementSystem?: 'Metric' | 'Imperial';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
@@ -141,8 +141,8 @@ export const INITIAL_NOTIFICATION_SETTINGS: NotificationSettingsState = {
   channelSMS: false,
   channelPush: true,
   quietHoursEnabled: true,
-  quietHoursStart: '22:00',
-  quietHoursEnd: '07:00'
+  quietHoursStart: '10:00 PM',
+  quietHoursEnd: '07:00 AM'
 };
 
 export const INITIAL_PRIVACY_SETTINGS: PrivacySettingsState = {
