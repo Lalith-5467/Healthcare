@@ -65,13 +65,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 12 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-          className="w-full max-w-lg my-auto font-sans relative"
-          style={{
-            background: 'linear-gradient(160deg,#f8fafc 0%,#f0fdfa 40%,#ffffff 100%)',
-            border: '1.5px solid rgba(20,184,166,.18)',
-            borderRadius: '24px',
-            boxShadow: '0 20px 50px rgba(0,0,0,.15), 0 4px 16px rgba(20,184,166,.08)',
-          }}
+          className="w-full max-w-lg my-auto font-sans relative bg-gradient-to-br from-slate-50 via-teal-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
         >
           {/* Decorative ambient glows */}
           <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full pointer-events-none"
@@ -98,8 +92,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
-                style={{ background: 'rgba(0,0,0,.04)', border: '1px solid rgba(0,0,0,.06)' }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
                 aria-label="Close Tracking Modal"
               >
                 <X className="w-4 h-4" />
@@ -107,8 +100,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             </div>
 
             {/* ── DELIVERY BANNER ── */}
-            <div className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3"
-              style={{ background: 'rgba(255,255,255,.85)', border: '1px solid rgba(20,184,166,.15)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 8px rgba(20,184,166,.04)' }}>
+            <div className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 bg-white/85 dark:bg-slate-900/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_8px_rgba(20,184,166,0.04)]">
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Estimated Delivery</span>
                 <h4 className="text-sm sm:text-base font-extrabold mt-0.5" style={{ color: '#059669' }}>
@@ -288,8 +280,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               {canCancel && (
                 <button
                   onClick={() => onOpenCancelModal(order)}
-                  className="py-2 px-3.5 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer hover:opacity-80 shrink-0"
-                  style={{ background: 'rgba(239,68,68,.08)', color: '#dc2626', border: '1px solid rgba(239,68,68,.2)' }}
+                  className="py-2 px-3.5 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer hover:opacity-80 shrink-0 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
                 >
                   <Ban className="w-3.5 h-3.5" />
                   <span>Cancel Order</span>
@@ -298,8 +289,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="flex-1 py-2 px-4 rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center cursor-pointer"
-                style={{ background: 'rgba(255,255,255,.9)', border: '1.5px solid rgba(20,184,166,.25)', color: '#0f766e', boxShadow: '0 1px 4px rgba(20,184,166,.08)' }}
+                className="flex-1 py-2 px-4 rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center cursor-pointer bg-white/90 dark:bg-slate-800/90 border-[1.5px] border-teal-500/25 text-teal-700 dark:text-teal-400 shadow-[0_1px_4px_rgba(20,184,166,0.08)]"
               >
                 Close
               </button>

@@ -34,12 +34,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="p-6 rounded-3xl border flex flex-col justify-between space-y-4 group font-sans relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(150deg,#f0f9ff 0%,#e0f2fe 40%,#ffffff 100%)',
-        border: '1.5px solid rgba(14,165,233,.15)',
-        boxShadow: '0 4px 24px rgba(14,165,233,.08), 0 1px 3px rgba(0,0,0,.04)'
-      }}
+      className="p-6 rounded-3xl border flex flex-col justify-between space-y-4 group font-sans relative overflow-hidden bg-gradient-to-br from-sky-50 via-sky-100/30 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-sky-500/15 dark:border-sky-500/10 shadow-[0_4px_24px_rgba(14,165,233,0.08),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
     >
       {/* Decorative corner shape */}
       <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
@@ -78,8 +73,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
       </div>
 
       {/* DOCTOR DETAILS — tinted premium container */}
-      <div className="relative z-10 p-4 rounded-2xl flex items-center gap-3.5"
-        style={{ background: 'rgba(255,255,255,.80)', border: '1px solid rgba(14,165,233,.12)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 10px rgba(14,165,233,.06)' }}>
+      <div className="relative z-10 p-4 rounded-2xl flex items-center gap-3.5 bg-white/80 dark:bg-slate-800/80 border border-sky-500/10 backdrop-blur-sm shadow-[0_2px_10px_rgba(14,165,233,0.06)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
         <img
           src="https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=400&q=80"
           alt="Dr. Rajesh Kumar"

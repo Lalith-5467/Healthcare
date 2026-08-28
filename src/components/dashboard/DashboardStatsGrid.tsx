@@ -321,12 +321,14 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
               onClick={() => onNavigate(s.id)}
               /* ── ORIGINAL: rounded-2xl, overflow-hidden, cursor-pointer — UNCHANGED ── */
               className="relative overflow-hidden rounded-2xl cursor-pointer group transition-shadow duration-200"
-              style={{
-                background: s.cardBg,
-                border: s.cardBorder,
-                boxShadow: s.cardShadow,
-              }}
             >
+              {/* Light mode background */}
+              <div 
+                className="absolute inset-0 dark:hidden pointer-events-none rounded-2xl" 
+                style={{ background: s.cardBg, border: s.cardBorder, boxShadow: s.cardShadow }} 
+              />
+              {/* Dark mode background */}
+              <div className="absolute inset-0 hidden dark:block pointer-events-none rounded-2xl bg-slate-900/90 border-[1.5px] border-slate-800/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" />
               {/* Soft radial glow top-right — purely decorative, no layout impact */}
               <div className="pointer-events-none absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-60"
                 style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }} />

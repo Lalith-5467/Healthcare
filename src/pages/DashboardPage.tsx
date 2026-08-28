@@ -325,6 +325,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               userName={user.name}
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
+              onNavigate={handleSelectNav}
+              onLogout={onLogout}
             />
 
             {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}

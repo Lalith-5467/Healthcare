@@ -35,12 +35,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -3, scale: 1.015 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(150deg,#fffbeb 0%,#fef3c7 50%,#ffffff 100%)',
-            border: '1.5px solid rgba(245,158,11,.2)',
-            boxShadow: '0 4px 16px rgba(245,158,11,.08), 0 1px 3px rgba(0,0,0,.04)'
-          }}
+          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden bg-gradient-to-br from-amber-50 via-amber-100/40 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-amber-500/20 dark:border-amber-500/10 shadow-[0_4px_16px_rgba(245,158,11,0.08),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)]"
         >
           <div className="absolute -top-5 -right-5 w-16 h-16 rounded-full pointer-events-none"
             style={{ background: 'radial-gradient(circle,rgba(245,158,11,.12) 0%,transparent 70%)' }} />
@@ -82,12 +77,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -3, scale: 1.015 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(150deg,#eff6ff 0%,#dbeafe 50%,#ffffff 100%)',
-            border: '1.5px solid rgba(59,130,246,.18)',
-            boxShadow: '0 4px 16px rgba(59,130,246,.07), 0 1px 3px rgba(0,0,0,.04)'
-          }}
+          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden bg-gradient-to-br from-blue-50 via-blue-100/40 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-blue-500/20 dark:border-blue-500/10 shadow-[0_4px_16px_rgba(59,130,246,0.07),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)]"
         >
           <div className="absolute -top-5 -right-5 w-16 h-16 rounded-full pointer-events-none"
             style={{ background: 'radial-gradient(circle,rgba(59,130,246,.1) 0%,transparent 70%)' }} />
@@ -124,12 +114,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
         <motion.div
           whileHover={{ y: -3, scale: 1.015 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(150deg,#f0fdf4 0%,#dcfce7 50%,#ffffff 100%)',
-            border: '1.5px solid rgba(34,197,94,.18)',
-            boxShadow: '0 4px 16px rgba(34,197,94,.07), 0 1px 3px rgba(0,0,0,.04)'
-          }}
+          className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between group relative overflow-hidden bg-gradient-to-br from-green-50 via-green-100/40 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-green-500/20 dark:border-green-500/10 shadow-[0_4px_16px_rgba(34,197,94,0.07),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)]"
         >
           <div className="absolute -top-5 -right-5 w-16 h-16 rounded-full pointer-events-none"
             style={{ background: 'radial-gradient(circle,rgba(34,197,94,.1) 0%,transparent 70%)' }} />
