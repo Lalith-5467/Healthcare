@@ -85,7 +85,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setModalOpen(true)}
-            className="p-1.5 bg-white rounded-2xl border shadow-md cursor-pointer shrink-0 relative overflow-hidden group/qr"
+            className="p-1.5 bg-white dark:bg-slate-900 rounded-2xl border shadow-md cursor-pointer shrink-0 relative overflow-hidden group/qr"
             style={{ borderColor: 'rgba(20,184,166,.2)' }}
             title="Click to view & scan full size QR Pass"
           >
@@ -109,7 +109,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
               <div className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover/ico:scale-110" style={{ background: bg }}>
                 <IconComp className="w-4 h-4" style={{ color }} />
               </div>
-              <span className="text-[9px] font-bold text-slate-500" style={{ color }}>{label}</span>
+              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400" style={{ color }}>{label}</span>
             </button>
           ))}
         </div>
@@ -131,7 +131,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleCopy}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            className="flex-1 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-800 text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
           >
             {copied ? (
               <><Check className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600">Copied</span></>

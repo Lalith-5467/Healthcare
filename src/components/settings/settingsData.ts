@@ -95,14 +95,15 @@ export interface ConnectedServiceItem {
 }
 
 export const INITIAL_USER_PROFILE: UserProfileSettings = {
-  fullName: 'Arun Kumar',
-  email: 'arun.kumar@health.in',
+  fullName: 'Devi',
+  email: 'devi@health.in',
   phone: '+91 98401 23456',
-  dob: '1990-08-15',
-  gender: 'Male',
+  dob: '1992-08-15',
+  gender: 'Female',
   location: 'Chennai, Tamil Nadu',
   bloodGroup: 'O+',
-  emergencyContact: 'Priya Kumar (Mother)'
+  emergencyContact: 'Mother',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80'
 };
 
 export const INITIAL_ACCOUNT_SETTINGS: AccountSettings = {

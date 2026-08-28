@@ -243,7 +243,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
 
       {/* 2. FAMILY OVERVIEW SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl -z-10 group-hover:bg-teal-500/20 transition-colors" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Family Members</span>
@@ -257,7 +257,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -z-10 group-hover:bg-amber-500/20 transition-colors" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Pending Requests</span>
@@ -271,7 +271,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -z-10 group-hover:bg-blue-500/20 transition-colors" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Shared Appointments</span>
@@ -285,7 +285,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -z-10 group-hover:bg-purple-500/20 transition-colors" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Shared Reminders</span>

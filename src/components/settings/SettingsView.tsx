@@ -77,7 +77,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedProfile = localStorage.getItem('user_settings_profile');
-    if (savedProfile) { try { setProfile(JSON.parse(savedProfile)); } catch (e) { console.error(e); } }
+    if (savedProfile) { 
+      try { 
+        const parsedProfile = JSON.parse(savedProfile);
+        if (parsedProfile.fullName === 'Arun Kumar') {
+          // Clear the old cached mock data so Devi's profile loads
+          localStorage.removeItem('user_settings_profile');
+        } else {
+          setProfile(parsedProfile); 
+        }
+      } catch (e) { console.error(e); } 
+    }
     const savedNotifs = localStorage.getItem('user_settings_notifications');
     if (savedNotifs) { try { setNotificationSetts(JSON.parse(savedNotifs)); } catch (e) { console.error(e); } }
     const savedPrivacy = localStorage.getItem('user_settings_privacy');
