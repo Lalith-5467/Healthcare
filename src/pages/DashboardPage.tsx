@@ -43,6 +43,12 @@ import { EmergencyView } from '../components/emergency/EmergencyView';
 import { SettingsView } from '../components/settings/SettingsView';
 import { AIAssistantView } from '../components/ai-assistant/AIAssistantView';
 import { MoreFeaturesView } from '../components/more-features/MoreFeaturesView';
+import { LabTestView } from '../components/more-features/views/LabTestView';
+import { DietPlanView } from '../components/more-features/views/DietPlanView';
+import { ReportInsightsView } from '../components/more-features/views/ReportInsightsView';
+import { NurseBookingView } from '../components/more-features/views/NurseBookingView';
+import { JanitorBookingView } from '../components/more-features/views/JanitorBookingView';
+import { SecurityPrivacyView } from '../components/more-features/views/SecurityPrivacyView';
 
 interface UserProfile {
   name: string;
@@ -124,7 +130,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       'profile': '/user/profile',
       'records': '/user/records',
       'scan': '/user/scan',
-      'dashboard': '/user/dashboard'
+      'dashboard': '/user/dashboard',
+      'lab-test': '/user/lab-tests',
+      'diet-plan': '/user/diet-plans',
+      'report-insights': '/user/insights',
+      'nurse-booking': '/user/nurse-booking',
+      'janitor-booking': '/user/janitor-booking',
+      'security-privacy': '/user/security'
     };
 
     const targetUrl = urlMap[targetId] || `/user/${targetId}`;
@@ -159,6 +171,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       showToast('Switched to Health Check-Up');
     } else if (targetId === 'dashboard') {
       showToast('Switched to Dashboard Overview');
+    } else if (targetId === 'lab-test') {
+      showToast('Switched to Lab Test & Diagnostics');
+    } else if (targetId === 'diet-plan') {
+      showToast('Switched to Diet & Nutrient Plans');
+    } else if (targetId === 'report-insights') {
+      showToast('Switched to Report Insights & AI');
+    } else if (targetId === 'nurse-booking') {
+      showToast('Switched to In-Home Nurse Booking');
+    } else if (targetId === 'janitor-booking') {
+      showToast('Switched to Janitor Booking');
+    } else if (targetId === 'security-privacy') {
+      showToast('Switched to Security & Privacy');
     } else {
       showToast(`Selected ${targetId} module`);
     }
@@ -313,6 +337,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             user={user}
             onNavigate={handleSelectNav}
           />
+        ) : activeNavId === 'lab-test' ? (
+          <LabTestView />
+        ) : activeNavId === 'diet-plan' ? (
+          <DietPlanView />
+        ) : activeNavId === 'report-insights' ? (
+          <ReportInsightsView />
+        ) : activeNavId === 'nurse-booking' ? (
+          <NurseBookingView />
+        ) : activeNavId === 'janitor-booking' ? (
+          <JanitorBookingView />
+        ) : activeNavId === 'security-privacy' ? (
+          <SecurityPrivacyView />
         ) : (
           <motion.div
             initial={{ opacity: 0, y: 15 }}

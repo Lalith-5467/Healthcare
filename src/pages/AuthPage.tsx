@@ -32,7 +32,8 @@ import {
   Video,
   Shield,
   Briefcase,
-  Pill
+  Pill,
+  HeartPulse
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 
@@ -67,7 +68,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   }, [initialMode]);
 
   // Role Selection
-  const [role, setRole] = useState<'patient' | 'doctor' | 'caregiver' | 'pharmacist'>('patient');
+  const [role, setRole] = useState<'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance'>('patient');
 
   // Common Form States
   const [email, setEmail] = useState('');
@@ -178,11 +179,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           const isPharm = role === 'pharmacist';
           const isDoc = role === 'doctor';
           const isCare = role === 'caregiver';
+          const isNurse = role === 'nurse';
+          const isIns = role === 'insurance';
 
           onSuccessLogin({
-            name: fullName || (isPharm ? (email ? email.split('@')[0] : 'Registered Pharmacist') : isDoc ? 'Dr. Rajesh Varma' : (email ? email.split('@')[0] : 'Ragul Kumar')),
-            email: email || (isPharm ? 'pharmacist@apollocentral.in' : isDoc ? 'dr.varma@hpr.abdm' : 'ragul.kumar@abdm.in'),
-            role: isPharm ? 'Pharmacist' : isDoc ? 'Doctor' : isCare ? 'Caregiver' : 'Patient',
+            name: fullName || (isPharm ? (email ? email.split('@')[0] : 'Registered Pharmacist') : isDoc ? 'Dr. Rajesh Varma' : isNurse ? 'Nurse Sarah' : isIns ? 'Insurance Dealer' : (email ? email.split('@')[0] : 'Ragul Kumar')),
+            email: email || (isPharm ? 'pharmacist@apollocentral.in' : isDoc ? 'dr.varma@hpr.abdm' : isNurse ? 'sarah.nurse@hpr.abdm' : isIns ? 'dealer@insurance.com' : 'ragul.kumar@abdm.in'),
+            role: isPharm ? 'Pharmacist' : isDoc ? 'Doctor' : isCare ? 'Caregiver' : isNurse ? 'Nurse' : isIns ? 'Insurance' : 'Patient',
             abhaId: isPharm ? undefined : isDoc ? (hprAddress || 'dr.varma@hpr.abdm') : (abhaId || '91-8472-9104-5821@abdm'),
             bloodGroup: bloodGroup || 'O+',
             age: age ? parseInt(age, 10) : 34,
@@ -428,7 +431,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         { id: 'patient', label: 'Patient', icon: User },
                         { id: 'pharmacist', label: 'Pharmacist', icon: Pill },
                         { id: 'doctor', label: 'Doctor', icon: Stethoscope },
-                        { id: 'caregiver', label: 'Caregiver', icon: HeartHandshake }
+                        { id: 'caregiver', label: 'Caregiver', icon: HeartHandshake },
+                        { id: 'nurse', label: 'Nurse', icon: HeartPulse },
+                        { id: 'insurance', label: 'Insurance', icon: ShieldCheck }
                       ].map((item) => {
                         const ItemIcon = item.icon;
                         const isSelected = role === item.id;

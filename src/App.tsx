@@ -14,6 +14,9 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { PharmacistDashboardPage } from './pages/PharmacistDashboardPage';
+import { DoctorDashboardPage } from './pages/DoctorDashboardPage';
+import { NurseDashboardPage } from './pages/NurseDashboardPage';
+import { InsuranceDashboardPage } from './pages/InsuranceDashboardPage';
 
 // MODALS
 import { ABHAModal } from './components/modals/ABHAModal';
@@ -71,7 +74,17 @@ const NAV_MAP: Record<string, string> = {
   'dashboard': 'dashboard',
   'orders': 'orders',
   'prescriptions': 'prescriptions',
-  'patients': 'patients'
+  'patients': 'patients',
+  'lab-tests': 'lab-test',
+  'lab-test': 'lab-test',
+  'diet-plans': 'diet-plan',
+  'diet-plan': 'diet-plan',
+  'insights': 'report-insights',
+  'report-insights': 'report-insights',
+  'nurse-booking': 'nurse-booking',
+  'janitor-booking': 'janitor-booking',
+  'security': 'security-privacy',
+  'security-privacy': 'security-privacy'
 };
 
 const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Patient') => {
@@ -80,9 +93,11 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
   if (page === 'register') return '/register';
   if (page === 'dashboard') {
     const nav = navId || 'dashboard';
-    if (userRole === 'Pharmacist') {
-      return `/pharmacist/${nav}`;
-    }
+    if (userRole === 'Pharmacist') return `/pharmacist/${nav}`;
+    if (userRole === 'Doctor') return `/doctor/${nav}`;
+    if (userRole === 'Nurse') return `/nurse/${nav}`;
+    if (userRole === 'Insurance') return `/insurance/${nav}`;
+    
     if (nav === 'family' || nav === 'family-connect') return '/user/family-connect';
     if (nav === 'consultation' || nav === 'video-consultation') return '/user/video-consultation';
     if (nav === 'analytics' || nav === 'health-analytics') return '/user/health-analytics';
@@ -91,6 +106,12 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
     if (nav === 'reminders' || nav === 'reminder') return '/user/reminders';
     if (nav === 'appointments' || nav === 'appointment') return '/user/appointments';
     if (nav === 'medicines' || nav === 'medicine') return '/user/medicines';
+    if (nav === 'lab-test') return '/user/lab-tests';
+    if (nav === 'diet-plan') return '/user/diet-plans';
+    if (nav === 'report-insights') return '/user/insights';
+    if (nav === 'nurse-booking') return '/user/nurse-booking';
+    if (nav === 'janitor-booking') return '/user/janitor-booking';
+    if (nav === 'security-privacy') return '/user/security';
     return `/user/${nav}`;
   }
   return '/';
@@ -102,11 +123,15 @@ const getInitialAppState = () => {
 
   const isUserPath = path.startsWith('/user');
   const isPharmacistPath = path.startsWith('/pharmacist');
+  const isDoctorPath = path.startsWith('/doctor');
+  const isNursePath = path.startsWith('/nurse');
+  const isInsurancePath = path.startsWith('/insurance');
 
-  const target = isUserPath
-    ? path.replace('/user/', '').replace('/user', '')
-    : isPharmacistPath
-    ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
+  const target = isUserPath ? path.replace('/user/', '').replace('/user', '')
+    : isPharmacistPath ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
+    : isDoctorPath ? path.replace('/doctor/', '').replace('/doctor', '')
+    : isNursePath ? path.replace('/nurse/', '').replace('/nurse', '')
+    : isInsurancePath ? path.replace('/insurance/', '').replace('/insurance', '')
     : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash.startsWith('pharmacist/') ? rawHash.replace('pharmacist/', '') : rawHash);
 
   const savedNav = localStorage.getItem('app_active_nav_id');
@@ -132,14 +157,19 @@ const getInitialAppState = () => {
   }
 
   if (isUserPath) {
-    if (!userData || userData.role !== 'Patient') {
-      userData = DEFAULT_PATIENT_USER;
-    }
+    if (!userData || userData.role !== 'Patient') userData = DEFAULT_PATIENT_USER;
     loggedIn = true;
   } else if (isPharmacistPath) {
-    if (!userData || userData.role !== 'Pharmacist') {
-      userData = DEFAULT_PHARMACIST_USER;
-    }
+    if (!userData || userData.role !== 'Pharmacist') userData = DEFAULT_PHARMACIST_USER;
+    loggedIn = true;
+  } else if (isDoctorPath) {
+    if (!userData || userData.role !== 'Doctor') userData = { name: 'Dr. Rajesh', email: 'doctor@hospital.com', role: 'Doctor' };
+    loggedIn = true;
+  } else if (isNursePath) {
+    if (!userData || userData.role !== 'Nurse') userData = { name: 'Nurse Sarah', email: 'nurse@hospital.com', role: 'Nurse' };
+    loggedIn = true;
+  } else if (isInsurancePath) {
+    if (!userData || userData.role !== 'Insurance') userData = { name: 'Insurance Agent', email: 'agent@insurance.com', role: 'Insurance' };
     loggedIn = true;
   } else if (!userData && loggedIn) {
     userData = DEFAULT_PATIENT_USER;
@@ -267,7 +297,7 @@ export const App: React.FC = () => {
         setCurrentPage('login');
       } else if (path === '/register') {
         setCurrentPage('register');
-      } else if (path.startsWith('/user/') || path.startsWith('/pharmacist/') || (target && NAV_MAP[target])) {
+      } else if (path.startsWith('/user/') || path.startsWith('/pharmacist/') || path.startsWith('/doctor/') || path.startsWith('/nurse/') || path.startsWith('/insurance/') || (target && NAV_MAP[target])) {
         if (loggedIn) {
           setCurrentPage('dashboard');
           if (target && NAV_MAP[target]) {
@@ -462,13 +492,19 @@ export const App: React.FC = () => {
             onSuccessLogin={handleSuccessLogin}
           />
         ) : currentPage === 'dashboard' ? (
-          isPharmacist ? (
+          user?.role === 'Pharmacist' || isPharmacist ? (
             <PharmacistDashboardPage
               user={user || undefined}
               initialNavId={initialNavId}
               onLogout={handleLogout}
               onNavigate={handleNavigate}
             />
+          ) : user?.role === 'Doctor' ? (
+            <DoctorDashboardPage user={user as any || undefined} onLogout={handleLogout} />
+          ) : user?.role === 'Nurse' ? (
+            <NurseDashboardPage user={user as any || undefined} onLogout={handleLogout} />
+          ) : user?.role === 'Insurance' ? (
+            <InsuranceDashboardPage user={user as any || undefined} onLogout={handleLogout} />
           ) : (
             <DashboardPage
               user={user as any || undefined}
