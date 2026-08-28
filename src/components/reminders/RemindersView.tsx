@@ -214,12 +214,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     localStorage.setItem('user_notification_settings', JSON.stringify(newSetts));
   };
 
-  // ACCEPT DOCTOR FOLLOW-UPS
-  const handleAcceptFollowUp = (id: string) => {
-    const updated = reminders.map(r => r.id === id ? { ...r, followUpStatus: 'Accepted' as const } : r);
-    saveRemindersState(updated);
-    showToast('✓ Appointment Accepted! Follow-up confirmed with doctor.');
-  };
 
   // REMINDER ACTIONS
   const handleMarkComplete = (id: string, title: string) => {

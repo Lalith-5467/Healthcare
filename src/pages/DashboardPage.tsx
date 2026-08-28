@@ -188,7 +188,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       />
 
       {/* MAIN DASHBOARD WORKSPACE */}
-      <div className="flex-1 min-w-0 overflow-x-hidden pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+      <div className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         
         {/* TOAST FEEDBACK NOTIFICATION */}
         <AnimatePresence>
@@ -404,6 +405,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </motion.div>
         )}
 
+        </div>
       </div>
 
       {/* PREMIUM MODAL */}
