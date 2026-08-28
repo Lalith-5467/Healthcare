@@ -171,6 +171,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setScanError(null);
+      
+      // Auto-trigger extraction
+      runExtractionWorkflow(file);
     }
   };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Pill, Calendar as CalendarIcon, Video, Settings,
-  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, AlertCircle
+  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, AlertCircle, X, RefreshCw
 } from 'lucide-react';
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
@@ -58,6 +58,40 @@ const addMinutesToTimeStr = (timeStr: string, minutes: number): string => {
   if (newHours === 0) newHours = 12;
   
   return `${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')} ${newAmpm}`;
+};
+
+const formatFullDate = (dStr: string) => {
+  const months: Record<string, string> = {
+    Jan: 'January', Feb: 'February', Mar: 'March', Apr: 'April', May: 'May', Jun: 'June',
+    Jul: 'July', Aug: 'August', Sep: 'September', Oct: 'October', Nov: 'November', Dec: 'December'
+  };
+  const parts = dStr.split(' ');
+  if (parts.length === 3) {
+    const monthPart = parts[1];
+    const monthFull = months[monthPart] || monthPart;
+    return `${parts[0]} ${monthFull} ${parts[2]}`;
+  }
+  return dStr;
+};
+
+const getCardTitle = (item: ReminderItem) => {
+  if (item.category === 'Appointment') {
+    return `Doctor Follow-up — ${item.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  return item.title;
+};
+
+const getPastCardTitle = (rem: ReminderItem) => {
+  if (rem.status === 'Declined' || rem.followUpStatus === 'Declined') {
+    return `Doctor Follow-up — ${rem.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  if (rem.status === 'Completed' && rem.category === 'Appointment') {
+    return 'Follow-up Appointment';
+  }
+  if (rem.status === 'Cancelled' && rem.category === 'Appointment') {
+    return `Cancelled Doctor Follow-up — ${rem.doctorName || 'Dr. Arun Kumar'}`;
+  }
+  return rem.title;
 };
 
 const getTomorrowDateStr = (dateStr: string): string => {
@@ -124,6 +158,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [snoozeTarget, setSnoozeTarget] = useState<ReminderItem | null>(null);
   const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [declineConfirmTarget, setDeclineConfirmTarget] = useState<ReminderItem | null>(null);
 
   const loadAllData = () => {
     const loadedReminders = getStoredReminders();
@@ -211,6 +247,57 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     showToast('Reminder dismissed');
   };
 
+  const handleAcceptFollowUp = async (id: string) => {
+    if (confirmingId) return; // Prevent duplicate clicks
+    setConfirmingId(id);
+    // Mimic quick api/loading latency
+    await new Promise((r) => setTimeout(r, 600));
+
+    try {
+      const target = reminders.find(r => r.id === id);
+      if (!target) {
+        throw new Error('Appointment not found');
+      }
+      const docName = target.doctorName || 'Dr. Arun Kumar';
+
+      // 1. Update in local storage
+      updateReminderFollowUpStatus(id, 'Accepted');
+      
+      // 2. Reload state
+      loadAllData();
+      setDetailTarget(null);
+
+      showToast('Appointment confirmed\nYour appointment has been confirmed and a reminder has been added to your schedule.');
+    } catch (e) {
+      showToast(`Unable to confirm appointment\nPlease try again.`);
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  const handleDeclineFollowUp = (id: string) => {
+    const req = reminders.find(r => r.id === id);
+    if (req) {
+      setDeclineConfirmTarget(req);
+    }
+  };
+
+  const handleDeclineFollowUpConfirm = (id: string) => {
+    try {
+      // 1. Update in local storage
+      updateReminderFollowUpStatus(id, 'Declined');
+      
+      // 2. Reload state
+      loadAllData();
+      setDetailTarget(null);
+      setDeclineConfirmTarget(null);
+
+      showToast('Appointment declined\nThe appointment request has been declined.');
+    } catch (e) {
+      showToast(`Unable to decline appointment\nPlease try again.`);
+    }
+  };
+
   const handleSnoozeConfirm = (id: string, mins: number) => {
     const target = reminders.find(r => r.id === id);
     if (!target) return;
@@ -294,31 +381,65 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   // METRICS & COMPUTED DATA
   const todayDateStr = '24 Aug 2026'; // Hardcoded today's date
 
-  // Filter out pending and declined follow-ups to get active reminders
-  const activeReminders = reminders.filter(r => r.followUpStatus !== 'Pending' && r.followUpStatus !== 'Declined' && r.status !== 'Completed' && r.status !== 'Cancelled');
+  // Filter out pending, declined, completed, and cancelled reminders to get active ones
+  const activeReminders = reminders.filter(r => r && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined' && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled'
+  );
   const totalRemindersCount = activeReminders.length;
-  const todayRemindersCount = activeReminders.filter((r) => r.date === todayDateStr).length;
-  const upcomingRemindersCount = activeReminders.filter((r) => r.date !== todayDateStr).length;
-  const completedRemindersCount = reminders.filter((r) => r.status === 'Completed').length;
+  const todayRemindersCount = activeReminders.filter((r) => r && r.date === todayDateStr).length;
+  const upcomingRemindersCount = activeReminders.filter((r) => r && r.date !== todayDateStr).length;
+  const completedRemindersCount = reminders.filter((r) => r && r.status === 'Completed').length;
 
   const filteredReminders = reminders.filter((r) => {
+    if (!r) return false;
     if (filters.category !== 'All' && r.category !== filters.category) return false;
     if (filters.status !== 'All' && r.status !== filters.status) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      if (!r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q)) return false;
+      const title = r.title || '';
+      const desc = r.description || '';
+      if (!title.toLowerCase().includes(q) && !desc.toLowerCase().includes(q)) return false;
     }
     return true;
   });
 
-  // Today's Schedule - active only (no completed, pending, or declined)
-  const todaysReminders = filteredReminders.filter(r => r.date === todayDateStr && r.status !== 'Completed' && r.status !== 'Cancelled' && r.followUpStatus !== 'Pending' && r.followUpStatus !== 'Declined').sort((a,b) => a.time.localeCompare(b.time));
+  // Today's Schedule - active/confirmed only
+  const todaysReminders = filteredReminders.filter(r => r && 
+    r.date === todayDateStr && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled' && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined'
+  ).sort((a,b) => (a.time || '').localeCompare(b.time || ''));
   
-  // Future Confirmed Reminders - active only (no completed, pending, or declined)
-  const futureReminders = filteredReminders.filter(r => r.date !== todayDateStr && r.status !== 'Completed' && r.status !== 'Cancelled' && r.followUpStatus !== 'Pending' && r.followUpStatus !== 'Declined').sort((a,b) => a.date.localeCompare(b.date));
+  // Future Confirmed Reminders - active/confirmed only
+  const futureReminders = filteredReminders.filter(r => r && 
+    r.date !== todayDateStr && 
+    r.status !== 'Completed' && 
+    r.status !== 'Cancelled' && 
+    r.status !== 'Pending' && 
+    r.followUpStatus !== 'Pending' && 
+    r.status !== 'Declined' && 
+    r.followUpStatus !== 'Declined'
+  ).sort((a,b) => (a.date || '').localeCompare(b.date || ''));
 
   // Completed & History Reminders
-  const completedAndHistoryReminders = reminders.filter(r => r.status === 'Completed' || r.status === 'Cancelled' || r.followUpStatus === 'Declined');
+  const completedAndHistoryReminders = reminders.filter(r => r && (
+    r.status === 'Completed' || 
+    r.status === 'Cancelled' || 
+    r.status === 'Declined' || 
+    r.followUpStatus === 'Declined'
+  ));
+
+  // Pending Appointment Requests
+  const pendingRequests = reminders.filter(r => r && (r.status === 'Pending' || r.followUpStatus === 'Pending'));
 
   // Determine "Next Reminder" (first upcoming today)
   const nextReminder = todaysReminders.find(r => r.status === 'Upcoming' || r.status === 'Snoozed');
@@ -357,7 +478,16 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     const monthStr = calendarDate.toLocaleString('en-US', { month: 'short' });
     const formattedDate1 = `${dayNum.toString().padStart(2, '0')} ${monthStr} ${calendarDate.getFullYear()}`;
     const formattedDate2 = `${dayNum} ${monthStr} ${calendarDate.getFullYear()}`;
-    return reminders.filter(r => (r.date === formattedDate1 || r.date === formattedDate2) && r.followUpStatus !== 'Pending' && r.followUpStatus !== 'Declined');
+    return reminders.filter(r => {
+      if (!r) return false;
+      const onThisDate = (r.date === formattedDate1 || r.date === formattedDate2);
+      if (!onThisDate) return false;
+      
+      // Show only Confirmed or Completed items; hide Pending, Declined, and Cancelled events
+      const isConfirmed = r.status === 'Confirmed' || r.status === 'Upcoming' || r.status === 'Snoozed' || r.status === 'Due Now' || r.followUpStatus === 'Accepted';
+      const isCompleted = r.status === 'Completed';
+      return isConfirmed || isCompleted;
+    });
   };
 
   return (
@@ -483,6 +613,99 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         {/* LEFT COLUMN: TODAY'S SCHEDULE */}
         <div className="xl:col-span-8 space-y-6">
 
+          {/* APPOINTMENT REQUESTS SECTION */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-black text-slate-900">Appointment Requests</h3>
+                {pendingRequests.length > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-black bg-amber-500/10 text-amber-600 rounded-full border border-amber-500/20 font-mono">
+                    {pendingRequests.length} Pending
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {pendingRequests.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingRequests.map((req) => (
+                  <motion.div
+                    key={req.id}
+                    layoutId={`request-card-${req.id}`}
+                    className="p-5 rounded-3xl bg-amber-500/[0.03] border border-amber-500/20 shadow-md shadow-amber-500/5 flex flex-col justify-between gap-4"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-mono">
+                          Appointment Request
+                        </span>
+                        <span className="text-slate-500 text-[10px] font-bold font-mono">
+                          {req.id}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-extrabold text-slate-900 leading-snug break-words">
+                        {req.doctorName || 'Dr. R. S. Raman, MD (Internal Medicine)'}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        {req.clinicName || 'Apollo Multispeciality Hospital, Chennai'}
+                      </p>
+
+                      <p className="mt-3 text-xs font-bold text-slate-800 bg-slate-100/50 border border-slate-200/40 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>{req.date} • {req.time}</span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-3 border-t border-dashed border-amber-500/10">
+                      <button
+                        type="button"
+                        disabled={confirmingId === req.id}
+                        onClick={() => handleAcceptFollowUp(req.id)}
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-black text-white bg-teal-500 hover:bg-teal-400 disabled:bg-teal-500/50 shadow-sm disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        {confirmingId === req.id ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Confirming...</span>
+                          </>
+                        ) : (
+                          <span>Accept</span>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeclineFollowUp(req.id)}
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                      >
+                        Decline
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDetailTarget(req)}
+                        className="py-2 px-3 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/60 text-center space-y-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                  <CalendarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-800">No pending appointment requests</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">New appointment requests from doctors will appear here.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* TODAY'S SCHEDULE SECTION */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -494,12 +717,12 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
             {todaysReminders.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-200/30 dark:shadow-none">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-slate-350" />
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4 text-slate-400 dark:text-slate-500">
+                  <CalendarDays className="w-10 h-10" />
                 </div>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">All caught up!</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-                  Your scheduled medications, pharmacy orders, and confirmed doctor follow-ups for today will appear here automatically.
+                <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">No appointments scheduled for today</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed font-medium">
+                  Your confirmed appointments and reminders for today will appear here.
                 </p>
               </div>
             ) : (
@@ -522,17 +745,17 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                              {rem.title}
+                            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">
+                              {getCardTitle(rem)}
                             </h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono">
                               Confirmed
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap">
+                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap font-sans">
                             <span>Today • {rem.time}</span>
                             <span>•</span>
-                            <span className="truncate">{rem.description}</span>
+                            <span className="break-words">{rem.description}</span>
                           </div>
                         </div>
                       </div>
@@ -629,10 +852,10 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                >
                  Filter Calendar View
                </button>
-            </div>
-          </div>
-        </div>
-      </div>
+             </div>
+           </div>
+         </div>
+       </div>
 
       {/* 5. UPCOMING REMINDERS SECTION */}
       <div className="space-y-6 pt-8 border-t border-slate-200 dark:border-slate-800">
@@ -640,11 +863,11 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         
         {futureReminders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto">
-              <CalendarIcon className="w-8 h-8 text-slate-355" />
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400 dark:text-slate-500">
+              <CalendarIcon className="w-8 h-8" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No upcoming reminders</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Your confirmed future appointments and medication reminders will appear here automatically.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Your future confirmed appointments and reminders will appear here.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -659,13 +882,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{rem.title}</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20">
+                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">{getCardTitle(rem)}</h4>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono font-mono">
                           Confirmed
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 truncate">
-                        {rem.date} • {rem.time}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 font-sans">
+                        {formatFullDate(rem.date)} • {rem.time}
                       </p>
                     </div>
                   </div>
@@ -679,7 +902,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                     </button>
                     <button 
                       onClick={() => setSnoozeTarget(rem)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-655 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
                     >
                       Snooze
                     </button>
@@ -696,17 +919,21 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Completed & Past History</h3>
 
         {completedAndHistoryReminders.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 text-center text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            No past or completed activities in history.
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400 dark:text-slate-500">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No completed appointments yet</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Completed appointments will appear here after your visits.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {completedAndHistoryReminders.map(rem => {
               const badge = getCategoryBadge(rem.category);
               const Icon = badge.icon;
-              const isDeclined = rem.followUpStatus === 'Declined';
-              const isCancelled = rem.status === 'Cancelled';
+              const isDeclined = rem.status === 'Declined' || rem.followUpStatus === 'Declined';
               const isCompleted = rem.status === 'Completed';
+              const isCancelled = rem.status === 'Cancelled';
 
               return (
                 <div key={rem.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/60 opacity-75 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -716,24 +943,24 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-extrabold text-slate-650 truncate line-through">{rem.title}</h4>
+                        <h4 className="text-sm font-extrabold text-slate-700 leading-snug break-words">{getPastCardTitle(rem)}</h4>
                         {isCompleted && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-mono font-mono">
                             Completed
                           </span>
                         )}
                         {isDeclined && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20 font-mono font-mono">
                             Declined
                           </span>
                         )}
                         {isCancelled && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 font-mono">
                             Cancelled
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 truncate">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 truncate font-sans">
                         {rem.date} • {rem.time}
                       </p>
                     </div>
@@ -776,6 +1003,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         onNavigateModule={(mod) => _onNavigate(mod)}
         onDismiss={handleDismissReminder}
         onAcceptFollowUp={handleAcceptFollowUp}
+        onDeclineFollowUp={handleDeclineFollowUp}
         onSnoozeReminder={(id) => {
           const rem = reminders.find(r => r.id === id);
           if (rem) {
@@ -805,6 +1033,51 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         onClose={() => setClearHistoryOpen(false)}
         onConfirmClear={handleConfirmClearHistory}
       />
+
+      {/* Decline Appointment Confirmation Dialog */}
+      <AnimatePresence>
+        {declineConfirmTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
+              onClick={() => setDeclineConfirmTarget(null)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-center font-sans"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-500/25">
+                <X className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Decline appointment?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
+                Are you sure you want to decline this appointment request?
+              </p>
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setDeclineConfirmTarget(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeclineFollowUpConfirm(declineConfirmTarget.id)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-black text-white bg-rose-500 hover:bg-rose-600 shadow-md transition-colors cursor-pointer"
+                >
+                  Decline Appointment
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
