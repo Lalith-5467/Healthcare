@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, ShieldCheck, Download, Share2, Sparkles, UserCheck } from 'lucide-react';
+import { X, Copy, Check, ShieldCheck, Download, Share2, Sparkles, UserCheck, RefreshCw } from 'lucide-react';
 import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 
 interface QRModalProps {
@@ -18,8 +18,18 @@ export const QRModal: React.FC<QRModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [timestamp, setTimestamp] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setTimestamp(new Date());
+      setIsRefreshing(false);
+    }, 800);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(abhaId);
@@ -58,7 +68,7 @@ export const QRModal: React.FC<QRModalProps> = ({
           <div className="space-y-2 relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 text-[#00a896] dark:text-cyan-300 text-[10px] font-extrabold uppercase border border-teal-500/30">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Official ABDM Digital Health Pass</span>
+              <span>Official Patient Health QR</span>
             </div>
             
             <div className="pt-1">
@@ -68,9 +78,29 @@ export const QRModal: React.FC<QRModalProps> = ({
               </p>
             </div>
           </div>
+          
+          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 rounded-xl">
+             <p className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5">
+               <UserCheck className="w-4 h-4" />
+               Show this QR to your doctor
+             </p>
+          </div>
 
           {/* REAL VECTOR QR CODE DISPLAY WITH HIGH-TECH HUD CORNERS & SCANNING LASER */}
           <div className="relative p-5 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-teal-500/30 dark:border-cyan-500/30 shadow-xl mx-auto w-64 h-64 flex items-center justify-center group overflow-hidden">
+            
+            <AnimatePresence>
+              {isRefreshing && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center"
+                >
+                  <RefreshCw className="w-8 h-8 text-[#00a896] animate-spin" />
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {/* HUD CORNER BRACKETS */}
             <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#00a896] dark:border-cyan-400 z-30 pointer-events-none" />
@@ -86,7 +116,13 @@ export const QRModal: React.FC<QRModalProps> = ({
             />
 
             {/* REAL ABDM VECTOR QR */}
-            <ABDMQRCodeSVG value={abhaId} size={210} />
+            <ABDMQRCodeSVG value={abhaId + timestamp.getTime()} size={210} />
+          </div>
+
+          <div className="text-center mt-[-10px]">
+            <p className="text-[10px] text-slate-500 font-medium">
+              Generated: {timestamp.toLocaleTimeString()}
+            </p>
           </div>
 
           {/* PASS FOOTER METADATA */}
@@ -136,6 +172,17 @@ export const QRModal: React.FC<QRModalProps> = ({
                   <span>Save QR Card</span>
                 </>
               )}
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Regenerate Secure QR</span>
             </button>
           </div>
         </motion.div>

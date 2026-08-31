@@ -18,13 +18,9 @@ import {
 export type SettingsSectionKey =
   | 'account'
   | 'profile'
-  | 'security'
   | 'notifications'
-  | 'privacy'
   | 'appearance'
   | 'health'
-  | 'emergency'
-  | 'family'
   | 'services'
   | 'data'
   | 'accessibility'
@@ -38,13 +34,9 @@ interface SettingsNavSidebarProps {
 export const SETTINGS_NAV_ITEMS: { key: SettingsSectionKey; label: string; icon: any }[] = [
   { key: 'account', label: 'Account', icon: ShieldCheck },
   { key: 'profile', label: 'Profile', icon: User },
-  { key: 'security', label: 'Security', icon: Lock },
   { key: 'notifications', label: 'Notifications', icon: Bell },
-  { key: 'privacy', label: 'Privacy', icon: Eye },
   { key: 'appearance', label: 'Appearance', icon: Palette },
   { key: 'health', label: 'Health Preferences', icon: Heart },
-  { key: 'emergency', label: 'Emergency', icon: AlertTriangle },
-  { key: 'family', label: 'Family', icon: Users },
   { key: 'services', label: 'Connected Services', icon: Grid },
   { key: 'data', label: 'Data & Storage', icon: Database },
   { key: 'accessibility', label: 'Accessibility', icon: Accessibility },

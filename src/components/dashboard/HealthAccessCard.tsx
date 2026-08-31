@@ -30,12 +30,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
       <motion.div
         whileHover={{ y: -4, scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        style={{
-          background: 'linear-gradient(145deg,#f0fff4 0%,#dcfce7 35%,#f8fffe 70%,#ffffff 100%)',
-          border: '1.5px solid rgba(16,185,129,.18)',
-          boxShadow: '0 4px 32px rgba(16,185,129,.09), 0 1px 4px rgba(0,0,0,.04)'
-        }}
-        className="p-6 rounded-3xl text-slate-900 dark:text-white relative overflow-hidden flex flex-col justify-between group font-sans dark:bg-slate-900/90 dark:border-slate-800"
+        className="p-6 rounded-3xl text-slate-900 dark:text-white relative overflow-hidden flex flex-col justify-between group font-sans dark:bg-slate-900/90 dark:border-slate-800 bg-gradient-to-br from-green-50 via-emerald-100/30 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-emerald-500/20 dark:border-emerald-500/10 shadow-[0_4px_32px_rgba(16,185,129,0.09),_0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.5)]"
       >
         {/* BACKGROUND AMBIENT GLOWS */}
         <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(16,185,129,.15) 0%,transparent 70%)' }} />
@@ -53,7 +48,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Health Access ID
+                My Health QR
               </h3>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
                 ABDM Digital Health Vault
@@ -68,12 +63,10 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         </div>
 
         {/* BODY: TEXT ON LEFT, QR CODE ON RIGHT — frosted glass inner box */}
-        <div className="my-4 p-4 rounded-2xl flex items-center justify-between gap-4 relative z-10"
-          style={{ background: 'rgba(255,255,255,.75)', border: '1px solid rgba(20,184,166,.15)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 12px rgba(20,184,166,.06)' }}
-        >
+        <div className="my-4 p-4 rounded-2xl flex items-center justify-between gap-4 relative z-10 bg-white/75 dark:bg-slate-800/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_12px_rgba(20,184,166,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
           <div className="space-y-1.5 min-w-0">
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              Securely share your patient health record.
+              Show this QR to your doctor to share your health record.
             </p>
             <p className="text-xs font-mono font-black truncate" style={{ color: '#00897b' }}>
               {abhaId}

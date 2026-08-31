@@ -206,22 +206,22 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
       </AnimatePresence>
 
       {/* 1. HERO SECTION */}
-      <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-r from-[#e0f7fa]/60 via-white to-[#e3f2fd]/60 border border-slate-100 p-8 sm:p-12 pb-24 shadow-sm mb-[-60px]">
+      <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-r from-[#e0f7fa]/60 dark:from-slate-800 via-white dark:via-slate-900 to-[#e3f2fd]/60 dark:to-slate-800 border border-slate-100 dark:border-slate-800 p-8 sm:p-12 pb-24 shadow-sm mb-[-60px]">
         {/* Background Decorative Mesh Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-100/40 dark:bg-cyan-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100/40 dark:bg-blue-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center justify-between relative z-10 gap-8">
           {/* Left Text Content */}
           <div className="max-w-xl space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">More Healthcare Features</h1>
-              <span className="px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">More Healthcare Features</h1>
+              <span className="px-3 py-1.5 rounded-full bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 text-teal-700 dark:text-teal-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                 <Grid className="w-3.5 h-3.5" />
                 Healthcare Marketplace
               </span>
             </div>
-            <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed max-w-lg">
+            <p className="text-slate-600 dark:text-slate-400 font-medium text-sm sm:text-base leading-relaxed max-w-lg">
               Explore specialized clinical services, AI diagnostics, in-home care, and security controls — all in one place.
             </p>
           </div>
@@ -230,7 +230,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
           <div className="flex flex-col items-end gap-8 w-full md:w-auto relative">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="px-5 py-2.5 rounded-full font-bold text-xs text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm cursor-pointer z-20"
+              className="px-5 py-2.5 rounded-full font-bold text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center gap-2 shadow-sm dark:shadow-none cursor-pointer z-20"
             >
               <span>Back to Dashboard</span>
             </button>
@@ -238,24 +238,24 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
             {/* Abstract Graphic representing the Doctor/Services */}
             <div className="relative w-48 h-32 hidden md:block">
               {/* Floating Orbs */}
-              <div className="absolute top-0 left-0 w-12 h-12 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 -translate-x-6 -translate-y-4 z-10">
+              <div className="absolute top-0 left-0 w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 flex items-center justify-center animate-bounce duration-1000 -translate-x-6 -translate-y-4 z-10">
                 <Activity className="w-6 h-6 text-blue-500" />
               </div>
-              <div className="absolute top-8 right-0 w-10 h-10 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 delay-150 translate-x-4 -translate-y-6 z-10">
+              <div className="absolute top-8 right-0 w-10 h-10 bg-white dark:bg-slate-800 rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 flex items-center justify-center animate-bounce duration-1000 delay-150 translate-x-4 -translate-y-6 z-10">
                 <Heart className="w-5 h-5 text-rose-500" />
               </div>
-              <div className="absolute bottom-0 left-8 w-14 h-14 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center animate-bounce duration-1000 delay-300 -translate-y-2 z-10">
+              <div className="absolute bottom-0 left-8 w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 flex items-center justify-center animate-bounce duration-1000 delay-300 -translate-y-2 z-10">
                 <ShieldCheck className="w-7 h-7 text-emerald-500" />
               </div>
               {/* Abstract Avatar Placeholder */}
-              <div className="absolute bottom-0 right-8 w-32 h-32 bg-gradient-to-t from-cyan-200 to-cyan-50 rounded-full shadow-inner border-4 border-white opacity-80" />
+              <div className="absolute bottom-0 right-8 w-32 h-32 bg-gradient-to-t from-cyan-200 dark:from-cyan-900/50 to-cyan-50 dark:to-transparent rounded-full shadow-inner border-4 border-white dark:border-slate-800 opacity-80" />
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. FILTER & SEARCH BAR (Floating) */}
-      <div className="relative z-20 mx-4 sm:mx-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-100 p-2 sm:p-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] font-sans">
+      <div className="relative z-20 mx-4 sm:mx-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-2 sm:p-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] font-sans">
         
         {/* CATEGORY TABS */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto font-mono text-xs pl-2">
@@ -266,7 +266,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               className={`px-4 py-2 rounded-full font-bold transition-all cursor-pointer font-sans whitespace-nowrap ${
                 activeCategory === cat
                   ? 'bg-[#00a896] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               {cat}
@@ -283,10 +283,10 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               placeholder="Search features (e.g. Lab, Janitor, Nurse)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              className="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
           </div>
-          <button className="p-2.5 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer shrink-0">
+          <button className="p-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm dark:shadow-none cursor-pointer shrink-0">
             <Filter className="w-4 h-4" />
           </button>
         </div>
@@ -301,10 +301,10 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               key={card.id}
               whileHover={{ y: -5, scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xl shadow-slate-200/40 relative overflow-hidden flex flex-col justify-between group font-sans"
+              className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden flex flex-col justify-between group font-sans"
             >
               {/* GRADIENT DECORATION */}
-              <div className={`absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br ${card.color} opacity-[0.03] rounded-full blur-2xl pointer-events-none group-hover:opacity-[0.08] transition-opacity`} />
+              <div className={`absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br ${card.color} opacity-[0.03] dark:opacity-[0.05] rounded-full blur-2xl pointer-events-none group-hover:opacity-[0.08] dark:group-hover:opacity-[0.15] transition-opacity`} />
 
               <div className="space-y-4 relative z-10">
                 {/* TOP HEADER */}
@@ -319,20 +319,20 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
 
                 {/* TITLE & DESCRIPTION */}
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-slate-700 transition-colors">
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                     {card.title}
                   </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                     {card.description}
                   </p>
                 </div>
 
                 {/* HIGHLIGHT LIST */}
-                <div className="space-y-2 pt-3 border-t border-slate-100">
+                <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                   {card.highlights.map((h, i) => {
                     const textCol = card.badgeBg.split(' ').find(c => c.startsWith('text-')) || 'text-[#00a896]';
                     return (
-                      <div key={i} className="flex items-center gap-2.5 text-[11px] text-slate-600 font-medium">
+                      <div key={i} className="flex items-center gap-2.5 text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                         <CheckCircle2 className={`w-4 h-4 ${textCol} shrink-0`} />
                         <span>{h}</span>
                       </div>
@@ -342,8 +342,8 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               </div>
 
               {/* FOOTER ACTION & RATING */}
-              <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+              <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span>{card.rating.replace('★', '')}</span>
                 </div>
@@ -361,13 +361,13 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
         })}
         {/* EMPTY SPACE GRAPHIC (Only on "All" view) */}
         {activeCategory === 'All' && (
-          <div className="hidden md:flex lg:col-span-2 md:col-span-1 items-center justify-center rounded-3xl p-8 relative overflow-hidden group">
+          <div className="hidden md:flex lg:col-span-2 md:col-span-1 items-center justify-center rounded-3xl p-8 relative overflow-hidden group border border-transparent dark:border-slate-800 dark:bg-slate-900/30">
             {/* Soft background glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-50/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-50/50 dark:from-cyan-900/10 to-transparent pointer-events-none" />
             
             <div className="relative w-64 h-48 flex items-center justify-center">
               {/* Base Pedestal */}
-              <div className="absolute bottom-4 w-48 h-12 bg-white rounded-[100%] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-slate-100" />
+              <div className="absolute bottom-4 w-48 h-12 bg-white dark:bg-slate-800 rounded-[100%] shadow-[0_10px_30px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700" />
               <div className="absolute bottom-6 w-32 h-8 bg-slate-50 rounded-[100%] shadow-inner border border-slate-100" />
               
               {/* Central Shield */}
