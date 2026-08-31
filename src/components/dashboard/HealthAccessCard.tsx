@@ -48,7 +48,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Health Access ID
+                My Health QR
               </h3>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
                 ABDM Digital Health Vault
@@ -66,7 +66,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         <div className="my-4 p-4 rounded-2xl flex items-center justify-between gap-4 relative z-10 bg-white/75 dark:bg-slate-800/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_12px_rgba(20,184,166,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
           <div className="space-y-1.5 min-w-0">
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              Securely share your patient health record.
+              Show this QR to your doctor to share your health record.
             </p>
             <p className="text-xs font-mono font-black truncate" style={{ color: '#00897b' }}>
               {abhaId}
