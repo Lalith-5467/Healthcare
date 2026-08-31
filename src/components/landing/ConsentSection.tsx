@@ -107,7 +107,7 @@ export const ConsentSection: React.FC = () => {
                 </button>
                 <button
                   onClick={handleApprove}
-                  className="flex-1 py-3 rounded-xl text-xs font-bold text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 rounded-xl text-xs font-bold text-slate-900 dark:text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-1.5"
                 >
                   <ShieldCheck className="w-4 h-4" /> Approve Consent
                 </button>

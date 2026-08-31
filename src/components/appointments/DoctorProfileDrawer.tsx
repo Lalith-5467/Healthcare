@@ -29,7 +29,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
           </span>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -48,7 +48,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
               <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">{doctor.name}</h3>
               <p className="text-xs font-bold text-[#00a896] dark:text-teal-400">{doctor.speciality}</p>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                 <span className="truncate">{doctor.hospital}</span>
               </div>
               <div className="pt-1 flex items-center gap-2">

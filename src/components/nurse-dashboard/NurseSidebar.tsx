@@ -55,7 +55,7 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200 dark:border-slate-800 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="w-64 bg-transparent flex flex-col h-full overflow-y-auto">
       <nav className="flex-1 px-4 py-6 space-y-1">
         {NAV_ITEMS.map((item, index) => {
           if (item.category) {
@@ -75,16 +75,16 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
             <button
               key={item.id}
               onClick={() => onNavigate(item.id!)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all group ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all group border ${
                 isActive
                   ? item.danger 
-                    ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' 
-                    : 'bg-[#00a896]/10 text-[#00a896] dark:bg-cyan-900/20 dark:text-cyan-400'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-900/50' 
+                    : 'bg-gradient-to-r from-teal-500/10 to-transparent text-teal-600 border-teal-200 dark:from-teal-500/20 dark:to-transparent dark:text-teal-400 dark:border-teal-900/50 shadow-sm'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-5 h-5 ${isActive ? '' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'} ${item.danger && !isActive ? 'text-rose-400 group-hover:text-rose-500' : ''}`} />
+                <Icon className={`w-5 h-5 ${isActive ? '' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-600 dark:text-slate-300'} ${item.danger && !isActive ? 'text-rose-400 group-hover:text-rose-500' : ''}`} />
                 <span>{item.label}</span>
               </div>
               
@@ -98,15 +98,31 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
         })}
       </nav>
       
+      {/* Premium Care Card */}
+      <div className="p-4">
+        <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 border border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-shadow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-colors pointer-events-none"></div>
+          <h4 className="text-[13px] font-black text-indigo-900 dark:text-indigo-300 relative z-10 flex items-center gap-1.5">
+            <HeartPulse className="w-3.5 h-3.5" /> Premium Care
+          </h4>
+          <p className="text-[10px] font-medium text-indigo-700 dark:text-indigo-200/70 leading-relaxed relative z-10">
+            Unlock advanced features and priority support.
+          </p>
+          <button className="mt-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg w-fit transition-colors relative z-10 shadow-sm">
+            Upgrade Now →
+          </button>
+        </div>
+      </div>
+
       {/* Profile Area */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20">
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#070c18] flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 flex items-center justify-center shrink-0">
-            <HeartPulse className="w-5 h-5 text-rose-500" />
+          <div className="w-9 h-9 rounded-full bg-teal-100 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0 text-teal-600 dark:text-teal-400 font-bold text-sm shadow-sm">
+            S
           </div>
           <div className="truncate">
-            <p className="text-sm font-black text-slate-900 dark:text-white truncate">Nurse Sarah</p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">Senior RN</p>
+            <p className="text-sm font-black text-slate-900 dark:text-white truncate leading-tight">Nurse Sarah</p>
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">Senior RN</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Menu, Bell, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Menu, Bell, ShieldCheck, ChevronDown, LogOut } from 'lucide-react';
+import { Logo } from '../components/ui/Logo';
 import { PharmacistSidebar } from '../components/pharmacist/PharmacistSidebar';
 import { PharmacistOverviewTab } from '../components/pharmacist/PharmacistOverviewTab';
 import { PharmacistOrdersView } from '../components/pharmacist/PharmacistOrdersView';
@@ -59,7 +60,59 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none font-sans">
+    <div className="h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white transition-colors duration-300 flex flex-col select-none font-sans">
+      {/* TOP HEADER */}
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 h-16 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <button 
+            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+            onClick={() => setMobileSidebarOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <Logo />
+            <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
+              <span className="text-xs font-black uppercase tracking-wider text-[#00a896] dark:text-cyan-400 bg-teal-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> Pharmacy Operations
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-[#0b1120]"></span>
+          </button>
+          
+          <div className="hidden sm:block w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+
+          <div className="hidden sm:flex items-center gap-2.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 pr-2 rounded-full transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+            <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-sm">
+              {user.name.charAt(0)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">{user.name}</span>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">Registered Pharmacist</span>
+            </div>
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          </div>
+
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+
+          <button 
+            onClick={onLogout}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2"
+          >
+            <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="text-xs font-bold hidden sm:block">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0">
         <PharmacistSidebar
@@ -71,8 +124,9 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
       </div>
 
       {/* MAIN PHARMACIST WORKSPACE */}
-      <div className="flex-1 min-w-0 overflow-x-hidden pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
-        {/* TOAST FEEDBACK */}
+      <div className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
+          {/* TOAST FEEDBACK */}
         <AnimatePresence>
           {toastMessage && (
             <motion.div
@@ -103,11 +157,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         {/* TOP PHARMACIST WORKSPACE HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 font-mono border border-teal-500/20">
-                Dispensary Operations
-              </span>
-              <span className="text-xs text-slate-400 font-mono">• Apollo Central</span>
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">
+              Pharmacy Operations / Apollo Central
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
               {activeNavId === 'dashboard'
@@ -149,6 +200,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             onToast={showToast}
           />
         )}
+        </div>
+      </div>
       </div>
     </div>
   );

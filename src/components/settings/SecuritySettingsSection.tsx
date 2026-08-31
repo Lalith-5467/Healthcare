@@ -140,7 +140,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Change Account Password</h3>
-              <button onClick={() => setChangePassOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setChangePassOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-3 font-medium">
@@ -208,7 +208,7 @@ export const SecuritySettingsSection: React.FC<SecuritySettingsSectionProps> = (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Enable Two-Factor Authentication</h3>
-              <button onClick={() => setTwoFaModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setTwoFaModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               Select your preferred 2FA authentication method for simulated security verification.

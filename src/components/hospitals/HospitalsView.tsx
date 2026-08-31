@@ -273,7 +273,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
         {/* SEARCH BAR */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-4 top-3.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-4 top-3.5 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               value={searchQuery}
@@ -476,7 +476,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
           </div>
         ) : (
           <div className="py-12 text-center bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
-            <Building2 className="w-12 h-12 text-slate-400 mx-auto" />
+            <Building2 className="w-12 h-12 text-slate-500 dark:text-slate-400 mx-auto" />
             <h4 className="font-extrabold text-slate-900 dark:text-white text-base">No hospitals match your search criteria</h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-medium">
               Try adjusting your category chips, distance range, or clear search text to see available facilities.
@@ -512,7 +512,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
             </button>
             <button
               onClick={() => setCompareModalOpen(true)}
-              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold cursor-pointer shadow-md"
+              className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white font-extrabold cursor-pointer shadow-md"
             >
               Compare Now
             </button>

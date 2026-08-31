@@ -71,7 +71,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
               <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Confirm Account Deactivation</h4>
-              <button onClick={() => setDeactivateModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+              <button onClick={() => setDeactivateModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
             <p className="text-slate-600 dark:text-slate-300 font-medium">Are you sure you want to deactivate your demo patient account?</p>
             <div className="pt-2 flex justify-between gap-3 font-sans">

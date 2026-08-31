@@ -244,7 +244,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <button
                               key={service.id}
                               onClick={() => handleNavClick(service.id)}
-                              className="group/item flex items-start gap-3 p-3 rounded-2xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all cursor-pointer border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/60"
+                              className="group/item flex items-start gap-3 p-3 rounded-2xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all cursor-pointer border border-transparent hover:border-slate-200/60 dark:hover:border-slate-200 dark:border-slate-700/60"
                             >
                               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${service.color} transition-transform group-hover/item:scale-110`}>
                                 <IconComp className="w-5 h-5" />
@@ -254,7 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
                                   <h5 className="text-xs font-bold text-slate-900 dark:text-white group-hover/item:text-[#00a896] transition-colors">
                                     {service.title}
                                   </h5>
-                                  <ArrowRight className="w-3 h-3 text-slate-400 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
+                                  <ArrowRight className="w-3 h-3 text-slate-500 dark:text-slate-400 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
                                 </div>
                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5 line-clamp-2">
                                   {service.desc}
@@ -304,7 +304,7 @@ export const Header: React.FC<HeaderProps> = ({
               {searchOpen && (
                 <div className="absolute right-0 top-full mt-2 w-72 p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 z-50">
                   <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                    <Search className="w-4 h-4 text-slate-400" />
+                    <Search className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                     <input
                       type="text"
                       placeholder="Search records, SOS, medicine..."
@@ -331,7 +331,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => onNavigate('register')}
-              className="h-10 px-4 text-sm font-bold text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
+              className="h-10 px-4 text-sm font-bold text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
             >
               Register
             </button>

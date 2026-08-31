@@ -16,7 +16,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         
         {/* ECG ACTIVITY ICON WITH TEAL BACKGROUND */}
         <div className="relative shrink-0 flex items-center justify-center w-9 h-9 rounded-2xl bg-[#00a896] text-white shadow-md shadow-teal-500/20 group">
-          <Activity className="w-5 h-5 text-white stroke-[2.5]" />
+          <Activity className="w-5 h-5 text-slate-900 dark:text-white stroke-[2.5]" />
         </div>
 
         {/* BRAND NAME & SUBTITLE */}

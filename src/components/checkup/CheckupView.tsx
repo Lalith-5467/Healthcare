@@ -193,7 +193,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Activity className="w-4 h-4" />
               <span>Start Assessment</span>
@@ -241,7 +241,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="w-full lg:w-auto px-8 py-4 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2.5 cursor-pointer hover:-translate-y-0.5"
+              className="w-full lg:w-auto px-8 py-4 rounded-2xl font-extrabold text-sm text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2.5 cursor-pointer hover:-translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start Check-Up (12 Steps)</span>
@@ -288,7 +288,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="px-4 py-2 rounded-xl font-extrabold text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-md shadow-teal-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 rounded-xl font-extrabold text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-md shadow-teal-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
               <span>Resume Check-Up</span>
@@ -332,7 +332,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                     className={`transition-all duration-1000 ease-out ${cat.status === 'Completed' ? 'text-emerald-400' : cat.status === 'In Progress' ? 'text-teal-400' : 'text-slate-200'}`} 
                   />
                 </svg>
-                <div className="absolute flex flex-col items-center justify-center text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm">
+                <div className="absolute flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm">
                   {cat.iconName === 'Stethoscope' && <Stethoscope className="w-7 h-7" />}
                   {cat.iconName === 'Heart' && <Heart className="w-7 h-7" />}
                   {cat.iconName === 'Activity' && <Activity className="w-7 h-7" />}
@@ -344,7 +344,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
               <div>
                 <div className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono tracking-tighter">
-                  {cat.progressPercentage}<span className="text-xs text-slate-400 ml-0.5">%</span>
+                  {cat.progressPercentage}<span className="text-xs text-slate-500 dark:text-slate-400 ml-0.5">%</span>
                 </div>
                 <h4 className="font-bold text-slate-700 dark:text-slate-300 text-xs mt-1 leading-tight">{cat.title}</h4>
               </div>
@@ -384,7 +384,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
           <div className="flex items-center gap-2 self-stretch sm:self-auto">
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -407,7 +407,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
             <div key={item.id} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm hover:shadow-md hover:border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:-translate-y-0.5">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/60 flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-extrabold text-teal-600 uppercase tracking-wider">{item.date} • {item.time}</span>
@@ -427,7 +427,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 </button>
                 <button
                   onClick={() => handleDeleteRecord(item.id)}
-                  className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
+                  className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 text-slate-500 dark:text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

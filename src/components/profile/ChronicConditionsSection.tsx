@@ -36,7 +36,7 @@ export const ChronicConditionsSection: React.FC<ChronicConditionsSectionProps> =
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
                 Chronic Conditions
               </h3>
-              <span className="text-[11px] text-slate-400">{conditions.length} Active Medical Conditions</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{conditions.length} Active Medical Conditions</span>
             </div>
           </div>
 
@@ -51,7 +51,7 @@ export const ChronicConditionsSection: React.FC<ChronicConditionsSectionProps> =
 
         {conditions.length === 0 ? (
           <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-slate-800 space-y-2">
-            <p className="text-xs text-slate-400 font-semibold">No chronic conditions recorded</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">No chronic conditions recorded</p>
             <button
               onClick={() => setModalOpen(true)}
               className="px-3 py-1.5 text-xs font-bold text-[#00a896] hover:underline cursor-pointer"
@@ -79,13 +79,13 @@ export const ChronicConditionsSection: React.FC<ChronicConditionsSectionProps> =
                     Last Reviewed: <span className="font-semibold">{c.lastReviewed}</span>
                   </p>
                   {c.notes && (
-                    <p className="text-[10px] text-slate-400 italic">"{c.notes}"</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">"{c.notes}"</p>
                   )}
                 </div>
 
                 <button
                   onClick={() => handleDelete(c.id, c.name)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                   title="Remove Condition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

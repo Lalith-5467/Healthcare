@@ -31,7 +31,7 @@ export const PatientCareView: React.FC = () => {
     return (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800">
         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Stethoscope className="w-8 h-8 text-slate-400" />
+          <Stethoscope className="w-8 h-8 text-slate-500 dark:text-slate-400" />
         </div>
         <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">No Active Patient</h3>
         <p className="text-slate-500 dark:text-slate-400">Accept a care request from the Care Requests tab to begin.</p>
@@ -148,7 +148,7 @@ export const PatientCareView: React.FC = () => {
             className={`px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 transition-all ${
               activeTab === tab.id 
                 ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-600 dark:text-slate-300'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -186,9 +186,9 @@ export const PatientCareView: React.FC = () => {
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
                           isCompleted ? 'bg-emerald-500 border-emerald-500' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
                         }`}>
-                          {isCompleted && <CheckCircle2 className="w-4 h-4 text-white" />}
+                          {isCompleted && <CheckCircle2 className="w-4 h-4 text-slate-900 dark:text-white" />}
                         </div>
-                        <span className={`text-base font-black ${isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                        <span className={`text-base font-black ${isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                           {step.label}
                         </span>
                       </div>
@@ -241,7 +241,7 @@ export const PatientCareView: React.FC = () => {
                 {activeBooking.status === 'Care in Progress' && (
                   <button 
                     onClick={handleCompleteVisit}
-                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-lg"
+                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 dark:text-white font-black rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-lg"
                   >
                     <CheckCircle2 className="w-5 h-5" /> Complete Visit & Submit Report
                   </button>
@@ -252,7 +252,7 @@ export const PatientCareView: React.FC = () => {
             {/* MEDICATION TAB */}
             {activeTab === 'medication' && (
               <div className="max-w-2xl mx-auto text-center py-12">
-                <Pill className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <Pill className="w-12 h-12 text-slate-600 dark:text-slate-300 mx-auto mb-4" />
                 <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">No Medications Prescribed</h3>
                 <p className="text-slate-500">The patient does not have any pending medications for this visit.</p>
               </div>

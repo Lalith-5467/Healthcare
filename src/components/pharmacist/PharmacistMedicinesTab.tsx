@@ -37,7 +37,7 @@ export const PharmacistMedicinesTab: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
@@ -81,7 +81,7 @@ export const PharmacistMedicinesTab: React.FC = () => {
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
             {filtered.map((item, idx) => (
               <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="p-4 font-mono font-bold text-slate-400">{idx + 1}</td>
+                <td className="p-4 font-mono font-bold text-slate-500 dark:text-slate-400">{idx + 1}</td>
                 <td className="p-4">
                   <div className="font-extrabold text-slate-900 dark:text-white">{item.medicineName}</div>
                   <div className="text-[11px] font-mono text-teal-600 dark:text-cyan-400 font-bold">{item.dosage}</div>

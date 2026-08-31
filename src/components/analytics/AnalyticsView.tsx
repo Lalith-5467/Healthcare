@@ -58,39 +58,81 @@ const vitalPreviewData: Record<string, {
 }> = {
   'Heart Rate': {
     color: '#f43f5e', // rose-500
-    chartPath: 'M0,60 L10,55 L20,53 L30,58 L40,65 L50,68 L60,62 L70,55 L80,50 L90,65 L100,70',
+    chartPath: 'M0,65 S8,60 16.6,60 S25,62 33.3,62 S41.6,68 50,68 S58.3,62 66.6,62 S75,50 83.3,50 S91.6,65 100,65',
     cx: '50',
     cy: '68',
     title: 'Heart Rate'
   },
   'Blood Pressure': {
     color: '#818cf8', // indigo-400
-    chartPath: 'M0,50 L15,45 L30,55 L45,50 L60,45 L75,30 L90,40 L100,45',
+    chartPath: 'M0,50 C 7,50 7,45 15,45 S 22,55 30,55 S 37,50 45,50 S 52,45 60,45 S 67,30 75,30 S 82,40 90,40 S 95,45 100,45',
     cx: '75',
     cy: '30',
     title: 'Blood Pressure'
   },
   'Temperature': {
     color: '#f59e0b', // amber-500
-    chartPath: 'M0,70 L20,65 L40,50 L60,55 L80,45 L100,60',
+    chartPath: 'M0,70 C 10,70 10,65 20,65 S 30,50 40,50 S 50,55 60,55 S 70,45 80,45 S 90,60 100,60',
     cx: '40',
     cy: '50',
     title: 'Temperature'
   },
   'SpO2': {
     color: '#3b82f6', // blue-500
-    chartPath: 'M0,30 L25,25 L50,20 L75,10 L100,15',
+    chartPath: 'M0,30 C 12,30 12,25 25,25 S 37,20 50,20 S 62,10 75,10 S 87,15 100,15',
     cx: '50',
     cy: '20',
     title: 'SpO2'
   },
   'Weight': {
     color: '#10b981', // emerald-500
-    chartPath: 'M0,45 L20,40 L40,35 L60,32 L80,30 L100,32',
+    chartPath: 'M0,45 C 10,45 10,40 20,40 S 30,35 40,35 S 50,32 60,32 S 70,30 80,30 S 90,32 100,32',
     cx: '80',
     cy: '30',
     title: 'Body Weight'
   }
+};
+
+const generateSmoothPath = (points: {x: number, y: number}[]) => {
+  if (points.length === 0) return '';
+  let path = `M${points[0].x},${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const mx = (p1.x + p2.x) / 2;
+    path += ` C${mx},${p1.y} ${mx},${p2.y} ${p2.x},${p2.y}`;
+  }
+  return path;
+};
+
+const getDynamicPoints = (metric: string, timeframe: string, targetCx: number, targetCy: number) => {
+  let numPoints = 7;
+  if (timeframe === '30D') numPoints = 6;
+  if (timeframe === '3M') numPoints = 4;
+  if (timeframe === '1Y') numPoints = 6;
+
+  // Find which index is closest to the target cx
+  let closestIdx = 0;
+  let minDiff = 100;
+  
+  const points = [];
+  for (let i = 0; i < numPoints; i++) {
+    const x = (i / (numPoints - 1)) * 100;
+    const diff = Math.abs(x - targetCx);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIdx = i;
+    }
+    
+    // Deterministic pseudo-random y
+    const seed = metric.charCodeAt(0) + i * 13 + timeframe.charCodeAt(0);
+    const y = 50 + (Math.sin(seed) * 15);
+    points.push({ x, y });
+  }
+  
+  // Force the closest point to match the tooltip target
+  points[closestIdx].y = targetCy;
+  return { points, activeIndex: closestIdx };
 };
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
@@ -104,7 +146,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   // VITALS CHART METRIC SELECTOR ('Heart Rate' | 'Blood Pressure' | 'Temperature' | 'SpO2' | 'Weight')
   const [selectedVitalMetric, setSelectedVitalMetric] = useState<'Heart Rate' | 'Blood Pressure' | 'Temperature' | 'SpO2' | 'Weight'>('Heart Rate');
-  const [vitalsTimeframe, setVitalsTimeframe] = useState<'7D' | '30D' | '3M'>('7D');
+  const [vitalsTimeframe, setVitalsTimeframe] = useState<'7D' | '30D' | '3M' | '1Y'>('7D');
   const [hoveredVital, setHoveredVital] = useState<VitalDataPoint | null>(null);
 
   // GOALS & LOCALSTORAGE
@@ -124,6 +166,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     status: 'All',
     dateRange: '30 Days'
   });
+
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -351,7 +394,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       </div>
 
       {/* 4. VITALS OVERVIEW & INTERACTIVE TREND CHARTS (REDESIGNED) */}
-      <div className="bg-[#121626] border border-slate-800/60 rounded-[1.5rem] p-3.5 sm:p-4 space-y-3 shadow-xl font-sans text-white">
+      <div className="bg-slate-50 dark:bg-[#121626] border border-slate-200 dark:border-slate-800/60 rounded-[1.5rem] p-3.5 sm:p-4 space-y-3 shadow-xl font-sans text-slate-900 dark:text-white">
         
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -361,30 +404,30 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 <Activity className="w-4 h-4" />
               </div>
               <h3 className="text-lg font-bold tracking-wide">Vitals Overview</h3>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#00a896]/20 text-[#00a896] border border-[#00a896]/30 flex items-center gap-1 shadow-sm uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00a896]"></span>
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#00a896]/10 text-[#00a896] border border-[#00a896]/30 flex items-center gap-1.5 shadow-sm uppercase tracking-wider backdrop-blur-sm">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a896] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-[#00a896] shadow-[0_0_8px_#00a896]"></span>
+                </span>
                 All systems normal
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1 font-medium">Track heart rate, blood pressure & vital metrics</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">Track heart rate, blood pressure & vital metrics</p>
           </div>
 
           {/* TIMEFRAME SELECTOR */}
-          <div className="flex items-center gap-1 p-1 rounded-full bg-slate-900/50 border border-slate-800/80 text-[10px] font-sans shadow-inner">
+          <div className="flex items-center gap-1 p-1 rounded-full bg-slate-200/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 text-[10px] font-sans shadow-inner">
             {(['7D', '30D', '3M', '1Y'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setVitalsTimeframe(tf as any)}
                 className={`px-4 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-                  vitalsTimeframe === tf ? 'bg-blue-600/90 text-white shadow-[0_0_12px_rgba(37,99,235,0.6)]' : 'text-slate-400 hover:text-white'
+                  vitalsTimeframe === tf ? 'bg-blue-600/90 text-white shadow-[0_0_12px_rgba(37,99,235,0.6)]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {tf}
               </button>
             ))}
-            <button className="p-1.5 rounded-full text-slate-400 hover:text-white transition-colors cursor-pointer mr-1">
-              <CalendarIcon className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -404,22 +447,21 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 onClick={() => setSelectedVitalMetric(m.id as any)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden ${
                   isSelected
-                    ? `bg-[#1a1f33] ${m.activeBorder} shadow-[0_0_12px_rgba(0,0,0,0.5)]`
-                    : 'bg-[#15192b] border-slate-700/50 hover:bg-[#1a1f33]'
+                    ? `bg-slate-100 dark:bg-[#1a1f33] ${m.activeBorder} shadow-[0_0_12px_rgba(0,0,0,0.5)]`
+                    : 'bg-white dark:bg-[#15192b] border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:bg-[#1a1f33]'
                 }`}
               >
-                {isSelected && (
-                   <div className={`absolute -top-4 -left-4 w-20 h-20 ${m.glow} blur-xl pointer-events-none rounded-full`}></div>
-                )}
+                <div className={`absolute -top-4 -left-4 w-32 h-32 ${m.glow} blur-2xl pointer-events-none rounded-full transition-opacity duration-500 ${isSelected ? 'opacity-100' : 'opacity-50'}`}></div>
+                <div className={`absolute bottom-0 right-0 w-24 h-24 ${m.glow} blur-xl pointer-events-none rounded-full transition-opacity duration-500 opacity-20`}></div>
                 <div className="flex items-center gap-2.5 z-10">
                   <div className={`p-2 rounded-lg ${m.iconBg} ${m.iconColor} shadow-inner`}>
                     <m.icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-medium text-slate-300 block leading-tight">{m.label}</span>
+                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block leading-tight">{m.label}</span>
                     <div className="flex items-baseline gap-1 mt-0">
-                      <span className="font-sans font-bold text-xl text-white leading-tight">{m.val}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{m.unit}</span>
+                      <span className="font-sans font-bold text-xl text-slate-900 dark:text-white leading-tight">{m.val}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{m.unit}</span>
                     </div>
                   </div>
                 </div>
@@ -443,146 +485,190 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
           
           {/* Main Chart (Left 8 cols) */}
-          <div className="lg:col-span-8 bg-[#15192b] border border-slate-700/50 rounded-xl p-3.5 relative overflow-hidden flex flex-col shadow-inner">
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-500" />
-                <span className="text-[13px] font-bold text-white">{selectedVitalMetric} Trend</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-800/80 border border-slate-700/50 text-[11px] font-bold text-slate-300 cursor-pointer hover:bg-slate-700 transition-colors shadow-sm">
-                  <Activity className="w-3.5 h-3.5 text-slate-400" />
-                  {selectedVitalMetric}
-                  <span className="ml-0.5 opacity-50 text-[10px]">▼</span>
+          <div className={`lg:col-span-8 bg-[#0b1120] border rounded-2xl p-5 relative overflow-hidden flex flex-col shadow-inner ${selectedVitalMetric === 'Heart Rate' ? 'border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)]' : 'border-slate-800'}`}>
+            {/* Glowing edge effect like image 1 */}
+            {selectedVitalMetric === 'Heart Rate' && (
+              <>
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-rose-500/80 to-transparent"></div>
+                <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-rose-500/80 to-transparent"></div>
+                <div className="absolute top-0 left-0 w-48 h-48 bg-rose-500/20 blur-[60px] rounded-full pointer-events-none"></div>
+              </>
+            )}
+
+            <div className="flex items-start justify-between mb-8 relative z-10">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Heart className={`w-5 h-5 ${selectedVitalMetric === 'Heart Rate' ? 'text-rose-500' : 'text-slate-400'}`} fill={selectedVitalMetric === 'Heart Rate' ? 'currentColor' : 'none'} />
+                  <span className="text-lg font-bold text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
                 </div>
-                <button className="p-1 rounded-md bg-slate-800/80 border border-slate-700/50 text-slate-400 hover:text-white transition-colors cursor-pointer shadow-sm">
-                  <span className="block w-4 text-center font-bold">⋮</span>
-                </button>
+                <div className="text-xs text-slate-400 mt-1">
+                  {vitalsTimeframe === '7D' && 'Week View: Aug 21 - Aug 27'}
+                  {vitalsTimeframe === '30D' && 'Month View: Aug 01 - Aug 30'}
+                  {vitalsTimeframe === '3M' && 'Quarter View: Jun 01 - Aug 31'}
+                  {vitalsTimeframe === '1Y' && 'Year View: 2026'}
+                </div>
+              </div>
+              <div className="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center gap-2 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                <span className="text-xs text-slate-300 font-medium">Active</span>
               </div>
             </div>
 
-            <div className="flex-1 relative border-l border-b border-slate-800/60 pb-2 pl-3 flex items-end ml-4 h-[150px] sm:h-[170px]">
+            <div className="w-full relative pb-6 pl-8 flex items-end h-[220px] mt-2 border-l border-b border-slate-700/50">
               {/* Y-axis labels */}
-              <div className="absolute left-[-22px] top-0 bottom-2 flex flex-col justify-between text-[10px] text-slate-500 font-medium">
+              <div className="absolute left-[-26px] top-0 bottom-6 flex flex-col justify-between text-[11px] text-slate-400 font-medium">
                 <span>100</span>
+                <span>90</span>
                 <span>80</span>
+                <span>70</span>
                 <span>60</span>
+                <span>50</span>
                 <span>40</span>
+              </div>
+              <div className="absolute inset-0 z-0 flex flex-col justify-between pb-6">
+                {[...Array(7)].map((_, i) => (
+                  <div key={`h-${i}`} className="w-full h-px border-t border-dashed border-slate-700/60"></div>
+                ))}
+              </div>
+              <div className="absolute inset-0 z-0 flex justify-between pl-8 pr-2">
+                {[...Array(
+                  vitalsTimeframe === '7D' ? 7 :
+                  vitalsTimeframe === '30D' ? 6 :
+                  vitalsTimeframe === '3M' ? 4 : 6
+                )].map((_, i) => (
+                  <div key={`v-${i}`} className="h-full w-px border-l border-dashed border-slate-700/60"></div>
+                ))}
               </div>
 
               {/* Chart SVG */}
-              <svg className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="chartGradientDark" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} stopOpacity="0.3" />
-                    <stop offset="100%" stopColor={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d={`M0,100 L0,${vitalPreviewData[selectedVitalMetric]?.chartPath.split(' ')[0].substring(3) || '60'} ${vitalPreviewData[selectedVitalMetric]?.chartPath.substring(vitalPreviewData[selectedVitalMetric]?.chartPath.indexOf(' ') + 1) || 'L10,55 L20,60 L40,70 L50,40 L60,50 L80,55 L100,65'} L100,100 Z`}
-                  fill="url(#chartGradientDark)"
-                  className="transition-all duration-700 ease-in-out"
-                />
-                <path
-                  d={vitalPreviewData[selectedVitalMetric]?.chartPath || 'M0,60 L10,55 L20,60 L40,70 L50,40 L60,50 L80,55 L100,65'}
-                  fill="none"
-                  stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-all duration-700 ease-in-out"
-                  style={{ filter: `drop-shadow(0 0 6px ${vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}80)` }}
-                />
-
-                {/* Plot Dots for all points (approximate for demo) */}
-                {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => (
-                  <circle
-                    key={x}
-                    cx={x}
-                    cy={x === parseInt(vitalPreviewData[selectedVitalMetric]?.cx || '50') ? vitalPreviewData[selectedVitalMetric]?.cy || '40' : (45 + Math.random() * 20)}
-                    r="1.5"
-                    fill={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
-                    className="transition-all duration-700 ease-in-out opacity-40"
-                  />
-                ))}
+              {(() => {
+                const cx = parseInt(vitalPreviewData[selectedVitalMetric]?.cx || '50');
+                const cy = parseInt(vitalPreviewData[selectedVitalMetric]?.cy || '40');
+                const { points, activeIndex } = getDynamicPoints(selectedVitalMetric, vitalsTimeframe, cx, cy);
+                const pathStr = generateSmoothPath(points);
+                const activePoint = points[activeIndex];
                 
-                {/* Vertical dash line for tooltip */}
-                <line 
-                  x1={vitalPreviewData[selectedVitalMetric]?.cx || '50'} 
-                  y1={vitalPreviewData[selectedVitalMetric]?.cy || '40'} 
-                  x2={vitalPreviewData[selectedVitalMetric]?.cx || '50'} 
-                  y2="100" 
-                  stroke="currentColor" 
-                  strokeDasharray="4,4" 
-                  strokeWidth="1.5" 
-                  className="text-slate-600 transition-all duration-700 ease-in-out" 
-                />
+                return (
+                  <>
+                    <svg key={vitalsTimeframe + selectedVitalMetric} className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none" viewBox="0 0 100 100">
+                      <defs>
+                        <linearGradient id="chartGradientBeautiful" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor={selectedVitalMetric === 'Heart Rate' ? '#f43f5e' : vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} stopOpacity="0.85" />
+                          <stop offset="100%" stopColor="#0f766e" stopOpacity="0.1" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d={`${pathStr} L100,100 L0,100 Z`}
+                        fill="url(#chartGradientBeautiful)"
+                        className="transition-all duration-700 ease-in-out"
+                      />
+                      <path
+                        d={pathStr}
+                        fill="none"
+                        stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-all duration-700 ease-in-out drop-shadow-lg"
+                      />
 
-                {/* Glowing Data Point */}
-                <circle 
-                  cx={vitalPreviewData[selectedVitalMetric]?.cx || '50'} 
-                  cy={vitalPreviewData[selectedVitalMetric]?.cy || '40'} 
-                  r="4" 
-                  fill="white" 
-                  stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} 
-                  strokeWidth="2.5" 
-                  className="animate-pulse transition-all duration-700 ease-in-out"
-                  style={{ filter: `drop-shadow(0 0 8px ${vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'})` }}
-                />
-              </svg>
+                      {/* Highlight Glow behind Active Point */}
+                      <circle cx={activePoint.x} cy={activePoint.y} r="12" fill={`${vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}40`} className="animate-pulse blur-md" />
 
-              {/* Tooltip */}
-              <div 
-                className="absolute z-20 transition-all duration-700 ease-in-out"
-                style={{
-                   left: `${vitalPreviewData[selectedVitalMetric]?.cx || '50'}%`,
-                   top: `calc(${vitalPreviewData[selectedVitalMetric]?.cy || '40'}% - 38px)`,
-                   transform: 'translateX(-50%)'
-                }}
-              >
-                <div className="bg-[#1f2937] border border-slate-600/50 text-white rounded-md px-2.5 py-1.5 text-center shadow-lg">
-                   <div className="text-[12px] font-bold whitespace-nowrap tracking-wide leading-none">{vitalPreviewData[selectedVitalMetric]?.title === 'Heart Rate' ? '72 BPM' : vitalPreviewData[selectedVitalMetric]?.title === 'SpO2' ? '98%' : vitalPreviewData[selectedVitalMetric]?.title === 'Temperature' ? '98.4 °F' : vitalPreviewData[selectedVitalMetric]?.title === 'Body Weight' ? '68 kg' : '120/80 mmHg'}</div>
-                   <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap mt-1 leading-none">22 Aug, 10:30 AM</div>
-                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-[#1f2937] w-0 h-0"></div>
-                </div>
-              </div>
+                      {/* Data Points */}
+                      {points.map((point, i) => (
+                        <circle
+                          key={`pt-${i}`}
+                          cx={point.x}
+                          cy={point.y}
+                          r={i === activeIndex ? "4" : "2"}
+                          fill="white"
+                          stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
+                          strokeWidth="2"
+                          className="transition-all duration-700 ease-in-out shadow-sm"
+                        />
+                      ))}
+                      
+                      {/* Vertical dash line for tooltip */}
+                      <line 
+                        x1={activePoint.x} 
+                        y1={activePoint.y} 
+                        x2={activePoint.x} 
+                        y2="100" 
+                        stroke="currentColor" 
+                        strokeDasharray="3,3" 
+                        strokeWidth="1.5" 
+                        className="text-slate-500/70 transition-all duration-700 ease-in-out" 
+                      />
+                    </svg>
+
+                    {/* Tooltip */}
+                    <div 
+                      className="absolute z-20 transition-all duration-700 ease-in-out"
+                      style={{
+                        left: `calc(1rem + ${activePoint.x}%)`,
+                        top: `calc(${activePoint.y}% - 60px)`,
+                        transform: 'translateX(-50%)'
+                      }}
+                    >
+                      <div className="bg-[#1e293b]/95 backdrop-blur-md border border-slate-600/60 text-white rounded-xl px-4 py-2.5 shadow-2xl relative min-w-[130px] flex flex-col items-center">
+                        <div className="text-xl font-black tracking-wide leading-none mb-1.5">{vitalPreviewData[selectedVitalMetric]?.title === 'Heart Rate' ? '72 BPM' : vitalPreviewData[selectedVitalMetric]?.title === 'SpO2' ? '98%' : vitalPreviewData[selectedVitalMetric]?.title === 'Temperature' ? '98.4 °F' : vitalPreviewData[selectedVitalMetric]?.title === 'Body Weight' ? '68 kg' : '120/80 mmHg'}</div>
+                        <div className="text-[10px] text-slate-300 font-medium whitespace-nowrap leading-none">22 Aug, 10:30 AM</div>
+                        <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap mt-1.5 leading-none flex items-center gap-1">
+                          <ArrowUpRight className="w-3 h-3 text-slate-400" /> Active Reading
+                        </div>
+                        {/* Tooltip caret pointing down */}
+                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#1e293b] border-r border-b border-slate-600/60 transform rotate-45"></div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
               
               {/* X-axis labels */}
-              <div className="absolute bottom-[-20px] left-0 right-0 flex justify-between text-[10px] font-medium text-slate-500 px-0">
-                 <span>01 Aug</span>
-                 <span>08 Aug</span>
-                 <span>15 Aug</span>
-                 <span>22 Aug</span>
-                 <span>29 Aug</span>
-                 <span>05 Sep</span>
+              <div className="absolute bottom-[-24px] left-8 right-2 flex justify-between text-[11px] font-medium text-slate-400">
+                 {vitalsTimeframe === '7D' && <><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></>}
+                 {vitalsTimeframe === '30D' && <><span>01 Aug</span><span>08 Aug</span><span>15 Aug</span><span>22 Aug</span><span>29 Aug</span><span>05 Sep</span></>}
+                 {vitalsTimeframe === '3M' && <><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></>}
+                 {vitalsTimeframe === '1Y' && <><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span></>}
               </div>
+              
+              {/* Average text */}
+              <div className="absolute right-2 bottom-8 text-[11px] text-slate-300/80 font-medium">
+                Avg. Week: 70 BPM
+              </div>
+
+              {/* Sparkle icon at bottom right */}
+              <Sparkles className="absolute right-[-12px] bottom-[-16px] w-10 h-10 text-slate-400/20 rotate-12" />
             </div>
           </div>
 
           {/* Today's Summary (Right 4 cols) */}
-          <div className="lg:col-span-4 bg-[#15192b] border border-slate-700/50 rounded-xl p-3.5 flex flex-col justify-between shadow-inner">
+          <div className="lg:col-span-4 bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-1.5 mb-1.5">
-              <CalendarIcon className="w-4 h-4 text-slate-400" />
-              <span className="text-[13px] font-bold text-white tracking-wide">Today's Summary</span>
+              <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+              <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Today's Summary</span>
             </div>
             
             {/* Donut Chart visual */}
             <div className="flex justify-center my-1.5">
               <div className="relative w-28 h-28 flex items-center justify-center">
                  {/* SVG donut */}
-                 <svg className="w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="44" fill="none" stroke="#1e293b" strokeWidth="6" />
-                    <circle cx="50" cy="50" r="44" fill="none" stroke="url(#donutGradient)" strokeWidth="6" strokeDasharray="276.46" strokeDashoffset="5.5" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.4))' }} />
+                 {/* Enhanced Circular Gauge */}
+                 <div className="absolute inset-0 rounded-full bg-emerald-500/5 blur-xl pointer-events-none"></div>
+                 <svg className="w-full h-full transform -rotate-90 drop-shadow-lg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="url(#donutGradient)" strokeWidth="8" strokeDasharray="276.46" strokeDashoffset="5.5" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.5))' }} className="animate-fade-in" />
                     <defs>
                        <linearGradient id="donutGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#0ea5e9" />
-                          <stop offset="50%" stopColor="#22c55e" />
-                          <stop offset="100%" stopColor="#eab308" />
+                          <stop offset="0%" stopColor="#38bdf8" />
+                          <stop offset="50%" stopColor="#34d399" />
+                          <stop offset="100%" stopColor="#fbbf24" />
                        </linearGradient>
                     </defs>
                  </svg>
                  <div className="absolute text-center flex flex-col items-center justify-center pt-1">
-                    <span className="text-3xl font-extrabold text-white tracking-tighter shadow-sm leading-none">98<span className="text-[11px] text-slate-400 font-bold ml-0.5">%</span></span>
+                    <span className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tighter shadow-sm leading-none">98<span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold ml-0.5">%</span></span>
                     <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mt-1 leading-none">Vitals Score</span>
                  </div>
               </div>
@@ -596,8 +682,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 { label: 'SpO₂ • Oxygen', icon: Wind, color: 'text-blue-500' },
                 { label: 'Body Weight', icon: Scale, color: 'text-emerald-500' }
               ].map((v, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 px-0.5 border-b border-slate-800/40 last:border-0">
-                   <div className="flex items-center gap-2 text-slate-300">
+                <div key={i} className="flex items-center justify-between py-1.5 px-0.5 border-b border-slate-200 dark:border-slate-800/40 last:border-0">
+                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                      <v.icon className={`w-3.5 h-3.5 ${v.color}`} />
                      <span className="font-medium text-[11px] tracking-wide">{v.label}</span>
                    </div>
@@ -606,7 +692,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               ))}
             </div>
 
-            <button className="mt-2 w-full py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-[11px] font-bold text-slate-300 transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer">
+            <button 
+              onClick={() => setReportModalOpen(true)}
+              className="mt-2 w-full py-2 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer"
+            >
                View Full Report <ArrowUpRight className="w-3 h-3" />
             </button>
           </div>
@@ -616,16 +705,16 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           
           {/* Health Insights */}
-          <div className="bg-[#15192b] border border-slate-700/50 rounded-xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-inner">
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
              <div className="flex items-center gap-2 mb-2.5">
                 <Sparkles className="w-4 h-4 text-rose-500" />
-                <span className="text-[13px] font-bold text-white tracking-wide">Health Insights</span>
+                <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Health Insights</span>
              </div>
-             <div className="bg-[#121626] border border-rose-900/20 rounded-lg p-2.5 flex gap-2 items-center shadow-lg relative overflow-hidden">
+             <div className="bg-slate-50 dark:bg-[#121626] border border-slate-200 dark:border-rose-900/20 rounded-lg p-2.5 flex gap-2 items-center shadow-sm dark:shadow-lg relative overflow-hidden">
                 {/* Subtle glow behind the text */}
                 <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 blur-xl rounded-full"></div>
                 
-                <p className="text-[11px] text-slate-300 leading-relaxed font-medium relative z-10 w-2/3">
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium relative z-10 w-2/3">
                   Your heart rate is slightly elevated after 6 PM. Consider light activities or meditation.
                 </p>
                 <div className="shrink-0 relative z-10 flex-1 flex justify-end">
@@ -635,10 +724,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           </div>
 
           {/* Weekly Averages */}
-          <div className="bg-[#15192b] border border-slate-700/50 rounded-xl p-3.5 shadow-inner">
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-shadow">
              <div className="flex items-center gap-2 mb-2.5">
-                <BarChart3 className="w-4 h-4 text-slate-400" />
-                <span className="text-[13px] font-bold text-white tracking-wide">Weekly Averages</span>
+                <BarChart3 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Weekly Averages</span>
              </div>
              <div className="space-y-1.5">
                {[
@@ -649,7 +738,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                  { label: 'Body Weight', val: '68.6 kg', icon: Scale, color: 'text-emerald-500', valColor: 'text-emerald-500' }
                ].map((v, i) => (
                  <div key={i} className="flex items-center justify-between text-[11px] px-0.5">
-                    <div className="flex items-center gap-2 text-slate-300">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                       <v.icon className={`w-3.5 h-3.5 ${v.color}`} />
                       <span className="font-medium tracking-wide text-xs">{v.label}</span>
                     </div>
@@ -660,11 +749,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-[#15192b] border border-slate-700/50 rounded-xl p-3.5 relative shadow-inner">
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 relative shadow-sm hover:shadow-md transition-shadow">
              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                    <Activity className="w-4 h-4 text-blue-500" />
-                   <span className="text-[13px] font-bold text-white tracking-wide">Recent Activity</span>
+                   <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Recent Activity</span>
                 </div>
                 <span className="text-[9px] font-bold text-blue-400 cursor-pointer hover:text-blue-300 tracking-wide uppercase">View All</span>
              </div>
@@ -677,12 +766,12 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                  { label: 'Blood Pressure recorded', val: '120/80 mmHg', time: '10:25 AM', color: 'bg-indigo-500', valColor: 'text-indigo-400' },
                  { label: 'Temperature recorded', val: '98.4 °F', time: '10:20 AM', color: 'bg-amber-500', valColor: 'text-amber-500' }
                ].map((a, i) => (
-                 <div key={i} className="flex items-start gap-2.5 py-1.5 relative z-10 border-b border-slate-800/40 last:border-0 px-0.5">
+                 <div key={i} className="flex items-start gap-2.5 py-1.5 relative z-10 border-b border-slate-200 dark:border-slate-800/40 last:border-0 px-0.5">
                     <div className={`w-2.5 h-2.5 shrink-0 rounded-full bg-slate-900 border-[1.5px] border-[#0b1120] flex items-center justify-center mt-[3px] shadow-sm`}>
                        <span className={`w-1 h-1 rounded-full ${a.color}`}></span>
                     </div>
                     <div className="flex-1 flex justify-between items-center text-[11px]">
-                       <span className="text-slate-300 font-medium tracking-wide">{a.label}</span>
+                       <span className="text-slate-600 dark:text-slate-300 font-medium tracking-wide">{a.label}</span>
                        <div className="flex gap-2.5 text-right items-center">
                           <span className={`font-bold tracking-wide ${a.valColor}`}>{a.val}</span>
                           <span className="text-[10px] text-slate-500 font-medium w-10 tracking-wide">{a.time}</span>
@@ -805,7 +894,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
                 placeholder="Search activity..."
@@ -838,7 +927,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{act.subtitle}</p>
                   </div>
                   <div className="text-right shrink-0 font-mono">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Today</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-medium">Today</span>
                     <span className="text-[10px] font-bold text-[#00a896] dark:text-teal-400">{act.time}</span>
                   </div>
                 </div>

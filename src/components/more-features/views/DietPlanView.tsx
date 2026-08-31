@@ -103,7 +103,7 @@ export const DietPlanView: React.FC = () => {
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setIsUpdateModalOpen(true)}
-          className="relative group flex items-center gap-2 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] border border-emerald-400/50 dark:border-emerald-300/30 w-full sm:w-auto justify-center z-10"
+          className="relative group flex items-center gap-2 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-900 dark:text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] border border-emerald-400/50 dark:border-emerald-300/30 w-full sm:w-auto justify-center z-10"
         >
           <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <Edit3 className="w-4 h-4 relative z-10" />
@@ -131,7 +131,7 @@ export const DietPlanView: React.FC = () => {
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-0.5">{stat.label}</p>
               <p className="text-xl font-black text-slate-900 dark:text-white leading-none flex items-baseline gap-1">
-                {stat.value} <span className="text-xs font-bold text-slate-400">{stat.unit}</span>
+                {stat.value} <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{stat.unit}</span>
               </p>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const DietPlanView: React.FC = () => {
                 <div key={idx} className="group">
                   <div className="flex justify-between items-end mb-2">
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{macro.label}</span>
-                    <span className="text-xs font-black text-slate-900 dark:text-white">{macro.current}g <span className="text-slate-400 font-medium">/ {macro.max}g</span></span>
+                    <span className="text-xs font-black text-slate-900 dark:text-white">{macro.current}g <span className="text-slate-500 dark:text-slate-400 font-medium">/ {macro.max}g</span></span>
                   </div>
                   <div className={`h-2.5 w-full ${macro.bg} rounded-full overflow-hidden`}>
                     <motion.div 
@@ -235,18 +235,18 @@ export const DietPlanView: React.FC = () => {
                     {meal.completed ? (
                       <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                     ) : (
-                      <Circle className="w-6 h-6 text-slate-300 dark:text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                      <Circle className="w-6 h-6 text-slate-600 dark:text-slate-300 dark:text-slate-600 group-hover:text-emerald-400 transition-colors" />
                     )}
                   </div>
                   
                   <div className="flex-1 relative z-10">
                     <div className="flex justify-between items-start mb-1">
                       <div className="flex items-center gap-2">
-                        <meal.icon className={`w-4 h-4 ${meal.completed ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-400'}`} />
+                        <meal.icon className={`w-4 h-4 ${meal.completed ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-500 dark:text-slate-400'}`} />
                         <h3 className={`font-black text-base ${meal.completed ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
                           {meal.type}
                         </h3>
-                        <span className="text-xs font-bold text-slate-400 ml-2">{meal.time}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-2">{meal.time}</span>
                       </div>
                       <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
                         meal.completed 
@@ -263,7 +263,7 @@ export const DietPlanView: React.FC = () => {
                   
                   {/* Hover Action Indicator */}
                   <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
-                    <ChevronRight className={`w-5 h-5 ${meal.completed ? 'text-emerald-500' : 'text-slate-400'}`} />
+                    <ChevronRight className={`w-5 h-5 ${meal.completed ? 'text-emerald-500' : 'text-slate-500 dark:text-slate-400'}`} />
                   </div>
                 </motion.div>
               ))}
@@ -350,7 +350,7 @@ export const DietPlanView: React.FC = () => {
 
                 <button 
                   type="submit"
-                  className="w-full bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] border border-emerald-400/50"
+                  className="w-full bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-900 dark:text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] border border-emerald-400/50"
                 >
                   Save Goals
                 </button>

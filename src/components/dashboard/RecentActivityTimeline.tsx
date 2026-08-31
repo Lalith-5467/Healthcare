@@ -71,7 +71,7 @@ export const RecentActivityTimeline: React.FC = () => {
       {/* ── HEADER ── */}
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-md"
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-slate-900 dark:text-white shadow-md"
             style={{ background: 'linear-gradient(135deg,#818cf8,#6366f1)', boxShadow: '0 4px 12px rgba(99,102,241,.3)' }}>
             <Activity className="w-4.5 h-4.5" />
           </div>
@@ -79,7 +79,7 @@ export const RecentActivityTimeline: React.FC = () => {
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Recent Patient Activity
             </h3>
-            <span className="text-[11px] text-slate-400 font-medium">Real-time Portal Audit Feed</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Real-time Portal Audit Feed</span>
           </div>
         </div>
 
@@ -141,13 +141,13 @@ export const RecentActivityTimeline: React.FC = () => {
                 className={`flex-1 rounded-2xl px-4 py-3 relative overflow-hidden ${isLast ? 'mb-0' : 'mb-3'}`}
               >
                 <div className="absolute inset-0 dark:hidden pointer-events-none" style={{ background: act.itemBg, border: `1px solid ${act.itemBorder}`, boxShadow: '0 1px 6px rgba(0,0,0,.04)' }} />
-                <div className="absolute inset-0 hidden dark:block pointer-events-none bg-slate-800/50 border border-slate-700/60 shadow-[0_1px_6px_rgba(0,0,0,.3)]" />
+                <div className="absolute inset-0 hidden dark:block pointer-events-none bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 shadow-[0_1px_6px_rgba(0,0,0,.3)]" />
                 
                 <div className="relative z-10 flex items-start justify-between gap-2">
                   <h4 className="text-xs font-extrabold text-slate-900 dark:text-white leading-snug">
                     {act.title}
                   </h4>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 font-mono shrink-0 pt-px whitespace-nowrap">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 font-mono shrink-0 pt-px whitespace-nowrap">
                     {act.time}
                   </span>
                 </div>

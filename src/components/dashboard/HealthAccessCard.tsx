@@ -41,7 +41,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
           <div className="flex items-center gap-2.5">
             {/* Circular gradient icon — matches reference */}
             <div
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-md"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-slate-900 dark:text-white flex-shrink-0 shadow-md"
               style={{ background: 'linear-gradient(135deg,#34d399,#059669)', boxShadow: '0 4px 14px rgba(16,185,129,.35)' }}
             >
               <QrCode className="w-5 h-5" />
@@ -113,7 +113,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setModalOpen(true)}
-            className="flex-1 py-2.5 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+            className="flex-1 py-2.5 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
             style={{ background: 'linear-gradient(135deg,#00a896,#00897b)', boxShadow: '0 4px 14px rgba(0,168,150,.3)' }}
           >
             <ExternalLink className="w-4 h-4" />

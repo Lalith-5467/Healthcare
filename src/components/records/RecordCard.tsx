@@ -75,7 +75,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
       case 'Pending':
         return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       default:
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        return 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20';
     }
   };
 
@@ -98,7 +98,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
           {/* STAR BUTTON */}
           <button
             onClick={() => onToggleImportant(record.id)}
-            className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer"
             title={record.isImportant ? 'Unstar Record' : 'Star as Important'}
           >
             <Star className={`w-4 h-4 ${record.isImportant ? 'fill-amber-400 text-amber-400' : ''}`} />
@@ -108,7 +108,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
@@ -147,7 +147,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
           <p className="text-[13px] font-medium text-slate-600 dark:text-slate-300 truncate">
             {record.hospital}
           </p>
-          <p className="text-[12px] text-slate-400 flex items-center gap-2">
+          <p className="text-[12px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
             <span>{record.doctor}</span>
             <span>•</span>
             <span className="font-mono">{record.date}</span>

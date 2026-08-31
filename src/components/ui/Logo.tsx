@@ -15,7 +15,7 @@ export const Logo: React.FC<LogoProps> = ({ className = '', showBadge = false, v
     : 'text-slate-900 dark:text-white';
 
   const subtextColor = variant === 'dark' 
-    ? 'text-slate-300' 
+    ? 'text-slate-600 dark:text-slate-300' 
     : 'text-slate-500 dark:text-slate-400';
 
   return (

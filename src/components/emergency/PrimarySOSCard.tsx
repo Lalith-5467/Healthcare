@@ -40,7 +40,7 @@ export const PrimarySOSCard: React.FC<PrimarySOSCardProps> = ({
 
           <button
             onClick={onTriggerSOS}
-            className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gradient-to-tr from-rose-700 via-rose-600 to-red-500 hover:from-rose-600 hover:to-red-400 text-white font-extrabold text-3xl sm:text-4xl shadow-2xl shadow-rose-600/40 border-4 border-white/20 flex flex-col items-center justify-center gap-1 transition-all transform hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+            className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gradient-to-tr from-rose-700 via-rose-600 to-red-500 hover:from-rose-600 hover:to-red-400 text-slate-900 dark:text-white font-extrabold text-3xl sm:text-4xl shadow-2xl shadow-rose-600/40 border-4 border-white/20 flex flex-col items-center justify-center gap-1 transition-all transform hover:scale-105 active:scale-95 cursor-pointer relative z-10"
           >
             <span className="tracking-widest drop-shadow-md">SOS</span>
             <span className="text-[10px] font-extrabold font-mono tracking-normal uppercase bg-slate-950/40 px-2 py-0.5 rounded-full border border-white/20">

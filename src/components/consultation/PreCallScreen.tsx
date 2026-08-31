@@ -113,7 +113,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">{appointment.doctor.speciality} • {appointment.doctor.hospital}</p>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-[11px] font-medium text-slate-500">
               <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-500/20"><Star className="w-3 h-3 fill-amber-500" /> 4.9 (120+ Reviews)</span>
-              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-600 dark:text-slate-300 hidden sm:inline">•</span>
               <span className="font-mono bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700">📅 {appointment.date}, {appointment.time}</span>
             </div>
           </div>
@@ -128,7 +128,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
         <div className="lg:col-span-2 flex flex-col gap-5">
           
           {/* 3. VIDEO PREVIEW AREA */}
-          <div className="bg-slate-900 dark:bg-[#050B14] rounded-3xl border border-slate-800/80 overflow-hidden relative flex flex-col h-[350px] sm:h-[420px] shadow-xl shadow-teal-900/10">
+          <div className="bg-slate-900 dark:bg-[#050B14] rounded-3xl border border-slate-200 dark:border-slate-800/80 overflow-hidden relative flex flex-col h-[350px] sm:h-[420px] shadow-xl shadow-teal-900/10">
             
             {/* Subtle Wave Background Overlay when empty (Animated) */}
             {!cameraEnabled && (
@@ -143,12 +143,12 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
                 <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="text-center space-y-4 z-10">
-                  <div className="w-20 h-20 rounded-full bg-slate-800/40 border border-slate-600/30 flex items-center justify-center text-slate-400 mx-auto backdrop-blur-xl shadow-2xl">
+                  <div className="w-20 h-20 rounded-full bg-slate-800/40 border border-slate-600/30 flex items-center justify-center text-slate-500 dark:text-slate-400 mx-auto backdrop-blur-xl shadow-2xl">
                     <CameraOff className="w-8 h-8" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-200">Camera is turned off</p>
-                    <p className="text-xs text-slate-400 max-w-xs mx-auto mt-1 font-medium">Enable your camera to test your video feed before joining.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto mt-1 font-medium">Enable your camera to test your video feed before joining.</p>
                   </div>
                 </div>
               )}
@@ -157,29 +157,29 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
               {cameraEnabled && (
                 <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 z-10 shadow-lg">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Camera Ready</span>
+                  <span className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Camera Ready</span>
                 </div>
               )}
             </div>
 
             {/* DEVICE CONTROLS BOTTOM BAR (Glassmorphism) */}
             <div className="bg-slate-950/40 backdrop-blur-2xl border-t border-white/5 p-4 flex items-center justify-center gap-6 sm:gap-8 relative z-20 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.5)]">
-              <button onClick={onToggleCamera} className={`flex flex-col items-center gap-2 group cursor-pointer ${cameraEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${cameraEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-700 group-hover:bg-slate-700'}`}>
+              <button onClick={onToggleCamera} className={`flex flex-col items-center gap-2 group cursor-pointer ${cameraEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-600 dark:text-slate-300'}`}>
+                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${cameraEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:bg-slate-700'}`}>
                   {cameraEnabled ? <Camera className="w-5 h-5 text-teal-400" /> : <CameraOff className="w-5 h-5" />}
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider">Camera</span>
               </button>
               
-              <button onClick={onToggleMic} className={`flex flex-col items-center gap-2 group cursor-pointer ${micEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${micEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-700 group-hover:bg-slate-700'}`}>
+              <button onClick={onToggleMic} className={`flex flex-col items-center gap-2 group cursor-pointer ${micEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-600 dark:text-slate-300'}`}>
+                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${micEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:bg-slate-700'}`}>
                   {micEnabled ? <Mic className="w-5 h-5 text-teal-400" /> : <MicOff className="w-5 h-5" />}
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider">Mic</span>
               </button>
 
-              <button onClick={onToggleSpeaker} className={`flex flex-col items-center gap-2 group cursor-pointer ${speakerEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${speakerEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-700 group-hover:bg-slate-700'}`}>
+              <button onClick={onToggleSpeaker} className={`flex flex-col items-center gap-2 group cursor-pointer ${speakerEnabled ? 'text-white' : 'text-slate-500 hover:text-slate-600 dark:text-slate-300'}`}>
+                <div className={`p-3.5 rounded-2xl transition-all duration-300 ${speakerEnabled ? 'bg-teal-500/20 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.15)] group-hover:bg-teal-500/30' : 'bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:bg-slate-700'}`}>
                   {speakerEnabled ? <Volume2 className="w-5 h-5 text-teal-400" /> : <VolumeX className="w-5 h-5" />}
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider">Speaker</span>
@@ -187,8 +187,8 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
               
               <div className="w-px h-10 bg-slate-800 mx-1 sm:mx-2" />
 
-              <button onClick={onOpenDeviceSettings} className="flex flex-col items-center gap-2 text-slate-400 hover:text-white transition-colors cursor-pointer group">
-                <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-transparent group-hover:bg-slate-800 group-hover:border-slate-700 transition-colors">
+              <button onClick={onOpenDeviceSettings} className="flex flex-col items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors cursor-pointer group">
+                <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-transparent group-hover:bg-slate-800 group-hover:border-slate-200 dark:border-slate-700 transition-colors">
                   <Settings className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider">Settings</span>
@@ -201,7 +201,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
             <button
               onClick={onJoinWaitingRoom}
               disabled={!cameraEnabled || !micEnabled}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 disabled:from-slate-200 disabled:to-slate-200 disabled:dark:from-slate-800 disabled:dark:to-slate-800 disabled:cursor-not-allowed disabled:text-slate-400 text-white font-extrabold text-sm uppercase tracking-widest transition-all shadow-lg shadow-teal-500/30 disabled:shadow-none flex items-center justify-center gap-3 cursor-pointer group"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 disabled:from-slate-200 disabled:to-slate-200 disabled:dark:from-slate-800 disabled:dark:to-slate-800 disabled:cursor-not-allowed disabled:text-slate-500 dark:text-slate-400 text-slate-900 dark:text-white font-extrabold text-sm uppercase tracking-widest transition-all shadow-lg shadow-teal-500/30 disabled:shadow-none flex items-center justify-center gap-3 cursor-pointer group"
             >
               <Video className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>Join Waiting Room</span>
@@ -238,7 +238,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
                 ) : cameraEnabled ? (
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">Ready <CheckCircle2 className="w-3 h-3" /></span>
                 ) : (
-                  <span className="text-slate-400 font-bold px-2 py-0.5">Disabled</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5">Disabled</span>
                 )}
               </div>
               <div className="flex items-center justify-between group hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors">
@@ -251,7 +251,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
                 ) : micEnabled ? (
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">Ready <CheckCircle2 className="w-3 h-3" /></span>
                 ) : (
-                  <span className="text-slate-400 font-bold px-2 py-0.5">Muted</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5">Muted</span>
                 )}
               </div>
               <div className="flex items-center justify-between group hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors">
@@ -264,7 +264,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
                 ) : speakerEnabled ? (
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">Ready <CheckCircle2 className="w-3 h-3" /></span>
                 ) : (
-                  <span className="text-slate-400 font-bold px-2 py-0.5">Muted</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5">Muted</span>
                 )}
               </div>
               <div className="flex items-center justify-between group hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors">
@@ -384,7 +384,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
                     <BadgeCheck className="w-[18px] h-[18px] text-blue-500 dark:text-blue-400" />
                   </h3>
                   <p className="text-[13px] text-slate-500 dark:text-zinc-400 mt-0.5">{appointment.doctor.speciality} at {appointment.doctor.hospital.split(',')[0]}</p>
-                  <div className="flex items-center gap-1.5 text-[12px] text-slate-400 dark:text-zinc-500 mt-1">
+                  <div className="flex items-center gap-1.5 text-[12px] text-slate-500 dark:text-slate-400 dark:text-zinc-500 mt-1">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />

@@ -292,7 +292,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   className="px-7 py-3.5 rounded-2xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-sm flex items-center gap-2.5 shadow-lg shadow-teal-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                 >
                   <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                    <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
+                    <Play className="w-3.5 h-3.5 fill-white text-slate-900 dark:text-white ml-0.5" />
                   </div>
                   <span>Watch Introduction</span>
                 </button>
@@ -590,12 +590,12 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     className="relative mb-5"
                   >
                     <div className="absolute inset-0 rounded-full bg-[#00a896] blur-xl opacity-60 group-hover/overlay:opacity-90 animate-pulse" />
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#00a896] via-teal-500 to-cyan-400 text-white flex items-center justify-center shadow-2xl shadow-teal-500/40 relative z-10 border-2 border-white/40">
-                      <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-white ml-1" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#00a896] via-teal-500 to-cyan-400 text-slate-900 dark:text-white flex items-center justify-center shadow-2xl shadow-teal-500/40 relative z-10 border-2 border-white/40">
+                      <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-slate-900 dark:text-white ml-1" />
                     </div>
                   </motion.div>
 
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-md">
                     Watch Our Introduction
                   </h3>
                   <p className="text-xs sm:text-sm text-teal-200 mt-1 font-medium drop-shadow">
@@ -685,7 +685,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00a896] to-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00a896] to-teal-500 text-slate-900 dark:text-white flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
                         <Target className="w-7 h-7 stroke-[2.2]" />
                       </div>
                       <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono shadow-xs">
@@ -739,7 +739,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-slate-900 dark:text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <Eye className="w-7 h-7 stroke-[2.2]" />
                       </div>
                       <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 font-mono shadow-xs">
@@ -828,7 +828,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
                 transition={{ duration: 0.4 }}
-                className="p-8 sm:p-10 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-2xl relative overflow-hidden space-y-8"
+                className="p-8 sm:p-10 rounded-3xl bg-slate-900 text-white border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden space-y-8"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                   <div className="lg:col-span-7 space-y-4">
@@ -839,7 +839,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     <h3 className="text-2xl sm:text-3xl font-black">
                       Zero-Knowledge Enclaves & Patient Consent Engine
                     </h3>
-                    <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       MediCare is built around zero-trust architectural principles. Medical files are client-side encrypted before cloud transmission. Every record access by doctors requires an affirmative OTP consent transaction logged permanently in the ABDM audit trail.
                     </p>
                   </div>
@@ -847,19 +847,19 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   <div className="lg:col-span-5 grid grid-cols-2 gap-3.5 font-mono">
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                       <span className="text-[10px] text-teal-300 font-bold font-sans">ENCRYPTION</span>
-                      <strong className="text-sm text-white block">AES-256 GCM</strong>
+                      <strong className="text-sm text-slate-900 dark:text-white block">AES-256 GCM</strong>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                       <span className="text-[10px] text-cyan-300 font-bold font-sans">KEY EXCHANGE</span>
-                      <strong className="text-sm text-white block">ECDH Curve25519</strong>
+                      <strong className="text-sm text-slate-900 dark:text-white block">ECDH Curve25519</strong>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                       <span className="text-[10px] text-purple-300 font-bold font-sans">GOVERNMENT GRID</span>
-                      <strong className="text-sm text-white block">ABDM Gateway</strong>
+                      <strong className="text-sm text-slate-900 dark:text-white block">ABDM Gateway</strong>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                       <span className="text-[10px] text-amber-300 font-bold font-sans">AUDITABILITY</span>
-                      <strong className="text-sm text-white block">Immutable Logs</strong>
+                      <strong className="text-sm text-slate-900 dark:text-white block">Immutable Logs</strong>
                     </div>
                   </div>
                 </div>
@@ -921,7 +921,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       </span>
 
                       {/* ICON BADGE WITH PULSE HOVER */}
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-teal-500/25 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(0,168,150,0.6)] transition-all duration-300">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-slate-900 dark:text-white flex items-center justify-center shadow-md shadow-teal-500/25 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(0,168,150,0.6)] transition-all duration-300">
                         <Icon className="w-5 h-5 stroke-[2.3]" />
                       </div>
                     </div>
@@ -950,7 +950,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       {/* =========================================================================
           SECTION 5 — PLATFORM MILESTONES & TELEMETRY WITH ANIMATED COUNTUP
           ========================================================================= */}
-      <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-700 to-cyan-700 text-white shadow-2xl relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-700 to-cyan-700 text-slate-900 dark:text-white shadow-2xl relative overflow-hidden">
         {/* BACKGROUND ORB ACCENTS */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-900/40 rounded-full blur-3xl pointer-events-none" />
@@ -961,7 +961,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               <Activity className="w-3.5 h-3.5" />
               <span>Real-Time Health Telemetry</span>
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
               Trusted Across Indian Healthcare
             </h2>
           </div>
@@ -976,7 +976,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
                 className="bg-white/10 backdrop-blur-md border border-white/20 p-6 sm:p-7 rounded-[22px] space-y-2 shadow-xl hover:bg-white/15 transition-all"
               >
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-mono flex items-center justify-center">
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white font-mono flex items-center justify-center">
                   <CountUp
                     to={st.target}
                     from={0}
@@ -986,7 +986,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   />
                   {st.suffix && <span>{st.suffix}</span>}
                 </div>
-                <h4 className="text-sm font-black text-white">{st.label}</h4>
+                <h4 className="text-sm font-black text-slate-900 dark:text-white">{st.label}</h4>
                 <p className="text-[11px] font-medium text-teal-100/90 leading-tight">{st.subtext}</p>
               </motion.div>
             ))}
@@ -1108,7 +1108,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     className={`absolute w-[290px] sm:w-[320px] md:w-[330px] h-[470px] rounded-[22px] bg-slate-950 overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
                       isCenter
                         ? 'border-2 border-cyan-400 dark:border-cyan-300 shadow-[0_25px_60px_-15px_rgba(0,168,150,0.45)] ring-4 ring-teal-500/25'
-                        : 'border border-slate-700/80 shadow-xl hover:border-teal-400/60'
+                        : 'border border-slate-200 dark:border-slate-700/80 shadow-xl hover:border-teal-400/60'
                     }`}
                   >
                     {/* SPECULAR SHEEN HIGHLIGHT FOR CENTER CARD */}
@@ -1132,31 +1132,31 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                         <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md font-mono shadow-md transition-colors ${
                           isCenter 
                             ? 'bg-slate-950/90 text-cyan-300 border border-cyan-400/50 ring-2 ring-cyan-400/20' 
-                            : 'bg-slate-950/80 text-slate-300 border border-slate-700'
+                            : 'bg-slate-950/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                         }`}>
                           {mem.badge}
                         </span>
                       </div>
 
                       {/* OVERLAID NAME AND TITLE */}
-                      <div className="absolute bottom-3 left-4 right-4 text-white z-10">
+                      <div className="absolute bottom-3 left-4 right-4 text-slate-900 dark:text-white z-10">
                         <h4 className="text-lg font-black tracking-tight drop-shadow-md">{mem.name}</h4>
                         <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
                       </div>
                     </div>
 
                     {/* LOWER INFORMATION CONTENT */}
-                    <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-800/80">
+                    <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-200 dark:border-slate-800/80">
                       <div className="space-y-1.5">
-                        <div className="text-[11px] font-bold text-slate-400 font-mono">
+                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono">
                           {mem.credentials}
                         </div>
-                        <p className="text-xs text-slate-300 font-medium leading-relaxed line-clamp-2">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed line-clamp-2">
                           {mem.specialty}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] font-bold text-teal-400">
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-[11px] font-bold text-teal-400">
                         <div className="flex items-center gap-1.5">
                           <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
                           <span>Verified Clinical Advisor</span>

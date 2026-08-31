@@ -45,7 +45,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         return (
           <div key={sectionKey} className="space-y-1">
             {!isCollapsed && sectionKey !== 'OTHER' && (
-              <h4 className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-2 mt-1">
+              <h4 className="px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider mb-2 mt-1">
                 {sectionKey}
               </h4>
             )}

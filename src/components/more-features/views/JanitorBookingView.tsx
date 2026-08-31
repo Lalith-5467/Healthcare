@@ -84,7 +84,7 @@ export const JanitorBookingView: React.FC = () => {
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => openBookingModal('Deep Sanitization')}
-          className="relative group flex items-center gap-2 bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] border border-amber-400/50 dark:border-amber-300/30 w-full sm:w-auto justify-center z-10"
+          className="relative group flex items-center gap-2 bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-900 dark:text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] border border-amber-400/50 dark:border-amber-300/30 w-full sm:w-auto justify-center z-10"
         >
           <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <CalendarPlus className="w-4 h-4 relative z-10" />
@@ -179,7 +179,7 @@ export const JanitorBookingView: React.FC = () => {
             whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.04)' }}
             className="bg-white dark:bg-slate-900 p-6 rounded-3xl border-2 border-blue-500/50 shadow-lg flex flex-col justify-between group transition-all relative overflow-hidden"
           >
-            <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm">
+            <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-slate-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm">
               Most Requested
             </div>
             <div>
@@ -213,7 +213,7 @@ export const JanitorBookingView: React.FC = () => {
             </div>
             <button 
               onClick={() => openBookingModal('Equipment Cleaning')}
-              className="w-full py-3.5 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)]"
+              className="w-full py-3.5 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-slate-900 dark:text-white font-black rounded-xl transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)]"
             >
               Select Package
             </button>
@@ -330,7 +330,7 @@ export const JanitorBookingView: React.FC = () => {
                       <option value="Equipment Cleaning">Equipment Cleaning</option>
                       <option value="Routine Hygiene">Routine Hygiene</option>
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-amber-500" />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400 pointer-events-none group-focus-within:text-amber-500" />
                   </div>
                 </div>
 
@@ -355,7 +355,7 @@ export const JanitorBookingView: React.FC = () => {
 
                 <button 
                   type="submit"
-                  className="w-full bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] border border-amber-400/50"
+                  className="w-full bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-900 dark:text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] border border-amber-400/50"
                 >
                   Confirm Request
                 </button>

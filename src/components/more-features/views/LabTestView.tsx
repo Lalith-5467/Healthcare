@@ -161,7 +161,7 @@ export const LabTestView: React.FC = () => {
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setIsBookingModalOpen(true)}
-          className="relative group flex items-center gap-2 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] border border-blue-400/50 dark:border-blue-300/30 w-full sm:w-auto justify-center z-10"
+          className="relative group flex items-center gap-2 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-slate-900 dark:text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] border border-blue-400/50 dark:border-blue-300/30 w-full sm:w-auto justify-center z-10"
         >
           <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <Calendar className="w-4 h-4 relative z-10" />
@@ -553,7 +553,7 @@ export const LabTestView: React.FC = () => {
                       <option value="Vitamin D & B12">Vitamin D & B12</option>
                       <option value="Full Body Checkup">Full Body Checkup</option>
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-blue-500" />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400 pointer-events-none group-focus-within:text-blue-500" />
                   </div>
                 </div>
 
@@ -581,7 +581,7 @@ export const LabTestView: React.FC = () => {
                         <option value="11:00 AM">11:00 AM</option>
                         <option value="02:00 PM">02:00 PM</option>
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:text-blue-500" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400 pointer-events-none group-focus-within:text-blue-500" />
                     </div>
                   </div>
                 </div>
@@ -598,7 +598,7 @@ export const LabTestView: React.FC = () => {
 
                 <button 
                   type="submit"
-                  className="w-full bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] border border-blue-400/50"
+                  className="w-full bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-slate-900 dark:text-white font-black py-4 rounded-xl transition-all mt-2 shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] border border-blue-400/50"
                 >
                   Confirm Booking
                 </button>

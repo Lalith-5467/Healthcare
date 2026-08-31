@@ -101,7 +101,7 @@ export const HospitalCompareModal: React.FC<HospitalCompareModalProps> = ({
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md cursor-pointer text-center"
+            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md cursor-pointer text-center"
           >
             Done Comparing
           </button>

@@ -370,7 +370,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
                 </button>
                 <button
                   onClick={() => setChatDrawerTarget(mem)}
-                  className="py-2.5 px-2 rounded-xl bg-gradient-to-r from-[#00a896] to-cyan-500 hover:from-[#00897b] hover:to-cyan-600 text-white text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/20 active:scale-95"
+                  className="py-2.5 px-2 rounded-xl bg-gradient-to-r from-[#00a896] to-cyan-500 hover:from-[#00897b] hover:to-cyan-600 text-slate-900 dark:text-white text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/20 active:scale-95"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Message</span>
@@ -550,7 +550,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               </div>
               <a
                 href={`tel:${contact.phone}`}
-                className="p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-500/30 cursor-pointer group-hover/card:animate-pulse-slow"
+                className="p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-slate-900 dark:text-white shadow-lg shadow-rose-500/30 cursor-pointer group-hover/card:animate-pulse-slow"
                 title="Call Immediately"
               >
                 <PhoneCall className="w-4 h-4 fill-current" />

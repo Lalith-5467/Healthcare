@@ -72,21 +72,21 @@ export const SecurityPrivacyView: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden"
+        className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-slate-600/10 blur-3xl rounded-full pointer-events-none"></div>
         
         <div className="flex gap-4 relative z-10">
-          <div className="hidden sm:flex shrink-0 p-3 bg-slate-800 rounded-2xl border border-slate-700 items-center justify-center">
-            <Lock className="w-8 h-8 text-slate-300 drop-shadow-sm" />
+          <div className="hidden sm:flex shrink-0 p-3 bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 items-center justify-center">
+            <Lock className="w-8 h-8 text-slate-600 dark:text-slate-300 drop-shadow-sm" />
           </div>
           <div>
-            <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1 block">ACCOUNT SECURITY</span>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1">
+            <span className="text-[10px] font-black tracking-widest text-slate-500 dark:text-slate-400 uppercase mb-1 block">ACCOUNT SECURITY</span>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
               Security & Privacy
             </h1>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-slate-400 font-medium">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                 Manage your data access, active sessions, and logs
               </p>
               <span className="hidden md:inline-block w-1.5 h-1.5 rounded-full bg-slate-700"></span>
@@ -101,7 +101,7 @@ export const SecurityPrivacyView: React.FC = () => {
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleExport}
-          className="relative group flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-2xl font-bold transition-all border border-slate-700 w-full sm:w-auto justify-center z-10 shadow-sm"
+          className="relative group flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-2xl font-bold transition-all border border-slate-200 dark:border-slate-700 w-full sm:w-auto justify-center z-10 shadow-sm"
         >
           <DownloadCloud className="w-4 h-4 relative z-10" />
           <span className="relative z-10 tracking-wide">Export Data</span>
@@ -162,7 +162,7 @@ export const SecurityPrivacyView: React.FC = () => {
                     <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                       <span>{consent.type}</span>
                       <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
-                      <span className={consent.active ? 'text-emerald-500' : 'text-slate-400'}>
+                      <span className={consent.active ? 'text-emerald-500' : 'text-slate-500 dark:text-slate-400'}>
                         {consent.active ? `Expires in ${consent.expiry}` : consent.expiry}
                       </span>
                     </div>
