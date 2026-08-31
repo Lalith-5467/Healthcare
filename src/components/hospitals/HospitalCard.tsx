@@ -66,7 +66,7 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
             className={`p-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${
               isSaved
                 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-3'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-500'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500'
             }`}
             title={isSaved ? 'Remove from Saved' : 'Save Hospital'}
           >

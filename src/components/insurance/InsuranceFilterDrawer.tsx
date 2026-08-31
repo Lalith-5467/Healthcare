@@ -57,7 +57,7 @@ export const InsuranceFilterDrawer: React.FC<InsuranceFilterDrawerProps> = ({
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Filter policies, claims & documents</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+          <button onClick={onClose} className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>

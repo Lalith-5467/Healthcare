@@ -358,7 +358,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       {/* 2. NEXT APPOINTMENT HIGHLIGHT HERO CARD */}
       {nextAppointment && (
         <div
-          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-white"
+          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-slate-900 dark:text-white"
           style={{
             background: 'linear-gradient(135deg, #092038 0%, #005c53 50%, #00423a 100%)',
             border: '1.5px solid rgba(20,184,166,.35)'
@@ -392,14 +392,14 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   {nextAppointment.type} Consultation
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">{nextAppointment.doctorName}</h3>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">{nextAppointment.doctorName}</h3>
               <p className="text-xs font-bold text-teal-200 flex items-center gap-1.5">
                 <span>{nextAppointment.speciality}</span>
                 <span>•</span>
                 <span className="text-teal-300/80 font-normal">{nextAppointment.hospital}</span>
               </p>
 
-              <div className="flex items-center gap-3 text-xs text-white/90 pt-1.5 font-medium">
+              <div className="flex items-center gap-3 text-xs text-slate-900 dark:text-white/90 pt-1.5 font-medium">
                 <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg">
                   <Calendar className="w-3.5 h-3.5 text-teal-300" />
                   {nextAppointment.date}
@@ -437,7 +437,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               )}
               <button
                 onClick={() => setDetailDrawerTarget(nextAppointment)}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer border border-white/20"
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-900 dark:text-white text-xs font-bold transition-colors cursor-pointer border border-white/20"
               >
                 View Details
               </button>
@@ -503,7 +503,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         {pendingRequests.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xs">
             <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+              <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-slate-300 dark:text-slate-600" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No pending appointment requests</h4>
             <p className="text-xs text-slate-500 dark:text-slate-450">You're all caught up. New appointment requests will appear here.</p>
@@ -636,7 +636,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
           {/* SEARCH BAR */}
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search doctor or speciality..."
@@ -988,7 +988,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                     </h3>
                   </div>
                 </div>
-                <button onClick={() => setPendingDetailTarget(null)} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                <button onClick={() => setPendingDetailTarget(null)} className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-900 dark:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>

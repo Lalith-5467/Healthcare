@@ -94,7 +94,7 @@ export const MultiScanModal: React.FC<MultiScanModalProps> = ({
             <span className="font-extrabold text-slate-900 dark:text-white text-xs">Scanned Page Queue ({queuedDocs.length})</span>
             <button
               onClick={handleAddSampleDoc}
-              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs flex items-center gap-1 cursor-pointer shadow-sm"
+              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white font-extrabold text-xs flex items-center gap-1 cursor-pointer shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Scan Page</span>
@@ -121,7 +121,7 @@ export const MultiScanModal: React.FC<MultiScanModalProps> = ({
 
                   <button
                     onClick={() => handleRemoveDoc(doc.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                    className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

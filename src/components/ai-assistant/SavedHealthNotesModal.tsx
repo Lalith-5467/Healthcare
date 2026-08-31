@@ -42,7 +42,7 @@ export const SavedHealthNotesModal: React.FC<SavedHealthNotesModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -74,7 +74,7 @@ export const SavedHealthNotesModal: React.FC<SavedHealthNotesModalProps> = ({
             ))
           ) : (
             <div className="py-12 text-center text-slate-500 font-mono space-y-2">
-              <Bookmark className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
+              <Bookmark className="w-8 h-8 mx-auto text-slate-600 dark:text-slate-300 dark:text-slate-700" />
               <p>No saved health notes yet.</p>
             </div>
           )}

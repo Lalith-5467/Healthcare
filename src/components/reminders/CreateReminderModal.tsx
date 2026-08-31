@@ -123,7 +123,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,7 +170,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="py-3 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
+                className="py-3 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
               >
                 <span>Continue to Details</span>
                 <ArrowRight className="w-4 h-4" />
@@ -266,7 +266,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
                 type="button"
                 disabled={!title}
                 onClick={() => setStep(3)}
-                className="py-3 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:hover:translate-y-0"
+                className="py-3 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:hover:translate-y-0"
               >
                 <span>Repeat Schedule</span>
                 <ArrowRight className="w-4 h-4" />
@@ -307,7 +307,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
               <button
                 type="button"
                 onClick={() => setStep(4)}
-                className="py-3 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
+                className="py-3 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
               >
                 <span>Notification Timing</span>
                 <ArrowRight className="w-4 h-4" />
@@ -370,7 +370,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
               <button
                 type="button"
                 onClick={() => setStep(5)}
-                className="py-3 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
+                className="py-3 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer"
               >
                 <span>Review & Confirm</span>
                 <ArrowRight className="w-4 h-4" />
@@ -418,7 +418,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
                 type="button"
                 disabled={saving}
                 onClick={handleSave}
-                className="py-3 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:hover:translate-y-0"
+                className="py-3 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all hover:-translate-y-0.5 shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:hover:translate-y-0"
               >
                 {saving ? (
                   <>

@@ -277,7 +277,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
         {/* SEARCH & FILTER BUTTON */}
         <div className="flex items-center gap-2 w-full md:w-auto pr-2">
           <div className="relative flex-1 sm:w-80">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search features (e.g. Lab, Janitor, Nurse)..."
@@ -319,7 +319,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
 
                 {/* TITLE & DESCRIPTION */}
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-600 dark:text-slate-300 transition-colors">
                     {card.title}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
@@ -372,7 +372,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               
               {/* Central Shield */}
               <div className="relative z-10 w-24 h-28 bg-gradient-to-b from-teal-400 to-cyan-500 rounded-2xl shadow-xl flex items-center justify-center group-hover:-translate-y-2 transition-transform duration-500" style={{ clipPath: 'polygon(50% 0%, 100% 20%, 100% 80%, 50% 100%, 0% 80%, 0% 20%)' }}>
-                <Lock className="w-10 h-10 text-white drop-shadow-md" />
+                <Lock className="w-10 h-10 text-slate-900 dark:text-white drop-shadow-md" />
               </div>
               
               {/* Floating Icons */}

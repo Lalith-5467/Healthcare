@@ -19,7 +19,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-full bg-[#00cba9] flex items-center justify-center shadow-sm">
-            <Check className="w-4 h-4 text-white" strokeWidth={3} />
+            <Check className="w-4 h-4 text-slate-900 dark:text-white" strokeWidth={3} />
           </div>
           <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white tracking-tight">
             Profile Completion

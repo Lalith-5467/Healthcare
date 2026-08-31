@@ -140,7 +140,7 @@ export const AboutSupportSection: React.FC<AboutSupportSectionProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Report a Problem</h3>
-              <button onClick={() => setReportModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setReportModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleReportSubmit} className="space-y-3 font-medium">
               <div>
@@ -186,7 +186,7 @@ export const AboutSupportSection: React.FC<AboutSupportSectionProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Terms & Privacy Guidelines</h3>
-              <button onClick={() => setTermsModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setTermsModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
               <p>• All health records & emergency profiles are stored 100% locally in browser memory.</p>
@@ -203,7 +203,7 @@ export const AboutSupportSection: React.FC<AboutSupportSectionProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Help & FAQs</h3>
-              <button onClick={() => setFaqModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setFaqModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-medium text-slate-700 dark:text-slate-300 space-y-3 max-h-64 overflow-y-auto">
               <div>
@@ -229,7 +229,7 @@ export const AboutSupportSection: React.FC<AboutSupportSectionProps> = ({
                 <AlertTriangle className="w-5 h-5 text-rose-500" />
                 Reset All Preferences?
               </h3>
-              <button onClick={() => setResetModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setResetModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               This will restore all appearance, notification, privacy, and health preference settings to defaults.

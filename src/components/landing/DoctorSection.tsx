@@ -323,12 +323,12 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 text-amber-300 text-[10px] font-black backdrop-blur-md border border-white/10">
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                       <span>{doctor.rating}</span>
-                      <span className="text-[9px] text-slate-300 font-normal">({doctor.reviews})</span>
+                      <span className="text-[9px] text-slate-600 dark:text-slate-300 font-normal">({doctor.reviews})</span>
                     </div>
                   </div>
 
                   {/* BOTTOM LIVE STATUS (CENTERED) */}
-                  <div className="absolute bottom-2 inset-x-0 flex items-center justify-center text-white z-10">
+                  <div className="absolute bottom-2 inset-x-0 flex items-center justify-center text-slate-900 dark:text-white z-10">
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-teal-500/90 px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       {doctor.availability}
@@ -344,8 +344,8 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                       <span className="text-[10px] font-black uppercase text-[#00a896] dark:text-cyan-400 tracking-wider font-mono">
                         {doctor.specialty}
                       </span>
-                      <span className="text-slate-300 dark:text-slate-600">•</span>
-                      <span className="text-[10px] font-bold text-slate-400 font-mono">
+                      <span className="text-slate-600 dark:text-slate-300 dark:text-slate-600">•</span>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-mono">
                         {doctor.experience}
                       </span>
                     </div>
@@ -365,18 +365,18 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                   {/* 3 STATS PILLS (CENTERED) */}
                   <div className="grid grid-cols-3 gap-1 py-1.5 px-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-center">
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase">Exp</span>
+                      <span className="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase">Exp</span>
                       <span className="text-[11px] font-black text-slate-800 dark:text-slate-100">{doctor.experience}</span>
                     </div>
                     <div className="border-x border-slate-200 dark:border-slate-700">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase">Rating</span>
+                      <span className="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase">Rating</span>
                       <span className="text-[11px] font-black text-amber-500 flex items-center justify-center gap-0.5">
                         <Star className="w-2.5 h-2.5 fill-amber-500" />
                         {doctor.rating}
                       </span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase">ABDM</span>
+                      <span className="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase">ABDM</span>
                       <span className="text-[11px] font-black text-[#00a896] dark:text-cyan-300">Ready</span>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                   {/* BOTTOM ACTION & CONSULTATION FEE */}
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="text-left">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">Fee</span>
+                      <span className="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fee</span>
                       <span className="text-sm font-black text-slate-900 dark:text-white">
                         {doctor.consultFee}
                       </span>
@@ -395,7 +395,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                         e.stopPropagation();
                         onOpenDoctorPortal();
                       }}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 active:scale-95 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 active:scale-95 transition-all cursor-pointer"
                       title={`Book Consultation with ${doctor.name}`}
                     >
                       <Calendar className="w-3.5 h-3.5" />

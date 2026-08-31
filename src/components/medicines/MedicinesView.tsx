@@ -653,7 +653,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
             {/* SEARCH & FILTER */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-48">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search medicine..."
@@ -740,7 +740,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
           {filteredMedicines.length === 0 && (
             <div className="py-12 text-center bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
-              <Pill className="w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto" />
+              <Pill className="w-8 h-8 text-slate-500 dark:text-slate-400 dark:text-slate-500 mx-auto" />
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300">No medicines found matching this criteria.</p>
               <button
                 onClick={() => setAddModalOpen(true)}

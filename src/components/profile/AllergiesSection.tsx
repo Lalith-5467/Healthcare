@@ -94,7 +94,7 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) =
 
                   <button
                     onClick={() => handleDelete(a.id, a.name)}
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                     title="Remove Allergy"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

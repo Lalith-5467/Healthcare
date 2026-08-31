@@ -28,7 +28,7 @@ export const EmergencyContactsSection: React.FC<EmergencyContactsSectionProps> =
 
         <button
           onClick={onOpenAddContact}
-          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer self-stretch sm:self-auto"
+          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer self-stretch sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Add Contact</span>
@@ -85,7 +85,7 @@ export const EmergencyContactsSection: React.FC<EmergencyContactsSectionProps> =
                   </button>
                   <button
                     onClick={() => onOpenRemoveContact(c)}
-                    className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-600 cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-600 cursor-pointer"
                     title="Remove Contact"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -100,7 +100,7 @@ export const EmergencyContactsSection: React.FC<EmergencyContactsSectionProps> =
           <p className="text-slate-600 dark:text-slate-400 text-xs font-medium">No emergency contacts added yet.</p>
           <button
             onClick={onOpenAddContact}
-            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white text-xs font-extrabold cursor-pointer"
           >
             Add First Contact Now
           </button>

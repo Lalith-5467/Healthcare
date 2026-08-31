@@ -21,7 +21,7 @@ const promptActions = [
 export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> = ({ onNavigate }) => {
   return (
     <div
-      className="p-5 sm:p-6 rounded-3xl flex flex-col justify-between font-sans space-y-4 relative overflow-hidden text-white"
+      className="p-5 sm:p-6 rounded-3xl flex flex-col justify-between font-sans space-y-4 relative overflow-hidden text-slate-900 dark:text-white"
       style={{
         background: 'linear-gradient(145deg,#131138 0%,#241f5a 35%,#1c1746 70%,#0e1526 100%)',
         border: '1.5px solid rgba(167,139,250,.28)',
@@ -55,7 +55,7 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
             🤖
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span>AI Health Assistant</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
             </h3>
@@ -78,7 +78,7 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
       </div>
 
       {/* Description text */}
-      <p className="text-xs text-slate-300 leading-relaxed font-medium relative z-10">
+      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium relative z-10">
         Ask symptoms, clarify medical reports in everyday language, analyze drug interactions, or generate customized checklists for your next doctor visit.
       </p>
 
@@ -94,7 +94,7 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
               <ChipIcon className="w-3.5 h-3.5" style={{ color }} />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] text-slate-300 font-medium block truncate">{label}</span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-medium block truncate">{label}</span>
               <span className="text-[11px] font-extrabold block truncate" style={{ color }}>{value}</span>
             </div>
           </div>

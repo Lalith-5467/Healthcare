@@ -23,7 +23,7 @@ export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = (
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
               Current Medications
             </h3>
-            <span className="text-[11px] text-slate-400">3 Active Prescriptions</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">3 Active Prescriptions</span>
           </div>
         </div>
 

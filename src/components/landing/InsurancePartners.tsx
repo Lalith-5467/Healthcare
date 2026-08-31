@@ -16,7 +16,7 @@ export const InsurancePartners: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-8">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Trusted Cashless Facilities
           </span>
           <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">

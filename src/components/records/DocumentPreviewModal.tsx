@@ -61,7 +61,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -91,19 +91,19 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               {/* PATIENT & DOCTOR INFO BAR */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Patient Name</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Patient Name</span>
                   <span className="font-bold text-slate-900 dark:text-white">{userName}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Attending Doctor</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Attending Doctor</span>
                   <span className="font-bold text-slate-900 dark:text-white">{record.doctor}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Date of Report</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Date of Report</span>
                   <span className="font-bold text-slate-900 dark:text-white">{record.date}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Document Type</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Document Type</span>
                   <span className="font-bold text-slate-900 dark:text-white">{record.type}</span>
                 </div>
               </div>
@@ -171,10 +171,10 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               >
                 <h4 className="font-extrabold text-[#00a896] dark:text-cyan-300 uppercase tracking-wider">Document Metadata Details</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-slate-600 dark:text-slate-300">
-                  <div><span className="text-slate-400 dark:text-slate-500 block font-bold">Record ID:</span> {record.id}</div>
-                  <div><span className="text-slate-400 dark:text-slate-500 block font-bold">File Name:</span> {record.fileName}</div>
-                  <div><span className="text-slate-400 dark:text-slate-500 block font-bold">File Size:</span> {record.fileSize}</div>
-                  <div><span className="text-slate-400 dark:text-slate-500 block font-bold">Status:</span> {record.status}</div>
+                  <div><span className="text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-bold">Record ID:</span> {record.id}</div>
+                  <div><span className="text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-bold">File Name:</span> {record.fileName}</div>
+                  <div><span className="text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-bold">File Size:</span> {record.fileSize}</div>
+                  <div><span className="text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-bold">Status:</span> {record.status}</div>
                 </div>
               </motion.div>
             )}

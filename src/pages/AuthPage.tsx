@@ -202,8 +202,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   // Consistent Input Field Class
-  const inputClass = "w-full h-11 px-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
-  const inputWithIconClass = "w-full h-11 pl-10 pr-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
+  const inputClass = "w-full h-11 px-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-500 dark:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
+  const inputWithIconClass = "w-full h-11 pl-10 pr-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-500 dark:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all";
   const labelClass = "text-xs font-bold text-slate-700 dark:text-slate-200 block mb-1";
 
   return (
@@ -220,7 +220,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           whileHover={{ x: -3, scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={onNavigateHome}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 dark:bg-slate-850/95 hover:bg-white dark:hover:bg-slate-800 text-xs font-black text-slate-800 dark:text-slate-100 hover:text-[#00a896] dark:hover:text-cyan-300 border border-slate-200/90 dark:border-slate-700 shadow-md backdrop-blur-xl transition-all cursor-pointer group"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 dark:bg-slate-900/95 hover:bg-white dark:hover:bg-slate-800 text-xs font-black text-slate-800 dark:text-slate-100 hover:text-[#00a896] dark:hover:text-cyan-300 border border-slate-200/90 dark:border-slate-700 shadow-md backdrop-blur-xl transition-all cursor-pointer group"
           title="Return to MediCare Landing Page"
         >
           <ChevronLeft className="w-4 h-4 stroke-[2.5] text-[#00a896] dark:text-cyan-400 group-hover:-translate-x-0.5 transition-transform" />
@@ -243,7 +243,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             transition={{ duration: 0.6 }}
             className="lg:col-span-5"
           >
-            <div className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-700/60">
+            <div className="h-full rounded-3xl bg-gradient-to-br from-[#0b172a] via-[#091b36] to-[#040e1e] p-8 lg:p-10 text-slate-900 dark:text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-slate-200 dark:border-slate-700/60">
               {/* AMBIENT MESH OVERLAY */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
@@ -257,10 +257,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight text-white">
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
                     Access Your Unified Health Ecosystem
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                     Seamlessly manage ABHA health records, track live vitals, emergency SOS contacts, and coordinate care with enterprise-grade privacy standards.
                   </p>
                 </div>
@@ -272,8 +272,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <Activity className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Ayushman Bharat (ABHA) Integration</h4>
-                      <p className="text-[11px] text-slate-300 mt-0.5">Instantly fetch verified lab reports, prescriptions, and hospital discharge summaries.</p>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">Ayushman Bharat (ABHA) Integration</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">Instantly fetch verified lab reports, prescriptions, and hospital discharge summaries.</p>
                     </div>
                   </div>
 
@@ -282,8 +282,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <QrCode className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Emergency SOS Medical Card</h4>
-                      <p className="text-[11px] text-slate-300 mt-0.5">Offline-scannable QR matrix containing critical allergies, blood group & emergency contacts.</p>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">Emergency SOS Medical Card</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">Offline-scannable QR matrix containing critical allergies, blood group & emergency contacts.</p>
                     </div>
                   </div>
 
@@ -292,8 +292,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Zero-Knowledge Data Vault</h4>
-                      <p className="text-[11px] text-slate-300 mt-0.5">Your health data is 256-bit encrypted with granular 1-tap consent revocation controls.</p>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">Zero-Knowledge Data Vault</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">Your health data is 256-bit encrypted with granular 1-tap consent revocation controls.</p>
                     </div>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="Patient" />
                     <img className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&q=80" alt="Patient" />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-300">50,000+ Active Patients</span>
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">50,000+ Active Patients</span>
                 </div>
 
                 <div className="flex items-center gap-1 text-xs text-amber-400 font-extrabold">
@@ -466,7 +466,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Full Name</label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -481,7 +481,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Phone Number</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
@@ -499,7 +499,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div className="sm:col-span-5">
                           <label className={labelClass}>Date of Birth</label>
                           <div className="relative">
-                            <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="date"
                               required
@@ -513,7 +513,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div className="sm:col-span-3">
                           <label className={labelClass}>Age (Yrs)</label>
                           <div className="relative">
-                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Hash className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="number"
                               min="1"
@@ -533,7 +533,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={gender}
                             onChange={(e) => setGender(e.target.value)}
-                            className={`${inputClass} ${!gender ? 'text-slate-400' : ''}`}
+                            className={`${inputClass} ${!gender ? 'text-slate-500 dark:text-slate-400' : ''}`}
                           >
                             <option value="" disabled>Select Gender</option>
                             <option value="Male">Male</option>
@@ -551,7 +551,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={bloodGroup}
                             onChange={(e) => setBloodGroup(e.target.value)}
-                            className={`${inputClass} ${bloodGroup ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-400'}`}
+                            className={`${inputClass} ${bloodGroup ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-500 dark:text-slate-400'}`}
                           >
                             <option value="" disabled>Select Blood Group</option>
                             {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
@@ -563,7 +563,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={`${labelClass} flex items-center justify-between`}>
                             <span>Allergies / Conditions</span>
-                            <span className="text-[10px] text-slate-400 font-normal">Optional</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">Optional</span>
                           </label>
                           <input
                             type="text"
@@ -580,7 +580,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Family Emergency Phone</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
@@ -595,7 +595,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Contact Name & Relation</label>
                           <div className="relative">
-                            <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Users className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -615,7 +615,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           <span className="text-[10px] text-teal-600 dark:text-cyan-400 font-mono font-medium">Optional · Government ID</span>
                         </label>
                         <div className="relative">
-                          <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <ShieldCheck className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
                             placeholder="e.g. 14-XXXX-XXXX-8921"
@@ -638,7 +638,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Caregiver Full Name</label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -653,7 +653,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Contact Phone Number</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
@@ -674,7 +674,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={caregiverType}
                             onChange={(e) => setCaregiverType(e.target.value)}
-                            className={`${inputClass} ${!caregiverType ? 'text-slate-400' : ''}`}
+                            className={`${inputClass} ${!caregiverType ? 'text-slate-500 dark:text-slate-400' : ''}`}
                           >
                             <option value="" disabled>Select Classification</option>
                             <option value="Family Member">Family Member / Next-of-Kin</option>
@@ -687,7 +687,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Aadhaar / National ID No.</label>
                           <div className="relative">
-                            <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Shield className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -705,7 +705,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Assigned Patient Full Name</label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -723,7 +723,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={patientRelation}
                             onChange={(e) => setPatientRelation(e.target.value)}
-                            className={`${inputClass} ${!patientRelation ? 'text-slate-400' : ''}`}
+                            className={`${inputClass} ${!patientRelation ? 'text-slate-500 dark:text-slate-400' : ''}`}
                           >
                             <option value="" disabled>Select Relationship</option>
                             <option value="Parent">Parent (Father / Mother)</option>
@@ -757,7 +757,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={authorizationScope}
                             onChange={(e) => setAuthorizationScope(e.target.value)}
-                            className={`${inputClass} ${authorizationScope ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-400'}`}
+                            className={`${inputClass} ${authorizationScope ? 'font-bold text-[#00a896] dark:text-cyan-300' : 'text-slate-500 dark:text-slate-400'}`}
                           >
                             <option value="" disabled>Select Authorization Scope</option>
                             <option value="Full Medical Proxy">Full Medical Proxy (Manage All)</option>
@@ -779,7 +779,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Doctor Full Name</label>
                           <div className="relative">
-                            <Stethoscope className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Stethoscope className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -794,7 +794,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Direct Contact Phone</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
@@ -812,7 +812,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         <div>
                           <label className={labelClass}>Medical Council Registration No.</label>
                           <div className="relative">
-                            <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <FileCheck2 className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -830,7 +830,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             required
                             value={specialization}
                             onChange={(e) => setSpecialization(e.target.value)}
-                            className={`${inputClass} ${specialization ? 'font-bold text-cyan-600 dark:text-cyan-300' : 'text-slate-400'}`}
+                            className={`${inputClass} ${specialization ? 'font-bold text-cyan-600 dark:text-cyan-300' : 'text-slate-500 dark:text-slate-400'}`}
                           >
                             <option value="" disabled>Select Specialization</option>
                             <option value="Cardiology">Cardiology (Heart Specialist)</option>
@@ -879,7 +879,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       <div>
                         <label className={labelClass}>Hospital / Clinic Practice Name</label>
                         <div className="relative">
-                          <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
                             required
@@ -937,7 +937,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             Pharmacist Full Name <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
-                            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -954,7 +954,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             Official Contact Phone <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
                               required
@@ -974,7 +974,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             Pharmacy / Store Name <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
-                            <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -1009,7 +1009,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             Drug License No. (DL No.) <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
-                            <FileCheck2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <FileCheck2 className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -1026,7 +1026,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             PCI Registration No. <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
-                            <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <ShieldCheck className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               required
@@ -1072,7 +1072,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             : 'Email Address')}
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Mail className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type={mode === 'login' ? 'text' : 'email'}
                         required
@@ -1094,19 +1094,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <div>
                     <label className={labelClass}>Password</label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
                         placeholder="••••••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all"
+                        className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-500 dark:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#00a896] dark:focus:border-cyan-400 focus:ring-2 focus:ring-[#00a896]/15 transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1136,7 +1136,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     <div>
                       <label className={labelClass}>Confirm Password</label>
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           required
@@ -1191,7 +1191,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 rounded-xl font-black text-sm text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-3 border border-teal-400/30 disabled:opacity-50"
+                    className="w-full h-12 rounded-xl font-black text-sm text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-3 border border-teal-400/30 disabled:opacity-50"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

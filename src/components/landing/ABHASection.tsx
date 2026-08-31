@@ -131,7 +131,7 @@ const ABHACard: React.FC<{
 
       {/* CONNECTING ARROW BETWEEN CARDS */}
       {hasNext && (
-        <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-800 p-1.5 rounded-full text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 shadow-md group-hover:text-[#00a896] transition-colors">
+        <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-800 p-1.5 rounded-full text-slate-500 dark:text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 shadow-md group-hover:text-[#00a896] transition-colors">
           <ArrowRight className="w-3.5 h-3.5" />
         </div>
       )}
@@ -242,7 +242,7 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
           {/* TWO DATA BOXES: PERFECTLY SIZED & ALIGNED BASELINES */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider font-mono">
+              <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider font-mono">
                 ABHA Number
               </span>
               <p className="font-mono text-base sm:text-lg font-black text-[#00a896] dark:text-cyan-400 tracking-wider">
@@ -251,7 +251,7 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
             </div>
             
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider font-mono">
+              <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider font-mono">
                 ABHA Address
               </span>
               <p className="font-mono text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-wide">
@@ -270,7 +270,7 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
               whileHover={{ scale: 1.025 }}
               whileTap={{ scale: 0.98 }}
               onClick={onManageConnection}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/25 transition-all gap-2 shrink-0 cursor-pointer border border-teal-400/30"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-xs font-black text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/25 transition-all gap-2 shrink-0 cursor-pointer border border-teal-400/30"
             >
               <span>Manage Connection</span>
               <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />

@@ -29,13 +29,13 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-5 py-3 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-slate-700 shadow-2xl text-white flex flex-wrap items-center gap-3 text-xs"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-5 py-3 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-slate-200 dark:border-slate-700 shadow-2xl text-white flex flex-wrap items-center gap-3 text-xs"
       >
-        <div className="flex items-center gap-2 pr-3 border-r border-slate-700">
+        <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-slate-700">
           <span className="w-6 h-6 rounded-full bg-[#00a896] text-white font-black flex items-center justify-center text-xs">
             {selectedCount}
           </span>
-          <span className="font-extrabold text-white">Records Selected</span>
+          <span className="font-extrabold text-slate-900 dark:text-white">Records Selected</span>
         </div>
 
         <button
@@ -72,7 +72,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
 
         <button
           onClick={onClearSelection}
-          className="p-1.5 rounded-full text-slate-400 hover:text-white bg-slate-800 transition-colors ml-1 cursor-pointer"
+          className="p-1.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-white bg-slate-800 transition-colors ml-1 cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
         </button>

@@ -79,7 +79,7 @@ export const FullMedicalIDModal: React.FC<FullMedicalIDModalProps> = ({
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 font-sans">
           <button
             onClick={onShareID}
-            className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+            className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
           >
             <Share2 className="w-4 h-4" />
             <span>Share Emergency Medical ID</span>

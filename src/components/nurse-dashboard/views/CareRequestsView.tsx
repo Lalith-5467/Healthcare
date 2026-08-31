@@ -74,32 +74,32 @@ const RequestCard = ({ request, onAccept, onReject }: { request: CareRequest, on
               <p className="text-sm font-medium text-slate-500">{request.patientAge}</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-slate-400">Just now</span>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Just now</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 mb-6">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Service Needed</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Service Needed</span>
             <p className="text-sm font-black text-slate-900 dark:text-white">{request.serviceType}</p>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Date & Time</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Date & Time</span>
             <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-blue-500" />
               {request.prefDate} at {request.time}
             </p>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Location</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Location</span>
             <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-rose-500" />
               {request.location}
             </p>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Instructions</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Instructions</span>
             <p className="text-sm font-black text-slate-900 dark:text-white flex items-start gap-1">
-              <FileText className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
+              <FileText className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 mt-0.5 shrink-0" />
               <span className="line-clamp-2">{request.instructions}</span>
             </p>
           </div>
@@ -114,7 +114,7 @@ const RequestCard = ({ request, onAccept, onReject }: { request: CareRequest, on
           </button>
           <button 
             onClick={onAccept}
-            className="flex-[2] py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black rounded-xl transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
+            className="flex-[2] py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 dark:text-white font-black rounded-xl transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> Accept Request
           </button>

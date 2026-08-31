@@ -172,7 +172,7 @@ export const DataStorageSection: React.FC<DataStorageSectionProps> = ({
                 <AlertOctagon className="w-5 h-5 text-rose-500" />
                 Clear Temporary Cache
               </h4>
-              <button onClick={() => setClearModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+              <button onClick={() => setClearModalOpen(false)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
             <p className="text-slate-600 dark:text-slate-300 font-medium">Are you sure you want to clear temporary offline cache files? This action cannot be undone.</p>
             <div className="pt-2 flex justify-between gap-3 font-sans">

@@ -36,7 +36,7 @@ export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({ onNavigate }
               whileHover={{ y: -3, scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => onNavigate(act.id)}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-md hover:shadow-xl transition-all flex flex-col items-center justify-center text-center space-y-2.5 group cursor-pointer"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-all flex flex-col items-center justify-center text-center space-y-2.5 group cursor-pointer"
             >
               <div className={`p-3 rounded-2xl border ${act.color} group-hover:scale-110 transition-transform shadow-inner`}>
                 <Icon className="w-5 h-5" />

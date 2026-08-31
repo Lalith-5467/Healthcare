@@ -41,7 +41,7 @@ export const EmergencyReadinessCard: React.FC<EmergencyReadinessCardProps> = ({
             {item.done ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             ) : (
-              <Circle className="w-4 h-4 text-slate-400 dark:text-slate-600 shrink-0" />
+              <Circle className="w-4 h-4 text-slate-500 dark:text-slate-400 dark:text-slate-600 shrink-0" />
             )}
             <span className={item.done ? 'text-slate-900 dark:text-slate-200 font-bold font-sans' : 'text-slate-500 font-sans'}>{item.label}</span>
           </div>

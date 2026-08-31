@@ -34,7 +34,7 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
       {/* TOP HEADER ROW */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-teal-500/15 relative z-10">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 bg-gradient-to-br from-[#00a896] to-sky-600 shadow-[0_4px_14px_rgba(0,168,150,.35)] dark:shadow-[0_4px_14px_rgba(0,168,150,.15)]">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-slate-900 dark:text-white shrink-0 bg-gradient-to-br from-[#00a896] to-sky-600 shadow-[0_4px_14px_rgba(0,168,150,.35)] dark:shadow-[0_4px_14px_rgba(0,168,150,.15)]">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
@@ -59,7 +59,7 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={onOpenDigitalCard}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-[0_4px_14px_rgba(0,168,150,.3)] dark:shadow-none group self-stretch sm:self-auto justify-center bg-gradient-to-br from-[#00a896] to-teal-600 text-white"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-[0_4px_14px_rgba(0,168,150,.3)] dark:shadow-none group self-stretch sm:self-auto justify-center bg-gradient-to-br from-[#00a896] to-teal-600 text-slate-900 dark:text-white"
         >
           <QrCode className="w-4 h-4 text-teal-100 group-hover:scale-110 transition-transform" />
           <span>View Digital Health Card</span>
@@ -69,7 +69,7 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
       {/* METADATA 4-COLUMN TILES */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 my-5 relative z-10">
         <div className="p-3.5 rounded-2xl space-y-1 bg-white/85 dark:bg-slate-800/85 border border-teal-500/15 dark:border-teal-500/20 backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <User className="w-3.5 h-3.5 text-teal-600" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Policy Holder</span>
           </div>
@@ -78,7 +78,7 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
         </div>
 
         <div className="p-3.5 rounded-2xl space-y-1 bg-white/85 dark:bg-slate-800/85 border border-sky-500/15 dark:border-sky-500/20 backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <Hash className="w-3.5 h-3.5 text-sky-600" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Policy Number</span>
           </div>
@@ -87,21 +87,21 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
         </div>
 
         <div className="p-3.5 rounded-2xl space-y-1 bg-white/85 dark:bg-slate-800/85 border border-emerald-500/15 dark:border-emerald-500/20 backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <Calendar className="w-3.5 h-3.5 text-emerald-600" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Valid Till</span>
           </div>
           <strong className="text-emerald-700 dark:text-emerald-400 text-sm font-extrabold block font-mono truncate">{policy.expiryDate}</strong>
-          <span className="text-[10px] font-mono text-slate-400 block truncate">Since {policy.startDate}</span>
+          <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block truncate">Since {policy.startDate}</span>
         </div>
 
         <div className="p-3.5 rounded-2xl space-y-1 bg-white/85 dark:bg-slate-800/85 border border-amber-500/15 dark:border-amber-500/20 backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <CreditCard className="w-3.5 h-3.5 text-amber-600" />
             <span className="text-[10px] font-bold uppercase tracking-wider">Annual Premium</span>
           </div>
           <strong className="text-amber-700 dark:text-amber-400 text-sm font-extrabold block font-mono truncate">₹{policy.premiumAmount}</strong>
-          <span className="text-[10px] font-mono text-slate-400 block truncate">{policy.premiumFrequency} billing</span>
+          <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block truncate">{policy.premiumFrequency} billing</span>
         </div>
       </div>
 

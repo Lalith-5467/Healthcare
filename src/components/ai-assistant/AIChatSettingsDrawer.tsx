@@ -44,7 +44,7 @@ export const AIChatSettingsDrawer: React.FC<AIChatSettingsDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -99,7 +99,7 @@ export const AIChatSettingsDrawer: React.FC<AIChatSettingsDrawerProps> = ({
               </button>
               <button
                 onClick={() => onExportChat('json')}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white font-extrabold cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
               >
                 <Download className="w-4 h-4" />
                 <span>Export JSON</span>
