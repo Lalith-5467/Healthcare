@@ -36,12 +36,12 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
-      <div className="bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[60] bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-slate-900 dark:text-white flex flex-col max-h-[90vh]">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
+            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-[#00a896] dark:text-teal-400">
               <Filter className="w-5 h-5" />
             </div>
             <div>
@@ -51,14 +51,14 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* BODY */}
-        <div className="space-y-6 py-6 flex-1 overflow-y-auto text-xs">
+        <div className="space-y-6 overflow-y-auto text-xs pr-1 flex-1">
           {/* DISTANCE RANGE */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
@@ -72,8 +72,8 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
                   onClick={() => setLocalFilters({ ...localFilters, distanceRange: d })}
                   className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer ${
                     localFilters.distanceRange === d
-                      ? 'bg-teal-500/20 text-teal-300 border-teal-500/40'
-                      : 'bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-700'
+                      ? 'bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-teal-300 border-[#00a896]/30 dark:border-teal-500/40 shadow-sm'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   {d}
@@ -95,8 +95,8 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
                   onClick={() => setLocalFilters({ ...localFilters, minRating: r })}
                   className={`py-2 px-3 rounded-xl font-bold border transition-colors cursor-pointer ${
                     localFilters.minRating === r
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                      : 'bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-700'
+                      ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/40 shadow-sm'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   ★ {r}
@@ -106,14 +106,14 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
           </div>
 
           {/* TOGGLES */}
-          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <span className="font-bold text-slate-900 dark:text-white">Open Now Only</span>
               <button
                 type="button"
                 onClick={() => setLocalFilters({ ...localFilters, openNowOnly: !localFilters.openNowOnly })}
                 className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  localFilters.openNowOnly ? 'bg-[#00a896]' : 'bg-slate-800 border border-slate-200 dark:border-slate-700'
+                  localFilters.openNowOnly ? 'bg-[#00a896]' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                 }`}
               >
                 <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -122,13 +122,13 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
               </button>
             </div>
 
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <span className="font-bold text-slate-900 dark:text-white">24x7 Emergency Care Only</span>
               <button
                 type="button"
                 onClick={() => setLocalFilters({ ...localFilters, emergencyOnly: !localFilters.emergencyOnly })}
                 className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  localFilters.emergencyOnly ? 'bg-rose-500' : 'bg-slate-800 border border-slate-200 dark:border-slate-700'
+                  localFilters.emergencyOnly ? 'bg-rose-500' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                 }`}
               >
                 <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -140,11 +140,11 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
         </div>
 
         {/* FOOTER */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -153,7 +153,7 @@ export const HospitalFilterDrawer: React.FC<HospitalFilterDrawerProps> = ({
           <button
             type="button"
             onClick={handleApply}
-            className="flex-1 py-2.5 px-5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <Check className="w-4 h-4" />
             <span>Apply Filters</span>

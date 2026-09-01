@@ -33,11 +33,10 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => onSelect(hospital)}
-      className={`p-5 bg-white dark:bg-slate-900/90 rounded-3xl border transition-all space-y-4 shadow-md hover:shadow-xl cursor-pointer group font-sans ${
-        isSelected
+      className={`p-5 bg-white dark:bg-slate-900/90 rounded-3xl border transition-all space-y-4 shadow-md hover:shadow-xl cursor-pointer group font-sans ${isSelected
           ? 'border-[#00a896] bg-slate-50 dark:bg-slate-900 shadow-teal-500/10 ring-2 ring-[#00a896]/20'
           : 'border-slate-200/90 dark:border-slate-800 hover:border-[#00a896]/40'
-      }`}
+        }`}
     >
       {/* HEADER ROW */}
       <div className="flex items-start justify-between gap-3">
@@ -63,11 +62,10 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
               e.stopPropagation();
               onToggleSave(hospital);
             }}
-            className={`p-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${
-              isSaved
+            className={`p-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${isSaved
                 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-3'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500'
-            }`}
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-500'
+              }`}
             title={isSaved ? 'Remove from Saved' : 'Save Hospital'}
           >
             <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500' : ''}`} />
@@ -147,11 +145,10 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
               e.stopPropagation();
               onToggleCompare(hospital);
             }}
-            className={`px-2.5 py-1.5 rounded-xl text-[10px] font-extrabold transition-colors cursor-pointer ${
-              isCompared
+            className={`px-2.5 py-1.5 rounded-xl text-[10px] font-extrabold transition-colors cursor-pointer ${isCompared
                 ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'
-            }`}
+              }`}
           >
             {isCompared ? '✓ Compare' : '+ Compare'}
           </button>

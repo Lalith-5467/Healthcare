@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { MapPin, Navigation, Plus, Minus, Building2, ExternalLink } from 'lucide-react';
 import type { HospitalItem } from './hospitalsData';
 
@@ -33,7 +34,7 @@ export const HospitalMapSection: React.FC<HospitalMapSectionProps> = ({
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Interactive Hospital Finder Map</h4>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono font-bold">Custom HTML/CSS Map • {hospitals.length} Facilities Marked</p>
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono font-bold">{hospitals.length} Facilities Marked</p>
           </div>
         </div>
 
@@ -111,7 +112,11 @@ export const HospitalMapSection: React.FC<HospitalMapSectionProps> = ({
 
         {/* POPUP PREVIEW CARD FOR SELECTED HOSPITAL */}
         {selectedHospital && (
-          <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-30 max-w-sm bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl backdrop-blur-md space-y-2 animate-in slide-in-from-bottom-4 duration-200 text-slate-900 dark:text-white">
+          <motion.div 
+            drag
+            dragMomentum={false}
+            className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-30 max-w-sm bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl backdrop-blur-md space-y-2 animate-in slide-in-from-bottom-4 duration-200 text-slate-900 dark:text-white cursor-grab active:cursor-grabbing"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] font-extrabold text-[#00a896] dark:text-teal-400 font-mono uppercase">{selectedHospital.type}</span>
@@ -136,7 +141,7 @@ export const HospitalMapSection: React.FC<HospitalMapSectionProps> = ({
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* MAP ZOOM & CONTROLS */}
