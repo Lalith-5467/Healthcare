@@ -6,7 +6,8 @@ interface RescheduleModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
   onClose: () => void;
-  onConfirmReschedule: (aptId: string, newDate: string, newTime: string) => void;
+  onConfirmReschedule?: (aptId: string, newDate: string, newTime: string) => void;
+  onConfirm?: (aptId: string, newDate: string, newTime: string) => void;
 }
 
 export const RescheduleModal: React.FC<RescheduleModalProps> = ({
@@ -14,6 +15,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   appointment,
   onClose,
   onConfirmReschedule,
+  onConfirm,
 }) => {
   const [selectedDate, setSelectedDate] = useState('26 Aug 2026');
   const [selectedTime, setSelectedTime] = useState('02:30 PM');
@@ -34,7 +36,8 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   const handleSubmit = () => {
     setIsSubmitting(true);
     setTimeout(() => {
-      onConfirmReschedule(appointment.id, selectedDate, selectedTime);
+      if (onConfirmReschedule) onConfirmReschedule(appointment.id, selectedDate, selectedTime);
+      if (onConfirm) onConfirm(appointment.id, selectedDate, selectedTime);
       setIsSubmitting(false);
       onClose();
     }, 600);

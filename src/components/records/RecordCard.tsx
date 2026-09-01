@@ -89,19 +89,6 @@ export const RecordCard: React.FC<RecordCardProps> = ({
       {/* HEADER: ICON, CHECKBOX & ACTIONS */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          {onToggleSelect && (
-            <button
-              onClick={() => onToggleSelect(record.id)}
-              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer mt-0.5 ${
-                isSelected
-                  ? 'bg-[#00a896] border-[#00a896] text-white'
-                  : 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-transparent hover:border-[#00a896]'
-              }`}
-            >
-              <Check className="w-3.5 h-3.5" />
-            </button>
-          )}
-
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
             {getIcon()}
           </div>
@@ -129,13 +116,13 @@ export const RecordCard: React.FC<RecordCardProps> = ({
             {menuOpen && (
               <>
                 <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20" />
-                <div className="absolute right-0 top-10 w-44 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl text-white z-30 space-y-1 text-xs">
-                  <button onClick={() => { setMenuOpen(false); onView(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Eye className="w-3.5 h-3.5 text-cyan-400" /><span>View Report</span></button>
-                  <button onClick={() => { setMenuOpen(false); onDownload(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Download className="w-3.5 h-3.5 text-emerald-400" /><span>Download</span></button>
-                  <button onClick={() => { setMenuOpen(false); onShare(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Share2 className="w-3.5 h-3.5 text-indigo-400" /><span>Share Record</span></button>
-                  <button onClick={() => { setMenuOpen(false); onRename(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer"><Edit2 className="w-3.5 h-3.5 text-amber-400" /><span>Rename</span></button>
-                  <div className="border-t border-slate-800 my-1" />
-                  <button onClick={() => { setMenuOpen(false); onDelete(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer"><Trash2 className="w-3.5 h-3.5 text-rose-400" /><span>Delete Record</span></button>
+                <div className="absolute right-0 top-10 w-44 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white z-30 space-y-1 text-xs font-sans">
+                  <button onClick={() => { setMenuOpen(false); onView(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Eye className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" /><span>View Report</span></button>
+                  <button onClick={() => { setMenuOpen(false); onDownload(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /><span>Download</span></button>
+                  <button onClick={() => { setMenuOpen(false); onShare(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /><span>Share Record</span></button>
+                  <button onClick={() => { setMenuOpen(false); onRename(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Edit2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /><span>Rename</span></button>
+                  <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+                  <button onClick={() => { setMenuOpen(false); onDelete(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Trash2 className="w-3.5 h-3.5 text-rose-500" /><span>Delete Record</span></button>
                 </div>
               </>
             )}

@@ -8,11 +8,16 @@ export interface ReminderItem {
   repeat: 'Does not repeat' | 'Daily' | 'Weekly' | 'Monthly' | 'Custom';
   customDays?: string[];
   timing: 'At scheduled time' | '5 minutes before' | '15 minutes before' | '30 minutes before' | '1 hour before' | '1 day before';
-  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed';
+  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled';
   priority: 'Normal' | 'Important' | 'High Priority';
   completedTime?: string;
   snoozedUntil?: string;
   relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  sourcePrescriptionId?: string;
+  doctorName?: string;
+  clinicName?: string;
+  followUpStatus?: 'Pending' | 'Accepted' | 'Declined';
+  followUpDate?: string;
 }
 
 export interface NotificationLog {
@@ -41,6 +46,38 @@ export interface NotificationSettingsState {
 }
 
 export const INITIAL_REMINDERS: ReminderItem[] = [
+  {
+    id: 'REM-REQ-001',
+    title: 'Doctor Follow-up: Dr. Arun Kumar',
+    category: 'Appointment',
+    description: 'Follow-up review with Dr. Arun Kumar',
+    date: '05 Sep 2026',
+    time: '10:30 AM',
+    repeat: 'Does not repeat',
+    timing: '1 day before',
+    status: 'Pending',
+    priority: 'High Priority',
+    doctorName: 'Dr. Arun Kumar',
+    clinicName: 'General Medicine',
+    followUpStatus: 'Pending',
+    relatedModule: 'appointments'
+  },
+  {
+    id: 'REM-REQ-002',
+    title: 'Cardiology Follow-up: Dr. Meena Iyer',
+    category: 'Appointment',
+    description: 'Routine check-up with Dr. Meena Iyer',
+    date: '12 Sep 2026',
+    time: '02:00 PM',
+    repeat: 'Does not repeat',
+    timing: '15 minutes before',
+    status: 'Pending',
+    priority: 'Normal',
+    doctorName: 'Dr. Meena Iyer',
+    clinicName: 'Cardiology',
+    followUpStatus: 'Pending',
+    relatedModule: 'appointments'
+  },
   {
     id: 'REM-101',
     title: 'Take Metformin (500 mg)',

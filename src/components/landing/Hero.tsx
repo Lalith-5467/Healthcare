@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
-  Volume2,
+  Volume2, 
   VolumeX,
   FileText,
   Heart,
@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   QrCode
 } from 'lucide-react';
+import { SpotlightCard } from '../ui/SpotlightCard';
 
 interface HeroProps {
   onStartJourney: () => void;
@@ -20,37 +21,42 @@ const CARDS_DATA = [
   { 
     id: 'records', 
     title: 'Medical Records', 
-    subtitle: '12 Records', 
+    subtitle: '12 Records Verified', 
     icon: FileText, 
-    color: 'text-[#00a896] bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-800/40' 
+    color: 'text-[#00a896] bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-800/40',
+    spotlightColor: 'rgba(0, 168, 150, 0.3)'
   },
   { 
     id: 'reminder', 
     title: 'Medicine Reminder', 
     subtitle: 'Next dose 8:00 AM', 
     icon: Pill, 
-    color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 border-purple-100 dark:border-purple-800/40' 
+    color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60 border-purple-100 dark:border-purple-800/40',
+    spotlightColor: 'rgba(168, 85, 247, 0.3)'
   },
   { 
     id: 'doctor', 
     title: 'Doctor Shared', 
     subtitle: 'Report Shared', 
     icon: QrCode, 
-    color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-100 dark:border-indigo-800/40' 
+    color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-100 dark:border-indigo-800/40',
+    spotlightColor: 'rgba(99, 102, 241, 0.3)'
   },
   { 
     id: 'health', 
     title: 'Health Status', 
-    subtitle: '98% Normal', 
+    subtitle: '98% Vitals Normal', 
     icon: Heart, 
-    color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/60 border-rose-100 dark:border-rose-800/40' 
+    color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/60 border-rose-100 dark:border-rose-800/40',
+    spotlightColor: 'rgba(244, 63, 94, 0.3)'
   },
   { 
     id: 'sos', 
     title: 'Emergency SOS', 
-    subtitle: 'SOS Ready', 
+    subtitle: 'SOS Pass Ready', 
     icon: AlertTriangle, 
-    color: 'text-red-500 bg-red-50 dark:bg-red-950/60 border-red-100 dark:border-red-800/40' 
+    color: 'text-red-500 bg-red-50 dark:bg-red-950/60 border-red-100 dark:border-red-800/40',
+    spotlightColor: 'rgba(239, 68, 68, 0.3)'
   },
 ];
 
@@ -67,7 +73,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
     }
   }, []);
 
-  // 3-SECOND AUTOMATIC HORIZONTAL CARD SWAP (SLIDES HORIZONTALLY, HIDES OTHERS)
+  // 3-SECOND AUTOMATIC DOWNWARD-SLIDING CARD SWAP
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveCardIndex((prevIndex) => (prevIndex + 1) % CARDS_DATA.length);
@@ -89,7 +95,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
   return (
     <section id="home" className="relative w-full min-h-[calc(100vh-5rem)] py-12 sm:py-16 flex items-center overflow-hidden bg-slate-900">
 
-      {/* 1. BACKGROUND VIDEO LAYER (100% STABLE, UNTOUCHED BY CARDS) */}
+      {/* 1. BACKGROUND VIDEO LAYER */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <video
           ref={videoRef}
@@ -132,7 +138,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
         </button>
       </div>
 
-      {/* 3. HERO CONTENT & HORIZONTAL SWAPPING CARD LAYER */}
+      {/* 3. HERO CONTENT & DOWNWARD-POSITIONED RIGHT CARDS */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -174,37 +180,41 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
             </div>
           </motion.div>
 
-          {/* RIGHT COLUMN: SINGLE-CARD HORIZONTAL SWAPPING GLASS CAROUSEL */}
-          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center py-4 w-full">
+          {/* RIGHT COLUMN: DOWNWARD-ALIGNED ROTATING SPOTLIGHT CARD */}
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-end py-4 w-full">
             
-            <div className="w-full max-w-[275px] flex flex-col items-center gap-3.5 relative lg:mt-16 sm:mt-8 mt-4">
+            <div className="w-full max-w-[295px] flex flex-col items-center gap-3.5 relative lg:mt-60 sm:mt-40 mt-16">
               
-              {/* HORIZONTAL SLIDING CARD CONTAINER */}
+              {/* DOWNWARD SLIDING CARD CONTAINER */}
               <div className="w-full overflow-hidden py-1">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard.id}
-                    initial={{ opacity: 0, x: 45 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -45 }}
-                    transition={{ duration: 0.45, ease: "easeInOut" }}
-                    className="w-full p-4 sm:p-4.5 rounded-2xl bg-white/60 dark:bg-slate-900/65 backdrop-blur-[18px] border border-white/50 dark:border-slate-700/60 shadow-2xl shadow-teal-950/15 dark:shadow-slate-950/60 flex items-center gap-3.5 transition-colors select-none"
+                    initial={{ opacity: 0, y: -25 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 25 }}
+                    transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${activeCard.color} shadow-sm`}>
-                      <IconComponent className="w-5 h-5" />
-                    </div>
+                    <SpotlightCard
+                      spotlightColor={activeCard.spotlightColor}
+                      className="w-full p-4 sm:p-4.5 rounded-2xl bg-white/70 dark:bg-slate-900/75 backdrop-blur-[20px] border border-white/60 dark:border-slate-700/70 shadow-2xl shadow-teal-950/20 dark:shadow-slate-950/70 flex items-center gap-3.5 transition-all select-none"
+                    >
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${activeCard.color} shadow-sm`}>
+                        <IconComponent className="w-5 h-5" />
+                      </div>
 
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                        Health Feature
-                      </span>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-tight mt-0.5 truncate">
-                        {activeCard.title}
-                      </h4>
-                      <p className="text-xs font-extrabold text-[#00a896] dark:text-teal-300 mt-0.5 truncate">
-                        {activeCard.subtitle}
-                      </p>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-mono">
+                          Health Feature
+                        </span>
+                        <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-tight mt-0.5 truncate">
+                          {activeCard.title}
+                        </h4>
+                        <p className="text-xs font-extrabold text-[#00a896] dark:text-teal-300 mt-0.5 truncate">
+                          {activeCard.subtitle}
+                        </p>
+                      </div>
+                    </SpotlightCard>
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -235,6 +245,3 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
     </section>
   );
 };
-
-
-

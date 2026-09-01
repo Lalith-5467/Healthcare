@@ -8,6 +8,8 @@ export interface NavItemConfig {
   badge?: string | number;
   badgeColor?: string;
   isSpecial?: 'ai' | 'sos';
+  section?: string;
+  children?: NavItemConfig[];
 }
 
 export interface UserProfile {

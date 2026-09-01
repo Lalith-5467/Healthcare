@@ -45,7 +45,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
         <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
           <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase block font-sans">Access Tier</span>
-          <strong className="text-purple-700 dark:text-purple-300 text-base font-extrabold font-sans">{account.plan}</strong>
+          <strong className="text-[#00a896] text-base font-extrabold font-sans">{account.plan}</strong>
         </div>
       </div>
 

@@ -6,7 +6,8 @@ interface EditMedicineModalProps {
   isOpen: boolean;
   medicine: MedicineItem | null;
   onClose: () => void;
-  onSaveEdit: (medId: string, updatedFields: Partial<MedicineItem>) => void;
+  onSaveEdit?: (medId: string, updatedFields: Partial<MedicineItem>) => void;
+  onSave?: (medId: string, updatedFields: Partial<MedicineItem>) => void;
 }
 
 export const EditMedicineModal: React.FC<EditMedicineModalProps> = ({
@@ -14,6 +15,7 @@ export const EditMedicineModal: React.FC<EditMedicineModalProps> = ({
   medicine,
   onClose,
   onSaveEdit,
+  onSave,
 }) => {
   const [dosage, setDosage] = useState(medicine?.dosage || '500');
   const [instructions, setInstructions] = useState(medicine?.instructions || '');
@@ -30,11 +32,13 @@ export const EditMedicineModal: React.FC<EditMedicineModalProps> = ({
   if (!isOpen || !medicine) return null;
 
   const handleSave = () => {
-    onSaveEdit(medicine.id, {
+    const updates = {
       dosage,
       instructions,
       frequency
-    });
+    };
+    if (onSave) onSave(medicine.id, updates);
+    if (onSaveEdit) onSaveEdit(medicine.id, updates);
     onClose();
   };
 

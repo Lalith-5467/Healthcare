@@ -38,9 +38,14 @@ export interface NotificationSettingsState {
   channelEmail: boolean;
   channelSMS: boolean;
   channelPush: boolean;
+  emailNotifications?: boolean;
+  smsAlerts?: boolean;
+  pushNotifications?: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;
+  quietStart?: string;
+  quietEnd?: string;
 }
 
 export interface PrivacySettingsState {
@@ -50,19 +55,24 @@ export interface PrivacySettingsState {
   activityTracking: boolean;
   locationAccess: boolean;
   personalizedExperience: boolean;
+  shareDoctor?: boolean;
+  shareFamily?: boolean;
+  allowResearchData?: boolean;
+  allowAnalytics?: boolean;
 }
 
 export interface AppearanceSettingsState {
   theme: 'Dark' | 'Light' | 'System';
-  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Green' | 'Rose';
+  accentColor: 'Violet' | 'Blue' | 'Cyan' | 'Green' | 'Rose' | 'Teal';
   fontSize: 'Small' | 'Medium' | 'Large' | 'Extra Large';
   reducedMotion: boolean;
 }
 
 export interface HealthPreferencesSettingsState {
   healthcareType: 'General Care' | 'Specialist Care' | 'Preventive Care';
-  language: 'English' | 'Tamil' | 'Hindi';
+  language: 'English' | 'Tamil' | 'Hindi' | 'Spanish' | 'Telugu';
   units: 'Metric' | 'Imperial';
+  measurementSystem?: 'Metric' | 'Imperial';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   timeFormat: '12 Hour' | '24 Hour';
   remindersMedication: boolean;
@@ -70,6 +80,9 @@ export interface HealthPreferencesSettingsState {
   remindersCheckUp: boolean;
   remindersInsurance: boolean;
   remindersHydration: boolean;
+  waterReminder?: boolean;
+  vitalsReminder?: boolean;
+  vaccinationSync?: boolean;
 }
 
 export interface ConnectedServiceItem {
@@ -82,14 +95,15 @@ export interface ConnectedServiceItem {
 }
 
 export const INITIAL_USER_PROFILE: UserProfileSettings = {
-  fullName: 'Arun Kumar',
-  email: 'arun.kumar@health.in',
+  fullName: 'Devi',
+  email: 'devi@health.in',
   phone: '+91 98401 23456',
-  dob: '1990-08-15',
-  gender: 'Male',
+  dob: '1992-08-15',
+  gender: 'Female',
   location: 'Chennai, Tamil Nadu',
   bloodGroup: 'O+',
-  emergencyContact: 'Priya Kumar (Mother)'
+  emergencyContact: 'Mother',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80'
 };
 
 export const INITIAL_ACCOUNT_SETTINGS: AccountSettings = {
@@ -128,8 +142,8 @@ export const INITIAL_NOTIFICATION_SETTINGS: NotificationSettingsState = {
   channelSMS: false,
   channelPush: true,
   quietHoursEnabled: true,
-  quietHoursStart: '22:00',
-  quietHoursEnd: '07:00'
+  quietHoursStart: '10:00 PM',
+  quietHoursEnd: '07:00 AM'
 };
 
 export const INITIAL_PRIVACY_SETTINGS: PrivacySettingsState = {

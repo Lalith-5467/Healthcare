@@ -19,7 +19,8 @@ const ThemeProviderContext = createContext<ThemeProviderContextType>({
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem('medicare-theme');
-    return saved === 'dark' ? 'dark' : 'light';
+    if (saved === 'dark' || saved === 'light') return saved;
+    return 'light';
   });
 
   const [isDark, setIsDark] = useState<boolean>(false);

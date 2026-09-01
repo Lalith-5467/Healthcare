@@ -24,6 +24,7 @@ import {
   RecentActivityTimeline,
   DashboardSkeleton
 } from '../components/dashboard';
+import { RecentPrescriptionTrackCard } from '../components/dashboard/RecentPrescriptionTrackCard';
 
 import { ProfileView } from '../components/profile';
 import { RecordsView } from '../components/records';
@@ -42,6 +43,12 @@ import { EmergencyView } from '../components/emergency/EmergencyView';
 import { SettingsView } from '../components/settings/SettingsView';
 import { AIAssistantView } from '../components/ai-assistant/AIAssistantView';
 import { MoreFeaturesView } from '../components/more-features/MoreFeaturesView';
+import { LabTestView } from '../components/more-features/views/LabTestView';
+import { DietPlanView } from '../components/more-features/views/DietPlanView';
+import { ReportInsightsView } from '../components/more-features/views/ReportInsightsView';
+import { NurseBookingView } from '../components/more-features/views/NurseBookingView';
+import { JanitorBookingView } from '../components/more-features/views/JanitorBookingView';
+import { SecurityPrivacyView } from '../components/more-features/views/SecurityPrivacyView';
 
 interface UserProfile {
   name: string;
@@ -123,7 +130,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       'profile': '/user/profile',
       'records': '/user/records',
       'scan': '/user/scan',
-      'dashboard': '/user/dashboard'
+      'dashboard': '/user/dashboard',
+      'lab-test': '/user/lab-tests',
+      'diet-plan': '/user/diet-plans',
+      'report-insights': '/user/insights',
+      'nurse-booking': '/user/nurse-booking',
+      'janitor-booking': '/user/janitor-booking',
+      'security-privacy': '/user/security'
     };
 
     const targetUrl = urlMap[targetId] || `/user/${targetId}`;
@@ -158,6 +171,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       showToast('Switched to Health Check-Up');
     } else if (targetId === 'dashboard') {
       showToast('Switched to Dashboard Overview');
+    } else if (targetId === 'lab-test') {
+      showToast('Switched to Lab Test & Diagnostics');
+    } else if (targetId === 'diet-plan') {
+      showToast('Switched to Diet & Nutrient Plans');
+    } else if (targetId === 'report-insights') {
+      showToast('Switched to Report Insights & AI');
+    } else if (targetId === 'nurse-booking') {
+      showToast('Switched to In-Home Nurse Booking');
+    } else if (targetId === 'janitor-booking') {
+      showToast('Switched to Janitor Booking');
+    } else if (targetId === 'security-privacy') {
+      showToast('Switched to Security & Privacy');
     } else {
       showToast(`Selected ${targetId} module`);
     }
@@ -187,7 +212,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       />
 
       {/* MAIN DASHBOARD WORKSPACE */}
-      <div className="flex-1 min-w-0 overflow-x-hidden pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+      <div className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         
         {/* TOAST FEEDBACK NOTIFICATION */}
         <AnimatePresence>
@@ -311,6 +337,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             user={user}
             onNavigate={handleSelectNav}
           />
+        ) : activeNavId === 'lab-test' ? (
+          <LabTestView />
+        ) : activeNavId === 'diet-plan' ? (
+          <DietPlanView />
+        ) : activeNavId === 'report-insights' ? (
+          <ReportInsightsView />
+        ) : activeNavId === 'nurse-booking' ? (
+          <NurseBookingView />
+        ) : activeNavId === 'janitor-booking' ? (
+          <JanitorBookingView />
+        ) : activeNavId === 'security-privacy' ? (
+          <SecurityPrivacyView />
         ) : (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -327,6 +365,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
             {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}
             <DashboardStatsGrid onNavigate={handleSelectNav} />
+
+            {/* 2.5 LIVE VERIFIED PRESCRIPTION & PHARMACY TRACKING CARD */}
+            <RecentPrescriptionTrackCard
+              onNavigate={handleSelectNav}
+              onToast={showToast}
+            />
 
             {/* 3. HEALTH OVERVIEW HERO GRID (HEALTH SCORE + HEALTH ACCESS) */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -397,6 +441,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </motion.div>
         )}
 
+        </div>
       </div>
 
       {/* PREMIUM MODAL */}

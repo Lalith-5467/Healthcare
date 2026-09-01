@@ -42,7 +42,7 @@ export const AccessibilitySection: React.FC<AccessibilitySectionProps> = ({
                 onShowToast(next ? `✓ ${item.label} enabled` : `✓ ${item.label} disabled`);
               }}
               className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                item.active ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
+                item.active ? 'bg-[#00a896]' : 'bg-slate-300 dark:bg-slate-800 border border-slate-400 dark:border-slate-700'
               }`}
             >
               <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${

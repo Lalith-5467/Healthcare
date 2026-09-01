@@ -72,7 +72,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#00a896] opacity-90 hover:opacity-100 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
           >
             <Edit className="w-4 h-4" />
             <span>Edit Profile</span>
@@ -90,7 +90,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
       {/* AVATAR & BASIC METADATA */}
       <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-purple-500/15 border-2 border-purple-500/40 flex items-center justify-center text-purple-700 dark:text-purple-300 font-extrabold text-2xl overflow-hidden shadow-lg">
+          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#00a896] font-extrabold text-2xl overflow-hidden shadow-lg">
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -98,7 +98,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
             )}
           </div>
 
-          <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-md transition-transform hover:scale-110">
+          <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#00a896] opacity-90 hover:opacity-100 text-white cursor-pointer shadow-md transition-transform hover:scale-110">
             <Camera className="w-3.5 h-3.5" />
             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
           </label>
@@ -107,7 +107,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
         <div className="text-center sm:text-left space-y-1">
           <h4 className="text-base font-extrabold text-slate-900 dark:text-white">{fullName}</h4>
           <p className="text-slate-600 dark:text-slate-400 font-mono text-xs">{email} • {phone}</p>
-          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-mono">
+          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-[#00a896] border border-slate-200 dark:border-slate-700 font-mono">
             Blood Group {bloodGroup}
           </span>
         </div>
@@ -123,7 +123,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={fullName}
               onChange={(e) => { setFullName(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] font-sans"
             />
           </div>
 
@@ -134,7 +134,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={email}
               onChange={(e) => { setEmail(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] font-sans"
             />
           </div>
 
@@ -145,7 +145,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={phone}
               onChange={(e) => { setPhone(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] font-sans"
             />
           </div>
 
@@ -156,7 +156,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={dob}
               onChange={(e) => { setDob(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896]"
             />
           </div>
 
@@ -166,7 +166,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={gender}
               onChange={(e) => { setGender(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] font-sans"
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -181,7 +181,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={location}
               onChange={(e) => { setLocation(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-purple-500 font-sans"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] font-sans"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-75"
+              className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] opacity-90 hover:opacity-100 transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-75"
             >
               {saving ? (
                 <>

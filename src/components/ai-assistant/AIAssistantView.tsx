@@ -232,6 +232,16 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
           subtitle="Your smart healthcare companion for everyday health guidance and appointment prep."
           badgeText="Demo Assistant Mode"
           badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
+          rightElement={
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onNavigate('more-features')}
+                className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <span>Back to Features</span>
+              </button>
+            </div>
+          }
         />
 
         {/* DISCLAIMER BANNER */}
