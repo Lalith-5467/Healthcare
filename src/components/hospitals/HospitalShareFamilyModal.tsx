@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Share2, Check } from 'lucide-react';
+import { X, Share2, Check, MessageCircle, Mail, Send } from 'lucide-react';
 import type { HospitalItem } from './hospitalsData';
 
 interface HospitalShareFamilyModalProps {
@@ -61,6 +61,37 @@ export const HospitalShareFamilyModal: React.FC<HospitalShareFamilyModalProps> =
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold block">Share Link:</span>
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-xl overflow-hidden">
                   <span className="text-slate-600 dark:text-slate-300 truncate flex-1 font-mono text-[11px]">{shareUrl}</span>
+                </div>
+             </div>
+             
+             <div className="space-y-2 pt-2">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold block">Share via Apps:</span>
+                <div className="flex items-center gap-3">
+                  <a 
+                    href={`https://wa.me/?text=${encodeURIComponent(`Check out ${hospital.name}: ${shareUrl}`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex-1 flex flex-col items-center justify-center gap-1.5 p-2 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/20 border border-green-200 dark:border-green-500/20 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-[10px] font-bold">WhatsApp</span>
+                  </a>
+                  <a 
+                    href={`mailto:?subject=${encodeURIComponent(`Hospital Recommendation: ${hospital.name}`)}&body=${encodeURIComponent(`I wanted to share this hospital with you:\n\n${hospital.name}\n${shareUrl}`)}`} 
+                    className="flex-1 flex flex-col items-center justify-center gap-1.5 p-2 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/20 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <Mail className="w-5 h-5" />
+                    <span className="text-[10px] font-bold">Email</span>
+                  </a>
+                  <a 
+                    href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out ${hospital.name}`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex-1 flex flex-col items-center justify-center gap-1.5 p-2 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 border border-sky-200 dark:border-sky-500/20 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <Send className="w-5 h-5" />
+                    <span className="text-[10px] font-bold">Telegram</span>
+                  </a>
                 </div>
              </div>
           </div>
