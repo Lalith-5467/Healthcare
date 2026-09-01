@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Menu } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
@@ -96,6 +96,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
 
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+
   // Simulated short initial dashboard loading
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 400);
@@ -111,6 +113,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     const targetId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
     setActiveNavId(targetId);
     localStorage.setItem('app_active_nav_id', targetId);
+
+    // Scroll only the main dashboard container to top smoothly without touching window
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
 
     const urlMap: Record<string, string> = {
       'family': '/user/family-connect',
@@ -189,7 +196,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
+    <div className="h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
       
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0">
@@ -211,8 +218,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         onLogout={onLogout} 
       />
 
-      {/* MAIN DASHBOARD WORKSPACE */}
-      <div className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+      {/* MAIN DASHBOARD WORKSPACE (ISOLATED FULL-APP SCROLL CONTAINER) */}
+      <div 
+        ref={mainScrollRef}
+        className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800"
+      >
         <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         
         {/* TOAST FEEDBACK NOTIFICATION */}
@@ -247,7 +257,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </span>
         </div>
 
-        {/* SKELETON LOADING OR MAIN CONTENT */}
+        {/* STICKY TOP APP HEADER BAR */}
+        <div className="sticky top-0 z-40 bg-slate-50/90 dark:bg-[#0b1120]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-6 transition-colors shadow-xs">
+          <DashboardHeader
+            userName={user.name.split(' ')[0]}
+            onOpenNotifications={() => handleSelectNav('notifications')}
+            onOpenProfile={() => handleSelectNav('profile')}
+          />
+        </div>
         {loading ? (
           <DashboardSkeleton />
         ) : activeNavId === 'profile' ? (
@@ -356,14 +373,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             transition={{ duration: 0.3 }}
             className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden"
           >
-            {/* 1. TOP HEADER */}
-            <DashboardHeader
-              userName={user.name}
-              onOpenNotifications={() => handleSelectNav('notifications')}
-              onOpenProfile={() => handleSelectNav('profile')}
-            />
-
-            {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}
+            {/* 2. PRIMARY HEALTH SCORE & ABDM ACCESS HERO CARDS */}
             <DashboardStatsGrid onNavigate={handleSelectNav} />
 
             {/* 2.5 LIVE VERIFIED PRESCRIPTION & PHARMACY TRACKING CARD */}

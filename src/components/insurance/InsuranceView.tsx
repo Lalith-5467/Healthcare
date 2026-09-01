@@ -46,6 +46,8 @@ import { InsuranceDocumentsSection } from './InsuranceDocumentsSection';
 import { InsuranceSupportModal } from './InsuranceSupportModal';
 import { InsuranceFAQSection } from './InsuranceFAQSection';
 import { InsuranceFilterDrawer } from './InsuranceFilterDrawer';
+import { LiveClaimTimelineTracker } from './LiveClaimTimelineTracker';
+import { useInsuranceWorkflow } from '../../utils/insuranceWorkflowStorage';
 
 interface UserProfile {
   name: string;
@@ -95,14 +97,22 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [payModalOpen, setPayModalOpen] = useState(false);
 
-  // Load from localStorage on mount
+  const { records, submitPatientClaim } = useInsuranceWorkflow();
+
+  // Load from localStorage & sync with insurance workflow
   useEffect(() => {
     try {
       const savedPolicies = localStorage.getItem('user_insurance_policies');
       if (savedPolicies && savedPolicies !== 'undefined') {
         const parsed = JSON.parse(savedPolicies);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setPolicies(parsed);
+          // Clean out invalid duplicates and align holder name
+          const valid = parsed
+            .filter((p: any) => p.planName && p.providerName)
+            .map((p: any) => ({ ...p, policyHolder: p.policyHolder || 'Ragul Kumar' }));
+          if (valid.length > 0) {
+            setPolicies(valid);
+          }
         }
       }
     } catch (e) {
@@ -121,6 +131,58 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       console.error(e);
     }
   }, []);
+
+  // Sync claims when insurance incharge reviews or settles claims
+  useEffect(() => {
+    const primaryRecord = records.find(r => r.insuranceId === 'INS-MC-2026-10245' || r.patientName === 'Ragul Kumar');
+    if (primaryRecord) {
+      const syncedClaims: InsuranceClaim[] = [];
+      
+      if (primaryRecord.currentClaim) {
+        syncedClaims.push({
+          id: primaryRecord.currentClaim.claimId,
+          claimNumber: primaryRecord.currentClaim.claimId,
+          hospitalName: primaryRecord.currentClaim.hospital,
+          treatmentType: (primaryRecord.currentClaim.treatment as any) || 'Hospitalization',
+          submittedDate: primaryRecord.currentClaim.admissionDate,
+          claimedAmount: primaryRecord.currentClaim.submittedAmount,
+          approvedAmount: primaryRecord.currentClaim.approvedAmount,
+          status: primaryRecord.currentClaim.status === 'Under Review' ? 'Under Review' : primaryRecord.currentClaim.status === 'Approved' ? 'Approved' : primaryRecord.currentClaim.status === 'Rejected' ? 'Rejected' : 'Pending',
+          documentsAttached: primaryRecord.currentClaim.documents.map(d => d.name),
+          timeline: primaryRecord.currentClaim.timeline.map(t => ({
+            stage: t.action,
+            date: `${t.date} ${t.time}`,
+            completed: t.status === 'Completed',
+            active: t.status === 'Current'
+          }))
+        });
+      }
+
+      primaryRecord.claims.forEach(c => {
+        syncedClaims.push({
+          id: c.claimId,
+          claimNumber: c.claimId,
+          hospitalName: c.hospital,
+          treatmentType: (c.treatment as any) || 'Hospitalization',
+          submittedDate: c.admissionDate,
+          claimedAmount: c.submittedAmount,
+          approvedAmount: c.approvedAmount,
+          status: c.status === 'Settled' || c.status === 'Approved' ? 'Approved' : c.status === 'Rejected' ? 'Rejected' : 'Under Review',
+          documentsAttached: c.documents.map(d => d.name),
+          timeline: c.timeline.map(t => ({
+            stage: t.action,
+            date: `${t.date} ${t.time}`,
+            completed: t.status === 'Completed',
+            active: t.status === 'Current'
+          }))
+        });
+      });
+
+      if (syncedClaims.length > 0) {
+        setClaims(syncedClaims);
+      }
+    }
+  }, [records]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -145,10 +207,21 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   };
 
   const handleAddClaim = (newClaim: InsuranceClaim) => {
+    // 1. Submit to shared insurance workflow so insurance incharge sees it immediately
+    submitPatientClaim({
+      insuranceId: 'INS-MC-2026-10245',
+      patientName: 'Ragul Kumar',
+      hospital: newClaim.hospitalName,
+      treatment: newClaim.treatmentType,
+      submittedAmount: newClaim.claimedAmount,
+      attachedFiles: newClaim.documentsAttached
+    });
+
+    // 2. Update local state
     const updated = [newClaim, ...claims];
     setClaims(updated);
     localStorage.setItem('user_insurance_claims', JSON.stringify(updated));
-    showToast(`✓ Demo claim ${newClaim.claimNumber} submitted successfully`);
+    showToast(`✓ Claim ${newClaim.claimNumber} submitted to Insurance Desk (ID: INS-MC-2026-10245)`);
   };
 
   const handleAddFamilyMember = (newMem: FamilyMemberCoverage) => {
@@ -338,6 +411,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {/* TAB 1: OVERVIEW & POLICIES */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* LIVE CLAIM REAL-TIME TIMELINE TRACKER */}
+          <LiveClaimTimelineTracker onOpenNewClaim={() => setNewClaimOpen(true)} />
+
           {/* Primary Hero Card */}
           {primaryPolicy && (
             <PrimaryPolicyHeroCard
@@ -393,8 +469,8 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
                     <span className="text-slate-500 dark:text-slate-400 font-medium">
                       Coverage: <strong className="text-slate-900 dark:text-white">₹{pol.coverageAmount.toLocaleString()}</strong>
                     </span>
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">
-                      Expires: <strong className="text-[#00a896] dark:text-teal-300">{pol.expiryDate}</strong>
+                    <span className="font-extrabold text-slate-900 dark:text-white">
+                      ₹{pol.premiumAmount}{pol.premiumFrequency}
                     </span>
                   </div>
                 </div>
@@ -416,6 +492,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {/* TAB 2: CLAIMS & REIMBURSEMENTS */}
       {activeTab === 'claims' && (
         <div className="space-y-6">
+          {/* LIVE CLAIM REAL-TIME TIMELINE TRACKER */}
+          <LiveClaimTimelineTracker onOpenNewClaim={() => setNewClaimOpen(true)} />
+
           <ClaimsOverviewSection
             claims={claims}
             onOpenNewClaim={() => setNewClaimOpen(true)}

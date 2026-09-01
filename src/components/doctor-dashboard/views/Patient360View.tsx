@@ -12,17 +12,16 @@ interface Patient360ViewProps {
 
 export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNavigate }) => {
   const { records } = useDoctorWorkflow();
-  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'labs' | 'timeline'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'timeline'>('summary');
   
   // AI Simulation State
   const [isProcessing, setIsProcessing] = useState(true);
   const [processingStep, setProcessingStep] = useState(0);
 
-  const patient = records.find(p => p.id === patientId);
+  const patient = records.find(p => p.id === patientId) || records[0];
 
   useEffect(() => {
     if (patient) {
-      // Simulate AI Processing Steps
       const steps = [
         "Reading medical reports...",
         "Extracting medications...",
@@ -38,9 +37,9 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
         setProcessingStep(currentStep);
         if (currentStep >= steps.length) {
           clearInterval(interval);
-          setTimeout(() => setIsProcessing(false), 500);
+          setTimeout(() => setIsProcessing(false), 400);
         }
-      }, 600);
+      }, 300);
       
       return () => clearInterval(interval);
     }
@@ -106,46 +105,90 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
   }
 
   return (
-    <div className="space-y-6 pb-16">
-      {/* 1. Patient Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl font-black text-slate-400 border-2 border-slate-200 dark:border-slate-700">
+    <div className="space-y-6 pb-16 select-none font-sans max-w-7xl mx-auto">
+      {/* 1. Enhanced Clinical Patient Header */}
+      <div className="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-700/60 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-slate-950 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-lg shadow-teal-500/30 border border-white/20 shrink-0">
             {patient.name.charAt(0)}
           </div>
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">{patient.name}</h1>
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold text-slate-500">{patient.age} • {patient.gender} • {patient.bloodGroup}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-              <span className="text-sm font-bold text-slate-500">ID: {patient.patientId}</span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-cyan-300 text-[10px] font-black uppercase tracking-wider border border-teal-400/30 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                ABHA Verified Chart 360
+              </span>
+              <span className="text-[11px] font-mono text-slate-300 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
+                ID: {patient.patientId}
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {patient.name}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-300">
+              <span>{patient.age} yrs</span>
+              <span>•</span>
+              <span>{patient.gender}</span>
+              <span>•</span>
+              <span className="text-rose-400 font-mono">Blood: {patient.bloodGroup}</span>
+              <span>•</span>
+              <span className="text-cyan-300 font-mono">ABHA: 91-8842-5921-1029</span>
             </div>
           </div>
         </div>
         
-        <button 
-          onClick={() => onNavigate('consultations')}
-          className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-black rounded-xl transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2"
-        >
-          <Stethoscope className="w-5 h-5" /> Start Consultation
-        </button>
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
+          <button 
+            onClick={() => onNavigate('consultations')}
+            className="flex-1 md:flex-initial px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-lg shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer hover:scale-102"
+          >
+            <Stethoscope className="w-4 h-4" /> 
+            <span>Start Active Consultation</span>
+          </button>
+        </div>
       </div>
 
-      {/* 2. Navigation Tabs */}
-      <div className="flex overflow-x-auto hide-scrollbar gap-2 p-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl w-fit">
+      {/* 2. Patient Live Vitals Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { id: 'summary', label: 'AI Summary', icon: Brain },
-          { id: 'medications', label: 'Medications', icon: Pill },
-          { id: 'vitals', label: 'Vitals & Labs', icon: Activity },
-          { id: 'timeline', label: 'Patient Timeline', icon: History },
+          { label: 'Blood Pressure', value: '124 / 82 mmHg', status: 'Optimal', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Heart Rate', value: '74 BPM', status: 'Normal Sinus', icon: HeartPulse, color: 'text-teal-500', bg: 'bg-teal-500/10' },
+          { label: 'Oxygen Saturation', value: '99% SpO2', status: 'Room Air', icon: HeartPulse, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+          { label: 'Vitamin D3 Level', value: '18.4 ng/mL', status: 'Deficient (Flagged)', icon: TestTube, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+        ].map((v, i) => (
+          <div key={i} className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{v.label}</p>
+              <p className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">{v.value}</p>
+              <p className={`text-[10px] font-bold mt-0.5 ${v.color}`}>{v.status}</p>
+            </div>
+            <div className={`w-9 h-9 rounded-xl ${v.bg} ${v.color} flex items-center justify-center shrink-0`}>
+              <v.icon className="w-4 h-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 3. Navigation Tabs */}
+      <div className="flex overflow-x-auto hide-scrollbar gap-2 p-1.5 bg-slate-200/60 dark:bg-slate-800/60 rounded-2xl w-full sm:w-fit border border-slate-300/40 dark:border-slate-700/40">
+        {[
+          { id: 'summary', label: 'AI Clinical Summary', icon: Brain },
+          { id: 'medications', label: 'Active Medications', icon: Pill },
+          { id: 'vitals', label: 'Telemetry & Lab Reports', icon: Activity },
+          { id: 'timeline', label: 'EHR Longitudinal Timeline', icon: History },
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 py-2.5 text-xs font-black rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === tab.id 
-                ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-cyan-300 shadow-sm border border-slate-200/80 dark:border-slate-700' 
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -154,7 +197,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
         ))}
       </div>
 
-      {/* 3. Tab Content */}
+      {/* 4. Tab Content */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -179,119 +222,157 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
 
 const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      {/* LEFT 8 COLUMNS: AI SUMMARY & CLINICAL KEYWORDS */}
+      <div className="lg:col-span-8 space-y-6">
+        
         {/* AI Summary Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/5 dark:bg-teal-500/10 blur-3xl rounded-full pointer-events-none"></div>
-          
-          <div className="flex items-center gap-3 mb-6 relative z-10">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800/50">
-              <Brain className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+        <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 flex items-center justify-center border border-teal-500/20 text-teal-600 dark:text-cyan-300">
+                <Brain className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">AI Clinical Synthesis & Differential Diagnostic Copilot</h2>
+                <p className="text-[10px] uppercase font-mono font-bold text-teal-600 dark:text-cyan-400">ABDM FHIR R4 Connected • Decision Support</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">AI Clinical Summary</h2>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Decision Support Only</p>
-            </div>
+
+            <button className="text-xs font-bold text-teal-600 dark:text-cyan-400 bg-teal-500/10 hover:bg-teal-500/20 px-3.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 border border-teal-500/20 self-start sm:self-center cursor-pointer">
+              <FileText className="w-3.5 h-3.5" /> 
+              <span>View Source Records</span>
+            </button>
           </div>
 
-          <div className="space-y-4 relative z-10">
-            <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-              Patient has a recent history of respiratory infection. 
-              Latest available CBC appears within reference range. 
-              <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-1 rounded mx-1">Vitamin D is below the displayed reference range.</span>
-              One medication shows missed doses. Patient is currently prescribed antibiotics and supportive medication.
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/70 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed space-y-2">
+            <p>
+              Patient has a recent history of <strong className="text-slate-900 dark:text-white">acute respiratory tract infection</strong> with mild exertional dyspnea. 
+              Latest available CBC test indicates normal leukocyte count (7,400/µL).
             </p>
-            
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <p className="text-xs font-bold text-slate-400 italic">
-                AI-generated summary — verify against original medical records before making clinical decisions.
-              </p>
-              <button className="text-xs font-black text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                <FileText className="w-3 h-3" /> View Sources
-              </button>
-            </div>
+            <p>
+              <span className="bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded-md inline-block">
+                ⚠️ Biochemical Flag: Serum 25-OH Vitamin D3 is 18.4 ng/mL (Deficient range &lt; 20 ng/mL).
+              </span>
+            </p>
+            <p>
+              One prescription record shows <strong className="text-rose-600 dark:text-rose-400">1 missed evening dose</strong> of Azithromycin 500mg. Currently prescribed supportive mucolytics and oral hydration therapy.
+            </p>
           </div>
+
+          <p className="text-[11px] font-mono text-slate-400 italic">
+            * AI-generated clinical briefing for registered medical practitioners. Correlate with physical bedside examination before formulating final diagnostic order.
+          </p>
         </div>
 
         {/* Clinical Keywords Visualizer */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-6">Clinical Keywords</h2>
-          <div className="flex flex-wrap gap-4">
+        <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <Activity className="w-4 h-4 text-teal-600" />
+              EHR Extracted Diagnostic Tokens
+            </h2>
+            <span className="text-[10px] font-mono text-slate-400">NLP Indexed</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2.5">
             {[
-              { text: "Respiratory Infection", weight: 'large', color: 'bg-rose-50 text-rose-600 border-rose-200' },
-              { text: "Antibiotic", weight: 'medium', color: 'bg-teal-50 text-teal-600 border-teal-200' },
-              { text: "Vitamin D", weight: 'medium', color: 'bg-amber-50 text-amber-600 border-amber-200' },
-              { text: "CBC", weight: 'small', color: 'bg-blue-50 text-blue-600 border-blue-200' },
-              { text: "Fever", weight: 'small', color: 'bg-slate-100 text-slate-600 border-slate-200' },
-              { text: "Cough", weight: 'small', color: 'bg-slate-100 text-slate-600 border-slate-200' }
+              { text: "Respiratory Infection", color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
+              { text: "Antibiotic Therapy", color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
+              { text: "Vitamin D Deficiency", color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
+              { text: "Normal CBC Matrix", color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
+              { text: "Afebrile (98.4°F)", color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+              { text: "Mild Productive Cough", color: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20' }
             ].map((kw, i) => (
               <div 
                 key={i} 
-                className={`rounded-2xl border flex flex-col items-center justify-center p-4 ${kw.color} ${
-                  kw.weight === 'large' ? 'text-lg px-6 py-5' : 
-                  kw.weight === 'medium' ? 'text-base' : 
-                  'text-sm'
-                } font-black`}
+                className={`rounded-xl border px-3.5 py-2 text-xs font-black flex items-center gap-2 ${kw.color}`}
               >
-                {kw.text}
-                <div className="flex gap-1 mt-2">
-                  {Array(kw.weight === 'large' ? 3 : kw.weight === 'medium' ? 2 : 1).fill(0).map((_, idx) => (
-                    <div key={idx} className="w-1.5 h-1.5 rounded-full bg-current opacity-50"></div>
-                  ))}
-                </div>
+                <span>{kw.text}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
+      {/* RIGHT 4 COLUMNS: CLINICAL INSIGHTS & NURSE LOGS */}
+      <div className="lg:col-span-4 space-y-6">
+        
         {/* Health Insights */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-4">AI Insights</h2>
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0"></div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Vitamin D is below reference range</p>
-                <button className="text-[10px] uppercase font-black text-teal-600 mt-1">View Report</button>
+        <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Priority Clinical Flags
+            </h2>
+            <span className="text-[10px] font-mono font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
+              2 Action Items
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <p className="text-xs font-black text-slate-900 dark:text-white">Vitamin D3 Below Reference</p>
               </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">Current: 18.4 ng/mL (Ref: 30-100 ng/mL)</p>
+              <button className="text-[10px] uppercase font-black text-teal-600 dark:text-cyan-400 hover:underline pt-1 block cursor-pointer">
+                Order 60K Cholecalciferol →
+              </button>
             </div>
-            <div className="flex gap-3">
-              <div className="w-2 h-2 rounded-full bg-rose-500 mt-2 shrink-0"></div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">1 medication shows missed doses</p>
-                <button className="text-[10px] uppercase font-black text-teal-600 mt-1">View Adherence</button>
+
+            <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                <p className="text-xs font-black text-slate-900 dark:text-white">1 Medication Missed Dose</p>
               </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">Azithromycin 500mg missed on 31 Aug evening</p>
+              <button className="text-[10px] uppercase font-black text-rose-600 dark:text-rose-400 hover:underline pt-1 block cursor-pointer">
+                View Adherence Log →
+              </button>
             </div>
-            <div className="flex gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0"></div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Recent CBC values normal</p>
-                <button className="text-[10px] uppercase font-black text-teal-600 mt-1">View Report</button>
+
+            <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <p className="text-xs font-black text-slate-900 dark:text-white">CBC & Hematology Normal</p>
               </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">Hb: 14.2 g/dL • TLC: 7,400 • Platelets: 2.4L</p>
             </div>
           </div>
         </div>
         
         {/* Nurse Updates */}
-        <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-slate-900 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-800/30 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <HeartPulse className="w-4 h-4 text-indigo-500" />
-            <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Nurse Updates</h2>
-          </div>
-          <div className="space-y-3">
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-              <p className="text-xs font-bold text-slate-900 dark:text-white">Vitals recorded</p>
-              <p className="text-[10px] text-slate-500 mt-1">Nurse Sarah • Today, 10:30 AM</p>
+        <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 text-white rounded-3xl p-6 border border-indigo-500/30 shadow-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="w-4 h-4 text-cyan-300" />
+              <h2 className="text-xs font-black text-white uppercase tracking-wider">Ward & Nurse Logs</h2>
             </div>
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-              <p className="text-xs font-bold text-slate-900 dark:text-white">Medication administered</p>
-              <p className="text-[10px] text-slate-500 mt-1">Nurse Sarah • Today, 10:35 AM</p>
+            <span className="text-[9px] font-mono font-bold px-2 py-0.5 bg-white/10 rounded-md">Live Stream</span>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="bg-white/5 border border-white/10 p-3 rounded-2xl space-y-0.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-white">Vitals & SpO2 Checked</p>
+                <span className="text-[9px] font-mono text-slate-400">10:30 AM</span>
+              </div>
+              <p className="text-[10px] text-cyan-300">Nurse Sarah • OPD Station 4</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3 rounded-2xl space-y-0.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-white">Oral Hydration Administered</p>
+                <span className="text-[9px] font-mono text-slate-400">10:35 AM</span>
+              </div>
+              <p className="text-[10px] text-cyan-300">Nurse Sarah • OPD Station 4</p>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

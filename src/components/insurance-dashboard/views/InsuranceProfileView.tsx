@@ -15,7 +15,7 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
   const { records, updateCurrentClaimStatus, updateDocumentStatus } = useInsuranceWorkflow();
   const [activeTab, setActiveTab] = useState<'policy' | 'current' | 'past' | 'documents' | 'timeline' | 'coverage'>('current');
   
-  const record = records.find(r => r.insuranceId === insuranceId);
+  const record = records.find(r => r.insuranceId === insuranceId || r.patientName.toLowerCase() === (insuranceId || '').toLowerCase()) || records[0];
 
   if (!record) {
     return (
@@ -133,19 +133,28 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
     { label: 'Settlement', done: claim.status === 'Settled' }
   ];
 
+  const [showDecline, setShowDecline] = useState(false);
+  const [declineReason, setDeclineReason] = useState('Missing itemized pharmacy breakdown & doctor prescription note');
+
   const handleApprove = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseFloat(approveAmount);
     if (amt === claim.submittedAmount) {
-      updateCurrentClaimStatus(record.insuranceId, 'Approved', amt, 'Claim Approved Full Amount');
+      updateCurrentClaimStatus(record.insuranceId, 'Approved', amt, 'Claim ACCEPTED & Cashless Pre-Auth Approved for Full Amount');
     } else {
-      updateCurrentClaimStatus(record.insuranceId, 'Partially Approved', amt, 'Claim Partially Approved');
+      updateCurrentClaimStatus(record.insuranceId, 'Partially Approved', amt, `Claim ACCEPTED with Partial Approval: ₹${amt.toLocaleString()}`);
     }
     setShowApproval(false);
   };
 
+  const handleDecline = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateCurrentClaimStatus(record.insuranceId, 'Rejected', 0, `Claim DECLINED: ${declineReason}`);
+    setShowDecline(false);
+  };
+
   const handleSettle = () => {
-    updateCurrentClaimStatus(record.insuranceId, 'Settled', claim.approvedAmount, 'Payment Processed & Settled');
+    updateCurrentClaimStatus(record.insuranceId, 'Settled', claim.approvedAmount, 'Payment Processed & Settled directly with Hospital');
   };
 
   return (
@@ -155,19 +164,27 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">{claim.claimId}</h2>
-            <div className="flex flex-wrap gap-2 text-sm font-bold text-slate-500">
-              <span>{claim.hospital}</span>
-              <span>•</span>
-              <span>{claim.treatment}</span>
-              <span>•</span>
-              <span>Submitted: {claim.timeline[0]?.date}</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono font-black text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
+                {claim.claimId}
+              </span>
+              <span className="text-xs font-bold text-slate-500">Patient: {record.patientName}</span>
             </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{claim.hospital}</h2>
+            <p className="text-xs font-bold text-slate-500">
+              {claim.treatment} • Submitted: {claim.timeline[0]?.date} • Patient ID: {record.patientId}
+            </p>
           </div>
           <div className="text-left md:text-right">
             <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Claim Amount</p>
             <p className="text-3xl font-black text-amber-600 dark:text-amber-500">₹{claim.submittedAmount.toLocaleString()}</p>
-            <span className="inline-block mt-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 font-black text-xs uppercase tracking-wider rounded-md">
+            <span className={`inline-block mt-2 px-3 py-1 font-black text-xs uppercase tracking-wider rounded-md ${
+              claim.status === 'Approved' || claim.status === 'Settled'
+                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'
+                : claim.status === 'Rejected'
+                ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300'
+                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'
+            }`}>
               {claim.status}
             </span>
           </div>
@@ -194,17 +211,19 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
         </div>
 
         {/* Decision Actions */}
-        {(claim.status === 'New' || claim.status === 'Under Review') && !showApproval && (
-          <div className="relative z-10 pt-12 flex gap-4">
+        {(claim.status === 'New' || claim.status === 'Under Review') && !showApproval && !showDecline && (
+          <div className="relative z-10 pt-12 flex flex-wrap gap-4">
             <button 
               onClick={() => setShowApproval(true)}
-              disabled={!steps[1].done} // Disable if docs not verified
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black rounded-xl transition-colors"
+              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer text-xs"
             >
-              Make Decision
+              <Check className="w-4 h-4" /> Accept & Approve Claim
             </button>
-            <button className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black rounded-xl transition-colors">
-              Request Information
+            <button 
+              onClick={() => setShowDecline(true)}
+              className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-rose-500/20 cursor-pointer text-xs"
+            >
+              <X className="w-4 h-4" /> Decline / Reject Claim
             </button>
           </div>
         )}
@@ -212,14 +231,14 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
         {(claim.status === 'Approved' || claim.status === 'Partially Approved') && (
           <div className="relative z-10 pt-12 flex flex-col sm:flex-row gap-4 justify-between items-center border-t border-slate-100 dark:border-slate-800 mt-8">
             <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Approved Amount</p>
+              <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Approved Cashless Amount</p>
               <p className="text-2xl font-black text-emerald-600">₹{claim.approvedAmount.toLocaleString()}</p>
             </div>
             <button 
               onClick={handleSettle}
-              className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition-colors flex items-center gap-2"
+              className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition-colors flex items-center gap-2 cursor-pointer text-xs"
             >
-              <CreditCard className="w-5 h-5" /> Process Payment & Settle
+              <CreditCard className="w-5 h-5" /> Process Direct Hospital Settlement
             </button>
           </div>
         )}
@@ -232,8 +251,10 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
             className="relative z-10 pt-8 mt-8 border-t border-slate-100 dark:border-slate-800 space-y-4"
             onSubmit={handleApprove}
           >
-            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase">Approve Claim</h3>
-            <div className="flex gap-4 items-end">
+            <h3 className="text-sm font-black text-emerald-600 uppercase flex items-center gap-2">
+              <Check className="w-4 h-4" /> Accept Claim & Grant Cashless Pre-Auth
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
               <div className="flex-1">
                 <label className="text-xs font-bold text-slate-500 mb-2 block">Approved Amount (₹)</label>
                 <input 
@@ -244,12 +265,49 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
                   required
                 />
               </div>
-              <button type="submit" className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl">
-                Confirm Approval
+              <button type="submit" className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl cursor-pointer text-xs">
+                Confirm Approval & Notify Patient
               </button>
-              <button type="button" onClick={() => setShowApproval(false)} className="px-4 py-3.5 bg-slate-100 text-slate-600 font-black rounded-xl">
+              <button type="button" onClick={() => setShowApproval(false)} className="px-4 py-3.5 bg-slate-100 text-slate-600 font-black rounded-xl cursor-pointer text-xs">
                 Cancel
               </button>
+            </div>
+          </motion.form>
+        )}
+
+        {/* Decline Form */}
+        {showDecline && (
+          <motion.form 
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            className="relative z-10 pt-8 mt-8 border-t border-slate-100 dark:border-slate-800 space-y-4"
+            onSubmit={handleDecline}
+          >
+            <h3 className="text-sm font-black text-rose-600 uppercase flex items-center gap-2">
+              <X className="w-4 h-4" /> Decline Claim Request
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-500 mb-2 block">Reason for Decline / Rejection</label>
+                <select
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 outline-none font-bold text-slate-900 text-xs"
+                >
+                  <option value="Missing itemized hospital pharmacy breakdown & prescription">Missing itemized hospital pharmacy breakdown & prescription</option>
+                  <option value="Policy exclusion: Pre-existing condition waiting period not completed">Policy exclusion: Pre-existing condition waiting period not completed</option>
+                  <option value="Non-network hospital tariff discrepancy (requires manual billing audit)">Non-network hospital tariff discrepancy (requires manual billing audit)</option>
+                  <option value="Discharge summary certificate illegible / missing doctor signature">Discharge summary certificate illegible / missing doctor signature</option>
+                </select>
+              </div>
+              <div className="flex gap-3">
+                <button type="submit" className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl cursor-pointer text-xs">
+                  Confirm Decline & Send Notification
+                </button>
+                <button type="button" onClick={() => setShowDecline(false)} className="px-4 py-3.5 bg-slate-100 text-slate-600 font-black rounded-xl cursor-pointer text-xs">
+                  Cancel
+                </button>
+              </div>
             </div>
           </motion.form>
         )}

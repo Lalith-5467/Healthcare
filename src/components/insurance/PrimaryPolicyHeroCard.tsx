@@ -127,6 +127,30 @@ export const PrimaryPolicyHeroCard: React.FC<PrimaryPolicyHeroCardProps> = ({
         </div>
       </div>
 
+      {/* INSURANCE ID DISPATCH BAR */}
+      <div className="my-3 p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2 relative z-10">
+        <div className="flex items-center gap-2 text-xs">
+          <ShieldCheck className="w-4 h-4 text-[#00a896] shrink-0" />
+          <span className="text-slate-600 dark:text-slate-300 font-bold">
+            Patient Insurance ID: <strong className="font-mono text-slate-900 dark:text-white font-black text-sm">INS-MC-2026-10245</strong>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-teal-700 dark:text-cyan-300 font-semibold">
+            (Enter in Insurance Incharge Dashboard)
+          </span>
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText('INS-MC-2026-10245');
+              alert('Insurance ID (INS-MC-2026-10245) copied to clipboard!');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-black text-[10px] shadow-xs cursor-pointer"
+          >
+            Copy ID
+          </button>
+        </div>
+      </div>
+
       {/* FOOTER ACTIONS */}
       <div className="pt-3 border-t border-teal-500/15 flex flex-wrap items-center justify-between gap-3 relative z-10 font-sans text-xs">
         <button
