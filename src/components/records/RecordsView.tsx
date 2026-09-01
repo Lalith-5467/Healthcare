@@ -232,7 +232,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   }, [records, selectedCategory, searchQuery, filters, sortBy]);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 w-full">
       {/* TOAST FEEDBACK NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -343,7 +343,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
               onRename={handleRename}
             />
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredAndSortedRecords.map((rec) => (
                 <RecordCard
                   key={rec.id}

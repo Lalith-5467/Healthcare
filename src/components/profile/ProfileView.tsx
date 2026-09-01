@@ -136,8 +136,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           />
 
           {/* 2. IDENTITY CARD & HEALTH SCORE GRID */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <section className="flex flex-col xl:flex-row gap-6 items-stretch">
+            <div className="flex-[2] min-w-0">
               <PatientIdentityCard
                 name={profileData.name}
                 age={profileData.age}
@@ -148,8 +148,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               />
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex-1 min-w-0">
               <ProfileHealthScoreCard onNavigate={onNavigate} />
+            </div>
+
+            <div className="flex-1 min-w-0">
               <ProfileCompletionCard
                 onOpenEdit={() => setEditDrawerOpen(true)}
                 onOpenAllergy={() => showToast('Scroll down to Allergies section to add info')}
@@ -157,24 +160,29 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </section>
 
-          {/* 3. PERSONAL INFORMATION */}
-          <PersonalInfoCard
-            name={profileData.name}
-            dob={profileData.dob}
-            age={profileData.age}
-            gender={profileData.gender}
-            phone={profileData.phone}
-            email={profileData.email}
-            location={profileData.location}
-            onOpenEdit={() => setEditDrawerOpen(true)}
-          />
+          {/* 3 & 4. PERSONAL INFO & HEALTH OVERVIEW */}
+          <section className="flex flex-col xl:flex-row gap-6 items-stretch">
+            <div className="flex-1 min-w-0 flex flex-col">
+              <PersonalInfoCard
+                name={profileData.name}
+                dob={profileData.dob}
+                age={profileData.age}
+                gender={profileData.gender}
+                phone={profileData.phone}
+                email={profileData.email}
+                location={profileData.location}
+                onOpenEdit={() => setEditDrawerOpen(true)}
+              />
+            </div>
 
-          {/* 4. HEALTH OVERVIEW & BMI VISUALIZER */}
-          <HealthOverviewGrid
-            bloodGroup={profileData.bloodGroup}
-            height={profileData.height}
-            weight={profileData.weight}
-          />
+            <div className="flex-[1.2] min-w-0 flex flex-col">
+              <HealthOverviewGrid
+                bloodGroup={profileData.bloodGroup}
+                height={profileData.height}
+                weight={profileData.weight}
+              />
+            </div>
+          </section>
           <BMIVisualizerCard bmi={23.8} />
 
           {/* 5. ALLERGIES & CHRONIC CONDITIONS GRID */}

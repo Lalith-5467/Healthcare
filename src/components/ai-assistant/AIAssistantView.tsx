@@ -66,6 +66,8 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     if (savedHist) { try { setChatHistory(JSON.parse(savedHist)); } catch (e) { console.error(e); } }
     const savedN = localStorage.getItem('user_ai_saved_notes');
     if (savedN) { try { setSavedNotes(JSON.parse(savedN)); } catch (e) { console.error(e); } }
+    const savedS = localStorage.getItem('user_ai_settings');
+    if (savedS) { try { setSettings(JSON.parse(savedS)); } catch (e) { console.error(e); } }
   }, []);
 
   const showToast = (msg: string) => {
@@ -88,7 +90,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
 
     setTimeout(() => {
       setIsTyping(false);
-      const generated = generateDemoAIResponse(userText, settings.responseStyle);
+      const generated = generateDemoAIResponse(userText, settings.responseStyle, settings.language);
       const aiMsg: ChatMessage = {
         id: `MSG-${Date.now()}-AI`,
         sender: 'ai',
@@ -199,8 +201,10 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     setMessages([]);
     setChatHistory([]);
     setSavedNotes([]);
+    setSettings(DEFAULT_AI_SETTINGS);
     localStorage.removeItem('user_ai_chat_history');
     localStorage.removeItem('user_ai_saved_notes');
+    localStorage.removeItem('user_ai_settings');
     showToast('✓ Cleared AI Assistant data cache');
   };
 
@@ -330,7 +334,29 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
         onClose={() => setSettingsDrawerOpen(false)}
         onUpdateSettings={(newS) => {
           setSettings(newS);
-          showToast('✓ AI Assistant settings saved');
+          localStorage.setItem('user_ai_settings', JSON.stringify(newS));
+          showToast(`✓ Active Mode: ${newS.responseStyle} (${newS.language})`);
+
+          // Instantly update current AI message in newly selected style
+          if (messages.length > 0) {
+            const lastUserIndex = messages.map(m => m.sender).lastIndexOf('user');
+            if (lastUserIndex !== -1) {
+              const userText = messages[lastUserIndex].content;
+              const regenerated = generateDemoAIResponse(userText, newS.responseStyle, newS.language);
+              const updatedMessages = messages.map((m, idx) => {
+                if (idx === lastUserIndex + 1 && m.sender === 'ai') {
+                  return {
+                    ...m,
+                    content: regenerated.content,
+                    suggestedQuestions: regenerated.questions,
+                    isEmergencyAlert: regenerated.isEmergency
+                  };
+                }
+                return m;
+              });
+              setMessages(updatedMessages);
+            }
+          }
         }}
         onExportChat={handleExportChat}
         onClearAIData={handleClearAIData}

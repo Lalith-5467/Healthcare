@@ -41,6 +41,7 @@ import { InsuranceView } from '../components/insurance/InsuranceView';
 import { EmergencyView } from '../components/emergency/EmergencyView';
 import { SettingsView } from '../components/settings/SettingsView';
 import { AIAssistantView } from '../components/ai-assistant/AIAssistantView';
+import { MoreFeaturesView } from '../components/more-features/MoreFeaturesView';
 
 interface UserProfile {
   name: string;
@@ -100,7 +101,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   const handleSelectNav = (id: string) => {
-    const targetId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder' || id === 'notification' || id === 'notifications') ? 'reminders' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
+    const targetId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
     setActiveNavId(targetId);
     localStorage.setItem('app_active_nav_id', targetId);
 
@@ -163,7 +164,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
       
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0">
@@ -186,7 +187,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       />
 
       {/* MAIN DASHBOARD WORKSPACE */}
-      <div className="flex-1 min-w-0 pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+      <div className="flex-1 min-w-0 overflow-x-hidden pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8 h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
         
         {/* TOAST FEEDBACK NOTIFICATION */}
         <AnimatePresence>
@@ -263,6 +264,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <RemindersView
             user={user}
             onNavigate={handleSelectNav}
+            initialViewMode={activeNavId === 'notifications' ? 'timeline' : 'list'}
           />
         ) : (activeNavId === 'analytics' || activeNavId === 'health-analytics') ? (
           <AnalyticsView
@@ -289,6 +291,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             user={user}
             onNavigate={handleSelectNav}
           />
+        ) : (activeNavId === 'more-features' || activeNavId === 'features') ? (
+          <MoreFeaturesView
+            user={user}
+            onNavigate={handleSelectNav}
+          />
         ) : (activeNavId === 'emergency' || activeNavId === 'sos') ? (
           <EmergencyView
             user={user}
@@ -309,12 +316,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="max-w-7xl mx-auto space-y-6"
+            className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden"
           >
             {/* 1. TOP HEADER */}
             <DashboardHeader
               userName={user.name}
-              onOpenNotifications={() => showToast('Opening Notifications drawer')}
+              onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
             />
 

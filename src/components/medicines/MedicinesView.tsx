@@ -14,7 +14,8 @@ import {
   FileText,
   ShieldAlert,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  RotateCcw
 } from 'lucide-react';
 import type { MedicineItem, DoseRecord } from './medicinesData';
 import {
@@ -29,6 +30,7 @@ import { EditMedicineModal } from './EditMedicineModal';
 import { MedicineFilterDrawer } from './MedicineFilterDrawer';
 import type { MedicineFilterState } from './MedicineFilterDrawer';
 import { SkipDoseModal } from './SkipDoseModal';
+import { MedicationHistoryModal } from './MedicationHistoryModal';
 
 interface UserProfile {
   name: string;
@@ -63,6 +65,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
   // MODAL & DRAWER STATES
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [detailDrawerTarget, setDetailDrawerTarget] = useState<MedicineItem | null>(null);
   const [editModalTarget, setEditModalTarget] = useState<MedicineItem | null>(null);
   const [skipModalTarget, setSkipModalTarget] = useState<DoseRecord | null>(null);
@@ -133,6 +136,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     // Add to history log
     const newLog: DoseRecord = {
       id: `LOG-${Date.now().toString().slice(-4)}`,
+      medicineId: doseId,
       medicineName,
       dosage: '1 Dose',
       scheduledTime: nowTimeStr,
@@ -145,11 +149,43 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     showToast(`✓ Marked ${medicineName} dose as taken at ${nowTimeStr}`);
   };
 
+  // UNDO / RESET DOSE STATUS TO UNTAKEN / UPCOMING
+  const handleUndoDoseStatus = (doseId: string, medicineName: string) => {
+    const prevDose = todayDoses.find((d) => d.id === doseId);
+    const wasTaken = prevDose?.status === 'Taken';
+
+    const updatedDoses = todayDoses.map((d) => {
+      if (d.id === doseId) {
+        return { ...d, status: 'Upcoming' as const, actualTime: null };
+      }
+      return d;
+    });
+    saveTodayDosesState(updatedDoses);
+
+    // If it was taken previously, restore the medicine stock count
+    if (wasTaken) {
+      const updatedMeds = medicines.map((m) => {
+        if (m.name.toLowerCase() === medicineName.toLowerCase()) {
+          return { ...m, stockRemaining: m.stockRemaining + 1 };
+        }
+        return m;
+      });
+      saveMedicinesState(updatedMeds);
+    }
+
+    // Clean up corresponding today history log
+    setHistoryLogs((prev) =>
+      prev.filter((log) => log.medicineName.toLowerCase() !== medicineName.toLowerCase() || log.date !== 'Today')
+    );
+
+    showToast(`↩ Reset ${medicineName} to Untaken / Upcoming`);
+  };
+
   // SKIP DOSE HANDLER
   const handleConfirmSkipDose = (doseId: string, reason: string) => {
     const updatedDoses = todayDoses.map((d) => {
       if (d.id === doseId) {
-        return { ...d, status: 'Skipped' as const };
+        return { ...d, status: 'Skipped' as const, actualTime: null };
       }
       return d;
     });
@@ -159,9 +195,11 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     if (doseItem) {
       const newLog: DoseRecord = {
         id: `LOG-${Date.now().toString().slice(-4)}`,
+        medicineId: doseId,
         medicineName: doseItem.medicineName,
         dosage: doseItem.dosage,
         scheduledTime: doseItem.scheduledTime,
+        actualTime: null,
         status: 'Skipped',
         date: 'Today'
       };
@@ -169,15 +207,31 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     }
 
     setSkipModalTarget(null);
-    showToast(`✓ Dose skipped: ${reason}`);
+    showToast(`✓ Dose marked as skipped: ${reason}`);
   };
 
   // ADD NEW MEDICINE HANDLER
-  const handleSaveAddMedicine = (newMed: Omit<MedicineItem, 'id' | 'createdAt'>) => {
+  const handleSaveAddMedicine = (newMed: Partial<MedicineItem>) => {
     const created: MedicineItem = {
-      ...newMed,
-      id: `MED-${Date.now().toString().slice(-4)}`,
-      createdAt: new Date().toISOString()
+      id: newMed.id || `MED-${Date.now().toString().slice(-4)}`,
+      name: newMed.name || 'Prescribed Medicine',
+      dosage: newMed.dosage || '500',
+      unit: newMed.unit || 'mg',
+      frequency: newMed.frequency || 'Once daily',
+      route: newMed.route || 'Oral',
+      times: newMed.times && newMed.times.length > 0 ? newMed.times : ['08:00 AM'],
+      startDate: newMed.startDate || '23 Aug 2026',
+      endDate: newMed.endDate || '23 Sep 2026',
+      prescribedBy: newMed.prescribedBy || 'Dr. Rajesh Kumar',
+      hospital: newMed.hospital || 'Apollo Hospital',
+      purpose: newMed.purpose || 'Therapy',
+      instructions: newMed.instructions || 'Take as instructed.',
+      foodInstruction: newMed.foodInstruction || 'After Food',
+      status: 'Active',
+      stockRemaining: newMed.stockRemaining || 30,
+      totalStock: newMed.totalStock || 30,
+      reminderEnabled: true,
+      ...newMed
     };
     const updatedMeds = [created, ...medicines];
     saveMedicinesState(updatedMeds);
@@ -185,9 +239,12 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     // Add today dose item if scheduled today
     const newDose: DoseRecord = {
       id: `DOSE-${Date.now().toString().slice(-4)}`,
+      medicineId: created.id,
       medicineName: created.name,
       dosage: `${created.dosage} ${created.unit}`,
-      scheduledTime: created.times[0] || '09:00 AM',
+      scheduledTime: created.times[0] || '08:00 AM',
+      actualTime: null,
+      date: 'Today',
       status: 'Upcoming'
     };
     saveTodayDosesState([...todayDoses, newDose]);
@@ -288,11 +345,8 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
             <button
-              onClick={() => {
-                const el = document.getElementById('history-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+              onClick={() => setHistoryModalOpen(true)}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Clock className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
               <span>Medication History</span>
@@ -300,7 +354,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
             <button
               onClick={() => setAddModalOpen(true)}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
             >
               <Plus className="w-4 h-4" />
               <span>Add Medicine</span>
@@ -433,60 +487,129 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
           </div>
 
           {/* VERTICAL TIMELINE */}
-          <div className="space-y-4 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-            {todayDoses.map((dose) => (
-              <div key={dose.id} className="relative pl-10 space-y-1">
-                {/* TIMELINE NODE */}
-                <div className={`absolute left-2.5 top-1.5 w-3.5 h-3.5 rounded-full border-2 -translate-x-1/2 ${
-                  dose.status === 'Taken'
-                    ? 'bg-emerald-500 border-emerald-400'
-                    : dose.status === 'Skipped'
-                    ? 'bg-amber-500 border-amber-400'
-                    : 'bg-white dark:bg-slate-900 border-[#00a896] dark:border-cyan-400'
-                }`} />
+          <div className="space-y-0">
+            {todayDoses.map((dose, idx) => {
+              const isLast = idx === todayDoses.length - 1;
+              const isTaken = dose.status === 'Taken';
+              const isSkipped = dose.status === 'Skipped';
 
-                <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-3.5 rounded-2xl space-y-2 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">{dose.medicineName}</h4>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">{dose.dosage}</p>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#00a896] dark:text-cyan-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-xs">
-                      {dose.scheduledTime}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-200 dark:border-slate-700/60 font-mono">
-                    <span className={`text-[10px] font-bold ${
-                      dose.status === 'Taken'
-                        ? 'text-emerald-700 dark:text-emerald-400'
-                        : dose.status === 'Skipped'
-                        ? 'text-amber-700 dark:text-amber-400'
-                        : 'text-[#00a896] dark:text-cyan-300'
-                    }`}>
-                      {dose.status === 'Taken' ? `✓ Taken at ${dose.actualTime || '08:02 AM'}` : dose.status}
-                    </span>
-
-                    {dose.status !== 'Taken' && dose.status !== 'Skipped' && (
-                      <div className="flex items-center gap-1.5 font-sans">
-                        <button
-                          onClick={() => setSkipModalTarget(dose)}
-                          className="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 text-[10px] font-bold transition-colors cursor-pointer"
-                        >
-                          Skip
-                        </button>
-                        <button
-                          onClick={() => handleMarkDoseTaken(dose.id, dose.medicineName)}
-                          className="px-2.5 py-1 rounded-lg bg-[#00a896] hover:bg-[#00897b] text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-sm"
-                        >
-                          Take
-                        </button>
-                      </div>
+              return (
+                <div key={dose.id} className="flex items-stretch gap-3.5">
+                  {/* TRACK & DOT COLUMN */}
+                  <div className="flex flex-col items-center shrink-0 w-4 pt-3.5">
+                    {/* DOT */}
+                    <div
+                      className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 z-10 ${
+                        isTaken
+                          ? 'bg-emerald-500 border-emerald-400 shadow-xs'
+                          : isSkipped
+                          ? 'bg-amber-500 border-amber-400 shadow-xs'
+                          : 'bg-white dark:bg-slate-900 border-[#00a896] dark:border-cyan-400'
+                      }`}
+                    />
+                    {/* CONNECTOR LINE */}
+                    {!isLast && (
+                      <div
+                        className={`w-0.5 flex-1 min-h-[44px] my-1 ${
+                          isTaken
+                            ? 'bg-emerald-400 dark:bg-emerald-500/40'
+                            : 'bg-slate-200 dark:bg-slate-700'
+                        }`}
+                      />
                     )}
                   </div>
+
+                  {/* DOSE CARD */}
+                  <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-3.5'}`}>
+                    <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-3.5 rounded-2xl space-y-2 shadow-2xs hover:border-teal-500/30 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 pr-2">
+                          <h4 className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{dose.medicineName}</h4>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{dose.dosage}</p>
+                        </div>
+                        <span className="font-mono text-[11px] font-bold text-[#00a896] dark:text-cyan-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-2xs shrink-0">
+                          {dose.scheduledTime}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700/60 font-sans">
+                        <span
+                          className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
+                            isTaken
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+                              : isSkipped
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'
+                              : 'bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20'
+                          }`}
+                        >
+                          {isTaken ? `✓ Taken at ${dose.actualTime || '08:02 AM'}` : isSkipped ? 'Skipped' : 'Upcoming'}
+                        </span>
+
+                        <div className="flex items-center gap-1.5 font-sans">
+                          {isTaken ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleUndoDoseStatus(dose.id, dose.medicineName)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold transition-colors cursor-pointer border border-slate-200 dark:border-slate-600 flex items-center gap-1"
+                                title="Mark as Untaken"
+                              >
+                                <RotateCcw className="w-3 h-3 text-slate-500" />
+                                <span>Untake</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSkipModalTarget(dose)}
+                                className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold transition-colors cursor-pointer border border-amber-500/20"
+                                title="Change to Skipped"
+                              >
+                                Skip
+                              </button>
+                            </>
+                          ) : isSkipped ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleMarkDoseTaken(dose.id, dose.medicineName)}
+                                className="px-2.5 py-1 rounded-lg bg-[#00a896] hover:bg-[#00897b] text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-2xs"
+                              >
+                                Take
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUndoDoseStatus(dose.id, dose.medicineName)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold transition-colors cursor-pointer border border-slate-200 dark:border-slate-600 flex items-center gap-1"
+                                title="Mark as Untaken"
+                              >
+                                <RotateCcw className="w-3 h-3 text-slate-500" />
+                                <span>Untake</span>
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setSkipModalTarget(dose)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold transition-colors cursor-pointer border border-slate-200 dark:border-slate-600"
+                              >
+                                Skip
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMarkDoseTaken(dose.id, dose.medicineName)}
+                                className="px-2.5 py-1 rounded-lg bg-[#00a896] hover:bg-[#00897b] text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-2xs"
+                              >
+                                Take
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -614,88 +737,86 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
         </div>
       </div>
 
-      {/* 4. WEEKLY ADHERENCE CHART & HISTORY LOGS */}
-      <div id="history-section" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* WEEKLY ADHERENCE CHART (LEFT 5 COLUMNS) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
+      {/* 4. WEEKLY ADHERENCE CHART & MEDICATION HISTORY CARDS TRIGGER */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* WEEKLY ADHERENCE CHART (LEFT 7 COLUMNS) */}
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#00a896] dark:text-teal-400" />
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Weekly Adherence Chart</h3>
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-[#00a896] border border-teal-500/20 flex items-center justify-center">
+                <TrendingUp className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Weekly Adherence Chart</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Daily compliance over the last 7 days</p>
+              </div>
             </div>
-            <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">Avg 88%</span>
+            <span className="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+              Avg 88%
+            </span>
           </div>
 
           {/* BAR CHART */}
-          <div className="flex items-end justify-between gap-2 h-40 pt-4 px-2 font-mono">
+          <div className="flex items-end justify-between gap-2 h-36 pt-2 px-1 font-mono">
             {MOCK_WEEKLY_ADHERENCE.map((item) => (
-              <div key={item.day} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{item.percent}%</span>
+              <div key={item.day} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                <span className="text-[10px] font-bold text-slate-500">{item.percent}%</span>
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${item.percent}%` }}
                   transition={{ duration: 0.8 }}
-                  className="w-full bg-gradient-to-t from-[#00a896] to-cyan-500 dark:to-cyan-400 rounded-t-xl min-h-[10px]"
+                  className="w-full bg-gradient-to-t from-[#00a896] to-cyan-500 rounded-t-xl min-h-[8px]"
                 />
-                <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 font-sans">{item.day}</span>
+                <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 font-sans">{item.day}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* MEDICATION HISTORY TABLE (RIGHT 7 COLUMNS) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Medication History Logs</h3>
-            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono">
-              {(['Today', '7 Days', '30 Days'] as const).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setHistoryFilter(range)}
-                  className={`px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer font-sans ${
-                    historyFilter === range ? 'bg-[#00a896] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+        {/* MEDICATION HISTORY HERO CARD (RIGHT 5 COLUMNS) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-teal-500/10 via-cyan-500/5 to-transparent dark:bg-slate-900 border border-teal-500/20 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-5">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-[#00a896]">
+                <Clock className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-mono font-bold text-[#00a896] bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-full">
+                {historyLogs.length} Doses Logged
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Medication History & Dose Log Cards
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed font-medium">
+                View your complete interactive timeline cards of all taken, upcoming, and skipped prescriptions.
+              </p>
+            </div>
+
+            {/* QUICK PREVIEW MINI LIST */}
+            <div className="space-y-2 pt-1">
+              {historyLogs.slice(0, 2).map((log) => (
+                <div
+                  key={log.id}
+                  className="bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-xl flex items-center justify-between text-xs"
                 >
-                  {range}
-                </button>
+                  <span className="font-bold text-slate-900 dark:text-white truncate">{log.medicineName}</span>
+                  <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md shrink-0 font-mono">
+                    ✓ Taken at {log.actualTime || '08:02 AM'}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* HISTORY LOGS LIST */}
-          <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-            {historyLogs.map((log) => (
-              <div
-                key={log.id}
-                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-3.5 rounded-2xl flex items-center justify-between text-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl border ${
-                    log.status === 'Taken'
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                  }`}>
-                    <Pill className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 dark:text-white">{log.medicineName}</h4>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{log.date} • Dose: {log.dosage}</p>
-                  </div>
-                </div>
-
-                <div className="text-right font-mono">
-                  <span className={`font-extrabold px-2.5 py-0.5 rounded-full text-[10px] ${
-                    log.status === 'Taken'
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                      : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                  }`}>
-                    {log.status === 'Taken' ? `Taken at ${log.actualTime || '08:02 AM'}` : 'Skipped'}
-                  </span>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Sched: {log.scheduledTime}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <button
+            onClick={() => setHistoryModalOpen(true)}
+            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Clock className="w-4 h-4" />
+            <span>Open Medication History Cards</span>
+          </button>
         </div>
       </div>
 
@@ -777,6 +898,12 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onSave={handleSaveAddMedicine}
+      />
+
+      <MedicationHistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        historyLogs={historyLogs}
       />
 
       <MedicineDetailsDrawer

@@ -37,7 +37,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
       id: 'dr-5',
       name: 'Dr. David Wilson',
       specialty: 'Dental Specialist',
-      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=500&q=80',
+      image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=500&q=80',
     },
   ];
 
