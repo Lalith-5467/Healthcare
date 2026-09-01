@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Phone, MapPin, FileText, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { User, ShoppingBag, FileText, Clock, ShieldCheck, ChevronRight } from 'lucide-react';
 import { getPharmacyOrders } from '../../utils/healthWorkflowStorage';
 
 export const PharmacistPatientsTab: React.FC = () => {
@@ -42,62 +42,94 @@ export const PharmacistPatientsTab: React.FC = () => {
   const patients = Array.from(patientMap.values());
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[#00a896] flex items-center justify-center">
-            <User className="w-5 h-5" />
+    <div className="space-y-6 font-sans relative">
+      {/* Background Subtle Glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-teal-500/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
+
+      <div className="bg-white/90 dark:bg-[#0f172a]/80 backdrop-blur-md border border-slate-200 dark:border-teal-500/20 rounded-3xl p-5 shadow-sm flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 text-white flex items-center justify-center shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+            <User className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Pharmacy Patient Registry & Prescription Archives
+            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase">
+              Pharmacy Patient Registry
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Patients connected with Apollo Central Dispensary through ABDM health pass.
+            <p className="text-[11px] font-bold text-slate-500 dark:text-teal-400/80 uppercase tracking-widest">
+              Patients connected with Apollo Central Dispensary
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
         {patients.map((pat, idx) => (
           <div
             key={idx}
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md space-y-4 hover:shadow-lg transition-all"
+            className="bg-white dark:bg-[#0f172a]/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 rounded-3xl p-6 shadow-lg hover:shadow-[0_0_30px_rgba(20,184,166,0.15)] hover:border-teal-500/50 transition-all duration-300 group relative overflow-hidden flex flex-col gap-5"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-teal-500/15 text-[#00a896] font-black text-sm flex items-center justify-center font-mono">
-                  {pat.name.split(' ').map(n => n[0]).join('')}
+            {/* Subtle inner hover glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+
+            {/* Header: Avatar, Name, Verified */}
+            <div className="flex justify-between items-start relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full bg-slate-800/80 border-2 border-teal-500/40 shadow-[0_0_15px_rgba(20,184,166,0.2)] group-hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] transition-shadow flex items-center justify-center text-teal-400 font-black text-xl font-mono">
+                    {pat.name.split(' ').map(n => n[0]).join('')}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mb-0.5">Patient #{String(idx + 1).padStart(3, '0')}</span>
+                  <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wide leading-none">
                     {pat.name}
                   </h4>
-                  <span className="text-[10px] font-mono text-slate-400">
-                    ABHA: 91-8472-9104-5821@abdm
-                  </span>
                 </div>
               </div>
-
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-mono border border-emerald-500/30">
+              <div className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                 Verified
-              </span>
+              </div>
             </div>
 
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Total Pharmacy Orders:</span>
-                <strong className="text-slate-900 dark:text-white font-mono">{pat.orderCount} Orders</strong>
+            {/* Data Rows */}
+            <div className="space-y-2.5 relative z-10">
+              
+              {/* Patient ID Row */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 flex justify-between items-center group-hover:border-teal-500/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Patient ID</span>
+                </div>
+                <strong className="text-xs text-slate-900 dark:text-white font-mono tracking-wider">PC-{String(Math.floor(Math.random() * 90000) + 10000)}</strong>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Last Prescription ID:</span>
-                <strong className="text-[#00a896] font-mono">{pat.lastRxId || 'RX-DOC-931087'}</strong>
+
+              {/* Orders Row */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 flex justify-between items-center group-hover:border-teal-500/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Pharmacy Orders</span>
+                </div>
+                <strong className="text-xs text-teal-600 dark:text-teal-400 font-bold">{pat.orderCount} <span className="font-medium text-slate-500">Orders</span></strong>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Recent Status:</span>
-                <strong className="text-slate-800 dark:text-slate-200">{pat.recentStatus}</strong>
+
+              {/* Prescription Row */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 flex justify-between items-center group-hover:border-teal-500/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-4 h-4 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Prescription ID</span>
+                </div>
+                <strong className="text-xs text-slate-900 dark:text-white font-mono tracking-wider">{pat.lastRxId || 'RX-4501-A'}</strong>
               </div>
+
+              {/* Last Updated Row */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 flex justify-between items-center group-hover:border-teal-500/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Last Updated</span>
+                </div>
+                <strong className="text-xs text-slate-900 dark:text-slate-300 font-mono">{pat.lastOrderDate === 'Today' ? new Date().toLocaleDateString('en-GB').replace(/\//g, '.') : pat.lastOrderDate}</strong>
+              </div>
+
             </div>
           </div>
         ))}

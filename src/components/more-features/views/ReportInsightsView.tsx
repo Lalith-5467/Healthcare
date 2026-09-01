@@ -118,7 +118,7 @@ export const ReportInsightsView: React.FC = () => {
           whileTap={{ scale: 0.98 }}
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="relative group flex items-center gap-2 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.23)] border border-indigo-400/50 dark:border-indigo-300/30 w-full sm:w-auto justify-center z-10 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="relative group flex items-center gap-2 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-slate-900 dark:text-white px-5 py-2.5 rounded-2xl font-bold transition-all shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.23)] border border-indigo-400/50 dark:border-indigo-300/30 w-full sm:w-auto justify-center z-10 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <RefreshCcw className={`w-4 h-4 relative z-10 ${isGenerating ? 'animate-spin' : ''}`} />
@@ -146,7 +146,7 @@ export const ReportInsightsView: React.FC = () => {
             <div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-0.5">{stat.label}</p>
               <p className="text-xl font-black text-slate-900 dark:text-white leading-none flex items-baseline gap-1">
-                {stat.value} <span className="text-xs font-bold text-slate-400">{stat.unit}</span>
+                {stat.value} <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{stat.unit}</span>
               </p>
             </div>
           </div>
@@ -160,7 +160,7 @@ export const ReportInsightsView: React.FC = () => {
         transition={{ delay: 0.2 }}
         className="space-y-4"
       >
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(99,102,241,0.2)] text-white relative overflow-hidden group border border-indigo-500/50">
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(99,102,241,0.2)] text-slate-900 dark:text-white relative overflow-hidden group border border-indigo-500/50">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
           <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
             <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md shrink-0 border border-white/20">
@@ -210,7 +210,7 @@ export const ReportInsightsView: React.FC = () => {
             <div className="mt-2 w-full pt-2">
               <Sparkline data={[5.8, 5.7, 5.6, 5.5, 5.4]} color="#10b981" />
             </div>
-            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+            <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
               <span>Feb</span><span>Apr</span><span>Jun</span><span>Aug</span><span>Now</span>
             </div>
           </motion.div>
@@ -240,7 +240,7 @@ export const ReportInsightsView: React.FC = () => {
             <div className="mt-2 w-full pt-2">
               <Sparkline data={[140, 135, 125, 118, 110]} color="#10b981" />
             </div>
-            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+            <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
               <span>Feb</span><span>Apr</span><span>Jun</span><span>Aug</span><span>Now</span>
             </div>
           </motion.div>
@@ -272,7 +272,7 @@ export const ReportInsightsView: React.FC = () => {
             <div className="mt-2 w-full pt-2 relative z-10">
               <Sparkline data={[28, 26, 24, 20, 18]} color="#f43f5e" />
             </div>
-            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 relative z-10">
+            <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1 relative z-10">
               <span>Feb</span><span>Apr</span><span>Jun</span><span>Aug</span><span>Now</span>
             </div>
           </motion.div>

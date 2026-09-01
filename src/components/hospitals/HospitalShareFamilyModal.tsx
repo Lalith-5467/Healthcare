@@ -105,7 +105,7 @@ export const HospitalShareFamilyModal: React.FC<HospitalShareFamilyModalProps> =
             </button>
             <button
               onClick={handleCopyLink}
-              className="py-2.5 px-6 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer w-36"
+              className="py-2.5 px-6 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer w-36"
             >
               {copied ? (
                 <>

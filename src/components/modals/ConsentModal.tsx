@@ -23,7 +23,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({ isOpen, onClose }) =
           {/* CLOSE */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors"
+            className="absolute top-6 right-6 p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -54,7 +54,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({ isOpen, onClose }) =
 
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-full text-xs font-bold text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md"
+            className="w-full py-3 rounded-full text-xs font-bold text-slate-900 dark:text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md"
           >
             Done
           </button>

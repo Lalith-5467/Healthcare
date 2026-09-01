@@ -89,7 +89,7 @@ export const HealthProgressChart: React.FC = () => {
           return (
             <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
               {/* HOVER TOOLTIP */}
-              <div className="absolute -top-9 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-[10px] font-extrabold shadow-2xl border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-nowrap">
+              <div className="absolute -top-9 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-[10px] font-extrabold shadow-2xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-nowrap">
                 {d.label}: {val} {activeMetric === 'steps' ? 'steps' : activeMetric === 'sleep' ? 'hrs' : 'BPM'}
               </div>
 

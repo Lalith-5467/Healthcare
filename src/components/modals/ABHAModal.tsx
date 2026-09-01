@@ -23,7 +23,7 @@ export const ABHAModal: React.FC<ABHAModalProps> = ({ isOpen, onClose }) => {
           {/* CLOSE BUTTON */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors"
+            className="absolute top-6 right-6 p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -73,7 +73,7 @@ export const ABHAModal: React.FC<ABHAModalProps> = ({ isOpen, onClose }) => {
             </button>
             <button
               onClick={onClose}
-              className="flex-1 py-3 rounded-full text-xs font-bold text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md flex items-center justify-center gap-1.5"
+              className="flex-1 py-3 rounded-full text-xs font-bold text-slate-900 dark:text-white bg-[#FF5B22] hover:bg-[#e54c15] shadow-md flex items-center justify-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Re-Sync Gateway
             </button>

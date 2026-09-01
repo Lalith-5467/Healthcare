@@ -31,7 +31,7 @@ export const DocumentEditorModal: React.FC<DocumentEditorModalProps> = ({
       <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer text-sm font-semibold"
+          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors cursor-pointer text-sm font-semibold"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Cancel</span>

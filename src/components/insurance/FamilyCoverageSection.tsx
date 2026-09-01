@@ -22,7 +22,7 @@ export const FamilyCoverageSection: React.FC<FamilyCoverageSectionProps> = ({
 
         <button
           onClick={onOpenAddMember}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-900 dark:text-white bg-purple-600 hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
         >
           <Plus className="w-4 h-4" />
           <span>Add Member to Policy</span>

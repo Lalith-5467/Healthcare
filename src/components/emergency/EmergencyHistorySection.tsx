@@ -22,7 +22,7 @@ export const EmergencyHistorySection: React.FC<EmergencyHistorySectionProps> = (
 
         <button
           onClick={onRunTest}
-          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer self-stretch sm:self-auto"
+          className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer self-stretch sm:self-auto"
         >
           <Play className="w-4 h-4 fill-white" />
           <span>Run System Test</span>

@@ -29,7 +29,7 @@ export const LifestyleWellnessGrid: React.FC = () => {
                 <div className={`p-2 rounded-xl border ${it.color}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] font-bold text-slate-400">{it.progress}%</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{it.progress}%</span>
               </div>
 
               <div>

@@ -28,10 +28,10 @@ export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
         </div>
 
         {/* EMERGENCY CARD UI CONTAINER */}
-        <div className="max-w-2xl mx-auto p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white border-2 border-red-500/50 shadow-2xl space-y-6 relative overflow-hidden">
+        <div className="max-w-2xl mx-auto p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-slate-900 dark:text-white border-2 border-red-500/50 shadow-2xl space-y-6 relative overflow-hidden">
           
           {/* TOP EMERGENCY BADGE */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-5">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
             <div className="flex items-center gap-2.5 text-red-500 font-extrabold text-sm tracking-wider uppercase">
               <ShieldAlert className="w-5 h-5 animate-bounce" />
               <span>OFFLINE EMERGENCY MEDICAL CARD</span>
@@ -44,14 +44,14 @@ export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
 
           {/* CARD DETAILS GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
-            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-1">
-              <p className="text-slate-400 uppercase text-[10px] tracking-widest font-bold">Patient Name</p>
-              <p className="font-extrabold text-base text-white">Lalith Patel</p>
-              <p className="text-[11px] text-slate-400">ABHA: 14-8921-3341</p>
+            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-1">
+              <p className="text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-widest font-bold">Patient Name</p>
+              <p className="font-extrabold text-base text-slate-900 dark:text-white">Lalith Patel</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">ABHA: 14-8921-3341</p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-1">
-              <p className="text-slate-400 uppercase text-[10px] tracking-widest font-bold">Emergency Contacts</p>
+            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-1">
+              <p className="text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-widest font-bold">Emergency Contacts</p>
               <p className="font-bold text-xs text-emerald-400 flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5" /> +91 98765 43210 (Spouse)
               </p>
@@ -67,7 +67,7 @@ export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
               <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-red-300">Known Severe Allergies</p>
-                <p className="text-slate-300 mt-1 leading-snug">Penicillin, Severe Sulfa Drugs, Peanut Anaphylaxis Risk</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-1 leading-snug">Penicillin, Severe Sulfa Drugs, Peanut Anaphylaxis Risk</p>
               </div>
             </div>
 
@@ -75,16 +75,16 @@ export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
               <Pill className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-purple-300">Active Daily Medications</p>
-                <p className="text-slate-300 mt-1 leading-snug">Vitamin D3 (1000 IU), Metformin 500mg, Aspirin 75mg</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-1 leading-snug">Vitamin D3 (1000 IU), Metformin 500mg, Aspirin 75mg</p>
               </div>
             </div>
           </div>
 
           {/* ACTION BUTTON BAR */}
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800">
             <div className="text-center sm:text-left space-y-0.5">
-              <p className="text-xs font-bold text-white">Instant First-Responder Authorization</p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Instant First-Responder Authorization</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Displays vital safety parameters without opening private medical history.
               </p>
             </div>

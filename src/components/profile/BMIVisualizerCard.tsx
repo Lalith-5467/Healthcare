@@ -20,7 +20,7 @@ export const BMIVisualizerCard: React.FC<BMIVisualizerCardProps> = ({ bmi = 23.8
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
               BMI Index Visualizer
             </h3>
-            <span className="text-[11px] text-slate-400">Body Mass Index Metric</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Body Mass Index Metric</span>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export const BMIVisualizerCard: React.FC<BMIVisualizerCardProps> = ({ bmi = 23.8
         </div>
 
         {/* RANGE LABELS */}
-        <div className="grid grid-cols-4 text-[10px] font-bold text-slate-400 text-center pt-1">
+        <div className="grid grid-cols-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center pt-1">
           <span className="text-blue-400">Underweight (&lt; 18.5)</span>
           <span className="text-emerald-400">Normal (18.5 - 24.9)</span>
           <span className="text-amber-400">Overweight (25 - 29.9)</span>

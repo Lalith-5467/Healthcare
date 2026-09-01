@@ -112,7 +112,7 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
           </button>
           <button
             onClick={handleOpenGoogleMaps}
-            className="flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <ExternalLink className="w-4 h-4" />
             <span>Open Maps Directions</span>

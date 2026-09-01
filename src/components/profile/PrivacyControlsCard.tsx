@@ -39,7 +39,7 @@ export const PrivacyControlsCard: React.FC<PrivacyControlsCardProps> = ({ onToas
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
               Health Data Privacy & Consent Controls
             </h3>
-            <span className="text-[11px] text-slate-400">ABDM Consent Engine Architecture</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">ABDM Consent Engine Architecture</span>
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@ export const PrivacyControlsCard: React.FC<PrivacyControlsCardProps> = ({ onToas
               className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-400 shrink-0">
+                <div className="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0">
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">

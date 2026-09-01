@@ -75,7 +75,7 @@ export const TestimonialsArticlesFAQ: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3.5 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <div className="w-11 h-11 rounded-full bg-[#0f3980] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
+              <div className="w-11 h-11 rounded-full bg-[#0f3980] text-slate-900 dark:text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
                 JW
               </div>
               <div>
@@ -126,7 +126,7 @@ export const TestimonialsArticlesFAQ: React.FC = () => {
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#0f3980] dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
                       {art.title}
                     </h4>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-1 font-medium">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1 font-medium">
                       <Calendar className="w-3 h-3" /> {art.date}
                     </span>
                   </div>

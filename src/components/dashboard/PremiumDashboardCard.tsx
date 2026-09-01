@@ -11,7 +11,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
     <motion.div
       whileHover={{ y: -3, scale: 1.008 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="p-5 sm:p-6 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5 group font-sans text-white"
+      className="p-5 sm:p-6 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5 group font-sans text-slate-900 dark:text-white"
       style={{
         background: 'linear-gradient(135deg, #091428 0%, #0e2246 45%, #0b2f52 80%, #07192f 100%)',
         border: '1.5px solid rgba(56, 189, 248, 0.25)',
@@ -28,7 +28,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
       <div className="space-y-2.5 relative z-10">
         <div className="flex items-center gap-3">
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0"
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-slate-900 dark:text-white shadow-md shrink-0"
             style={{
               background: 'linear-gradient(135deg, #f59e0b, #d97706)',
               boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)'
@@ -38,7 +38,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
                 Unlock Premium Health Portal
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase font-mono tracking-wider"
@@ -46,7 +46,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
                 PRO
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-medium mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">
               Get deeper insights into your complete health records, vitals & AI assistance.
             </p>
           </div>
@@ -74,7 +74,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
         whileHover={{ scale: 1.04, y: -1 }}
         whileTap={{ scale: 0.96 }}
         onClick={onOpenPremium}
-        className="px-5 py-3 rounded-2xl text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer relative z-10"
+        className="px-5 py-3 rounded-2xl text-slate-900 dark:text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer relative z-10"
         style={{
           background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
           boxShadow: '0 4px 16px rgba(234, 88, 12, 0.35)'

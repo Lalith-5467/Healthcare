@@ -189,7 +189,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
+    <div className="h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 flex select-none">
       
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0">
@@ -361,6 +361,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               userName={user.name}
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
+              onNavigate={handleSelectNav}
+              onLogout={onLogout}
             />
 
             {/* 2. TOP STATISTICS GRID (6 COMPACT STAT CARDS) */}

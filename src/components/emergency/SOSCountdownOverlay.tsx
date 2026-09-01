@@ -25,7 +25,7 @@ export const SOSCountdownOverlay: React.FC<SOSCountdownOverlayProps> = ({
           <AlertTriangle className="w-4 h-4 animate-bounce text-rose-300" />
           <span>Emergency Alert Preparing</span>
         </span>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Emergency SOS Sequence Active</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Emergency SOS Sequence Active</h2>
         <p className="text-xs text-rose-100 dark:text-slate-300 font-medium">
           Press CANCEL SOS below if this was pressed by accident.
         </p>
@@ -34,7 +34,7 @@ export const SOSCountdownOverlay: React.FC<SOSCountdownOverlayProps> = ({
       {/* LARGE COUNTDOWN NUMBER */}
       <div className="relative z-10 my-4 flex items-center justify-center">
         <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-full bg-rose-900/90 dark:bg-rose-950/80 border-4 border-rose-400 dark:border-rose-500 flex items-center justify-center shadow-2xl shadow-rose-600/40 animate-pulse">
-          <span className="text-7xl sm:text-8xl font-black text-white dark:text-rose-400 font-mono tracking-tighter drop-shadow-lg">
+          <span className="text-7xl sm:text-8xl font-black text-slate-900 dark:text-white dark:text-rose-400 font-mono tracking-tighter drop-shadow-lg">
             {countdown}
           </span>
         </div>

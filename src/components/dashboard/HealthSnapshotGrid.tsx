@@ -111,12 +111,7 @@ const metrics = [
 export const HealthSnapshotGrid: React.FC = () => {
   return (
     <div
-      className="p-6 rounded-3xl space-y-4 font-sans relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(150deg,#f8fafc 0%,#f0fdf9 50%,#ffffff 100%)',
-        border: '1.5px solid rgba(20,184,166,.12)',
-        boxShadow: '0 4px 24px rgba(20,184,166,.06), 0 1px 3px rgba(0,0,0,.04)'
-      }}
+      className="p-6 rounded-3xl space-y-4 font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50/20 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-teal-500/10 dark:border-teal-500/10 shadow-[0_4px_24px_rgba(20,184,166,0.06),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
     >
       {/* Decorative corner blob */}
       <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full pointer-events-none"
@@ -143,9 +138,8 @@ export const HealthSnapshotGrid: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.04 }}
               whileHover={{ y: -3, scale: 1.02 }}
-              className="p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 group min-w-0 transition-all duration-200"
+              className="p-3.5 rounded-2xl flex flex-col justify-between space-y-2.5 group min-w-0 transition-all duration-200 bg-white/90 dark:bg-slate-800/80"
               style={{
-                background: 'rgba(255,255,255,.92)',
                 border: `1px solid ${m.accentBorder}`,
                 boxShadow: `0 2px 10px rgba(0,0,0,.04), 0 0 0 0 ${m.accent}`
               }}

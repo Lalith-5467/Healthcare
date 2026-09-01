@@ -88,7 +88,7 @@ export const ConsultationEndedScreen: React.FC<ConsultationEndedScreenProps> = (
                   onClick={() => setRating(star)}
                   className="p-1 cursor-pointer transition-transform hover:scale-125"
                 >
-                  <Star className={`w-6 h-6 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'}`} />
+                  <Star className={`w-6 h-6 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-600 dark:text-slate-300 dark:text-slate-700'}`} />
                 </button>
               ))}
             </div>

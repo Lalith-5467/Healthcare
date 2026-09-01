@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Bell, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Bell, Sparkles, User, Settings, LogOut } from 'lucide-react';
+import { getGreeting } from '../../utils/greeting';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
 import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
@@ -9,16 +10,22 @@ interface DashboardHeaderProps {
   userName?: string;
   onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
+  onNavigate?: (id: string) => void;
+  onLogout?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName = 'Samson',
   onOpenNotifications,
-  onOpenProfile
+  onOpenProfile,
+  onNavigate,
+  onLogout
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileContainerRef = useRef<HTMLDivElement>(null);
 
   const todayDateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -48,6 +55,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileContainerRef.current && !profileContainerRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleTogglePopover = () => {
     setPopoverOpen(!popoverOpen);
   };
@@ -70,7 +87,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Good Morning, {userName}! 👋
+            {getGreeting()}, {userName}! 👋
           </h1>
           <span className="px-3 py-1 text-xs font-black uppercase bg-gradient-to-r from-[#00a896]/20 to-cyan-500/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 flex items-center gap-1.5 shadow-sm font-mono">
             <Sparkles className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
@@ -79,7 +96,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2 font-medium">
           <span>Here's your comprehensive health overview for today.</span>
-          <span className="hidden sm:inline-block text-slate-400 dark:text-slate-500">•</span>
+          <span className="hidden sm:inline-block text-slate-500 dark:text-slate-400 dark:text-slate-500">•</span>
           <span className="hidden sm:inline-block font-extrabold text-[#00a896] dark:text-cyan-300 font-mono">
             {todayDateStr}
           </span>
@@ -128,22 +145,70 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
 
         {/* PROFILE AVATAR */}
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={onOpenProfile}
-          className="flex items-center gap-2.5 p-1.5 pr-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer shrink-0"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80"
-            alt={userName}
-            className="w-8 h-8 rounded-xl object-cover ring-2 ring-teal-500/40"
-          />
-          <div className="hidden sm:flex flex-col text-left">
-            <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userName}</span>
-            <span className="text-[10px] font-extrabold text-[#00a896] dark:text-cyan-300 leading-tight font-mono">Patient Profile</span>
-          </div>
-        </motion.button>
+        <div className="relative shrink-0" ref={profileContainerRef}>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+            className="flex items-center gap-2.5 p-1.5 pr-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center font-black text-teal-600 dark:text-teal-400 font-mono text-xs shadow-[0_0_10px_rgba(20,184,166,0.15)] ring-2 ring-teal-500/20">
+              {userName.split(' ').map(n => n[0]).join('')}
+            </div>
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userName}</span>
+              <span className="text-[10px] font-extrabold text-[#00a896] dark:text-cyan-300 leading-tight font-mono">Patient Profile</span>
+            </div>
+          </motion.button>
+
+          <AnimatePresence>
+            {profileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-1.5 z-50 text-xs font-semibold space-y-0.5 origin-top-right"
+              >
+                <button
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    if (onNavigate) onNavigate('profile');
+                    else if (onOpenProfile) onOpenProfile();
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <User className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
+                  <span>My Profile</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    if (onNavigate) onNavigate('settings');
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Settings className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span>Settings</span>
+                </button>
+
+                <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+
+                <button
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    if (onLogout) onLogout();
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 transition-colors cursor-pointer font-bold"
+                >
+                  <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  <span>Logout</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.header>
   );

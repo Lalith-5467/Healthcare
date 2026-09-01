@@ -485,7 +485,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans bg-slate-50/50 rounded-[2.5rem] p-2 sm:p-6 -mx-2 sm:-mx-6">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20 font-sans bg-slate-50/50 dark:bg-transparent rounded-[2.5rem] p-2 sm:p-6 -mx-2 sm:-mx-6">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -494,7 +494,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-6 right-6 z-[9999] bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-slate-700 whitespace-pre-line"
+            className="fixed top-6 right-6 z-[9999] bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-slate-200 dark:border-slate-700 whitespace-pre-line"
           >
             <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
             <span>{toastMessage}</span>
@@ -503,14 +503,14 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       </AnimatePresence>
 
       {/* 1. PAGE HEADER */}
-      <div className="relative rounded-3xl p-8 sm:p-10 overflow-hidden bg-white/70 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-200/40 dark:shadow-none">
+      <div className="relative rounded-3xl p-8 sm:p-10 overflow-hidden bg-white/70 dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700 shadow-2xl shadow-slate-200/40 dark:shadow-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-400/30 to-cyan-300/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-400/20 to-pink-300/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100 shadow-sm text-teal-600">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/40 dark:to-cyan-900/40 border border-teal-100 dark:border-teal-800 shadow-sm text-teal-600 dark:text-teal-400">
                 <Bell className="w-6 h-6" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Reminders & Notifications</h1>
@@ -578,7 +578,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               <span className="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1 block">Next Reminder</span>
               <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">{nextReminder.title}</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                Today · {nextReminder.time} <span className="mx-2 text-slate-300">•</span> <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Scheduled Time</span>
+                Today · {nextReminder.time} <span className="mx-2 text-slate-600 dark:text-slate-300">•</span> <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Scheduled Time</span>
               </p>
             </div>
           </div>
@@ -638,14 +638,14 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                         </span>
                       </div>
 
-                      <h4 className="text-sm font-extrabold text-slate-900 leading-snug break-words">
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">
                         {req.doctorName || 'Dr. R. S. Raman, MD (Internal Medicine)'}
                       </h4>
                       <p className="text-xs text-slate-500 font-medium mt-1">
                         {req.clinicName || 'Apollo Multispeciality Hospital, Chennai'}
                       </p>
 
-                      <p className="mt-3 text-xs font-bold text-slate-800 bg-slate-100/50 border border-slate-200/40 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
+                      <p className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/40 dark:border-slate-700/50 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>{req.date} • {req.time}</span>
                       </p>
@@ -671,7 +671,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDeclineFollowUp(req.id)}
-                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
                       >
                         Decline
                       </button>
@@ -679,7 +679,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setDetailTarget(req)}
-                        className="py-2 px-3 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                        className="py-2 px-3 rounded-xl text-xs font-extrabold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                       >
                         View
                       </button>
@@ -688,13 +688,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/60 text-center space-y-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800/60 text-center space-y-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 dark:text-slate-500 mx-auto">
                   <CalendarIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-slate-800">No pending appointment requests</h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">New appointment requests from doctors will appear here.</p>
+                  <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">No pending appointment requests</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">New appointment requests from doctors will appear here.</p>
                 </div>
               </div>
             )}
@@ -704,14 +704,14 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Today's Schedule</h3>
-              <span className="text-xs font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
+              <span className="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 px-3 py-1 rounded-full border border-teal-100 dark:border-teal-500/20">
                 {todayDateStr}
               </span>
             </div>
 
             {todaysReminders.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-200/30 dark:shadow-none">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4 text-slate-400 dark:text-slate-500">
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4 text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   <CalendarDays className="w-10 h-10" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">No appointments scheduled for today</h4>
@@ -795,14 +795,14 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                 {calendarDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
               </span>
               <div className="flex gap-1">
-                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
 
             <div className="grid grid-cols-7 gap-1 text-center mb-2">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                <div key={i} className="text-[10px] font-bold text-slate-400 py-1">{day}</div>
+                <div key={i} className="text-[10px] font-bold text-slate-500 dark:text-slate-400 py-1">{day}</div>
               ))}
             </div>
 
@@ -857,7 +857,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         
         {futureReminders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400 dark:text-slate-500">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-500 dark:text-slate-400 dark:text-slate-500">
               <CalendarIcon className="w-8 h-8" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No upcoming reminders</h4>
@@ -914,7 +914,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
         {completedAndHistoryReminders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400 dark:text-slate-500">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-500 dark:text-slate-400 dark:text-slate-500">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No completed appointments yet</h4>
@@ -932,7 +932,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               return (
                 <div key={rem.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/60 opacity-75 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 shrink-0">
+                    <div className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 shrink-0">
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">

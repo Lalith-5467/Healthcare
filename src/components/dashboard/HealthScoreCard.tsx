@@ -55,12 +55,7 @@ export const HealthScoreCard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -4, scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-        style={{
-          background: 'linear-gradient(145deg,#f0fdfa 0%,#e0faf5 35%,#f8fffe 70%,#ffffff 100%)',
-          border: '1.5px solid rgba(20,184,166,.2)',
-          boxShadow: '0 4px 32px rgba(20,184,166,.10), 0 1px 4px rgba(0,0,0,.04)'
-        }}
-        className="p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between group font-sans text-slate-900 dark:text-white dark:bg-slate-900/95 dark:border-slate-800"
+        className="p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between group font-sans text-slate-900 dark:text-white dark:bg-slate-900/95 dark:border-slate-800 bg-gradient-to-br from-teal-50 via-teal-100/30 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-teal-500/20 dark:border-teal-500/10 shadow-[0_4px_32px_rgba(20,184,166,0.1),_0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.5)]"
       >
         {/* BACKGROUND AMBIENT GLOWS */}
         <div className="absolute -top-16 -right-20 w-56 h-56 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" style={{ background: 'radial-gradient(circle,rgba(20,184,166,.18) 0%,transparent 70%)' }} />
@@ -76,7 +71,7 @@ export const HealthScoreCard: React.FC = () => {
             {/* Circular gradient icon — matches reference */}
             <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-md"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-slate-900 dark:text-white flex-shrink-0 shadow-md"
               style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 14px rgba(20,184,166,.4)' }}
             >
               <Activity className="w-5 h-5" />
@@ -90,7 +85,7 @@ export const HealthScoreCard: React.FC = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setShowDetailModal(true)}
-                  className="text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-300 transition-colors cursor-pointer"
+                  className="text-slate-500 dark:text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-300 transition-colors cursor-pointer"
                   title="Score details"
                 >
                   <Info className="w-3.5 h-3.5" />
@@ -194,11 +189,10 @@ export const HealthScoreCard: React.FC = () => {
             {/* HEART RATE */}
             <motion.div
               whileHover={{ scale: 1.03 }}
-              className="p-2.5 rounded-2xl flex items-center gap-2.5"
-              style={{ background: 'rgba(255,255,255,.85)', border: '1px solid rgba(251,113,133,.2)', boxShadow: '0 2px 8px rgba(251,113,133,.08)' }}
+              className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-rose-400/20 shadow-[0_2px_8px_rgba(251,113,133,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#fecaca,#f87171)' }}>
-                <Heart className="w-3.5 h-3.5 text-white animate-bounce" style={{ animationDuration: '2s' }} />
+                <Heart className="w-3.5 h-3.5 text-slate-900 dark:text-white animate-bounce" style={{ animationDuration: '2s' }} />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Heart Rate</span>
@@ -209,11 +203,10 @@ export const HealthScoreCard: React.FC = () => {
             {/* SPO2 OXYGEN */}
             <motion.div
               whileHover={{ scale: 1.03 }}
-              className="p-2.5 rounded-2xl flex items-center gap-2.5"
-              style={{ background: 'rgba(255,255,255,.85)', border: '1px solid rgba(20,184,166,.2)', boxShadow: '0 2px 8px rgba(20,184,166,.08)' }}
+              className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-teal-500/20 shadow-[0_2px_8px_rgba(20,184,166,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#5eead4,#0d9488)' }}>
-                <Zap className="w-3.5 h-3.5 text-white" />
+                <Zap className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood SpO2</span>
@@ -224,11 +217,10 @@ export const HealthScoreCard: React.FC = () => {
             {/* BLOOD PRESSURE */}
             <motion.div
               whileHover={{ scale: 1.03 }}
-              className="p-2.5 rounded-2xl flex items-center gap-2.5"
-              style={{ background: 'rgba(255,255,255,.85)', border: '1px solid rgba(99,102,241,.2)', boxShadow: '0 2px 8px rgba(99,102,241,.08)' }}
+              className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-indigo-500/20 shadow-[0_2px_8px_rgba(99,102,241,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#c7d2fe,#6366f1)' }}>
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood Press.</span>
@@ -239,11 +231,10 @@ export const HealthScoreCard: React.FC = () => {
             {/* SLEEP QUALITY */}
             <motion.div
               whileHover={{ scale: 1.03 }}
-              className="p-2.5 rounded-2xl flex items-center gap-2.5"
-              style={{ background: 'rgba(255,255,255,.85)', border: '1px solid rgba(168,85,247,.2)', boxShadow: '0 2px 8px rgba(168,85,247,.08)' }}
+              className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-purple-500/20 shadow-[0_2px_8px_rgba(168,85,247,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#e9d5ff,#9333ea)' }}>
-                <Moon className="w-3.5 h-3.5 text-white" />
+                <Moon className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Sleep Avg.</span>

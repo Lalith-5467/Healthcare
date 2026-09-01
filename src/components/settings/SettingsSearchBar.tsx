@@ -12,7 +12,7 @@ export const SettingsSearchBar: React.FC<SettingsSearchBarProps> = ({
 }) => {
   return (
     <div className="relative w-full text-xs font-sans">
-      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
         <Search className="w-4 h-4 text-[#00a896]" />
       </div>
       <input
@@ -25,7 +25,7 @@ export const SettingsSearchBar: React.FC<SettingsSearchBarProps> = ({
       {searchQuery && (
         <button
           onClick={() => onSearchChange('')}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>

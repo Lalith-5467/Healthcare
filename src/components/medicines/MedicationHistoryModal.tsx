@@ -69,7 +69,7 @@ export const MedicationHistoryModal: React.FC<MedicationHistoryModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -96,7 +96,7 @@ export const MedicationHistoryModal: React.FC<MedicationHistoryModalProps> = ({
         {/* SEARCH & FILTER CONTROLS */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search medication name or dosage..."
@@ -149,7 +149,7 @@ export const MedicationHistoryModal: React.FC<MedicationHistoryModalProps> = ({
         <div className="space-y-2.5 flex-1 overflow-y-auto pr-1">
           {filteredLogs.length === 0 ? (
             <div className="text-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-              <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+              <Clock className="w-8 h-8 text-slate-500 dark:text-slate-400 mx-auto" />
               <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-2">No logs matching criteria</h4>
               <p className="text-[11px] text-slate-500 mt-0.5">Try selecting a different time filter or status.</p>
             </div>

@@ -26,8 +26,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'Store lab test reports, prescriptions, MRI/CT scans, and clinical notes with military-grade encryption.',
       highlights: ['Instant Full-Text Search', 'Automatic Document Categorization', 'PDF & DICOM Viewer'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-400" />
               <span className="font-bold text-sm">Medical_Report_Aug2026.pdf</span>
@@ -36,16 +36,16 @@ export const FeatureShowcase: React.FC = () => {
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400">Lab Provider</span>
-              <span className="font-semibold text-white">Apollo Diagnostics, Mumbai</span>
+            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">Lab Provider</span>
+              <span className="font-semibold text-slate-900 dark:text-white">Apollo Diagnostics, Mumbai</span>
             </div>
-            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400">Test Result</span>
+            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">Test Result</span>
               <span className="font-semibold text-emerald-400">Hemoglobin 14.2 g/dL (Normal)</span>
             </div>
-            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-              <span className="text-slate-400">Prescription Attached</span>
+            <div className="flex justify-between p-2.5 rounded-lg bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <span className="text-slate-500 dark:text-slate-400">Prescription Attached</span>
               <span className="font-semibold text-amber-400">Metformin 500mg BID</span>
             </div>
           </div>
@@ -61,8 +61,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'Track daily changes in heart rate, blood pressure, oxygen saturation, and body composition.',
       highlights: ['Animated SVG Path Drawing', 'Normal Range Benchmarks', 'Trend Forecast'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-rose-400" />
               <span className="font-bold text-sm">Blood Pressure Telemetry</span>
@@ -72,8 +72,8 @@ export const FeatureShowcase: React.FC = () => {
 
           <div className="flex items-baseline justify-between pt-2">
             <div>
-              <p className="text-3xl font-black text-white">120/80 <span className="text-xs font-normal text-slate-400">mmHg</span></p>
-              <p className="text-[11px] text-slate-400 mt-1">Measured today at 08:30 AM</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white">120/80 <span className="text-xs font-normal text-slate-500 dark:text-slate-400">mmHg</span></p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Measured today at 08:30 AM</p>
             </div>
             <div className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
               -4% vs Last Week
@@ -99,8 +99,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'Intelligent daily dose schedules, automatic drug interaction warnings, and adherence scoring.',
       highlights: ['Custom Push Reminders', 'Weekly 92%+ Adherence Badge', 'Refill Notifications'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <Pill className="w-5 h-5 text-amber-400" />
               <span className="font-bold text-sm">Today's Schedule</span>
@@ -111,8 +111,8 @@ export const FeatureShowcase: React.FC = () => {
           <div className="space-y-2">
             <div className="p-3 rounded-xl bg-slate-800 border border-emerald-500/40 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">Metformin 500mg</p>
-                <p className="text-[10px] text-slate-400">1 Tablet • Morning After Breakfast</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">Metformin 500mg</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">1 Tablet • Morning After Breakfast</p>
               </div>
               <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Taken 8:15 AM
@@ -120,8 +120,8 @@ export const FeatureShowcase: React.FC = () => {
             </div>
             <div className="p-3 rounded-xl bg-slate-800 border border-amber-500/40 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">Atorvastatin 10mg</p>
-                <p className="text-[10px] text-slate-400">1 Tablet • Evening 08:00 PM</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">Atorvastatin 10mg</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">1 Tablet • Evening 08:00 PM</p>
               </div>
               <span className="text-xs text-amber-400 font-semibold">Upcoming</span>
             </div>
@@ -138,8 +138,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'Book online tele-consultations or clinic visits with automatic pre-consultation health summary sharing.',
       highlights: ['Pre-Consult Snapshot', 'Instant Prescriptions', 'Calendar Sync'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-orange-400" />
               <span className="font-bold text-sm">Upcoming Tele-Consultation</span>
@@ -147,15 +147,15 @@ export const FeatureShowcase: React.FC = () => {
             <span className="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">Today</span>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-800 border border-slate-700 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
             <div className="flex justify-between items-start">
               <div>
-                <h4 className="font-bold text-sm text-white">Dr. Rajesh Kumar</h4>
-                <p className="text-xs text-slate-400">Senior Cardiologist • Fortis Hospital</p>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Dr. Rajesh Kumar</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Senior Cardiologist • Fortis Hospital</p>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-[#FF5B22] text-white text-[10px] font-bold">5:30 PM</span>
+              <span className="px-2.5 py-1 rounded-full bg-[#FF5B22] text-slate-900 dark:text-white text-[10px] font-bold">5:30 PM</span>
             </div>
-            <p className="text-[11px] text-slate-300 pt-2 border-t border-slate-700">
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-200 dark:border-slate-700">
               ✓ ABHA Vitals & Recent ECG Report pre-shared via consent.
             </p>
           </div>
@@ -171,8 +171,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'You maintain absolute control over who accesses your medical records, what they can see, and for how long.',
       highlights: ['Instant Revocation', 'Time-Bound Access (1-30 Days)', 'Full Audit Trail'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-emerald-400" />
               <span className="font-bold text-sm">Active Consent Token</span>
@@ -180,17 +180,17 @@ export const FeatureShowcase: React.FC = () => {
             <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">Granted</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-1.5 text-xs">
+          <div className="p-3 rounded-xl bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">Provider</span>
-              <span className="font-bold text-white">Dr. Kumar (Cardiology)</span>
+              <span className="text-slate-500 dark:text-slate-400">Provider</span>
+              <span className="font-bold text-slate-900 dark:text-white">Dr. Kumar (Cardiology)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Granted Data</span>
+              <span className="text-slate-500 dark:text-slate-400">Granted Data</span>
               <span className="text-emerald-400 font-semibold">Labs, Vitals & Scans</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Expires</span>
+              <span className="text-slate-500 dark:text-slate-400">Expires</span>
               <span className="text-amber-400">In 7 Days</span>
             </div>
           </div>
@@ -206,8 +206,8 @@ export const FeatureShowcase: React.FC = () => {
       description: 'Link your 14-digit ABHA ID to aggregate records from hospitals, clinics, and diagnostic labs nationwide.',
       highlights: ['Seamless Provider Discovery', 'Government ABDM Sandbox Ready', 'Masked Identifiers'],
       renderVisual: () => (
-        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white space-y-4 shadow-xl border border-slate-700">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+        <div className="w-full h-full p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-900 dark:text-white space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
             <div className="flex items-center gap-2">
               <Link2 className="w-5 h-5 text-cyan-400" />
               <span className="font-bold text-sm">ABHA Digital Identity</span>
@@ -216,9 +216,9 @@ export const FeatureShowcase: React.FC = () => {
           </div>
 
           <div className="p-4 rounded-xl bg-slate-800/90 border border-cyan-500/30 space-y-2">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest">ABHA Number</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest">ABHA Number</p>
             <p className="font-mono text-base font-bold text-cyan-300">14-9842-7712-8921</p>
-            <p className="text-xs text-slate-300">Address: <span className="font-semibold text-white">patient.health@abdm</span></p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Address: <span className="font-semibold text-slate-900 dark:text-white">patient.health@abdm</span></p>
           </div>
         </div>
       ),

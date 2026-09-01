@@ -73,7 +73,7 @@ export const RecentUploadsSection: React.FC<RecentUploadsSectionProps> = ({
         </div>
       ) : (
         <div className="p-8 text-center bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
-          <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+          <Clock className="w-8 h-8 text-slate-500 dark:text-slate-400 mx-auto" />
           <div>
             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Recent Scans Yet</h4>
             <p className="text-xs text-slate-500 mt-0.5">Start by scanning paper records or uploading a PDF file.</p>
