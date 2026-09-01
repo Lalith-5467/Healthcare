@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, Sparkles } from 'lucide-react';
+import { Search, Bell, Sparkles, Home } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
 import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
@@ -9,12 +9,14 @@ interface DashboardHeaderProps {
   userName?: string;
   onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
+  onNavigateHome?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName = 'Samson',
   onOpenNotifications,
-  onOpenProfile
+  onOpenProfile,
+  onNavigateHome
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -99,6 +101,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             className="w-full pl-10 pr-4 py-2.5 text-xs rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:border-[#00a896] dark:focus:border-cyan-500 focus:ring-1 focus:ring-teal-500/30 shadow-inner transition-all font-sans"
           />
         </div>
+
+        {/* HOME BUTTON */}
+        {onNavigateHome && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onNavigateHome}
+            className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-300 hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold shrink-0"
+            title="Go to Website Home"
+          >
+            <Home className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
+            <span className="hidden xl:inline font-sans">Home</span>
+          </motion.button>
+        )}
 
         {/* DARK / LIGHT MODE THEME TOGGLE BUTTON */}
         <ThemeToggle className="shrink-0" />

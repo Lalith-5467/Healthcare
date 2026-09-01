@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Menu } from 'lucide-react';
+import { CheckCircle2, Menu, Home } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
 import {
   DashboardHeader,
@@ -110,6 +110,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   const handleSelectNav = (id: string) => {
+    if (id === 'home') {
+      if (_onNavigate) {
+        _onNavigate('home');
+      }
+      return;
+    }
     const targetId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
     setActiveNavId(targetId);
     localStorage.setItem('app_active_nav_id', targetId);
@@ -252,19 +258,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
             <span className="text-xs font-extrabold text-slate-900 dark:text-white">Healthcare Menu</span>
           </div>
-          <span className="px-2.5 py-1 text-[10px] font-black bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 font-sans">
-            MediCare
-          </span>
+          <button
+            onClick={() => handleSelectNav('home')}
+            className="px-2.5 py-1 text-[10px] font-black bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 font-sans hover:bg-[#00a896] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+            title="Go to Home"
+          >
+            <Home className="w-3 h-3" />
+            <span>Home</span>
+          </button>
         </div>
 
-        {/* STICKY TOP APP HEADER BAR */}
-        <div className="sticky top-0 z-40 bg-slate-50/90 dark:bg-[#0b1120]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-6 transition-colors shadow-xs">
-          <DashboardHeader
-            userName={user.name.split(' ')[0]}
-            onOpenNotifications={() => handleSelectNav('notifications')}
-            onOpenProfile={() => handleSelectNav('profile')}
-          />
-        </div>
         {loading ? (
           <DashboardSkeleton />
         ) : activeNavId === 'profile' ? (
@@ -373,6 +376,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             transition={{ duration: 0.3 }}
             className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden"
           >
+            {/* STICKY TOP APP HEADER BAR - DISPLAYED ONLY ON DASHBOARD OVERVIEW */}
+            <DashboardHeader
+              userName={user.name.split(' ')[0]}
+              onOpenNotifications={() => handleSelectNav('notifications')}
+              onOpenProfile={() => handleSelectNav('profile')}
+              onNavigateHome={() => handleSelectNav('home')}
+            />
+
             {/* 2. PRIMARY HEALTH SCORE & ABDM ACCESS HERO CARDS */}
             <DashboardStatsGrid onNavigate={handleSelectNav} />
 

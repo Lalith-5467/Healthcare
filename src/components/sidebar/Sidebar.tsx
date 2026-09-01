@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <SidebarHeader
           isCollapsed={isCollapsed}
           onToggleCollapse={handleToggleCollapse}
+          onNavigateHome={() => handleSelectNav('home')}
         />
 
         {/* MAIN NAVIGATION LIST (ALL 18 ITEMS) */}

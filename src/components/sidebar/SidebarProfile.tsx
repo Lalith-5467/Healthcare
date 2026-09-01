@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, User, Settings, ShieldCheck, LogOut, Sun, Moon } from 'lucide-react';
+import { ChevronDown, User, Settings, ShieldCheck, LogOut, Sun, Moon, Home } from 'lucide-react';
 import type { UserProfile } from './types';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -56,6 +56,14 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
       {/* POPUP DROPDOWN MENU */}
       {menuOpen && (
         <div className={`absolute bottom-full mb-2 ${isCollapsed ? 'left-14' : 'left-3 right-3'} rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-1.5 z-50 text-xs font-semibold space-y-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150`}>
+          <button
+            onClick={() => handleOptionClick('home')}
+            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
+          >
+            <Home className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
+            <span>Website Home</span>
+          </button>
+
           <button
             onClick={() => handleOptionClick('profile')}
             className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
