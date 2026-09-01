@@ -30,7 +30,7 @@ export const RemoveContactModal: React.FC<RemoveContactModalProps> = ({
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{contact.name} ({contact.relationship})</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-5 h-5" /></button>
         </div>
 
         <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">

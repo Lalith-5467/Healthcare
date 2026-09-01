@@ -328,7 +328,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 style={{ background: s.cardBg, border: s.cardBorder, boxShadow: s.cardShadow }} 
               />
               {/* Dark mode background */}
-              <div className="absolute inset-0 hidden dark:block pointer-events-none rounded-2xl bg-slate-900/90 border-[1.5px] border-slate-800/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" />
+              <div className="absolute inset-0 hidden dark:block pointer-events-none rounded-2xl bg-slate-900/90 border-[1.5px] border-slate-200 dark:border-slate-800/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" />
               {/* Soft radial glow top-right — purely decorative, no layout impact */}
               <div className="pointer-events-none absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-60"
                 style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }} />
@@ -339,7 +339,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 {/* Row 1 — Icon circle + View → */}
                 <div className="flex items-center justify-between">
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-slate-900 dark:text-white flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
                     style={{ background: s.iconGradient, boxShadow: s.iconShadow }}
                   >
                     <Icon className="w-4 h-4" />
@@ -365,7 +365,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                         {s.value}
                       </span>
                       {s.unit && (
-                        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">{s.unit}</span>
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-500">{s.unit}</span>
                       )}
                     </div>
                   </div>
@@ -380,7 +380,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${s.badgeCls}`}>
                     {s.badgeText}
                   </span>
-                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate">
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate">
                     {s.subtitle}
                   </p>
                 </div>

@@ -38,7 +38,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -57,7 +57,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
               <h4 className="text-base font-extrabold text-slate-900 dark:text-white">{appointment.doctorName}</h4>
               <p className="text-xs font-bold text-[#00a896] dark:text-cyan-300">{appointment.speciality}</p>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 <span className="truncate">{appointment.hospital}</span>
               </div>
             </div>
@@ -68,7 +68,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400" />
               <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Date</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Date</span>
                 <strong className="text-slate-800 dark:text-slate-200">{appointment.date}</strong>
               </div>
             </div>
@@ -76,7 +76,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <Clock className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Time</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Time</span>
                 <strong className="text-slate-800 dark:text-slate-200">{appointment.time}</strong>
               </div>
             </div>

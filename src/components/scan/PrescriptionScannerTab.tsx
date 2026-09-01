@@ -347,7 +347,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                   <span className="truncate">{s.title}</span>
                 </div>
                 {idx < STEPS_NAV.length - 1 && (
-                  <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-700 shrink-0 hidden sm:block" />
+                  <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-300 dark:text-slate-700 shrink-0 hidden sm:block" />
                 )}
               </div>
             );
@@ -632,9 +632,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
           className="space-y-6"
         >
           {/* TOP REVIEW BANNER */}
-          <div className="p-5 rounded-3xl bg-gradient-to-r from-[#00a896] to-teal-700 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="p-5 rounded-3xl bg-gradient-to-r from-[#00a896] to-teal-700 text-slate-900 dark:text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 text-slate-900 dark:text-white flex items-center justify-center shrink-0 shadow-xs">
                 <FileCheck2 className="w-6 h-6" />
               </div>
               <div>
@@ -655,7 +655,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 type="button"
                 onClick={handleReset}
                 disabled={isConfirming}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-extrabold transition-colors cursor-pointer border border-white/20 disabled:opacity-50"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-slate-900 dark:text-white text-xs font-extrabold transition-colors cursor-pointer border border-white/20 disabled:opacity-50"
               >
                 Rescan / Back
               </button>
@@ -810,7 +810,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveMedicine(med.id)}
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                       title="Remove medicine"
                     >
                       <Trash2 className="w-4 h-4" />

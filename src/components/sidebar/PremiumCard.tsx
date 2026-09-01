@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles } from 'lucide-react';
+import { Crown, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface PremiumCardProps {
   isCollapsed: boolean;
@@ -34,40 +34,51 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="mx-3 my-2 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border-[1.5px] border-purple-200 dark:border-purple-800 shadow-lg relative overflow-hidden group shrink-0 transition-all text-center flex flex-col items-center justify-center"
-      style={{ boxShadow: '0 10px 30px -10px rgba(147, 51, 234, 0.20)' }}
+      className="mx-3 my-2 p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl border-[1px] border-purple-200/60 dark:border-purple-800/50 shadow-lg relative overflow-hidden group shrink-0 transition-all text-left flex flex-col justify-center hover:shadow-[0_8px_30px_-5px_rgba(147,51,234,0.2)] dark:hover:shadow-[0_8px_30px_-5px_rgba(147,51,234,0.25)]"
     >
       {/* GLOW DECORATION */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-50/80 to-transparent dark:from-purple-900/20 pointer-events-none" />
-      <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/90 via-transparent to-blue-50/50 dark:from-purple-900/20 dark:via-transparent dark:to-blue-900/10 pointer-events-none transition-opacity duration-300" />
+      <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-400/30 dark:group-hover:bg-purple-500/20 transition-colors duration-500" />
+      <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-400/30 dark:group-hover:bg-blue-500/20 transition-colors duration-500" />
 
-      <div className="relative z-10 space-y-2 font-sans w-full">
-        {/* CARD HEADER (Centered, No Logo) */}
-        <div className="flex items-center justify-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-          <h4 className="text-[14px] font-serif font-extrabold text-[#2d1b69] dark:text-purple-100 tracking-tight leading-tight">
-            Premium Health
+      <div className="relative z-10 font-sans w-full flex flex-col gap-2.5">
+        {/* CARD HEADER */}
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 drop-shadow-sm" />
+          <h4 className="text-[14px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-blue-600 dark:from-purple-300 dark:to-cyan-300 tracking-tight leading-tight">
+            Premium Care
           </h4>
         </div>
 
-        <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-relaxed font-medium mx-auto px-1">
-          Unlock exclusive benefits and priority support.
+        <p className="text-[9px] text-slate-600 dark:text-slate-300/90 leading-snug font-medium">
+          Get advanced health insights, priority support & more.
         </p>
 
-        {/* GO PREMIUM BUTTON (Glossy) */}
+        {/* COMPACT BENEFITS */}
+        <ul className="text-[9px] text-slate-700 dark:text-slate-300 font-medium space-y-1.5 mb-1.5">
+          <li className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Advanced Health Insights
+          </li>
+          <li className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Detailed Health Reports
+          </li>
+          <li className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Priority Support
+          </li>
+        </ul>
+
+        {/* GO PREMIUM BUTTON */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onOpenPremiumModal}
-          className="w-full mt-2 py-2 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-blue-600 text-white font-bold text-[11px] shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer relative overflow-hidden ring-1 ring-amber-200/50 dark:ring-amber-500/50 ring-offset-1 ring-offset-purple-50 dark:ring-offset-slate-900"
-          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+          className="w-full py-1.5 px-3 mt-1 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-slate-900 dark:text-white font-bold text-[10px] shadow-[0_0_15px_-3px_rgba(147,51,234,0.4)] dark:shadow-[0_0_15px_-3px_rgba(147,51,234,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10 dark:border-white/5 relative overflow-hidden"
         >
-          {/* Inner glossy highlight */}
-          <div className="absolute top-0 left-1 right-1 h-1/2 bg-gradient-to-b from-white/20 to-transparent rounded-t-full pointer-events-none"></div>
+          {/* Subtle hover glow on button */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-700 ease-in-out pointer-events-none" />
           
-          <Crown className="w-3 h-3 text-amber-300 drop-shadow-sm relative z-10" />
-          <span className="relative z-10 tracking-wide">Upgrade Now</span>
+          <Crown className="w-3 h-3 text-amber-300 drop-shadow-md relative z-10" />
+          <span className="tracking-wide relative z-10 drop-shadow-sm">Explore Premium</span>
         </motion.button>
       </div>
     </motion.div>

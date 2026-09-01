@@ -96,7 +96,7 @@ export const UploadRecordModal: React.FC<UploadRecordModalProps> = ({
         >
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -134,7 +134,7 @@ export const UploadRecordModal: React.FC<UploadRecordModalProps> = ({
                 onClick={handleSimulateDrop}
                 className="p-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-[#00a896] bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all text-center space-y-3 cursor-pointer group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 group-hover:text-[#00a896] group-hover:bg-teal-500/10 flex items-center justify-center mx-auto transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] group-hover:bg-teal-500/10 flex items-center justify-center mx-auto transition-all">
                   <FilePlus className="w-6 h-6" />
                 </div>
                 <div>
@@ -143,7 +143,7 @@ export const UploadRecordModal: React.FC<UploadRecordModalProps> = ({
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">or <span className="text-[#00a896] underline font-bold">Browse files</span> from your computer</p>
                 </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
                   Supported Formats: PDF, JPG, PNG (Max 25MB)
                 </p>
 
@@ -159,7 +159,7 @@ export const UploadRecordModal: React.FC<UploadRecordModalProps> = ({
               {/* OR SCAN OPTION */}
               <div className="flex items-center gap-3 pt-2">
                 <span className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
-                <span className="text-[10px] uppercase font-bold text-slate-400">OR</span>
+                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">OR</span>
                 <span className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
               </div>
 

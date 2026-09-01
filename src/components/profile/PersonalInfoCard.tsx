@@ -44,7 +44,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
               Personal Information
             </h3>
-            <span className="text-[11px] text-slate-400">Demographic & Contact Details</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Demographic & Contact Details</span>
           </div>
         </div>
       </div>

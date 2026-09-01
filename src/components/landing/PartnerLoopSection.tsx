@@ -17,10 +17,10 @@ export const PartnerLoopSection: React.FC = () => {
             <circle cx="16" cy="16" r="3" className="fill-current stroke-none" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 font-mono leading-none">
+            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 font-mono leading-none">
               ABDM
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Digital Mission
             </span>
           </div>
@@ -42,10 +42,10 @@ export const PartnerLoopSection: React.FC = () => {
             <path d="M7 22c0-2.2 1.8-4 4-4s4 1.8 4 4" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 font-mono leading-none">
+            <span className="font-black text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 font-mono leading-none">
               ABHA
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Health ID
             </span>
           </div>
@@ -65,10 +65,10 @@ export const PartnerLoopSection: React.FC = () => {
             <path d="M16 11v8" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               Secure<span className="text-[#00a896] dark:text-cyan-400">Health</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Certified
             </span>
           </div>
@@ -88,10 +88,10 @@ export const PartnerLoopSection: React.FC = () => {
             <path d="M10 20h3l2-4 3 7 2-3h2" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               Digi<span className="text-[#00a896] dark:text-cyan-400">Records</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Fast PHR
             </span>
           </div>
@@ -113,10 +113,10 @@ export const PartnerLoopSection: React.FC = () => {
             <circle cx="22" cy="5" r="1.5" className="fill-current" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               Doc<span className="text-[#00a896] dark:text-cyan-400">Network</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Verified MDs
             </span>
           </div>
@@ -137,10 +137,10 @@ export const PartnerLoopSection: React.FC = () => {
             <circle cx="16" cy="16" r="5" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               Care<span className="text-[#00a896] dark:text-cyan-400">Network</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Hospitals & OPD
             </span>
           </div>
@@ -158,10 +158,10 @@ export const PartnerLoopSection: React.FC = () => {
             <path d="M29 16h-5l-4 11L12 5l-4 11H3" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               SOS<span className="text-rose-500">Pulse</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               Emergency QR
             </span>
           </div>
@@ -181,10 +181,10 @@ export const PartnerLoopSection: React.FC = () => {
             <circle cx="16" cy="21" r="2" className="fill-current stroke-none" />
           </svg>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white transition-colors duration-300 leading-none">
+            <span className="font-extrabold text-sm tracking-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-slate-900 dark:text-white transition-colors duration-300 leading-none">
               Data<span className="text-[#00a896] dark:text-cyan-400">Vault</span>
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mt-0.5">
+            <span className="text-[9px] font-bold tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase mt-0.5">
               256-Bit Encrypted
             </span>
           </div>

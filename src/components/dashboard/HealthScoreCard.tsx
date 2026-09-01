@@ -71,7 +71,7 @@ export const HealthScoreCard: React.FC = () => {
             {/* Circular gradient icon — matches reference */}
             <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
-              className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-md"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-slate-900 dark:text-white flex-shrink-0 shadow-md"
               style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 14px rgba(20,184,166,.4)' }}
             >
               <Activity className="w-5 h-5" />
@@ -85,7 +85,7 @@ export const HealthScoreCard: React.FC = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setShowDetailModal(true)}
-                  className="text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-300 transition-colors cursor-pointer"
+                  className="text-slate-500 dark:text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-300 transition-colors cursor-pointer"
                   title="Score details"
                 >
                   <Info className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export const HealthScoreCard: React.FC = () => {
               className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-rose-400/20 shadow-[0_2px_8px_rgba(251,113,133,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#fecaca,#f87171)' }}>
-                <Heart className="w-3.5 h-3.5 text-white animate-bounce" style={{ animationDuration: '2s' }} />
+                <Heart className="w-3.5 h-3.5 text-slate-900 dark:text-white animate-bounce" style={{ animationDuration: '2s' }} />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Heart Rate</span>
@@ -206,7 +206,7 @@ export const HealthScoreCard: React.FC = () => {
               className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-teal-500/20 shadow-[0_2px_8px_rgba(20,184,166,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#5eead4,#0d9488)' }}>
-                <Zap className="w-3.5 h-3.5 text-white" />
+                <Zap className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood SpO2</span>
@@ -220,7 +220,7 @@ export const HealthScoreCard: React.FC = () => {
               className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-indigo-500/20 shadow-[0_2px_8px_rgba(99,102,241,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#c7d2fe,#6366f1)' }}>
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood Press.</span>
@@ -234,7 +234,7 @@ export const HealthScoreCard: React.FC = () => {
               className="p-2.5 rounded-2xl flex items-center gap-2.5 bg-white/85 dark:bg-slate-800/80 border border-purple-500/20 shadow-[0_2px_8px_rgba(168,85,247,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
             >
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#e9d5ff,#9333ea)' }}>
-                <Moon className="w-3.5 h-3.5 text-white" />
+                <Moon className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Sleep Avg.</span>

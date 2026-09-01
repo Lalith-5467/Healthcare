@@ -56,7 +56,7 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
           
           {/* CONTACTS COLUMN */}
           <div className="flex-1 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
-            <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Contacts</h4>
+            <h4 className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">Contacts</h4>
             
             <div className="flex items-start gap-3">
               <User className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
@@ -69,7 +69,7 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
             <div className="flex items-start gap-3">
               <Users className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Secondary</span>
+                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Secondary</span>
                 <span className="text-xs font-bold text-slate-900 dark:text-white">{data.secondaryContact || 'N/A'}</span>
               </div>
             </div>
@@ -77,7 +77,7 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
 
           {/* MEDICAL DETAILS COLUMN */}
           <div className="flex-1 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80 space-y-4">
-            <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Medical Details</h4>
+            <h4 className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">Medical Details</h4>
             
             <div className="flex items-center gap-3">
               <Stethoscope className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
@@ -101,7 +101,7 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
           <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/60">
             <Building2 className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="text-slate-400 mr-1.5">Preferred:</span>
+              <span className="text-slate-500 dark:text-slate-400 mr-1.5">Preferred:</span>
               {data.preferredHospital}
             </span>
           </div>

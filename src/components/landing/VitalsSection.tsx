@@ -101,7 +101,7 @@ export const VitalsSection: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-slate-400">{m.name}</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{m.name}</span>
                   <div className={`p-2 rounded-lg ${m.bgColor} ${m.color}`}>
                     <Icon className="w-4 h-4" />
                   </div>
@@ -109,7 +109,7 @@ export const VitalsSection: React.FC = () => {
 
                 <div>
                   <span className="text-2xl font-extrabold">{m.latest}</span>
-                  <span className="text-xs text-slate-400 ml-1">{m.unit}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">{m.unit}</span>
                 </div>
               </button>
             );
@@ -117,24 +117,24 @@ export const VitalsSection: React.FC = () => {
         </div>
 
         {/* CHART VISUALIZATION SURFACE */}
-        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-2xl relative overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
+        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-slate-900 text-white border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6 mb-6">
             <div>
-              <span className="text-xs text-slate-400 uppercase tracking-widest">Selected Telemetry</span>
-              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Selected Telemetry</span>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>{current.name}</span>
-                <span className="text-sm font-normal text-slate-400">({current.unit})</span>
+                <span className="text-sm font-normal text-slate-500 dark:text-slate-400">({current.unit})</span>
               </h3>
             </div>
 
             <div className="flex items-center gap-6 text-xs">
               <div>
-                <p className="text-slate-400">Latest Reading</p>
+                <p className="text-slate-500 dark:text-slate-400">Latest Reading</p>
                 <p className="text-lg font-bold text-orange-400">{current.latest} {current.unit}</p>
               </div>
-              <div className="border-l border-slate-800 pl-6">
-                <p className="text-slate-400">Previous Reading</p>
-                <p className="text-lg font-bold text-slate-300">{current.prev} {current.unit}</p>
+              <div className="border-l border-slate-200 dark:border-slate-800 pl-6">
+                <p className="text-slate-500 dark:text-slate-400">Previous Reading</p>
+                <p className="text-lg font-bold text-slate-600 dark:text-slate-300">{current.prev} {current.unit}</p>
               </div>
             </div>
           </div>
@@ -172,7 +172,7 @@ export const VitalsSection: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
             <span>Observation Trend: <strong className="text-emerald-400">{current.trend}</strong></span>
             <span>Historical Log: 7-Day Window</span>
           </div>

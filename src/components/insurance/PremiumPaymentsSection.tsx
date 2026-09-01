@@ -65,7 +65,7 @@ export const PremiumPaymentsSection: React.FC<PremiumPaymentsSectionProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative text-xs text-slate-900 dark:text-white">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
               <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Premium Receipt ({selectedReceipt.monthYear})</h4>
-              <button onClick={() => setSelectedReceipt(null)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+              <button onClick={() => setSelectedReceipt(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono space-y-2">
               <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Receipt No:</span><strong className="text-slate-900 dark:text-white">{selectedReceipt.receiptNumber}</strong></div>

@@ -46,13 +46,13 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200 dark:border-slate-800 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-y-auto">
       <nav className="flex-1 px-4 py-6 space-y-1">
         {NAV_ITEMS.map((item, index) => {
           if (item.category) {
             return (
               <div key={`cat-${index}`} className="pt-6 pb-2 px-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   {item.category}
                 </span>
               </div>
@@ -90,7 +90,7 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-5 h-5 ${isActive ? '' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? '' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-600 dark:text-slate-300'}`} />
                 <span>{item.label}</span>
               </div>
             </button>

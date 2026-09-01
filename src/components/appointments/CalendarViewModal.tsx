@@ -95,7 +95,7 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -136,7 +136,7 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
         {/* CALENDAR MONTH GRID */}
         <div>
           {/* DAY NAMES */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-slate-400 mb-1.5 uppercase font-mono">
+          <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase font-mono">
             <span>Sun</span>
             <span>Mon</span>
             <span>Tue</span>
@@ -213,7 +213,7 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {selectedDayAppointments.length === 0 ? (
               <div className="text-center py-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                <p className="text-xs text-slate-400 font-medium">No consultations scheduled on this date.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">No consultations scheduled on this date.</p>
               </div>
             ) : (
               selectedDayAppointments.map((apt) => (

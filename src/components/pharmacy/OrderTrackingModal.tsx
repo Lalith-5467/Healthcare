@@ -77,7 +77,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             <div className="flex items-center justify-between pb-3"
               style={{ borderBottom: '1px solid rgba(20,184,166,.12)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shrink-0"
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shadow-md shrink-0"
                   style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}>
                   <Truck className="w-4.5 h-4.5" />
                 </div>
@@ -92,7 +92,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-900 dark:text-white transition-colors cursor-pointer bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
                 aria-label="Close Tracking Modal"
               >
                 <X className="w-4 h-4" />
@@ -102,7 +102,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             {/* ── DELIVERY BANNER ── */}
             <div className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 bg-white/85 dark:bg-slate-900/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_8px_rgba(20,184,166,0.04)]">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Estimated Delivery</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Estimated Delivery</span>
                 <h4 className="text-sm sm:text-base font-extrabold mt-0.5" style={{ color: '#059669' }}>
                   {order.estimatedDelivery}
                 </h4>
@@ -111,7 +111,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 </p>
               </div>
               <div className="text-right font-mono">
-                <span className="text-[9px] text-slate-400 font-bold block">Total Amount</span>
+                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold block">Total Amount</span>
                 <span className="text-lg font-extrabold" style={{ color: '#d97706' }}>₹{order.totalAmount}</span>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
             {/* ── TRACKING TIMELINE ── */}
             <div>
-              <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono mb-2.5 flex items-center gap-1.5">
+              <h4 className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono mb-2.5 flex items-center gap-1.5">
                 <Package className="w-3.5 h-3.5" style={{ color: '#00a896' }} />
                 Tracking History
               </h4>
@@ -205,7 +205,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                           <span className={`text-xs font-bold leading-tight ${
                             step.done || step.active
                               ? 'text-slate-900 dark:text-white'
-                              : 'text-slate-400 dark:text-slate-500'
+                              : 'text-slate-500 dark:text-slate-400 dark:text-slate-500'
                           }`}>
                             {step.label}
                           </span>
@@ -221,7 +221,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                             ? 'text-emerald-600 dark:text-emerald-400'
                             : step.active
                             ? 'text-[#00a896] dark:text-cyan-400'
-                            : 'text-slate-400'
+                            : 'text-slate-500 dark:text-slate-400'
                         }`}>
                           {step.time}
                         </span>

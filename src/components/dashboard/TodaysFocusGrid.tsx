@@ -42,7 +42,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           <div className="flex items-center justify-between relative z-10">
             <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{ background: 'linear-gradient(135deg,#fde68a,#f59e0b)', boxShadow: '0 3px 10px rgba(245,158,11,.3)' }}>
-              <Pill className="w-4 h-4 text-white" />
+              <Pill className="w-4 h-4 text-slate-900 dark:text-white" />
             </div>
             <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap"
               style={{ background: 'rgba(245,158,11,.12)', color: '#92400e', border: '1px solid rgba(245,158,11,.25)' }}>
@@ -84,7 +84,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           <div className="flex items-center justify-between relative z-10">
             <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{ background: 'linear-gradient(135deg,#93c5fd,#3b82f6)', boxShadow: '0 3px 10px rgba(59,130,246,.3)' }}>
-              <Calendar className="w-4 h-4 text-white" />
+              <Calendar className="w-4 h-4 text-slate-900 dark:text-white" />
             </div>
             <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap"
               style={{ background: 'rgba(59,130,246,.12)', color: '#1e40af', border: '1px solid rgba(59,130,246,.25)' }}>
@@ -103,7 +103,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
 
           <button
             onClick={() => onNavigate('appointments')}
-            className="w-full py-2 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
+            className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
             style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', boxShadow: '0 3px 10px rgba(59,130,246,.3)' }}
           >
             View Appointment
@@ -121,7 +121,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           <div className="flex items-center justify-between relative z-10">
             <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{ background: 'linear-gradient(135deg,#86efac,#16a34a)', boxShadow: '0 3px 10px rgba(22,163,74,.3)' }}>
-              <FileText className="w-4 h-4 text-white" />
+              <FileText className="w-4 h-4 text-slate-900 dark:text-white" />
             </div>
             <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap"
               style={{ background: 'rgba(34,197,94,.12)', color: '#166534', border: '1px solid rgba(34,197,94,.25)' }}>
@@ -140,7 +140,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
 
           <button
             onClick={() => onNavigate('records')}
-            className="w-full py-2 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
+            className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
             style={{ background: 'linear-gradient(135deg,#00a896,#059669)', boxShadow: '0 3px 10px rgba(0,168,150,.3)' }}
           >
             View Lab Report
@@ -177,7 +177,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
           </div>
 
           <div className="my-2.5 space-y-0.5 relative z-10">
-            <h4 className="text-xs sm:text-sm font-extrabold text-white leading-snug">
+            <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
               Ask AI Assistant
             </h4>
             <p className="text-[11px] text-purple-300 font-medium">
@@ -187,7 +187,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
 
           <button
             onClick={() => onNavigate('ai-assistant')}
-            className="w-full py-2 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative z-10 hover:opacity-90"
+            className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative z-10 hover:opacity-90"
             style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 3px 12px rgba(124,58,237,.4)' }}
           >
             <Sparkles className="w-3.5 h-3.5" />

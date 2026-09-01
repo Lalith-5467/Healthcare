@@ -297,12 +297,12 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
           {/* 6. RECORDS LIST OR TIMELINE VIEW */}
           {filteredAndSortedRecords.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#0f172a] border border-dashed border-slate-300 dark:border-slate-800 space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center mx-auto text-slate-500 dark:text-slate-400">
                 <FileQuestion className="w-8 h-8" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">No Medical Records Found</h3>
-                <p className="text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   {searchQuery || activeFilterCount > 0
                     ? 'Try clearing your search query or adjusting active filters.'
                     : 'Upload or scan your first health document to get started.'}

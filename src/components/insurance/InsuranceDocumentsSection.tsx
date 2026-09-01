@@ -124,7 +124,7 @@ export const InsuranceDocumentsSection: React.FC<InsuranceDocumentsSectionProps>
               </button>
               <button
                 onClick={() => onDeleteDocument(doc.id)}
-                className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-400 hover:text-rose-600 border border-slate-200 dark:border-slate-800 cursor-pointer transition-colors shadow-2xs"
+                className="p-2 rounded-xl bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-rose-600 border border-slate-200 dark:border-slate-800 cursor-pointer transition-colors shadow-2xs"
                 title="Delete Document"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export const InsuranceDocumentsSection: React.FC<InsuranceDocumentsSectionProps>
               </div>
               <button
                 onClick={() => setUploadModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -258,7 +258,7 @@ export const InsuranceDocumentsSection: React.FC<InsuranceDocumentsSectionProps>
               </div>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

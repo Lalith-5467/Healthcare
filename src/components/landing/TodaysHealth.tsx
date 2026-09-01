@@ -60,7 +60,7 @@ export const TodaysHealth: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">Medication Schedule</h3>
-                  <p className={`text-xs ${expandedCard === 'medication' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs ${expandedCard === 'medication' ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'}`}>
                     8:00 AM • Morning Dose Taken
                   </p>
                 </div>
@@ -70,7 +70,7 @@ export const TodaysHealth: React.FC = () => {
                 <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Taken
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'medication' ? 'rotate-180 text-orange-400' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'medication' ? 'rotate-180 text-orange-400' : 'text-slate-500 dark:text-slate-400'}`} />
               </div>
             </div>
 
@@ -80,20 +80,20 @@ export const TodaysHealth: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 pt-4 border-t border-slate-800 space-y-3 text-xs"
+                  className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 text-xs"
                 >
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700">
                     <div>
-                      <p className="font-bold text-white">Metformin Hydrocholoride 500mg</p>
-                      <p className="text-[10px] text-slate-400">1 Tablet after breakfast • Verified by Dr. Kumar</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Metformin Hydrocholoride 500mg</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">1 Tablet after breakfast • Verified by Dr. Kumar</p>
                     </div>
                     <span className="text-emerald-400 font-mono font-semibold">08:05 AM ✓</span>
                   </div>
 
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-800/80 border border-slate-700 opacity-60">
+                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700 opacity-60">
                     <div>
-                      <p className="font-bold text-white">Telmisartan 40mg</p>
-                      <p className="text-[10px] text-slate-400">1 Tablet evening 08:00 PM</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Telmisartan 40mg</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">1 Tablet evening 08:00 PM</p>
                     </div>
                     <span className="text-amber-400 font-mono font-semibold">Upcoming</span>
                   </div>
@@ -119,7 +119,7 @@ export const TodaysHealth: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">Health Vitals Telemetry</h3>
-                  <p className={`text-xs ${expandedCard === 'vitals' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs ${expandedCard === 'vitals' ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'}`}>
                     78 BPM • 120/80 mmHg
                   </p>
                 </div>
@@ -129,7 +129,7 @@ export const TodaysHealth: React.FC = () => {
                 <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full">
                   Normal
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'vitals' ? 'rotate-180 text-orange-400' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'vitals' ? 'rotate-180 text-orange-400' : 'text-slate-500 dark:text-slate-400'}`} />
               </div>
             </div>
 
@@ -139,16 +139,16 @@ export const TodaysHealth: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 pt-4 border-t border-slate-800 space-y-3 text-xs"
+                  className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 text-xs"
                 >
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
-                      <p className="text-slate-400 text-[10px]">Resting Pulse</p>
-                      <p className="text-lg font-bold text-rose-400">78 <span className="text-xs text-slate-400">BPM</span></p>
+                    <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                      <p className="text-slate-500 dark:text-slate-400 text-[10px]">Resting Pulse</p>
+                      <p className="text-lg font-bold text-rose-400">78 <span className="text-xs text-slate-500 dark:text-slate-400">BPM</span></p>
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
-                      <p className="text-slate-400 text-[10px]">Blood Pressure</p>
-                      <p className="text-lg font-bold text-blue-400">120/80 <span className="text-xs text-slate-400">mmHg</span></p>
+                    <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                      <p className="text-slate-500 dark:text-slate-400 text-[10px]">Blood Pressure</p>
+                      <p className="text-lg font-bold text-blue-400">120/80 <span className="text-xs text-slate-500 dark:text-slate-400">mmHg</span></p>
                     </div>
                   </div>
                 </motion.div>
@@ -173,7 +173,7 @@ export const TodaysHealth: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">Doctor Consultation</h3>
-                  <p className={`text-xs ${expandedCard === 'appointment' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs ${expandedCard === 'appointment' ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'}`}>
                     Dr. Kumar • Today 5:30 PM
                   </p>
                 </div>
@@ -183,7 +183,7 @@ export const TodaysHealth: React.FC = () => {
                 <span className="text-xs font-bold text-[#FF5B22] bg-orange-500/10 px-2.5 py-1 rounded-full">
                   5:30 PM
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'appointment' ? 'rotate-180 text-orange-400' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'appointment' ? 'rotate-180 text-orange-400' : 'text-slate-500 dark:text-slate-400'}`} />
               </div>
             </div>
 
@@ -193,14 +193,14 @@ export const TodaysHealth: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 pt-4 border-t border-slate-800 space-y-3 text-xs"
+                  className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 text-xs"
                 >
-                  <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 flex justify-between items-center">
+                  <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <div>
-                      <p className="font-bold text-white">Dr. Rajesh Kumar (Cardiologist)</p>
-                      <p className="text-[10px] text-slate-400">Video Consultation Link Active</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Dr. Rajesh Kumar (Cardiologist)</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Video Consultation Link Active</p>
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg bg-[#FF5B22] text-white font-bold text-[11px] flex items-center gap-1">
+                    <button className="px-3 py-1.5 rounded-lg bg-[#FF5B22] text-slate-900 dark:text-white font-bold text-[11px] flex items-center gap-1">
                       <Video className="w-3.5 h-3.5" /> Join Video
                     </button>
                   </div>
@@ -226,7 +226,7 @@ export const TodaysHealth: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">Health Inbox</h3>
-                  <p className={`text-xs ${expandedCard === 'inbox' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs ${expandedCard === 'inbox' ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'}`}>
                     2 New Updates Received
                   </p>
                 </div>
@@ -236,7 +236,7 @@ export const TodaysHealth: React.FC = () => {
                 <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full">
                   2 New
                 </span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'inbox' ? 'rotate-180 text-orange-400' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedCard === 'inbox' ? 'rotate-180 text-orange-400' : 'text-slate-500 dark:text-slate-400'}`} />
               </div>
             </div>
 
@@ -246,13 +246,13 @@ export const TodaysHealth: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 pt-4 border-t border-slate-800 space-y-2 text-xs"
+                  className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs"
                 >
-                  <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center gap-2.5">
+                  <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center gap-2.5">
                     <FileText className="w-4 h-4 text-blue-400 shrink-0" />
                     <div>
-                      <p className="font-bold text-white">Lab Report Ready</p>
-                      <p className="text-[10px] text-slate-400">Lipid Profile uploaded by Apollo Diagnostics</p>
+                      <p className="font-bold text-slate-900 dark:text-white">Lab Report Ready</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Lipid Profile uploaded by Apollo Diagnostics</p>
                     </div>
                   </div>
                 </motion.div>

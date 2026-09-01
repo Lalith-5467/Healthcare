@@ -31,7 +31,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="relative rounded-3xl bg-gradient-to-br from-[#091322] via-[#07172c] to-[#041a22] text-white p-8 sm:p-14 border border-teal-500/30 ring-1 ring-teal-400/20 shadow-2xl shadow-teal-950/60 overflow-hidden text-center"
+          className="relative rounded-3xl bg-gradient-to-br from-[#091322] via-[#07172c] to-[#041a22] text-slate-900 dark:text-white p-8 sm:p-14 border border-teal-500/30 ring-1 ring-teal-400/20 shadow-2xl shadow-teal-950/60 overflow-hidden text-center"
         >
           {/* AMBIENT MESH & RADIAL GLOW LAYERS */}
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#00a896]/25 rounded-full blur-3xl pointer-events-none" />
@@ -73,7 +73,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
             </div>
             <div className="text-left">
               <span className="block text-[10px] font-black uppercase tracking-wider text-cyan-300 font-mono">256-Bit Vault</span>
-              <span className="block text-[9px] text-slate-300 font-semibold">ABDM Verified</span>
+              <span className="block text-[9px] text-slate-600 dark:text-slate-300 font-semibold">ABDM Verified</span>
             </div>
           </motion.div>
 
@@ -96,7 +96,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
             </div>
             <div className="text-left">
               <span className="block text-[10px] font-black uppercase tracking-wider text-teal-300 font-mono">Live Vitals Sync</span>
-              <span className="block text-[9px] text-slate-300 font-semibold">Instant SOS QR</span>
+              <span className="block text-[9px] text-slate-600 dark:text-slate-300 font-semibold">Instant SOS QR</span>
             </div>
           </motion.div>
 
@@ -135,7 +135,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto"
+              className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto"
             >
               Keep your medical information organized, secure, and ready whenever you or your doctor need it.
             </motion.p>
@@ -153,7 +153,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
                 whileHover={{ y: -2, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onStartJourney}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-bold text-white bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-cyan-600 rounded-xl shadow-xl shadow-teal-950/60 transition-all duration-300 cursor-pointer gap-2 border border-teal-400/40 group"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-bold text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-cyan-600 rounded-xl shadow-xl shadow-teal-950/60 transition-all duration-300 cursor-pointer gap-2 border border-teal-400/40 group"
               >
                 <span>Get Started Now</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -164,7 +164,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
                 whileHover={{ y: -2, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onExploreFeatures}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-slate-200 bg-slate-850/80 hover:bg-slate-800 border border-slate-700/80 hover:border-teal-500/40 rounded-xl transition-all duration-300 shadow-md backdrop-blur-md cursor-pointer gap-2"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-slate-200 bg-slate-850/80 hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 hover:border-teal-500/40 rounded-xl transition-all duration-300 shadow-md backdrop-blur-md cursor-pointer gap-2"
               >
                 <FileText className="w-4 h-4 text-[#00a896]" />
                 <span>Explore Features</span>
@@ -177,7 +177,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onStartJourney, onExploreFea
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="pt-6 border-t border-slate-800/90 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs font-semibold text-slate-300"
+              className="pt-6 border-t border-slate-200 dark:border-slate-800/90 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs font-semibold text-slate-600 dark:text-slate-300"
             >
               <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-xs">
                 <CheckCircle2 className="w-4 h-4 text-[#00a896]" />

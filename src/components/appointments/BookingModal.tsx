@@ -171,7 +171,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -234,7 +234,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {/* SEARCH & FILTER BAR */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search doctor by name, speciality, hospital..."
@@ -306,7 +306,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               })}
 
               {filteredDoctors.length === 0 && (
-                <p className="text-center text-xs text-slate-400 py-8">
+                <p className="text-center text-xs text-slate-500 dark:text-slate-400 py-8">
                   No doctors match your current search or filter criteria.
                 </p>
               )}
@@ -374,7 +374,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                       }`}
                     >
-                      <div className={`text-[10px] uppercase font-bold ${isSel ? 'text-teal-100' : 'text-slate-400'}`}>{item.day}</div>
+                      <div className={`text-[10px] uppercase font-bold ${isSel ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>{item.day}</div>
                       <div className="text-xs font-black mt-0.5">{item.date.split(' ')[0]} Aug</div>
                       <div className={`text-[9px] font-mono mt-1 ${isSel ? 'text-teal-100' : 'text-[#00a896]'}`}>{item.slots} slots</div>
                     </button>
@@ -424,7 +424,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       onClick={() => setSelectedTime(slot)}
                       className={`py-2 rounded-xl font-mono text-xs font-bold border transition-colors cursor-pointer text-center ${
                         isBooked
-                          ? 'opacity-40 bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
+                          ? 'opacity-40 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                           : isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-xs'
                           : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'

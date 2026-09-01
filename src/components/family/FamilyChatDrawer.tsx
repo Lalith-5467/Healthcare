@@ -76,7 +76,7 @@ export const FamilyChatDrawer: React.FC<FamilyChatDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -120,7 +120,7 @@ export const FamilyChatDrawer: React.FC<FamilyChatDrawerProps> = ({
             />
             <button
               type="submit"
-              className="p-3 rounded-xl bg-gradient-to-r from-[#00a896] to-cyan-500 hover:from-[#00897b] hover:to-cyan-600 text-white transition-all shadow-md shadow-teal-500/20 cursor-pointer active:scale-95"
+              className="p-3 rounded-xl bg-gradient-to-r from-[#00a896] to-cyan-500 hover:from-[#00897b] hover:to-cyan-600 text-slate-900 dark:text-white transition-all shadow-md shadow-teal-500/20 cursor-pointer active:scale-95"
             >
               <Send className="w-4 h-4" />
             </button>

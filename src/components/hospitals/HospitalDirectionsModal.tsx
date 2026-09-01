@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Navigation, MapPin, Clock, ExternalLink, CheckCircle2 } from 'lucide-react';
 import type { HospitalItem } from './hospitalsData';
 
@@ -13,11 +13,40 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
   isOpen,
   onClose,
 }) => {
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationStatus, setLocationStatus] = useState<string>('Detecting location...');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            setLocationStatus('Current Location (Detected)');
+          },
+          (err) => {
+            console.error(err);
+            setLocationStatus('Location unavailable');
+          }
+        );
+      } else {
+        setLocationStatus('Geolocation not supported');
+      }
+    }
+  }, [isOpen]);
+
   if (!isOpen || !hospital) return null;
 
   const handleOpenGoogleMaps = () => {
-    const query = encodeURIComponent(`${hospital.name}, ${hospital.address}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    const destination = encodeURIComponent(`${hospital.name}, ${hospital.address}`);
+    if (userLocation) {
+      window.open(`https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destination}`, '_blank');
+    } else {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, '_blank');
+    }
   };
 
   return (
@@ -53,7 +82,7 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
           <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-[11px]">
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
               <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
-              <span>Your Current Location (Camp Road, Selaiyur)</span>
+              <span>{locationStatus}</span>
             </div>
             <div className="w-0.5 h-4 bg-slate-300 dark:bg-slate-700 ml-1" />
             <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
@@ -67,9 +96,9 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
         <div className="space-y-2 text-xs">
           <h4 className="font-extrabold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">Demo Route Steps</h4>
           <div className="space-y-1.5 font-mono text-[11px] text-slate-700 dark:text-slate-300">
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">1. Head East on Camp Road Main St (800m)</div>
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">2. Turn Right onto Healthcare Parkway (400m)</div>
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">3. Hospital gate is on your left</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">1. Head North from your location (1.2km)</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">2. Turn Right onto Main Health Avenue (800m)</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">3. {hospital.name} will be on your left</div>
           </div>
         </div>
 
@@ -83,7 +112,7 @@ export const HospitalDirectionsModal: React.FC<HospitalDirectionsModalProps> = (
           </button>
           <button
             onClick={handleOpenGoogleMaps}
-            className="flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2.5 px-4 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <ExternalLink className="w-4 h-4" />
             <span>Open Maps Directions</span>

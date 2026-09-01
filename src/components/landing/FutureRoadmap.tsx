@@ -72,7 +72,7 @@ export const FutureRoadmap: React.FC = () => {
             What’s Coming Next to MediCare
           </h2>
 
-          <p className="text-base text-slate-400 mt-4 leading-relaxed">
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-4 leading-relaxed">
             We are continuously expanding our healthcare ecosystem to integrate advanced AI diagnostics, home nursing, smartwatch telemetry, and seamless hospital connectivity.
           </p>
         </div>
@@ -84,7 +84,7 @@ export const FutureRoadmap: React.FC = () => {
             return (
               <div 
                 key={idx}
-                className="p-7 rounded-3xl bg-slate-800/60 border border-slate-700/80 backdrop-blur-xl flex flex-col justify-between hover:border-blue-500/50 transition-all hover:shadow-xl group"
+                className="p-7 rounded-3xl bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 backdrop-blur-xl flex flex-col justify-between hover:border-blue-500/50 transition-all hover:shadow-xl group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -96,20 +96,20 @@ export const FutureRoadmap: React.FC = () => {
                     </span>
                   </div>
 
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                     {item.phase}
                   </span>
 
-                  <h3 className="text-lg font-bold text-white mt-1 mb-2 group-hover:text-cyan-400 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1 mb-2 group-hover:text-cyan-400 transition-colors">
                     {item.title}
                   </h3>
 
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     {item.desc}
                   </p>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400 font-medium">
+                <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
                   <span>Module Status</span>
                   <span className="text-cyan-400 font-bold">Planned Release</span>
                 </div>

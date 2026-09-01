@@ -58,7 +58,7 @@ export const TestEmergencyModal: React.FC<TestEmergencyModalProps> = ({
             </div>
             <button
               onClick={startTestSequence}
-              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs cursor-pointer shadow-md flex items-center justify-center gap-2 font-sans"
+              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-slate-900 dark:text-white font-extrabold text-xs cursor-pointer shadow-md flex items-center justify-center gap-2 font-sans"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start System Test</span>

@@ -40,7 +40,7 @@ export const PharmacyDetailsDrawer: React.FC<PharmacyDetailsDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -65,7 +65,7 @@ export const PharmacyDetailsDrawer: React.FC<PharmacyDetailsDrawerProps> = ({
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <Truck className="w-4 h-4 text-emerald-600" />
               <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Delivery Time</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Delivery Time</span>
                 <strong className="text-slate-800 dark:text-slate-200">{pharmacy.deliveryTime}</strong>
               </div>
             </div>
@@ -73,7 +73,7 @@ export const PharmacyDetailsDrawer: React.FC<PharmacyDetailsDrawerProps> = ({
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#00a896]" />
               <div>
-                <span className="text-[10px] text-slate-400 block font-bold">Home Delivery</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Home Delivery</span>
                 <strong className="text-slate-800 dark:text-slate-200">{pharmacy.deliveryAvailable ? 'Available' : 'Unavailable'}</strong>
               </div>
             </div>

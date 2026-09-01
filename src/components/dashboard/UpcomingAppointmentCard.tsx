@@ -46,7 +46,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
       <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2.5">
           {/* Circular gradient icon */}
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shrink-0"
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shadow-md shrink-0"
             style={{ background: 'linear-gradient(135deg,#38bdf8,#0284c7)', boxShadow: '0 4px 12px rgba(14,165,233,.3)' }}>
             <Video className="w-4.5 h-4.5" />
           </div>
@@ -118,7 +118,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleJoinCall}
-          className="flex-1 py-2.5 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 py-2.5 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           style={{
             background: 'linear-gradient(135deg,#00a896,#0284c7)',
             boxShadow: '0 4px 14px rgba(0,168,150,.3)'

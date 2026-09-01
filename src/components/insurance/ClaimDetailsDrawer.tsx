@@ -34,7 +34,7 @@ export const ClaimDetailsDrawer: React.FC<ClaimDetailsDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -84,7 +84,7 @@ export const ClaimDetailsDrawer: React.FC<ClaimDetailsDrawerProps> = ({
                       ? 'bg-emerald-500 text-white shadow-xs'
                       : step.active
                       ? 'bg-amber-500 text-white animate-pulse'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                   }`}>
                     {step.completed ? '✓' : idx + 1}
                   </div>

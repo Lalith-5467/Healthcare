@@ -55,7 +55,7 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -149,7 +149,7 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block font-bold">Patient Rating</span>
                   <strong className="text-amber-700 dark:text-amber-400 text-sm font-extrabold flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {hospital.rating} <span className="text-xs text-slate-400">({hospital.reviewsCount})</span>
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {hospital.rating} <span className="text-xs text-slate-500 dark:text-slate-400">({hospital.reviewsCount})</span>
                   </strong>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export const HospitalDetailsDrawer: React.FC<HospitalDetailsDrawerProps> = ({
                         </div>
                       </div>
                       <p className="text-slate-600 dark:text-slate-300 italic text-[11px] leading-relaxed">"{review.comment}"</p>
-                      <div className="text-[10px] text-slate-400 font-mono text-right">{review.date}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono text-right">{review.date}</div>
                     </div>
                   ))
                 ) : (

@@ -83,7 +83,7 @@ export const HealthJourney: React.FC = () => {
                   }`}
                   style={{ height: `${val}%` }}
                 />
-                <span className="text-[9px] text-slate-400">Day {idx + 1}</span>
+                <span className="text-[9px] text-slate-500 dark:text-slate-400">Day {idx + 1}</span>
               </div>
             ))}
           </div>
@@ -270,7 +270,7 @@ export const HealthJourney: React.FC = () => {
                 >
                   {/* TOP CARD BAR */}
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-3xl font-black text-slate-300 dark:text-slate-700 tracking-tighter">
+                    <span className="text-3xl font-black text-slate-600 dark:text-slate-300 dark:text-slate-700 tracking-tighter">
                       {item.num}
                     </span>
                     <span className={`text-[10px] font-bold tracking-wider px-3 py-1 rounded-full uppercase border ${item.badgeColor}`}>
