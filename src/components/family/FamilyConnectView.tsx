@@ -197,6 +197,12 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
     showToast('✓ Emergency contact saved');
   };
 
+  const handleDeleteEmergencyContact = (id: string) => {
+    const updated = emergencyContacts.filter((c) => c.id !== id);
+    saveEmergencyState(updated);
+    showToast('✓ Emergency contact removed');
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST FEEDBACK */}
@@ -243,59 +249,59 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
 
       {/* 2. FAMILY OVERVIEW SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-teal-50/60 dark:bg-teal-900/10 border border-teal-200/60 dark:border-teal-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-teal-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl -z-10 group-hover:bg-teal-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Family Members</span>
-            <div className="p-2 bg-teal-50 dark:bg-teal-900/30 rounded-xl">
-              <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span className="text-xs font-extrabold text-teal-700 dark:text-teal-400">Family Members</span>
+            <div className="p-2 bg-teal-100/50 dark:bg-teal-900/30 rounded-xl">
+              <Users className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400">{members.length}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold font-sans">Connected</span>
+            <span className="text-[10px] text-teal-600/80 dark:text-teal-400/80 font-bold font-sans">Connected</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -z-10 group-hover:bg-amber-500/20 transition-colors" />
+        <div className="bg-red-50/40 dark:bg-red-900/10 border border-red-200/60 dark:border-red-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-red-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -z-10 group-hover:bg-red-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Pending Requests</span>
-            <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-xl">
-              <Clock className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-extrabold text-red-700 dark:text-red-400">Pending Requests</span>
+            <div className="p-2 bg-red-100/50 dark:bg-red-900/30 rounded-xl">
+              <Clock className="w-4 h-4 text-red-600" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400">{pendingRequests.length}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold font-sans">Awaiting</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-red-600 dark:text-red-400">{pendingRequests.length}</span>
+            <span className="text-[10px] text-red-600/80 dark:text-red-400/80 font-bold font-sans">Awaiting</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-blue-100/70 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-blue-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -z-10 group-hover:bg-blue-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Shared Appointments</span>
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+            <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400">Shared Appointments</span>
+            <div className="p-2 bg-blue-100/50 dark:bg-blue-900/30 rounded-xl">
               <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">{sharedAppointments.length}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold font-sans">Upcoming</span>
+            <span className="text-[10px] text-blue-600/80 dark:text-blue-400/80 font-bold font-sans">Upcoming</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 p-5 rounded-3xl space-y-3 shadow-lg shadow-slate-200/50 dark:shadow-none dark:shadow-black/20 hover:-translate-y-1 transition-transform group relative overflow-hidden">
+        <div className="bg-purple-100/70 dark:bg-purple-900/30 border border-purple-200/60 dark:border-purple-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-purple-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -z-10 group-hover:bg-purple-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Shared Reminders</span>
-            <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
+            <span className="text-xs font-extrabold text-purple-700 dark:text-purple-400">Shared Reminders</span>
+            <div className="p-2 bg-purple-100/50 dark:bg-purple-900/30 rounded-xl">
               <Pill className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-300">{sharedReminders.length}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold font-sans">Active</span>
+            <span className="text-[10px] text-purple-600/80 dark:text-purple-400/80 font-bold font-sans">Active</span>
           </div>
         </div>
       </div>
@@ -308,23 +314,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Manage your connected family members</p>
           </div>
 
-          {/* FAMILY PROFILE SWITCHER DROPDOWN */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Viewing:</span>
-            <select
-              value={activeProfileView}
-              onChange={(e) => {
-                setActiveProfileView(e.target.value);
-                showToast(`Viewing ${e.target.value} health profile parameters`);
-              }}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-extrabold text-xs focus:outline-none focus:border-[#00a896] cursor-pointer"
-            >
-              <option value="My Profile">My Profile</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.name}>{m.name} ({m.relationship})</option>
-              ))}
-            </select>
-          </div>
+
         </div>
 
         {/* FAMILY MEMBER CARDS GRID */}
@@ -423,7 +413,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
       {/* 5. SHARED APPOINTMENTS & SHARED REMINDERS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* SHARED APPOINTMENTS (LEFT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
+        <div className="lg:col-span-6 bg-teal-100/50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/50 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
           <div className="absolute right-0 top-0 w-32 h-32 bg-[#00a896]/5 rounded-full blur-3xl -z-10 pointer-events-none" />
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2.5">
@@ -443,7 +433,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
 
           <div className="space-y-3.5">
             {sharedAppointments.map((apt) => (
-              <div key={apt.id} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <div key={apt.id} className="p-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-teal-100 dark:border-teal-800/50 space-y-3 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <h4 className="font-extrabold text-slate-900 dark:text-white leading-tight">{apt.doctorName}</h4>
@@ -468,7 +458,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
         </div>
 
         {/* SHARED REMINDERS (RIGHT 6 COLS) */}
-        <div className="lg:col-span-6 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
+        <div className="lg:col-span-6 bg-purple-100/50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
           <div className="absolute right-0 top-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2.5">
@@ -488,7 +478,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
 
           <div className="space-y-3.5">
             {sharedReminders.map((rem) => (
-              <div key={rem.id} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+              <div key={rem.id} className="p-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-purple-100 dark:border-purple-800/50 space-y-3 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <h4 className="font-extrabold text-slate-900 dark:text-white leading-tight">{rem.title}</h4>
@@ -548,13 +538,22 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
                   <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{contact.phone}</span>
                 </div>
               </div>
-              <a
-                href={`tel:${contact.phone}`}
-                className="p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-500/30 cursor-pointer group-hover/card:animate-pulse-slow"
-                title="Call Immediately"
-              >
-                <PhoneCall className="w-4 h-4 fill-current" />
-              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDeleteEmergencyContact(contact.id)}
+                  className="p-3 rounded-full bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                  title="Remove Contact"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <a
+                  href={`tel:${contact.phone}`}
+                  className="p-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-500/30 cursor-pointer group-hover/card:animate-pulse-slow"
+                  title="Call Immediately"
+                >
+                  <PhoneCall className="w-4 h-4 fill-current" />
+                </a>
+              </div>
             </div>
           ))}
         </div>
