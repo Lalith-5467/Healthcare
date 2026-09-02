@@ -328,10 +328,13 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 style={{ background: s.cardBg, border: s.cardBorder, boxShadow: s.cardShadow }} 
               />
               {/* Dark mode background */}
-              <div className="absolute inset-0 hidden dark:block pointer-events-none rounded-2xl bg-slate-900/90 border-[1.5px] border-slate-200 dark:border-slate-800/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" />
-              {/* Soft radial glow top-right — purely decorative, no layout impact */}
-              <div className="pointer-events-none absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-60"
+              <div className="absolute inset-0 hidden dark:block pointer-events-none rounded-2xl bg-gradient-to-br from-slate-800/90 to-slate-900/95 border-[1.5px] border-slate-700/50 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" />
+              {/* Light mode glow */}
+              <div className="pointer-events-none absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-60 dark:hidden"
                 style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }} />
+              {/* Dark mode subtle colored glow */}
+              <div className="pointer-events-none absolute -top-6 -right-6 w-32 h-32 rounded-full hidden dark:block opacity-[0.15]"
+                style={{ background: `radial-gradient(circle, ${s.accentColor} 0%, transparent 70%)` }} />
 
               {/* ── ORIGINAL inner wrapper: p-4, flex-col, gap-2.5 — UNCHANGED ── */}
               <div className="relative z-10 p-4 flex flex-col gap-2.5">

@@ -46,8 +46,10 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
   const [activeNav, setActiveNav] = useState(initialNavId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
+  const [isGlobalSOSOpen, setIsGlobalSOSOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const { wards, activeWard, setActiveWardId, notifications, markNotifRead, alerts } = useCaregiverWorkflow();
+  const { wards, activeWard, setActiveWardId, notifications, markNotifRead, alerts, triggerSOS } = useCaregiverWorkflow();
   const unreadNotifs = notifications.filter(n => !n.read).length;
   const activeAlerts = alerts.filter(a => a.status === 'Active').length;
 
@@ -125,7 +127,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
 
           {/* SOS SHORTCUT BUTTON */}
           <button
-            onClick={() => setActiveNav('emergency')}
+            onClick={() => setIsGlobalSOSOpen(true)}
             className={`p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeAlerts > 0 
                 ? 'bg-rose-600 text-white animate-pulse shadow-md shadow-rose-600/30' 
@@ -271,6 +273,79 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
         </main>
 
       </div>
+
+      {/* GLOBAL TOAST */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 backdrop-blur-xl"
+          >
+            <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0" />
+            <span className="text-xs font-bold">{toastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GLOBAL SOS CONFIRM MODAL */}
+      <AnimatePresence>
+        {isGlobalSOSOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md" onClick={() => setIsGlobalSOSOpen(false)} />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative z-10 w-full max-w-md bg-white dark:bg-[#0b1120] rounded-3xl p-6 shadow-2xl border border-rose-500/40 text-center space-y-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto">
+                <AlertOctagon className="w-9 h-9 animate-bounce" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  Confirm Emergency SOS Dispatch
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Choose the nature of the emergency for {activeWard.name}:
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  'SOS Panic Button',
+                  'Fall Detected',
+                  'Abnormal Vitals',
+                  'Geofence Breach'
+                ].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      triggerSOS(activeWard.id, type);
+                      setIsGlobalSOSOpen(false);
+                      setToastMsg(`🚨 Urgent Emergency SOS dispatched for ${activeWard.name}!`);
+                      setTimeout(() => setToastMsg(null), 3000);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-600 hover:text-white text-rose-700 dark:text-rose-300 font-black text-xs border border-rose-200 dark:border-rose-800/60 transition-all text-left flex items-center justify-between"
+                  >
+                    <span>{type}</span>
+                    <AlertOctagon className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setIsGlobalSOSOpen(false)}
+                className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

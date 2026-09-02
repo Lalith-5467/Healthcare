@@ -81,13 +81,6 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                 onOpenPremiumModal={() => setPremiumModalOpen(true)}
               />
 
-              {/* PROFILE */}
-              <SidebarProfile
-                user={user}
-                isCollapsed={false}
-                onLogout={onLogout}
-                onNavigate={handleSelectNav}
-              />
             </motion.div>
           </div>
         )}

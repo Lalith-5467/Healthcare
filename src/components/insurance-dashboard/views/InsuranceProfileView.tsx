@@ -20,7 +20,7 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
   if (!record) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <Search className="w-16 h-16 text-slate-300 mb-4" />
+        <Search className="w-16 h-16 text-slate-600 dark:text-slate-300 mb-4" />
         <h2 className="text-xl font-black text-slate-900 dark:text-white">No Record Selected</h2>
         <p className="text-slate-500">Please search for an Insurance ID first.</p>
         <button 
@@ -70,7 +70,7 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
             className={`px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap ${
               activeTab === tab.id 
                 ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-600 dark:text-slate-300'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -176,7 +176,7 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
             </p>
           </div>
           <div className="text-left md:text-right">
-            <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Claim Amount</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Claim Amount</p>
             <p className="text-3xl font-black text-amber-600 dark:text-amber-500">₹{claim.submittedAmount.toLocaleString()}</p>
             <span className={`inline-block mt-2 px-3 py-1 font-black text-xs uppercase tracking-wider rounded-md ${
               claim.status === 'Approved' || claim.status === 'Settled'
@@ -192,18 +192,18 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
 
         {/* Workflow Tracker */}
         <div className="relative z-10 mb-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-          <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-6">Processing Status</h3>
+          <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Processing Status</h3>
           <div className="flex justify-between items-center relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
             {steps.map((step, i) => (
               <div key={i} className="relative flex flex-col items-center group">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-4 border-white dark:border-slate-900 transition-colors ${
-                  step.done ? 'bg-amber-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+                  step.done ? 'bg-amber-500 text-white' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600'
                 }`}>
                   {step.done ? <Check className="w-4 h-4" /> : <span className="w-2 h-2 rounded-full bg-current opacity-50"></span>}
                 </div>
                 <span className={`absolute top-10 text-[10px] font-bold whitespace-nowrap ${
-                  step.done ? 'text-amber-600 dark:text-amber-500' : 'text-slate-400'
+                  step.done ? 'text-amber-600 dark:text-amber-500' : 'text-slate-500 dark:text-slate-400'
                 }`}>{step.label}</span>
               </div>
             ))}
@@ -231,7 +231,7 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
         {(claim.status === 'Approved' || claim.status === 'Partially Approved') && (
           <div className="relative z-10 pt-12 flex flex-col sm:flex-row gap-4 justify-between items-center border-t border-slate-100 dark:border-slate-800 mt-8">
             <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Approved Cashless Amount</p>
+              <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Approved Cashless Amount</p>
               <p className="text-2xl font-black text-emerald-600">₹{claim.approvedAmount.toLocaleString()}</p>
             </div>
             <button 
@@ -322,7 +322,7 @@ const PolicyTab = ({ record }: { record: InsurancePolicyRecord }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
       <div>
-        <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-2">Policy Details</h3>
+        <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Policy Details</h3>
         <p className="text-2xl font-black text-slate-900 dark:text-white">{record.policyName}</p>
         <p className="text-sm font-bold text-slate-500 mt-1">Policy No: {record.policyNumber} • Valid till {record.policyEndDate}</p>
       </div>
@@ -330,11 +330,11 @@ const PolicyTab = ({ record }: { record: InsurancePolicyRecord }) => {
       <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
         <div className="flex justify-between items-end mb-4">
           <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Total Coverage</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">Total Coverage</p>
             <p className="text-3xl font-black text-slate-900 dark:text-white">₹{record.coverageAmount.toLocaleString()}</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Remaining</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">Remaining</p>
             <p className="text-xl font-black text-emerald-600">₹{record.remainingCoverage.toLocaleString()}</p>
           </div>
         </div>
@@ -355,7 +355,7 @@ const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolic
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-6">Document Verification</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Document Verification</h3>
       <div className="space-y-3">
         {docs.map(doc => (
           <div key={doc.id} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
@@ -394,7 +394,7 @@ const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolic
 const CoverageTab = ({ record }: { record: InsurancePolicyRecord }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-6">Coverage & Benefits</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Coverage & Benefits</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(record.benefits).map(([key, val]) => (
           <div key={key} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
@@ -416,7 +416,7 @@ const CoverageTab = ({ record }: { record: InsurancePolicyRecord }) => {
 const PastClaimsTab = ({ record }: { record: InsurancePolicyRecord }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-6">Past Claim History</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Past Claim History</h3>
       {record.claims.length === 0 ? (
         <p className="text-slate-500 font-bold">No past claims found.</p>
       ) : (
@@ -426,7 +426,7 @@ const PastClaimsTab = ({ record }: { record: InsurancePolicyRecord }) => {
               <div>
                 <p className="font-black text-slate-900 dark:text-white text-lg">{claim.claimId}</p>
                 <p className="text-sm font-bold text-slate-500">{claim.hospital} • {claim.treatment}</p>
-                <p className="text-xs font-bold text-slate-400 mt-1">{claim.admissionDate} - {claim.dischargeDate}</p>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">{claim.admissionDate} - {claim.dischargeDate}</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-sm font-bold text-slate-500 line-through">₹{claim.submittedAmount.toLocaleString()}</p>
@@ -450,9 +450,9 @@ const TimelineTab = ({ record }: { record: InsurancePolicyRecord }) => {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm max-w-3xl mx-auto">
-      <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-8 text-center">Claim Timeline</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-8 text-center">Claim Timeline</h3>
       <div className="relative pl-6 sm:pl-8">
-        <div className="absolute left-[31px] sm:left-[39px] top-4 bottom-4 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
+        <div className="absolute left-[39px] sm:left-[51px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800 z-0"></div>
         <div className="space-y-8">
           {events.map((event, i) => (
             <motion.div 
@@ -470,7 +470,7 @@ const TimelineTab = ({ record }: { record: InsurancePolicyRecord }) => {
               <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex-1">
                 <div className="flex justify-between items-start mb-1">
                   <h3 className="font-black text-slate-900 dark:text-white">{event.action}</h3>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-100">{event.date}</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-100">{event.date}</span>
                 </div>
                 <p className="text-xs font-bold text-slate-500">{event.role} • {event.time}</p>
               </div>

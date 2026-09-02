@@ -12,6 +12,7 @@ import { NetworkHospitalsView } from '../components/insurance-dashboard/views/Ne
 import { SettlementsView } from '../components/insurance-dashboard/views/SettlementsView';
 import { PoliciesDirectoryView } from '../components/insurance-dashboard/views/PoliciesDirectoryView';
 import { InsuranceSettingsView } from '../components/insurance-dashboard/views/InsuranceSettingsView';
+import { CashlessPreAuthView } from '../components/insurance-dashboard/views/CashlessPreAuthView';
 
 interface InsuranceDashboardPageProps {
   user?: { name: string; email: string };
@@ -27,7 +28,7 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
 
   const handleSearchSuccess = (insuranceId: string) => {
     setSearchedId(insuranceId);
-    setActiveNav('profile');
+    setActiveNav('claims');
   };
 
   const renderContent = () => {
@@ -37,11 +38,12 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
       case 'search':
         return <SearchInsuranceView onSearchSuccess={handleSearchSuccess} />;
       case 'claims':
-      case 'preauth':
       case 'profile':
       case 'coverage':
       case 'documents':
         return <InsuranceProfileView insuranceId={searchedId || 'INS-MC-2026-10245'} onNavigate={setActiveNav} />;
+      case 'preauth':
+        return <CashlessPreAuthView />;
       case 'policies':
       case 'policy-holders':
         return <PoliciesDirectoryView onSelectPolicy={handleSearchSuccess} />;

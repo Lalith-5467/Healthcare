@@ -57,60 +57,11 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
       {menuOpen && (
         <div className={`absolute bottom-full mb-2 ${isCollapsed ? 'left-14' : 'left-3 right-3'} rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-1.5 z-50 text-xs font-semibold space-y-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150`}>
           <button
-            onClick={() => handleOptionClick('home')}
-            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Home className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-            <span>Website Home</span>
-          </button>
-
-          <button
-            onClick={() => handleOptionClick('profile')}
-            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <User className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-            <span>My Profile</span>
-          </button>
-
-          <button
-            onClick={() => handleOptionClick('settings')}
-            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <Settings className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span>Settings</span>
-          </button>
-
-          {/* THEME TOGGLE OPTION */}
-          <button
-            onClick={() => {
-              toggleTheme();
-              setMenuOpen(false);
-            }}
-            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center justify-between gap-2 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />}
-              <span>{isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
-            </div>
-            <span className="text-[10px] font-mono text-[#00a896] dark:text-teal-400 font-extrabold uppercase">{isDark ? 'Light' : 'Dark'}</span>
-          </button>
-
-          <button
-            onClick={() => handleOptionClick('insurance')}
-            className="w-full px-3 py-2 rounded-xl text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
-          >
-            <ShieldCheck className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
-            <span>Privacy & ABDM</span>
-          </button>
-
-          <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
-
-          <button
             onClick={() => handleOptionClick('logout')}
             className="w-full px-3 py-2 rounded-xl text-left text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors cursor-pointer font-bold"
           >
             <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-            <span>Logout (Demo)</span>
+            <span>Logout</span>
           </button>
         </div>
       )}

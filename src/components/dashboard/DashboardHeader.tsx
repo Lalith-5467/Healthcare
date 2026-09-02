@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, Sparkles, Home } from 'lucide-react';
+import { Search, Bell, Sparkles, Home, LogOut } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
 import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
@@ -10,17 +10,20 @@ interface DashboardHeaderProps {
   onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
   onNavigateHome?: () => void;
+  onLogout?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   userName = 'Samson',
   onOpenNotifications,
   onOpenProfile,
-  onNavigateHome
+  onNavigateHome,
+  onLogout
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
 
   const todayDateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -102,20 +105,21 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           />
         </div>
 
-        {/* HOME BUTTON */}
-        {onNavigateHome && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onNavigateHome}
-            className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-300 hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold shrink-0"
-            title="Go to Website Home"
+        {/* LANGUAGE TOGGLE */}
+        <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-inner shrink-0">
+          <button
+            onClick={() => setLanguage('EN')}
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-800 text-[#00a896] dark:text-cyan-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            <Home className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
-            <span className="hidden xl:inline font-sans">Home</span>
-          </motion.button>
-        )}
-
+            EN
+          </button>
+          <button
+            onClick={() => setLanguage('TA')}
+            className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-800 text-[#00a896] dark:text-cyan-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          >
+            தமிழ்
+          </button>
+        </div>
         {/* DARK / LIGHT MODE THEME TOGGLE BUTTON */}
         <ThemeToggle className="shrink-0" />
 
@@ -159,6 +163,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">{userName}</span>
             <span className="text-[10px] font-extrabold text-[#00a896] dark:text-cyan-300 leading-tight font-mono">Patient Profile</span>
           </div>
+        </motion.button>
+
+        {/* LOGOUT BUTTON */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onLogout}
+          className="relative p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-rose-500 dark:text-rose-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all shadow-md cursor-pointer flex items-center justify-center shrink-0"
+          title="Logout"
+        >
+          <LogOut className="w-4 h-4" />
         </motion.button>
       </div>
     </motion.header>
