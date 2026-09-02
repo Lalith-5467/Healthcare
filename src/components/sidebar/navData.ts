@@ -1,5 +1,6 @@
 import { 
   Home, 
+  LayoutDashboard,
   User, 
   FileText, 
   QrCode, 
@@ -28,7 +29,8 @@ import type { NavItemConfig } from './types';
 
 export const SIDEBAR_NAV_ITEMS: NavItemConfig[] = [
   // PRIMARY NAVIGATION
-  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard', section: 'PRIMARY' },
+  { id: 'home', label: 'Home', icon: Home, path: '/', section: 'PRIMARY' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', section: 'PRIMARY' },
   { id: 'profile', label: 'My Health Profile', icon: User, path: '/profile', section: 'PRIMARY' },
   { id: 'records', label: 'Medical Records', icon: FileText, path: '/records', badge: '4', section: 'PRIMARY' },
   { id: 'scan', label: 'Scan & Upload', icon: QrCode, path: '/scan', section: 'PRIMARY' },

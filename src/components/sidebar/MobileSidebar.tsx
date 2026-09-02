@@ -64,6 +64,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
               <SidebarHeader
                 isCollapsed={false}
                 onToggleCollapse={onClose}
+                onNavigateHome={() => handleSelectNav('home')}
               />
 
               {/* NAVIGATION LIST */}
