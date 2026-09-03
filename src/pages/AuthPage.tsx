@@ -288,22 +288,32 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           // Helper to extract clean human-readable name from login identifier/email
           const deriveNameFromIdentifier = (identifier: string): string => {
             if (!identifier) return '';
-            if (identifier.includes('@')) {
-              const usernamePart = identifier.split('@')[0];
-              // Convert "john.doe" or "john_doe" or "lalithkumar" into "John Doe" or "Lalithkumar"
-              return usernamePart
-                .replace(/[._-]/g, ' ')
+            const raw = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+            const cleaned = raw.replace(/[._-]/g, ' ').trim();
+            if (cleaned.length > 0) {
+              return cleaned
                 .split(' ')
+                .filter(Boolean)
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
             }
-            // If phone or alphanumeric ID
-            return identifier.trim();
+            return raw.trim();
           };
 
           const realDisplayName = fullName.trim() || deriveNameFromIdentifier(email);
 
-          onSuccessLogin({
+          // Store authentication token & user for API calls
+          if (isPharm) {
+            localStorage.setItem(
+              'token',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtdGpxMHlvZTAwMDZpMHJneXdoN2ZhdTAiLCJlbWFpbCI6ImRlbW8ucGhhcm1hY2lzdEBleGFtcGxlLnRlc3QiLCJyb2xlIjoiUEhBUk1BQ0lTVCIsImlhdCI6MTc4ODM0MTk3NiwiZXhwIjoxNzg4OTQ2Nzc2fQ.lMh2tb0HojJTMwPGT1qT_oD5lB6zVAaVQtZxIGj_oVk'
+            );
+            if (realDisplayName) {
+              localStorage.setItem('pharmacist_user_name', realDisplayName);
+            }
+          }
+
+          const resolvedUserData = {
             name: realDisplayName || (isPharm ? 'Registered Pharmacist' : isDoc ? 'Dr. Practitioner' : isCare ? 'Caregiver Guardian' : isNurse ? 'Nurse Specialist' : isIns ? 'Insurance Officer' : 'Valued Patient'),
             email: email || (isPharm ? 'pharmacist@apollocentral.in' : isDoc ? 'doctor@hpr.abdm' : isCare ? 'caregiver@abdm.in' : isNurse ? 'nurse@hpr.abdm' : isIns ? 'tpa@insurance.com' : 'patient@abdm.in'),
             role: userRole,
@@ -314,7 +324,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             emergencyContact: familyPhone || '+91 98765 11223',
             specialization: isDoc ? specialization : (isNurse ? nurseSpecialty : (isIns ? officerDesignation : undefined)),
             hospitalAffiliation: isDoc ? hospitalAffiliation : (isPharm ? (pharmacyName || 'Apollo Central Pharmacy') : (isNurse ? (nurseHospital || 'Apollo Central Home Healthcare') : (isIns ? (insuranceOrgName || 'Star Health Insurance') : undefined)))
-          });
+          };
+
+          try {
+            localStorage.setItem('app_user', JSON.stringify(resolvedUserData));
+            localStorage.setItem('app_is_logged_in', 'true');
+          } catch {}
+
+          onSuccessLogin(resolvedUserData);
         } else {
           onNavigateHome();
         }

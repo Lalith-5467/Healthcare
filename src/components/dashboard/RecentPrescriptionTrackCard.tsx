@@ -49,27 +49,27 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
 
   // Format Pharmacy Status Display
   const getPharmacyStatusBadge = () => {
-    const status = linkedOrder?.status || 'Pending Pharmacist Verification';
+    const rawStatus = (linkedOrder?.status || 'PENDING').toString().toUpperCase();
 
-    if (status === 'Processing') {
+    if (rawStatus === 'ACCEPTED' || rawStatus === 'PREPARING' || rawStatus === 'PROCESSING') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-500/15 text-blue-700 dark:text-cyan-300 border border-blue-500/30">
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          <span>Pharmacy Status: Processing</span>
+          <span>Pharmacy Status: {rawStatus === 'ACCEPTED' ? 'Order Accepted' : 'Preparing Your Medicines'}</span>
         </span>
       );
     }
 
-    if (status === 'Ready for Pickup') {
+    if (rawStatus === 'READY' || rawStatus === 'READY_FOR_PICKUP' || rawStatus === 'OUT_FOR_DELIVERY') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
           <Check className="w-3.5 h-3.5" />
-          <span>Pharmacy Status: Ready</span>
+          <span>Pharmacy Status: {rawStatus === 'OUT_FOR_DELIVERY' ? 'Out for Delivery' : 'Ready for Pickup'}</span>
         </span>
       );
     }
 
-    if (status === 'Delivered') {
+    if (rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
           <Check className="w-3.5 h-3.5" />
@@ -78,19 +78,19 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
       );
     }
 
-    if (status === 'Declined by Pharmacist') {
+    if (rawStatus === 'DECLINED' || rawStatus === 'CANCELLED' || rawStatus.includes('DECLINE')) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
-          <span>Pharmacy Status: Action Required</span>
+          <span>Pharmacy Status: Order Declined</span>
         </span>
       );
     }
 
-    // Default: Submitted / Pending
+    // Default: Waiting for Pharmacy / Submitted
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
         <Clock className="w-3.5 h-3.5" />
-        <span>Pharmacy Status: Submitted</span>
+        <span>Pharmacy Status: Waiting for Pharmacy</span>
       </span>
     );
   };

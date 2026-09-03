@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Menu, Home } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
+import { showGlobalToast } from '../components/common/GlobalToastManager';
 import {
   DashboardHeader,
   DashboardStatsGrid,
@@ -104,9 +105,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    showGlobalToast(msg, type);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const handleSelectNav = (id: string) => {

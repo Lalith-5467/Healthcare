@@ -31,6 +31,8 @@ import { PharmacyDetailsDrawer } from './PharmacyDetailsDrawer';
 import { OrderTrackingModal } from './OrderTrackingModal';
 import { PharmacyFilterDrawer } from './PharmacyFilterDrawer';
 import { CancelOrderModal } from './CancelOrderModal';
+import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT } from '../../services/pharmacyOrderApi';
+import { socketService } from '../../services/socketService';
 
 interface UserProfile {
   name: string;
@@ -74,9 +76,42 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [trackingOrder, setTrackingOrder] = useState<PharmacyOrder | null>(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState<PharmacyOrder | null>(null);
 
-  const loadAllData = () => {
-    const loadedOrders = getStoredPharmacyOrders();
-    setOrders(loadedOrders);
+  const loadAllData = async () => {
+    try {
+      const liveOrders = await fetchPatientPharmacyOrders();
+      if (liveOrders && liveOrders.length > 0) {
+        const mappedLive: ExtendedPharmacyOrder[] = liveOrders.map((bo) => ({
+          id: bo.id,
+          date: bo.orderedAt ? new Date(bo.orderedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
+          pharmacyName: bo.pharmacy?.name || '—',
+          pharmacyId: bo.pharmacyId || bo.pharmacy?.pharmacyId || '—',
+          sourcePrescriptionId: bo.prescriptionId || '—',
+          doctorName: 'Attending Physician',
+          patientName: bo.patient?.fullName || '—',
+          clinicName: 'Clinical Healthcare Centre',
+          items: (bo.items || []).map((it) => ({
+            name: it.medicineName,
+            dosage: it.dosage,
+            quantity: it.quantity,
+            unitPrice: Number(it.unitPrice) || 0,
+          })),
+          deliveryMethod: (bo.deliveryType as any) || 'Home Delivery',
+          deliveryAddress: bo.deliveryAddress || '—',
+          totalAmount: Number(bo.totalAmount) || 0,
+          status: bo.status as any,
+          estimatedDelivery: 'Standard Delivery',
+          progressPercent:
+            DHR_STATUS_PERCENT[bo.status] ?? (bo.status === 'PENDING' ? 20 : 0),
+        }));
+        setOrders(mappedLive);
+      } else {
+        const loadedOrders = getStoredPharmacyOrders();
+        setOrders(loadedOrders);
+      }
+    } catch {
+      const loadedOrders = getStoredPharmacyOrders();
+      setOrders(loadedOrders);
+    }
     const loadedPrescriptions = getStoredLinkedPrescriptions();
     setPrescriptions(loadedPrescriptions);
   };
@@ -84,6 +119,11 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   // Load from localStorage on mount & listen to workflow updates
   useEffect(() => {
     loadAllData();
+    socketService.connect();
+    const unsubSocket = socketService.subscribeToOrderUpdates(() => {
+      loadAllData();
+    });
+
     const handleUpdate = () => loadAllData();
     window.addEventListener('health_workflow_updated', handleUpdate);
     const timer = setTimeout(() => {
@@ -91,16 +131,25 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
       // If user came after verifying a prescription, auto-open the tracking modal for that order
       const latestWf = getLatestWorkflow();
       if (latestWf && latestWf.pharmacyOrder) {
-        const loaded = getStoredPharmacyOrders();
-        const found = loaded.find(
-          (o) => o.id === latestWf.pharmacyOrder?.id || o.sourcePrescriptionId === latestWf.prescription?.id
-        );
-        if (found) {
-          setTrackingOrder(found);
-        }
+        fetchPatientPharmacyOrders()
+          .then((live) => {
+            if (live && live.length > 0) {
+              setTrackingOrder(live[0] as any);
+            } else {
+              const loaded = getStoredPharmacyOrders();
+              const found = loaded.find(
+                (o) => o.id === latestWf.pharmacyOrder?.id || o.sourcePrescriptionId === latestWf.prescription?.id
+              );
+              if (found) {
+                setTrackingOrder(found);
+              }
+            }
+          })
+          .catch(() => {});
       }
     }, 300);
     return () => {
+      unsubSocket();
       window.removeEventListener('health_workflow_updated', handleUpdate);
       clearTimeout(timer);
     };
