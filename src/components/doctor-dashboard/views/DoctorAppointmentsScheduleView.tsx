@@ -1,83 +1,200 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
   Clock, 
-  UserCheck, 
   Video, 
   MapPin, 
-  CheckCircle2, 
-  ChevronRight, 
-  CalendarCheck,
-  CalendarX,
-  Stethoscope
+  Stethoscope,
+  Search,
+  ChevronDown,
+  X,
+  FileText,
+  Activity,
+  User,
+  History,
+  Pill
 } from 'lucide-react';
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
 
 interface DoctorAppointmentsScheduleViewProps {
   onStartConsultation: (patientId: string) => void;
+  onViewProfile?: (patientId: string) => void;
+  onViewConsultation?: (patientId: string) => void;
 }
 
-export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation }) => {
-  const { records } = useDoctorWorkflow();
-  const [filter, setFilter] = useState<'All' | 'Today' | 'Telemedicine' | 'OPD'>('All');
+const mockSlots = [
+  {
+    id: 'apt-6',
+    recordId: '1',
+    patientId: 'PT-09882',
+    patientName: 'Arun Raj',
+    age: 41,
+    gender: 'Male',
+    time: '09:00 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'Completed',
+    completedAt: '09:25 AM',
+    reason: 'Thyroid Level Review',
+    isTele: true,
+    department: 'Endocrinology'
+  },
+  {
+    id: 'apt-1',
+    recordId: '1',
+    patientId: 'PT-10245',
+    patientName: 'Abinesh Kumar',
+    age: 28,
+    gender: 'Male',
+    time: '10:30 AM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'Scheduled',
+    reason: 'Post-Appendectomy Suture Review',
+    isTele: false,
+    department: 'General Surgery'
+  },
+  {
+    id: 'apt-2',
+    recordId: '2',
+    patientId: 'PT-10892',
+    patientName: 'Ragul Kumar',
+    age: 45,
+    gender: 'Male',
+    time: '10:45 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'Delayed',
+    delayDuration: '20 min',
+    reason: 'Hypertension Medication Check',
+    isTele: true,
+    department: 'Cardiology',
+    arrivedAt: '10:55 AM'
+  },
+  {
+    id: 'apt-3',
+    recordId: '3',
+    patientId: 'PT-10331',
+    patientName: 'Mrs. Meenakshi Sundaram',
+    age: 62,
+    gender: 'Female',
+    time: '11:15 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'In Consultation',
+    startedAt: '11:18 AM',
+    reason: 'Diabetes Vitals & Routine Adherence',
+    isTele: true,
+    department: 'Internal Medicine'
+  },
+  {
+    id: 'apt-4',
+    recordId: '1',
+    patientId: 'PT-11005',
+    patientName: 'Suresh Menon',
+    age: 55,
+    gender: 'Male',
+    time: '12:00 PM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'No-show',
+    reason: 'General Executive Health Checkup',
+    isTele: false,
+    department: 'General Medicine',
+    scheduled: '12:00 PM',
+    expectedArrival: '12:00 PM',
+    statusUpdated: '12:20 PM'
+  },
+  {
+    id: 'apt-5',
+    recordId: '2',
+    patientId: 'PT-10944',
+    patientName: 'Priya S',
+    age: 31,
+    gender: 'Female',
+    time: '01:30 PM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'Cancelled',
+    cancelReason: 'Cancelled by Patient',
+    reason: 'Migraine Follow-up',
+    isTele: false,
+    department: 'Neurology'
+  }
+];
 
-  const slots = [
-    {
-      id: 'apt-1',
-      patientId: '1',
-      patientName: 'Abinesh Kumar',
-      time: '10:30 AM',
-      date: 'Today',
-      type: 'OPD In-Clinic',
-      status: 'Confirmed',
-      reason: 'Post-Appendectomy Suture Review',
-      isTele: false
-    },
-    {
-      id: 'apt-2',
-      patientId: '2',
-      patientName: 'Ragul Kumar',
-      time: '11:45 AM',
-      date: 'Today',
-      type: 'Tele-Consultation',
-      status: 'Ready in Waiting Room',
-      reason: 'Hypertension Medication Check',
-      isTele: true
-    },
-    {
-      id: 'apt-3',
-      patientId: '3',
-      patientName: 'Mrs. Meenakshi Sundaram',
-      time: '03:00 PM',
-      date: 'Today',
-      type: 'Tele-Consultation',
-      status: 'Confirmed',
-      reason: 'Diabetes Vitals & Routine Adherence',
-      isTele: true
-    },
-    {
-      id: 'apt-4',
-      patientId: '1',
-      patientName: 'Suresh Menon',
-      time: '04:30 PM',
-      date: 'Today',
-      type: 'OPD In-Clinic',
-      status: 'Confirmed',
-      reason: 'General Executive Health Checkup',
-      isTele: false
+export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation, onViewProfile, onViewConsultation }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [dateFilter, setDateFilter] = useState('Today');
+  const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
+
+  const statuses = ['All', 'Scheduled', 'In Consultation', 'Completed', 'Delayed', 'No-show', 'Cancelled'];
+
+  const getInitials = (name: string) => {
+    const parts = name.replace('Mrs. ', '').replace('Dr. ', '').split(' ');
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-  ];
+    return name.substring(0, 2).toUpperCase();
+  };
 
-  const filtered = slots.filter(s => {
-    if (filter === 'Today') return s.date === 'Today';
-    if (filter === 'Telemedicine') return s.isTele;
-    if (filter === 'OPD') return !s.isTele;
-    return true;
-  });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Scheduled': return 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800/50 dark:bg-emerald-950/40';
+      case 'Completed': return 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800/50 dark:bg-emerald-950/40';
+      case 'In Consultation': return 'text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800/50 dark:bg-blue-950/40';
+      case 'Delayed': return 'text-amber-600 border-amber-200 bg-amber-50 dark:text-amber-400 dark:border-amber-800/50 dark:bg-amber-950/40';
+      case 'No-show': return 'text-rose-600 border-rose-200 bg-rose-50 dark:text-rose-400 dark:border-rose-800/50 dark:bg-rose-950/40';
+      case 'Cancelled': return 'text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-400 dark:border-slate-700/50 dark:bg-slate-800/60';
+      default: return 'text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800';
+    }
+  };
+  
+  const getStatusDot = (status: string) => {
+    switch (status) {
+      case 'Scheduled': return 'bg-emerald-500';
+      case 'Completed': return 'bg-emerald-500';
+      case 'In Consultation': return 'bg-blue-500';
+      case 'Delayed': return 'bg-amber-500';
+      case 'No-show': return 'bg-rose-500';
+      case 'Cancelled': return 'bg-slate-400';
+      default: return 'bg-slate-400';
+    }
+  };
+
+  const filteredSlots = useMemo(() => {
+    return mockSlots.filter(apt => {
+      // Date filter
+      if (dateFilter !== 'All Dates' && apt.date !== dateFilter) return false;
+      
+      // Status filter
+      if (statusFilter !== 'All' && apt.status !== statusFilter) return false;
+      
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = apt.patientName.toLowerCase().includes(query);
+        const matchesId = apt.patientId.toLowerCase().includes(query);
+        const matchesAptId = apt.id.toLowerCase().includes(query);
+        if (!matchesName && !matchesId && !matchesAptId) return false;
+      }
+      
+      return true;
+    });
+  }, [searchQuery, statusFilter, dateFilter]);
+
+  // Summary stats
+  const totalToday = mockSlots.filter(s => s.date === 'Today').length;
+  const totalCompleted = mockSlots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
+  const totalWaiting = mockSlots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
+  const totalDelayed = mockSlots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
+  const totalNoShow = mockSlots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
+  const totalCancelled = mockSlots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
 
   return (
-    <div className="space-y-6 pb-16 font-sans select-none">
+    <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto relative">
       
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -86,87 +203,357 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
             <Calendar className="w-3.5 h-3.5" /> OPD & Tele-Health Schedule
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Today's Doctor Itinerary
+            Doctor Itinerary
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Confirmed clinical appointments, patient queue management, and 1-click video call start.
           </p>
         </div>
+      </div>
 
-        {/* FILTER PILLS */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
-          {(['All', 'Today', 'Telemedicine', 'OPD'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                filter === tab 
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-black' 
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-              }`}
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        {[
+          { label: 'Today\'s Appts', value: totalToday, color: 'text-slate-900 dark:text-white', bg: 'bg-white dark:bg-slate-800/50', border: 'border-slate-200 dark:border-slate-700/50' },
+          { label: 'Completed', value: totalCompleted, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20' },
+          { label: 'Waiting', value: totalWaiting, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50/50 dark:bg-teal-500/10', border: 'border-teal-200 dark:border-teal-500/20' },
+          { label: 'Delayed', value: totalDelayed, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50/50 dark:bg-amber-500/10', border: 'border-amber-200 dark:border-amber-500/20' },
+          { label: 'No-show', value: totalNoShow, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50/50 dark:bg-rose-500/10', border: 'border-rose-200 dark:border-rose-500/20' },
+          { label: 'Cancelled', value: totalCancelled, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-100/50 dark:bg-slate-500/10', border: 'border-slate-200 dark:border-slate-500/20' }
+        ].map((stat, idx) => (
+          <div key={idx} className={`${stat.bg} ${stat.border} rounded-2xl p-4 border shadow-sm flex flex-col justify-center items-center text-center transition-all`}>
+            <span className={`text-2xl font-black ${stat.color} leading-none`}>{stat.value}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 mt-1.5 tracking-wider">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* TOOLBAR */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Search */}
+        <div className="relative w-full lg:w-80">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm shadow-sm transition-all"
+            placeholder="Search patient name or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Date Picker */}
+          <div className="relative">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="appearance-none bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 pl-4 pr-10 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm cursor-pointer"
             >
-              {tab}
-            </button>
-          ))}
+              <option value="All Dates">All Dates</option>
+              <option value="Yesterday">Yesterday</option>
+              <option value="Today">Today</option>
+              <option value="Tomorrow">Tomorrow</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+              <ChevronDown className="h-4 w-4" />
+            </div>
+          </div>
+          
+          {/* Status Pills */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-[calc(100vw-3rem)] lg:max-w-none">
+            {statuses.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setStatusFilter(tab)}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  statusFilter === tab 
+                    ? 'bg-white dark:bg-[#0b1120] text-teal-700 dark:text-cyan-400 shadow-sm border border-slate-200/60 dark:border-cyan-500/30' 
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* APPOINTMENTS CARDS */}
-      <div className="space-y-3">
-        {filtered.map((apt, i) => (
+      <div className="space-y-4">
+        {filteredSlots.length === 0 && (
+          <div className="p-10 text-center text-slate-500 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200 dark:border-slate-800">
+            No appointments found matching your criteria.
+          </div>
+        )}
+        
+        {filteredSlots.map((apt, i) => (
           <motion.div
             key={apt.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-teal-500/40 transition-colors"
+            className={`p-5 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col lg:flex-row gap-6 hover:border-teal-500/40 transition-all border-l-4 ${apt.status === 'Delayed' || apt.status === 'No-show' ? 'border-l-amber-500' : apt.status === 'Cancelled' ? 'border-l-slate-400' : apt.status === 'In Consultation' ? 'border-l-blue-500' : 'border-l-teal-500'}`}
           >
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${
-                apt.isTele 
-                  ? 'bg-blue-500/15 text-blue-600 dark:text-cyan-400' 
-                  : 'bg-teal-500/15 text-teal-600 dark:text-cyan-400'
-              }`}>
-                {apt.isTele ? <Video className="w-5 h-5" /> : <Stethoscope className="w-5 h-5" />}
+            
+            {/* Column 1: Patient Info (w-1/3) */}
+            <div className="flex items-start gap-4 lg:w-[35%] min-w-0">
+              {/* Avatar */}
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-black text-slate-700 dark:text-slate-300 shrink-0 text-sm shadow-sm mt-0.5">
+                {getInitials(apt.patientName)}
               </div>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-slate-900 dark:text-white">{apt.patientName}</span>
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full font-mono ${
-                    apt.status.includes('Waiting') 
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 animate-pulse'
-                      : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  }`}>
-                    {apt.status}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h3 className="text-base font-black text-slate-900 dark:text-white truncate">{apt.patientName}</h3>
+                  <span className="text-[10px] font-mono font-bold text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">
+                    {apt.patientId}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">{apt.reason}</p>
-                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono mt-1">
-                  <span>Slot: {apt.time}</span>
-                  <span>•</span>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2">
+                  {apt.age}y • {apt.gender}
+                </div>
+                
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50 inline-flex">
+                  {apt.isTele ? <Video className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> : <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />}
                   <span>{apt.type}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 justify-end">
-              <button
-                onClick={() => onStartConsultation(apt.patientId)}
-                className={`px-5 py-2.5 rounded-2xl font-black text-xs transition-all shadow-md cursor-pointer flex items-center gap-2 ${
-                  apt.isTele
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-blue-500/20'
-                    : 'bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-500 hover:to-teal-600 text-white shadow-teal-500/20'
-                }`}
+            {/* Column 2: Schedule & Status (w-1/4) */}
+            <div className="lg:w-[25%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className={`w-2 h-2 rounded-full ${getStatusDot(apt.status)}`} />
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm ${getStatusColor(apt.status)}`}>
+                  {apt.status}
+                </span>
+              </div>
+              
+              <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 space-y-1">
+                {apt.status === 'Delayed' && (
+                  <>
+                    <p className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1 mb-1">
+                      <Clock className="w-3 h-3" /> Delayed {apt.delayDuration}
+                    </p>
+                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Arrived:</span> <span className="text-slate-900 dark:text-slate-200">{apt.arrivedAt}</span></p>
+                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Scheduled:</span> <span className="text-slate-900 dark:text-slate-200">{apt.time}</span></p>
+                  </>
+                )}
+                {apt.status === 'In Consultation' && (
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-slate-500">Started:</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">{apt.startedAt}</span>
+                  </p>
+                )}
+                {apt.status === 'No-show' && (
+                  <>
+                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Expected:</span> <span className="text-slate-900 dark:text-slate-200">{apt.expectedArrival}</span></p>
+                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Updated:</span> <span className="text-slate-900 dark:text-slate-200">{apt.statusUpdated}</span></p>
+                  </>
+                )}
+                {apt.status === 'Cancelled' && (
+                  <p className="text-[11px] italic text-slate-500">"{apt.cancelReason}"</p>
+                )}
+                {apt.status === 'Completed' && (
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-slate-500">Completed:</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">{apt.completedAt}</span>
+                  </p>
+                )}
+                {apt.status === 'Scheduled' && (
+                  <p className="flex items-center gap-1.5">
+                    <span className="text-slate-500">Scheduled:</span>
+                    <span className="text-slate-900 dark:text-slate-200 font-mono font-bold">{apt.time}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Column 3: Reason for Visit (w-1/5) */}
+            <div className="lg:w-[20%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
+               <span className="uppercase text-[9px] font-bold text-slate-400 tracking-widest mb-1 block">Reason for Visit</span>
+               <span className="text-xs text-slate-700 dark:text-slate-300 font-bold leading-relaxed pr-2">{apt.reason}</span>
+            </div>
+
+            {/* Column 4: Actions (w-1/5) */}
+            <div className="lg:w-[20%] flex flex-col justify-center items-end border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0 shrink-0 space-y-2">
+              <button 
+                onClick={() => setSelectedPatient(apt)}
+                className="w-full px-4 py-2 rounded-xl font-bold text-[11px] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer text-center"
               >
-                {apt.isTele ? <Video className="w-3.5 h-3.5" /> : <Stethoscope className="w-3.5 h-3.5" />}
-                <span>{apt.isTele ? 'Start Video Consultation' : 'Begin OPD Consultation'}</span>
+                View Profile
               </button>
+              
+              {apt.status === 'Completed' && (
+                <button
+                  onClick={() => onViewConsultation && onViewConsultation(apt.recordId)}
+                  className="w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>View Consultation</span>
+                </button>
+              )}
+
+              {apt.status !== 'Cancelled' && apt.status !== 'Completed' && (
+                <button
+                  onClick={() => onStartConsultation(apt.recordId)}
+                  disabled={apt.status === 'No-show'}
+                  className={`w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 ${
+                    apt.status === 'No-show'
+                      ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+                      : apt.isTele
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-sm cursor-pointer hover:scale-[1.02]'
+                        : 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white shadow-sm cursor-pointer hover:scale-[1.02]'
+                  }`}
+                >
+                  {apt.status === 'In Consultation' ? (
+                    <span>Continue Consultation</span>
+                  ) : apt.status === 'No-show' ? (
+                    <span>Mark as No-show</span>
+                  ) : (
+                    <>
+                      {apt.isTele ? <Video className="w-3.5 h-3.5" /> : <Stethoscope className="w-3.5 h-3.5" />}
+                      <span>Begin Consultation</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {apt.status === 'Cancelled' && (
+                <button
+                  onClick={() => setSelectedPatient(apt)}
+                  className="w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white shadow-sm cursor-pointer hover:scale-[1.02]"
+                >
+                  View Details
+                </button>
+              )}
             </div>
           </motion.div>
         ))}
       </div>
 
+      {/* CENTERED MODAL FOR PATIENT DETAILS */}
+      <AnimatePresence>
+        {selectedPatient && (
+          <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPatient(null)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-[#0b1120] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-y-auto"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <User className="w-5 h-5 text-teal-500" /> Patient Profile
+                  </h2>
+                  <button 
+                    onClick={() => setSelectedPatient(null)}
+                    className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 rounded-full bg-teal-500/10 text-teal-600 dark:text-cyan-400 border-2 border-teal-500/20 flex items-center justify-center font-black text-2xl shadow-sm shrink-0">
+                    {getInitials(selectedPatient.patientName)}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white truncate">{selectedPatient.patientName}</h3>
+                    <p className="text-sm font-semibold text-slate-500">{selectedPatient.age} years • {selectedPatient.gender}</p>
+                    <p className="text-[11px] font-mono font-bold text-slate-400 mt-0.5">ID: {selectedPatient.patientId}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Appointment Details */}
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Appointment Details</h4>
+                    <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-semibold text-slate-500">Date & Time</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">{selectedPatient.date}, {selectedPatient.time}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-semibold text-slate-500">Type</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          {selectedPatient.isTele ? <Video className="w-3.5 h-3.5 text-blue-500" /> : <MapPin className="w-3.5 h-3.5 text-teal-500" />}
+                          {selectedPatient.type}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-semibold text-slate-500">Status</span>
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm ${getStatusColor(selectedPatient.status)}`}>
+                          {selectedPatient.status}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-semibold text-slate-500">Department</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">{selectedPatient.department}</span>
+                      </div>
+                      <div className="pt-3 mt-1 border-t border-slate-200 dark:border-slate-700/50">
+                        <span className="text-xs font-semibold text-slate-500 block mb-1">Reason for Visit</span>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedPatient.reason}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Access */}
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Quick Access</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button className="flex flex-col items-center justify-center gap-2.5 p-3.5 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl hover:border-teal-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group shadow-sm">
+                        <History className="w-5 h-5 text-slate-400 group-hover:text-teal-500 transition-colors" />
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Medical History</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-2.5 p-3.5 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl hover:border-teal-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group shadow-sm">
+                        <FileText className="w-5 h-5 text-slate-400 group-hover:text-teal-500 transition-colors" />
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Lab Reports</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-2.5 p-3.5 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl hover:border-teal-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group shadow-sm">
+                        <Pill className="w-5 h-5 text-slate-400 group-hover:text-teal-500 transition-colors" />
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Prescriptions</span>
+                      </button>
+                      <button className="flex flex-col items-center justify-center gap-2.5 p-3.5 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl hover:border-teal-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group shadow-sm">
+                        <Activity className="w-5 h-5 text-slate-400 group-hover:text-teal-500 transition-colors" />
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Vitals Flow</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-10 mb-4">
+                  <button 
+                    onClick={() => {
+                      if (onViewProfile) onViewProfile(selectedPatient.recordId);
+                      setSelectedPatient(null);
+                    }}
+                    className="w-full px-4 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-sm shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_15px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-transform cursor-pointer"
+                  >
+                    View Full Clinical Profile
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

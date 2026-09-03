@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../components/ui/Logo';
-import { 
+import { ThemeToggle } from '../components/ui/ThemeToggle';
+import {
   LogOut, 
   HeartHandshake, 
   Menu, 
@@ -10,7 +11,8 @@ import {
   ShieldCheck, 
   AlertOctagon, 
   ChevronDown,
-  CheckCircle2
+  CheckCircle2,
+  Search
 } from 'lucide-react';
 import { CaregiverSidebar } from '../components/caregiver-dashboard/CaregiverSidebar';
 import { useCaregiverWorkflow } from '../utils/caregiverWorkflowStorage';
@@ -18,12 +20,15 @@ import { useCaregiverWorkflow } from '../utils/caregiverWorkflowStorage';
 // Views
 import { CaregiverOverviewView } from '../components/caregiver-dashboard/views/CaregiverOverviewView';
 import { CaregiverWardsView } from '../components/caregiver-dashboard/views/CaregiverWardsView';
+import { CaregiverAbhaRecordsView } from '../components/caregiver-dashboard/views/CaregiverAbhaRecordsView';
 import { CaregiverMedicationsView } from '../components/caregiver-dashboard/views/CaregiverMedicationsView';
 import { CaregiverVitalsView } from '../components/caregiver-dashboard/views/CaregiverVitalsView';
 import { CaregiverAppointmentsView } from '../components/caregiver-dashboard/views/CaregiverAppointmentsView';
 import { CaregiverEmergencyView } from '../components/caregiver-dashboard/views/CaregiverEmergencyView';
-import { CaregiverCareCircleView } from '../components/caregiver-dashboard/views/CaregiverCareCircleView';
+import { CaregiverDailyTasksView } from '../components/caregiver-dashboard/views/CaregiverDailyTasksView';
+import { CaregiverCareCircleConsentView } from '../components/caregiver-dashboard/views/CaregiverCareCircleConsentView';
 import { CaregiverProfileView } from '../components/caregiver-dashboard/views/CaregiverProfileView';
+import { CaregiverPreferencesAlertsView } from '../components/caregiver-dashboard/views/CaregiverPreferencesAlertsView';
 
 interface CaregiverDashboardPageProps {
   user?: { 
@@ -48,6 +53,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const [isGlobalSOSOpen, setIsGlobalSOSOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
 
   const { wards, activeWard, setActiveWardId, notifications, markNotifRead, alerts, triggerSOS } = useCaregiverWorkflow();
   const unreadNotifs = notifications.filter(n => !n.read).length;
@@ -58,8 +64,9 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
       case 'dashboard':
         return <CaregiverOverviewView onNavigate={setActiveNav} />;
       case 'wards':
-      case 'records':
         return <CaregiverWardsView />;
+      case 'records':
+        return <CaregiverAbhaRecordsView />;
       case 'medications':
         return <CaregiverMedicationsView />;
       case 'vitals':
@@ -69,11 +76,13 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
       case 'emergency':
         return <CaregiverEmergencyView />;
       case 'routines':
+        return <CaregiverDailyTasksView />;
       case 'care-circle':
-        return <CaregiverCareCircleView />;
+        return <CaregiverCareCircleConsentView />;
       case 'profile':
-      case 'settings':
         return <CaregiverProfileView user={user} />;
+      case 'settings':
+        return <CaregiverPreferencesAlertsView />;
       default:
         return <CaregiverOverviewView onNavigate={setActiveNav} />;
     }
@@ -109,6 +118,36 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
         {/* RIGHT CONTROLS */}
         <div className="flex items-center gap-3 sm:gap-4">
           
+          {/* SEARCH BAR */}
+          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-teal-500 dark:focus-within:border-teal-500">
+            <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
+            />
+          </div>
+          
+          {/* LANGUAGE TOGGLE */}
+          <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+            <button
+              onClick={() => setLanguage('EN')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage('TA')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              தமிழ்
+            </button>
+          </div>
+          
+          <ThemeToggle />
+          
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
           {/* DEPENDENT SWITCHER DROPDOWN */}
           <div className="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
             <span className="text-slate-400 text-[10px] uppercase">Ward:</span>
@@ -314,16 +353,11 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
               </div>
 
               <div className="space-y-2">
-                {[
-                  'SOS Panic Button',
-                  'Fall Detected',
-                  'Abnormal Vitals',
-                  'Geofence Breach'
-                ].map((type) => (
+                {(['SOS Panic Button', 'Fall Detected', 'Abnormal Vitals', 'Geofence Breach'] as const).map((type) => (
                   <button
                     key={type}
                     onClick={() => {
-                      triggerSOS(activeWard.id, type);
+                      triggerSOS(activeWard.id, type as any);
                       setIsGlobalSOSOpen(false);
                       setToastMsg(`🚨 Urgent Emergency SOS dispatched for ${activeWard.name}!`);
                       setTimeout(() => setToastMsg(null), 3000);

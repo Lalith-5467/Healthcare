@@ -51,7 +51,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
     <div className="space-y-8 pb-20 font-sans select-none max-w-7xl mx-auto">
       
       {/* 1. GREETING & QUICK SEARCH */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-8 rounded-[2rem] bg-white dark:bg-gradient-to-br dark:from-[#0b1120] dark:via-blue-950/40 dark:to-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-8 rounded-[2rem] bg-white dark:bg-[#0b1120] dark:bg-gradient-to-br dark:from-[#0b1120] dark:via-[#0f1d35] dark:to-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl relative overflow-hidden">
         {/* Glow Effects */}
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-100 dark:bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-cyan-100 dark:bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
@@ -219,7 +219,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
         <div className="lg:col-span-5 space-y-8">
           
           {/* INSTANT CASHLESS GATEWAY MODULE */}
-          <div className="p-8 rounded-[2rem] bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-[#0b1120] dark:to-blue-950/50 border border-slate-200 dark:border-slate-700/60 shadow-sm dark:shadow-xl relative overflow-hidden group">
+          <div className="p-8 rounded-[2rem] bg-white dark:bg-[#0b1120] dark:bg-gradient-to-br dark:from-slate-900 dark:via-[#0b1120] dark:to-[#0f1d35] border border-slate-200 dark:border-slate-700/60 shadow-sm dark:shadow-xl relative overflow-hidden group">
             {/* Background Effect */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-100 dark:bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-200 dark:group-hover:bg-cyan-500/20 transition-colors duration-700" />
             
