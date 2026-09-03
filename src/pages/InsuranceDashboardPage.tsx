@@ -96,9 +96,9 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           </div>
         </div>
         
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           {/* SEARCH BAR */}
-          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-blue-500 dark:focus-within:border-cyan-500">
+          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-44 xl:w-56 transition-colors focus-within:border-blue-500 dark:focus-within:border-cyan-500">
             <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
             <input 
               type="text" 
@@ -111,12 +111,14 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           {/* LANGUAGE TOGGLE */}
           <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             <button
+              type="button"
               onClick={() => setLanguage('EN')}
               className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               EN
             </button>
             <button
+              type="button"
               onClick={() => setLanguage('TA')}
               className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
@@ -124,44 +126,50 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
             </button>
           </div>
           
-          <ThemeToggle />
-          
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+          {/* THEME TOGGLE */}
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
+
+          {/* Notifications */}
+          <button 
+            type="button"
+            onClick={() => setActiveNav('claims')}
+            className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            title="Active Claims Notifications"
+          >
+            <Bell className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+          </button>
 
           {/* Quick Search Shortcut */}
           <button
+            type="button"
             onClick={() => setActiveNav('search')}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-blue-200 dark:border-blue-800/60"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-blue-200 dark:border-blue-800/60 shadow-2xs"
           >
+            <Search className="w-3.5 h-3.5" />
             <span>Search Policy</span>
           </button>
 
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+
           {/* User Display Pill */}
-          <div className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <div className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
             <div className="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-600 dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {officerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <span className="text-xs font-black text-slate-800 dark:text-slate-200">{officerName}</span>
           </div>
 
-          {/* Notifications */}
           <button 
-            onClick={() => setActiveNav('claims')}
-            className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-            title="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
-          </button>
-          
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
-
-          <button 
+            type="button"
             onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
+            title="Logout"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-xs font-bold hidden sm:block">Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
