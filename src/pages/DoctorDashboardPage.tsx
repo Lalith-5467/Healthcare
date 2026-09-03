@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../components/ui/Logo';
-import { LogOut, Stethoscope, Menu, X, Bell, ShieldCheck } from 'lucide-react';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { LogOut, Stethoscope, Menu, X, Bell, ShieldCheck, Search } from 'lucide-react';
 import { DoctorSidebar } from '../components/doctor-dashboard/DoctorSidebar';
 
 // Views
@@ -10,6 +11,8 @@ import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerVie
 import { Patient360View } from '../components/doctor-dashboard/views/Patient360View';
 import { ConsultationView } from '../components/doctor-dashboard/views/ConsultationView';
 import { MyPatientsDirectoryView } from '../components/doctor-dashboard/views/MyPatientsDirectoryView';
+import { ConsultationDetailsView } from '../components/doctor-dashboard/views/ConsultationDetailsView';
+import { ConsultationWorkspaceView } from '../components/doctor-dashboard/views/ConsultationWorkspaceView';
 import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/views/DoctorAppointmentsScheduleView';
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
@@ -23,6 +26,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
   const [activeNav, setActiveNav] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
+  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
 
   const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma';
 
@@ -38,7 +42,12 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
 
   const handleStartConsultation = (patientId: string) => {
     setScannedPatientId(patientId);
-    setActiveNav('consultations');
+    setActiveNav('consultation-workspace');
+  };
+
+  const handleViewConsultation = (patientId: string) => {
+    setScannedPatientId(patientId);
+    setActiveNav('consultation-details');
   };
 
   const renderContent = () => {
@@ -52,7 +61,11 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
         return <MyPatientsDirectoryView onSelectPatient={handleSelectPatient} />;
       case 'appointments':
       case 'schedule':
-        return <DoctorAppointmentsScheduleView onStartConsultation={handleStartConsultation} />;
+        return <DoctorAppointmentsScheduleView 
+          onStartConsultation={handleStartConsultation} 
+          onViewProfile={handleSelectPatient}
+          onViewConsultation={handleViewConsultation}
+        />;
       case 'patient-360':
       case 'ai-summary':
       case 'medications':
@@ -61,8 +74,12 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
       case 'documents':
       case 'nurse-updates':
         return <Patient360View patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+      case 'consultation-details':
+        return <ConsultationDetailsView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+      case 'consultation-workspace':
+        return <ConsultationWorkspaceView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
       case 'consultations':
-        return <ConsultationView patientId={scannedPatientId || '1'} />;
+        return <ConsultationWorkspaceView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
       case 'prescriptions':
       case 'clinical-notes':
         return <ClinicalNotesPrescriptionsView />;
@@ -101,6 +118,35 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
         </div>
         
         <div className="flex items-center gap-4">
+          {/* SEARCH BAR */}
+          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-teal-500 dark:focus-within:border-cyan-500">
+            <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search patients, meds..." 
+              className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
+              onClick={() => setActiveNav('patients')}
+            />
+          </div>
+
+          {/* LANGUAGE TOGGLE */}
+          <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+            <button
+              onClick={() => setLanguage('EN')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage('TA')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              தமிழ்
+            </button>
+          </div>
+
+          <ThemeToggle />
+
           {/* Quick QR Scanner Shortcut */}
           <button
             onClick={() => setActiveNav('scan')}
@@ -191,3 +237,4 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
     </div>
   );
 };
+
