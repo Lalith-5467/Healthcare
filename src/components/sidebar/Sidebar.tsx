@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <SidebarHeader
           isCollapsed={isCollapsed}
           onToggleCollapse={handleToggleCollapse}
+          onNavigateHome={() => handleSelectNav('home')}
         />
 
         {/* MAIN NAVIGATION LIST (ALL 18 ITEMS) */}
@@ -62,13 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onOpenPremiumModal={() => setPremiumModalOpen(true)}
         />
 
-        {/* PATIENT PROFILE CARD & POPUP */}
-        <SidebarProfile
-          user={user}
-          isCollapsed={isCollapsed}
-          onLogout={onLogout}
-          onNavigate={handleSelectNav}
-        />
       </aside>
 
       {/* FRONTEND PREMIUM MODAL */}
