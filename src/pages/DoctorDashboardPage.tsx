@@ -1,61 +1,60 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Stethoscope, 
+  Menu, 
+  X, 
+  Bell, 
+  ShieldCheck, 
+  LogOut, 
+  ExternalLink 
+} from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
-import { LogOut, Stethoscope, Menu, X, Bell, ShieldCheck } from 'lucide-react';
 import { DoctorSidebar } from '../components/doctor-dashboard/DoctorSidebar';
-
-// Views
 import { DoctorOverviewView } from '../components/doctor-dashboard/views/DoctorOverviewView';
-import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
 import { Patient360View } from '../components/doctor-dashboard/views/Patient360View';
 import { ConsultationView } from '../components/doctor-dashboard/views/ConsultationView';
-import { MyPatientsDirectoryView } from '../components/doctor-dashboard/views/MyPatientsDirectoryView';
-import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/views/DoctorAppointmentsScheduleView';
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
+import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/views/DoctorAppointmentsScheduleView';
+import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
 
 interface DoctorDashboardPageProps {
-  user?: { name: string; email: string };
   onLogout: () => void;
+  user?: { name: string; email: string };
 }
 
-export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, onLogout }) => {
-  const [activeNav, setActiveNav] = useState('dashboard');
+export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user }) => {
+  const [activeNav, setActiveNav] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
+  const [scannedPatientId, setScannedPatientId] = useState<string | null>(null);
 
-  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma';
+  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
 
-  const handleScanSuccess = (patientId: string) => {
-    setScannedPatientId(patientId);
-    setActiveNav('patient-360');
-  };
-
-  const handleSelectPatient = (patientId: string) => {
-    setScannedPatientId(patientId);
-    setActiveNav('patient-360');
-  };
-
-  const handleStartConsultation = (patientId: string) => {
-    setScannedPatientId(patientId);
-    setActiveNav('consultations');
-  };
-
-  const renderContent = () => {
+  const renderActiveView = () => {
     switch (activeNav) {
-      case 'dashboard':
+      case 'overview':
         return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
-      case 'scan':
-        return <QRScannerView onScanSuccess={handleScanSuccess} />;
-      case 'patients':
-      case 'patient-directory':
-        return <MyPatientsDirectoryView onSelectPatient={handleSelectPatient} />;
       case 'appointments':
-      case 'schedule':
-        return <DoctorAppointmentsScheduleView onStartConsultation={handleStartConsultation} />;
+      case 'queue':
+        return (
+          <DoctorAppointmentsScheduleView 
+            onStartConsultation={(patientId: string) => {
+              setScannedPatientId(patientId);
+              setActiveNav('consultations');
+            }} 
+          />
+        );
+      case 'scan':
+        return (
+          <QRScannerView 
+            onScanSuccess={(patientId: string) => {
+              setScannedPatientId(patientId);
+              setActiveNav('patient-360');
+            }} 
+          />
+        );
       case 'patient-360':
-      case 'ai-summary':
-      case 'medications':
       case 'vitals':
       case 'labs':
       case 'documents':
@@ -70,24 +69,12 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
       case 'profile':
         return <DoctorProfileSettingsView />;
       default:
-<<<<<<< HEAD
         return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
-=======
-        return (
-          <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-            <p className="font-bold">Module "{activeNav}" is under construction.</p>
-          </div>
-        );
->>>>>>> origin/main
     }
   };
 
   return (
-<<<<<<< HEAD
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
-=======
-    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col">
->>>>>>> origin/main
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
@@ -106,13 +93,8 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
               </span>
             </div>
             
-<<<<<<< HEAD
             <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> ABDM Practitioner Console
-=======
-            <div className="hidden md:flex items-center gap-1 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
-              <ShieldCheck className="w-3 h-3" /> Protected Health Information
->>>>>>> origin/main
             </div>
           </div>
         </div>
@@ -135,15 +117,11 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
           </div>
 
           {/* Notifications */}
-<<<<<<< HEAD
           <button 
             onClick={() => setActiveNav('appointments')}
             className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
             title="Appointments"
           >
-=======
-          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
->>>>>>> origin/main
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
           </button>
@@ -152,11 +130,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
 
           <button 
             onClick={onLogout}
-<<<<<<< HEAD
             className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
-=======
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2"
->>>>>>> origin/main
           >
             <LogOut className="w-4 h-4" />
             <span className="text-xs font-bold hidden sm:block">Logout</span>
@@ -180,37 +154,36 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl"
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl flex flex-col z-10"
               >
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                  <span className="font-black text-teal-600 dark:text-cyan-400 uppercase text-xs">CLINICAL MENU</span>
-                  <button onClick={() => setIsSidebarOpen(false)} className="p-1 cursor-pointer"><X className="w-5 h-5" /></button>
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <span className="font-black text-slate-900 dark:text-white">Doctor Console</span>
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <DoctorSidebar 
-                  activeNav={activeNav} 
-                  onNavigate={(id) => { setActiveNav(id); setIsSidebarOpen(false); }} 
-                  user={user}
-                />
+                <div className="flex-1 overflow-y-auto">
+                  <DoctorSidebar 
+                    activeNav={activeNav} 
+                    onNavigate={(id) => {
+                      setActiveNav(id);
+                      setIsSidebarOpen(false);
+                    }} 
+                    user={user} 
+                  />
+                </div>
               </motion.div>
             </div>
           )}
         </AnimatePresence>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070c18] p-4 sm:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeNav}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-7xl mx-auto h-full"
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+        {/* MAIN WORKBENCH VIEWPORT */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {renderActiveView()}
         </main>
       </div>
     </div>

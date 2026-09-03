@@ -172,11 +172,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
 
               <button
                 onClick={onSeeHowItWorks}
-<<<<<<< HEAD
                 className="group w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-teal-500/15 backdrop-blur-md rounded-xl transition-all duration-200 gap-2 cursor-pointer active:scale-95 active:translate-y-0"
-=======
-                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-slate-900/80 hover:bg-slate-900 border border-slate-200 dark:border-slate-700/80 backdrop-blur-md rounded-xl transition-all shadow-md gap-2 cursor-pointer"
->>>>>>> origin/main
               >
                 <FileText className="w-4 h-4 text-[#00a896] transition-transform duration-200 group-hover:scale-110 group-hover:text-teal-300" />
                 <span>Connect ABHA</span>

@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
 import { CheckCircle2, Menu, Bell, ShieldCheck, LogOut, Pill, Building2, Search, X, ChevronRight, FileText, User, Sparkles } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-=======
-import { CheckCircle2, Menu, Bell, ShieldCheck, ChevronDown, LogOut } from 'lucide-react';
-import { Logo } from '../components/ui/Logo';
->>>>>>> origin/main
 import { PharmacistSidebar } from '../components/pharmacist/PharmacistSidebar';
 import { PharmacistOverviewTab } from '../components/pharmacist/PharmacistOverviewTab';
 import { PharmacistOrdersView } from '../components/pharmacist/PharmacistOrdersView';
@@ -100,7 +95,6 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     }
   };
 
-<<<<<<< HEAD
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
@@ -203,278 +197,184 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         </div>
 
         {/* CENTER INTERACTIVE SEARCH BAR */}
-        <div className="hidden md:flex flex-1 max-w-md mx-2 lg:mx-4 relative">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setTimeout(() => setSearchFocused(false), 250)}
-              placeholder="Search prescriptions, medicines, patients, interactions..."
-              className="w-full h-10 pl-9 pr-8 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-[#00a896] focus:ring-2 focus:ring-teal-500/15 transition-all shadow-inner"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+        <div className="flex-1 max-w-xl mx-2 relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <div className="relative flex items-center">
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onFocus={() => setSearchFocused(true)}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Prescriptions, Medicines, Drug Interactions, Patients..."
+                className="w-full pl-10 pr-9 py-2 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/20 transition-all shadow-2xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                  }}
+                  className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </form>
 
-          {/* REAL SEARCH RESULTS AUTOCOMPLETE DROPDOWN */}
-          {searchFocused && searchQuery.trim() && (
-            <div className="absolute top-12 left-0 right-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl z-50 overflow-hidden text-xs divide-y divide-slate-100 dark:divide-slate-800 font-sans max-h-96 overflow-y-auto">
-              {/* 1. MATCHED ORDERS */}
-              {searchResults.orders.length > 0 && (
-                <div className="p-2 space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5 block font-mono">
-                    Prescription Orders ({searchResults.orders.length})
-                  </span>
-                  {searchResults.orders.map((o) => (
-                    <div
-                      key={o.id}
-                      onClick={() => {
-                        handleSelectNav('orders');
-                        setSearchQuery('');
-                        showToast(`Opened Order #${o.id.slice(-6)}`);
-                      }}
-                      className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-teal-500/10 text-[#00a896] flex items-center justify-center shrink-0">
-                          <FileText className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
-                            #{o.id} • {o.patientName || (o as any).patient?.fullName || 'Patient'}
-                          </p>
-                          <p className="text-[10px] text-slate-500 truncate">
-                            {(o.items || []).map((i: any) => i.name || i.medicineName).join(', ') || 'Prescription Medicines'}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0 font-bold">
-                        {o.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* AUTOCOMPLETE POPUP DROPDOWN */}
+          <AnimatePresence>
+            {searchFocused && searchQuery.trim().length > 0 && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setSearchFocused(false)} 
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl z-50 overflow-hidden max-h-[420px] overflow-y-auto"
+                >
+                  <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Search Suggestions</span>
+                    <span className="text-[#00a896] font-mono">{searchResults.totalCount} results</span>
+                  </div>
 
-              {/* 2. MATCHED MEDICINES */}
-              {searchResults.medicines.length > 0 && (
-                <div className="p-2 space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5 block font-mono">
-                    Inventory Stock ({searchResults.medicines.length})
-                  </span>
-                  {searchResults.medicines.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => {
-                        handleSelectNav('medicines');
-                        setSearchQuery('');
-                        showToast(`Viewed ${m.medicineName} in Stock`);
-                      }}
-                      className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                          <Pill className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
-                            {m.medicineName} {m.dosage ? `(${m.dosage})` : ''}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {m.currentQuantity} {m.unit} in stock • {m.supplyDays} days supply
-                          </p>
-                        </div>
-                      </div>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold shrink-0 ${
-                        m.stockLevel === 'Low Stock' ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      }`}>
-                        {m.stockLevel}
-                      </span>
+                  {searchResults.totalCount === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-400">
+                      No matching records found for "{searchQuery}". Press Enter to view all orders.
                     </div>
-                  ))}
-                </div>
-              )}
+                  ) : (
+                    <div className="p-2 space-y-3">
+                      {/* Prescriptions */}
+                      {searchResults.orders.length > 0 && (
+                        <div>
+                          <div className="px-2 pb-1 text-[10px] font-extrabold uppercase text-[#00a896] flex items-center gap-1">
+                            <FileText className="w-3 h-3" /> Prescriptions ({searchResults.orders.length})
+                          </div>
+                          {searchResults.orders.map((o) => (
+                            <div
+                              key={o.id}
+                              onClick={() => {
+                                handleSelectNav('orders');
+                                setSearchFocused(false);
+                              }}
+                              className="p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs"
+                            >
+                              <div>
+                                <p className="font-bold text-slate-800 dark:text-slate-200">
+                                  {o.patientName || (o as any).patient?.fullName || 'Patient'}
+                                </p>
+                                <p className="text-[10px] text-slate-400 font-mono">
+                                  ID: {o.id} • {o.items?.length || 1} Meds
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-[#00a896] border border-teal-500/20">
+                                {o.status}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
-              {/* 3. MATCHED DRUG INTERACTIONS */}
-              {searchResults.interactions.length > 0 && (
-                <div className="p-2 space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5 block font-mono">
-                    Drug Safety Checks
-                  </span>
-                  {searchResults.interactions.map((i, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        handleSelectNav('drug-interaction');
-                        setSearchQuery('');
-                        showToast(`Opened Drug Radar for ${i.name}`);
-                      }}
-                      className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
-                          <Sparkles className="w-3.5 h-3.5" />
+                      {/* Stock Medicines */}
+                      {searchResults.medicines.length > 0 && (
+                        <div>
+                          <div className="px-2 pb-1 text-[10px] font-extrabold uppercase text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                            <Pill className="w-3 h-3" /> Medicines in Stock ({searchResults.medicines.length})
+                          </div>
+                          {searchResults.medicines.map((m) => (
+                            <div
+                              key={m.id}
+                              onClick={() => {
+                                handleSelectNav('medicines');
+                                setSearchFocused(false);
+                              }}
+                              className="p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs"
+                            >
+                              <div>
+                                <p className="font-bold text-slate-800 dark:text-slate-200">{m.medicineName}</p>
+                                <p className="text-[10px] text-slate-400">{m.dosage} • {m.stockLevel}</p>
+                              </div>
+                              <span className="text-[10px] font-bold font-mono text-slate-500">
+                                {m.currentQuantity} {m.unit}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
-                            {i.name}
-                          </p>
-                          <p className="text-[10px] text-rose-500 truncate font-semibold">
-                            ⚠️ {i.hazard}
-                          </p>
+                      )}
+
+                      {/* Interactions */}
+                      {searchResults.interactions.length > 0 && (
+                        <div>
+                          <div className="px-2 pb-1 text-[10px] font-extrabold uppercase text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> Drug Interactions ({searchResults.interactions.length})
+                          </div>
+                          {searchResults.interactions.map((i, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => {
+                                handleSelectNav('drug-interaction');
+                                setSearchFocused(false);
+                              }}
+                              className="p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs"
+                            >
+                              <div>
+                                <p className="font-bold text-slate-800 dark:text-slate-200">{i.name}</p>
+                                <p className="text-[10px] text-rose-500">{i.hazard}</p>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      )}
+
+                      {/* Patients */}
+                      {searchResults.patients.length > 0 && (
+                        <div>
+                          <div className="px-2 pb-1 text-[10px] font-extrabold uppercase text-blue-600 dark:text-cyan-400 flex items-center gap-1">
+                            <User className="w-3 h-3" /> Patients ({searchResults.patients.length})
+                          </div>
+                          {searchResults.patients.map((p, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => {
+                                handleSelectNav('patients');
+                                setSearchFocused(false);
+                              }}
+                              className="p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer flex items-center justify-between text-xs"
+                            >
+                              <div>
+                                <p className="font-bold text-slate-800 dark:text-slate-200">{p.name}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">ABHA: {p.abha}</p>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500">{p.blood}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 4. MATCHED PATIENTS */}
-              {searchResults.patients.length > 0 && (
-                <div className="p-2 space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5 block font-mono">
-                    Patients Directory
-                  </span>
-                  {searchResults.patients.map((p, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        handleSelectNav('patients');
-                        setSearchQuery('');
-                        showToast(`Opened Patient Profile: ${p.name}`);
-                      }}
-                      className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
-                          <User className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
-                            {p.name} (Blood: {p.blood})
-                          </p>
-                          <p className="text-[10px] text-slate-500 font-mono">
-                            ABHA: {p.abha}
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* NO MATCHES FALLBACK */}
-              {searchResults.totalCount === 0 && (
-                <div className="p-4 text-center space-y-1 text-slate-500">
-                  <Search className="w-5 h-5 mx-auto text-slate-400 opacity-60" />
-                  <p className="font-bold text-xs">No direct matches found for "{searchQuery}"</p>
-                  <p className="text-[10px]">Press Enter to search all dispensary database logs.</p>
-                </div>
-              )}
-            </div>
-          )}
+                  )}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
-        
-        {/* RIGHT ACTION CONTROLS */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* DARK / LIGHT MODE THEME TOGGLE BUTTON */}
+
+        {/* RIGHT CONTROLS: THEME TOGGLE, NOTIFICATIONS, USER PILL, LOGOUT */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          
+          {/* THEME TOGGLE */}
           <ThemeToggle />
 
-          {/* Dispensary Alerts & Notifications Popover */}
+          {/* NOTIFICATION BELL */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setNotificationPopoverOpen(!notificationPopoverOpen)}
-              className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Dispensary Alerts & Notifications"
-=======
-  return (
-    <div className="h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white transition-colors duration-300 flex flex-col select-none font-sans">
-      {/* TOP HEADER */}
-      <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 h-16 flex items-center justify-between px-4 sm:px-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button 
-            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
-            onClick={() => setMobileSidebarOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          
-          <div className="flex items-center gap-3">
-            <Logo />
-            <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
-              <span className="text-xs font-black uppercase tracking-wider text-[#00a896] dark:text-cyan-400 bg-teal-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded-md flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Pharmacy Operations
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 sm:gap-4">
-          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-[#0b1120]"></span>
-          </button>
-          
-          <div className="hidden sm:block w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
-
-          <div className="hidden sm:flex items-center gap-2.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 pr-2 rounded-full transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-            <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-sm">
-              {user.name.charAt(0)}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">{user.name}</span>
-              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">Registered Pharmacist</span>
-            </div>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </div>
-
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
-
-          <button 
-            onClick={onLogout}
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2"
-          >
-            <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
-            <span className="text-xs font-bold hidden sm:block">Logout</span>
-          </button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden lg:block shrink-0">
-        <PharmacistSidebar
-          activeId={activeNavId}
-          onSelectNav={handleSelectNav}
-          user={user}
-          onLogout={onLogout}
-        />
-      </div>
-
-      {/* MAIN PHARMACIST WORKSPACE */}
-      <div className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
-        <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-          {/* TOAST FEEDBACK */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
->>>>>>> origin/main
             >
               <Bell className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
@@ -544,7 +444,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                     handleSelectNav(id, filter);
                     setMobileSidebarOpen(false);
                   }}
-                  user={user}
+                  user={effectiveUser}
                   onLogout={onLogout}
                 />
               </motion.div>
@@ -570,7 +470,6 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             )}
           </AnimatePresence>
 
-<<<<<<< HEAD
           {/* TOP PHARMACIST WORKSPACE HEADER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -601,17 +500,9 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                   ? 'Pharmacy Profile & Statutory Licenses'
                   : 'Pharmacist Workspace'}
               </h1>
-=======
-        {/* TOP PHARMACIST WORKSPACE HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">
-              Pharmacy Operations / Apollo Central
->>>>>>> origin/main
             </div>
           </div>
 
-<<<<<<< HEAD
           {/* ACTIVE SUB-VIEW */}
           <AnimatePresence mode="wait">
             <motion.div
@@ -660,39 +551,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             </motion.div>
           </AnimatePresence>
         </main>
-=======
-        {/* ACTIVE SUB-VIEW */}
-        {activeNavId === 'dashboard' ? (
-          <PharmacistOverviewTab
-            user={user}
-            onNavigateOrders={(tab) => handleSelectNav('orders', tab)}
-            onNavigateMedicines={() => handleSelectNav('medicines')}
-            onToast={showToast}
-          />
-        ) : activeNavId === 'orders' || activeNavId === 'prescriptions' ? (
-          <PharmacistOrdersView
-            user={user}
-            initialFilter={orderFilterSubtab}
-            onToast={showToast}
-          />
-        ) : activeNavId === 'medicines' ? (
-          <PharmacistMedicinesTab />
-        ) : activeNavId === 'patients' ? (
-          <PharmacistPatientsTab />
-        ) : (
-          <PharmacistOverviewTab
-            user={user}
-            onNavigateOrders={(tab) => handleSelectNav('orders', tab)}
-            onNavigateMedicines={() => handleSelectNav('medicines')}
-            onToast={showToast}
-          />
-        )}
-        </div>
-      </div>
->>>>>>> origin/main
       </div>
 
     </div>
   );
 };
-

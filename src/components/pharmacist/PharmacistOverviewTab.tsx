@@ -285,7 +285,6 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
       </div>
 
       {/* URGENT PENDING ORDERS QUEUE */}
-<<<<<<< HEAD
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-3">
@@ -305,27 +304,12 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
                 Incoming scanned prescriptions requiring clinical pharmacist verification before dispensing.
               </p>
             </div>
-=======
-      <div className="bg-white dark:bg-[#070c18] border border-slate-200 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-              Urgent Pending Prescriptions ({pendingOrders.length})
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Incoming urgent prescriptions requiring clinical verification before dispensing.
-            </p>
->>>>>>> origin/main
           </div>
 
           <button
             type="button"
             onClick={() => onNavigateOrders('Pending')}
-<<<<<<< HEAD
             className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-black text-[#00a896] dark:text-cyan-400 transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto border border-slate-200 dark:border-slate-700"
-=======
-            className="text-xs font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline cursor-pointer flex items-center gap-1"
->>>>>>> origin/main
           >
             <span>View All Queue ({pendingOrders.length})</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -333,7 +317,6 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
         </div>
 
         {pendingOrders.length === 0 ? (
-<<<<<<< HEAD
           <div className="py-12 text-center space-y-2.5 text-slate-500">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/20">
               <CheckCircle2 className="w-6 h-6" />
@@ -432,15 +415,6 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => setDeclineTargetOrder(order)}
-                      className="px-3.5 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold transition-all cursor-pointer border border-rose-500/20 flex items-center gap-1.5"
-                    >
-                      <Ban className="w-3.5 h-3.5" />
-                      <span>Decline</span>
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={() => handleAcceptOrder(order.id)}
                       className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-black shadow-md shadow-teal-500/20 hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 border border-teal-400/30"
                     >
@@ -451,73 +425,6 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
                 </div>
               );
             })}
-=======
-          <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 text-emerald-500">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">
-              No pending prescriptions
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              You're all caught up.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {pendingOrders.slice(0, 3).map((order) => (
-              <div
-                key={order.id}
-                className="p-4 rounded-xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-sm"
-              >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
-                      #{order.id}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono border border-amber-500/20">
-                      Pending Verification
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 truncate">
-                    Patient: <strong className="text-slate-900 dark:text-white">{order.patientName || 'Ragul Kumar'}</strong> • Prescribed by {order.doctorName || 'Dr. Arun Kumar'}
-                  </p>
-                  <p className="text-[11px] text-[#00a896] dark:text-cyan-400 font-mono truncate bg-teal-50 dark:bg-cyan-900/10 px-2 py-1 rounded w-fit" title={`Rx: ${order.items.map((i) => `${i.name} (${i.dosage})`).join(', ')}`}>
-                    Rx: {order.items.map((i) => `${i.name} (${i.dosage})`).join(', ')}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRxOrder(order)}
-                    className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center gap-1.5"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-slate-500" />
-                    <span>View Rx</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDeclineTargetOrder(order)}
-                    className="px-3 py-2 rounded-lg bg-white dark:bg-transparent hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer border border-rose-200 dark:border-rose-500/30 flex items-center gap-1.5"
-                  >
-                    <Ban className="w-3.5 h-3.5" />
-                    <span>Decline</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAcceptOrder(order.id)}
-                    className="px-4 py-2 rounded-lg bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Accept Order</span>
-                  </button>
-                </div>
-              </div>
-            ))}
->>>>>>> origin/main
           </div>
         )}
       </div>

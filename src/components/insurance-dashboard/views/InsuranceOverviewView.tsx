@@ -128,10 +128,6 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                   <FileText className="w-4 h-4 text-blue-500" /> Real-Time Hospital Claims Stream
                 </h2>
                 <p className="text-xs text-slate-400">Click any patient claim to review hospital billing and approve cashless discharge.</p>
-                    <ChevronRight className="w-5 h-5 text-slate-500 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-10px] group-hover:translate-x-0 hidden sm:block" />
-                  </div>
-                </div>
->>>>>>> origin/main
               </div>
 
               <button

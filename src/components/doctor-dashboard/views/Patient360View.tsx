@@ -105,7 +105,6 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
   }
 
   return (
-<<<<<<< HEAD
     <div className="space-y-6 pb-16 select-none font-sans max-w-7xl mx-auto">
       {/* 1. Enhanced Clinical Patient Header */}
       <div className="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-700/60 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -114,13 +113,6 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
 
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-slate-950 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-lg shadow-teal-500/30 border border-white/20 shrink-0">
-=======
-    <div className="space-y-6 pb-16">
-      {/* 1. Patient Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl font-black text-slate-500 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700">
->>>>>>> origin/main
             {patient.name.charAt(0)}
           </div>
           <div className="space-y-1.5">
@@ -150,7 +142,6 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
           </div>
         </div>
         
-<<<<<<< HEAD
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 relative z-10 w-full md:w-auto shrink-0">
           <button 
             onClick={() => onNavigate('consultations')}
@@ -160,14 +151,6 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
             <span>Start Active Consultation</span>
           </button>
         </div>
-=======
-        <button 
-          onClick={() => onNavigate('consultations')}
-          className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-900 dark:text-white font-black rounded-xl transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2"
-        >
-          <Stethoscope className="w-5 h-5" /> Start Consultation
-        </button>
->>>>>>> origin/main
       </div>
 
       {/* 2. Patient Live Vitals Strip */}
@@ -204,13 +187,8 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2.5 text-xs font-black rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === tab.id 
-<<<<<<< HEAD
                 ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-cyan-300 shadow-sm border border-slate-200/80 dark:border-slate-700' 
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-=======
-                ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-600 dark:text-slate-300'
->>>>>>> origin/main
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -250,7 +228,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
       <div className="lg:col-span-8 space-y-6">
         
         {/* AI Summary Card */}
-<<<<<<< HEAD
         <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-3">
@@ -261,18 +238,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
                 <h2 className="text-base font-black text-slate-900 dark:text-white">AI Clinical Synthesis & Differential Diagnostic Copilot</h2>
                 <p className="text-[10px] uppercase font-mono font-bold text-teal-600 dark:text-cyan-400">ABDM FHIR R4 Connected • Decision Support</p>
               </div>
-=======
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/5 dark:bg-teal-500/10 blur-3xl rounded-full pointer-events-none"></div>
-          
-          <div className="flex items-center gap-3 mb-6 relative z-10">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800/50">
-              <Brain className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">AI Clinical Summary</h2>
-              <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Decision Support Only</p>
->>>>>>> origin/main
             </div>
 
             <button className="text-xs font-bold text-teal-600 dark:text-cyan-400 bg-teal-500/10 hover:bg-teal-500/20 px-3.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 border border-teal-500/20 self-start sm:self-center cursor-pointer">
@@ -294,18 +259,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
             <p>
               One prescription record shows <strong className="text-rose-600 dark:text-rose-400">1 missed evening dose</strong> of Azithromycin 500mg. Currently prescribed supportive mucolytics and oral hydration therapy.
             </p>
-<<<<<<< HEAD
-=======
-            
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 italic">
-                AI-generated summary — verify against original medical records before making clinical decisions.
-              </p>
-              <button className="text-xs font-black text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                <FileText className="w-3 h-3" /> View Sources
-              </button>
-            </div>
->>>>>>> origin/main
           </div>
 
           <p className="text-[11px] font-mono text-slate-400 italic">
@@ -314,7 +267,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
         </div>
 
         {/* Clinical Keywords Visualizer */}
-<<<<<<< HEAD
         <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -325,11 +277,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
           </div>
 
           <div className="flex flex-wrap gap-2.5">
-=======
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Clinical Keywords</h2>
-          <div className="flex flex-wrap gap-4">
->>>>>>> origin/main
             {[
               { text: "Respiratory Infection", color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
               { text: "Antibiotic Therapy", color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
@@ -354,7 +301,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
       <div className="lg:col-span-4 space-y-6">
         
         {/* Health Insights */}
-<<<<<<< HEAD
         <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
             <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -370,16 +316,6 @@ const SummaryTab = ({ patient }: { patient: DoctorPatientRecord }) => {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <p className="text-xs font-black text-slate-900 dark:text-white">Vitamin D3 Below Reference</p>
-=======
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">AI Insights</h2>
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0"></div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Vitamin D is below reference range</p>
-                <button className="text-[10px] uppercase font-black text-teal-600 mt-1">View Report</button>
->>>>>>> origin/main
               </div>
               <p className="text-[11px] text-slate-600 dark:text-slate-400">Current: 18.4 ng/mL (Ref: 30-100 ng/mL)</p>
               <button className="text-[10px] uppercase font-black text-teal-600 dark:text-cyan-400 hover:underline pt-1 block cursor-pointer">

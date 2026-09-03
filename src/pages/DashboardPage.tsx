@@ -383,12 +383,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               userName={user.name.split(' ')[0]}
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
-<<<<<<< HEAD
               onNavigateHome={() => handleSelectNav('home')}
-=======
               onNavigate={handleSelectNav}
               onLogout={onLogout}
->>>>>>> origin/main
             />
 
             {/* 2. PRIMARY HEALTH SCORE & ABDM ACCESS HERO CARDS */}

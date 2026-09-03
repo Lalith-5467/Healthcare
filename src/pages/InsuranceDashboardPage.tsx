@@ -1,52 +1,55 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ShieldCheck, 
+  Menu, 
+  X, 
+  Bell, 
+  LogOut, 
+  ExternalLink 
+} from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
-import { LogOut, ShieldCheck, Menu, X, Bell } from 'lucide-react';
 import { InsuranceSidebar } from '../components/insurance-dashboard/InsuranceSidebar';
-
-// Views
 import { InsuranceOverviewView } from '../components/insurance-dashboard/views/InsuranceOverviewView';
 import { SearchInsuranceView } from '../components/insurance-dashboard/views/SearchInsuranceView';
 import { InsuranceProfileView } from '../components/insurance-dashboard/views/InsuranceProfileView';
+import { PoliciesDirectoryView } from '../components/insurance-dashboard/views/PoliciesDirectoryView';
 import { NetworkHospitalsView } from '../components/insurance-dashboard/views/NetworkHospitalsView';
 import { SettlementsView } from '../components/insurance-dashboard/views/SettlementsView';
-import { PoliciesDirectoryView } from '../components/insurance-dashboard/views/PoliciesDirectoryView';
 import { InsuranceSettingsView } from '../components/insurance-dashboard/views/InsuranceSettingsView';
 
 interface InsuranceDashboardPageProps {
-  user?: { name: string; email: string };
   onLogout: () => void;
+  user?: { name: string; email: string };
 }
 
-export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ user, onLogout }) => {
-  const [activeNav, setActiveNav] = useState('dashboard');
+export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ onLogout, user }) => {
+  const [activeNav, setActiveNav] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [searchedId, setSearchedId] = useState<string | null>('INS-MC-2026-10245');
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState<string | null>(null);
 
-  const officerName = user?.name || 'Insurance Officer';
+  const officerName = user?.name || 'Vikas Verma, TPA Head';
 
   const handleSearchSuccess = (insuranceId: string) => {
-    setSearchedId(insuranceId);
+    setSelectedInsuranceId(insuranceId);
     setActiveNav('profile');
   };
 
-  const renderContent = () => {
+  const renderActiveView = () => {
     switch (activeNav) {
-      case 'dashboard':
+      case 'overview':
         return <InsuranceOverviewView onNavigate={setActiveNav} onSelectClaim={handleSearchSuccess} />;
       case 'search':
         return <SearchInsuranceView onSearchSuccess={handleSearchSuccess} />;
-      case 'claims':
-      case 'preauth':
       case 'profile':
-      case 'coverage':
-      case 'documents':
-        return <InsuranceProfileView insuranceId={searchedId || 'INS-MC-2026-10245'} onNavigate={setActiveNav} />;
+      case 'claim-details':
+        return <InsuranceProfileView insuranceId={selectedInsuranceId} onNavigate={setActiveNav} />;
+      case 'claims':
       case 'policies':
-      case 'policy-holders':
+      case 'approvals':
         return <PoliciesDirectoryView onSelectPolicy={handleSearchSuccess} />;
       case 'hospitals':
-      case 'hospitalizations':
+      case 'network':
         return <NetworkHospitalsView />;
       case 'settlements':
       case 'payments':
@@ -54,24 +57,12 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
       case 'settings':
         return <InsuranceSettingsView />;
       default:
-<<<<<<< HEAD
         return <InsuranceOverviewView onNavigate={setActiveNav} onSelectClaim={handleSearchSuccess} />;
-=======
-        return (
-          <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-            <p className="font-bold">Module "{activeNav}" is under construction.</p>
-          </div>
-        );
->>>>>>> origin/main
     }
   };
 
   return (
-<<<<<<< HEAD
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
-=======
-    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col">
->>>>>>> origin/main
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
@@ -90,13 +81,8 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
               </span>
             </div>
             
-<<<<<<< HEAD
             <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-500" /> ABDM Claims Gateway
-=======
-            <div className="hidden md:flex items-center gap-1 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
-              <ShieldCheck className="w-3 h-3" /> Secure Data Access
->>>>>>> origin/main
             </div>
           </div>
         </div>
@@ -105,7 +91,7 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           {/* Quick Search Shortcut */}
           <button
             onClick={() => setActiveNav('search')}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-blue-200 dark:border-blue-800/60"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-blue-200 dark:border-blue-800/60"
           >
             <span>Search Policy</span>
           </button>
@@ -119,15 +105,11 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           </div>
 
           {/* Notifications */}
-<<<<<<< HEAD
           <button 
             onClick={() => setActiveNav('claims')}
             className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
             title="Notifications"
           >
-=======
-          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
->>>>>>> origin/main
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
           </button>
@@ -136,11 +118,7 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
 
           <button 
             onClick={onLogout}
-<<<<<<< HEAD
             className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
-=======
-            className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2"
->>>>>>> origin/main
           >
             <LogOut className="w-4 h-4" />
             <span className="text-xs font-bold hidden sm:block">Logout</span>
@@ -164,37 +142,36 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl"
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl flex flex-col z-10"
               >
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                  <span className="font-black text-blue-600">INSURANCE DESK</span>
-                  <button onClick={() => setIsSidebarOpen(false)} className="p-1 cursor-pointer"><X className="w-5 h-5" /></button>
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <span className="font-black text-slate-900 dark:text-white">Insurance Desk</span>
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <InsuranceSidebar 
-                  activeNav={activeNav} 
-                  onNavigate={(id) => { setActiveNav(id); setIsSidebarOpen(false); }} 
-                  user={user}
-                />
+                <div className="flex-1 overflow-y-auto">
+                  <InsuranceSidebar 
+                    activeNav={activeNav} 
+                    onNavigate={(id) => {
+                      setActiveNav(id);
+                      setIsSidebarOpen(false);
+                    }} 
+                    user={user} 
+                  />
+                </div>
               </motion.div>
             </div>
           )}
         </AnimatePresence>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070c18] p-4 sm:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeNav}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-7xl mx-auto h-full"
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+        {/* MAIN WORKBENCH VIEWPORT */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {renderActiveView()}
         </main>
       </div>
     </div>

@@ -293,31 +293,16 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 12 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-<<<<<<< HEAD
-          className="w-full max-w-lg my-auto relative"
-          style={{
-            background: 'linear-gradient(160deg,#f8fafc 0%,#f0fdfa 40%,#ffffff 100%)',
-            border: '1.5px solid rgba(20,184,166,.18)',
-            borderRadius: '24px',
-            boxShadow: '0 20px 50px rgba(0,0,0,.15), 0 4px 16px rgba(20,184,166,.08)',
-          }}
-=======
           className="w-full max-w-lg my-auto font-sans relative bg-gradient-to-br from-slate-50 via-teal-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
->>>>>>> origin/main
         >
           <div className="relative z-10 p-5 sm:p-6 space-y-4">
             {/* ── HEADER ── */}
             <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(20,184,166,.12)' }}>
               <div className="flex items-center gap-3">
-<<<<<<< HEAD
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)' }}
+                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}
                 >
-=======
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shadow-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}>
->>>>>>> origin/main
                   <Truck className="w-4.5 h-4.5" />
                 </div>
                 <div>
@@ -330,15 +315,14 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 </div>
               </div>
 
-<<<<<<< HEAD
               <div className="flex items-center gap-2">
                 {/* Realtime Status Indicator Badge */}
                 {!isCompleted && !isDeclined && !isCancelled && (
                   <span
                     className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                       isRealtimeActive
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                        : 'bg-amber-50 text-amber-700 border-amber-300'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                        : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
                     }`}
                   >
                     {isRealtimeActive ? (
@@ -348,118 +332,70 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                       </>
                     ) : (
                       <>
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                        <span>Polling Active</span>
+                        <RefreshCw className="w-3 h-3 text-amber-600" />
+                        <span>Auto-Syncing</span>
                       </>
                     )}
                   </span>
                 )}
+
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                  style={{ background: 'rgba(0,0,0,.04)', border: '1px solid rgba(0,0,0,.06)' }}
-                  aria-label="Close Tracking Modal"
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4.5 h-4.5" />
                 </button>
               </div>
             </div>
 
-            {/* ── IN-APP LIVE NOTIFICATION TOAST ── */}
+            {/* ── LIVE TOAST BANNER (Rule 14) ── */}
             <AnimatePresence>
               {liveNotification && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  className="p-3 rounded-2xl bg-teal-600 text-white shadow-lg flex items-center gap-2.5 text-xs font-bold"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-cyan-300 text-xs font-bold flex items-center gap-2"
                 >
-                  <Bell className="w-4 h-4 text-amber-300 shrink-0 animate-bounce" />
-                  <span className="flex-1">{liveNotification}</span>
+                  <Bell className="w-4 h-4 text-teal-600 dark:text-cyan-400 shrink-0" />
+                  <span>{liveNotification}</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* ── LOADING BANNER (Rule 23) ── */}
-            {loading && (
-              <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center gap-2 text-xs text-teal-800">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Synchronizing latest order status...</span>
-              </div>
-            )}
-
-            {fetchError && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-xs text-amber-800">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>{fetchError}</span>
-              </div>
-            )}
-
-            {/* ── LIVE STATUS BANNER (Rule 6 & 7) ── */}
-            <div
-              className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 border ${
-                isDeclined
-                  ? 'bg-rose-50/90 border-rose-200 text-rose-900'
-                  : isCompleted
-                  ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
-                  : 'bg-white/90 border-teal-500/20 text-slate-900'
-              }`}
-            >
+            {/* ── ETA & PHARMACY HEADER CARD (Rule 24) ── */}
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-teal-500/15 flex items-center justify-between shadow-xs">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Current Status</span>
-                <h4
-                  className={`text-sm sm:text-base font-extrabold mt-0.5 ${
-                    isDeclined ? 'text-rose-600' : isCompleted ? 'text-emerald-700' : 'text-teal-700'
-                  }`}
-                >
-                  {displayStatus}
-=======
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-900 dark:text-white transition-colors cursor-pointer bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
-                aria-label="Close Tracking Modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* ── DELIVERY BANNER ── */}
-            <div className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 bg-white/85 dark:bg-slate-900/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_8px_rgba(20,184,166,0.04)]">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Estimated Delivery</span>
-                <h4 className="text-sm sm:text-base font-extrabold mt-0.5" style={{ color: '#059669' }}>
-                  {order.estimatedDelivery}
->>>>>>> origin/main
+                <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider font-mono">
+                  Estimated Delivery Time
+                </span>
+                <h4 className="text-sm sm:text-base font-extrabold mt-0.5 text-emerald-600 dark:text-emerald-400">
+                  {currentOrder?.estimatedDelivery || '35 - 45 mins'}
                 </h4>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Fulfilling Partner: <strong className="text-slate-800">{pharmacyName}</strong>
+                  Fulfilling Partner: <strong className="text-slate-800 dark:text-slate-200">{pharmacyName}</strong>
                 </p>
               </div>
               <div className="text-right font-mono">
-<<<<<<< HEAD
                 <span className="text-[9px] text-slate-400 font-bold block">Total Amount</span>
-                <span className="text-lg font-extrabold text-amber-700">{totalAmount}</span>
-=======
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold block">Total Amount</span>
-                <span className="text-lg font-extrabold" style={{ color: '#d97706' }}>₹{order.totalAmount}</span>
->>>>>>> origin/main
+                <span className="text-lg font-extrabold text-amber-600 dark:text-amber-400">{totalAmount}</span>
               </div>
             </div>
 
             {/* ── DECLINED ALERT BANNER ── */}
             {isDeclined && (
-              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-800 text-xs space-y-1">
+              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-800 dark:text-rose-300 text-xs space-y-1">
                 <div className="font-extrabold flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   <span>Pharmacy Did Not Accept Order</span>
                 </div>
-                <p className="text-[11px] text-rose-700">
+                <p className="text-[11px] text-rose-700 dark:text-rose-300">
                   The selected pharmacy could not fulfill this prescription at this time.
                 </p>
               </div>
             )}
 
-            {/* ── PROGRESS BAR (Rule 9) ── */}
+            {/* ── PROGRESS BAR ── */}
             {!isDeclined && !isCancelled && (
               <div className="space-y-1.5">
                 <div className="flex justify-between text-[11px] font-bold text-slate-500 font-mono">
@@ -477,10 +413,10 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               </div>
             )}
 
-            {/* ── TRACKING TIMELINE (READ-ONLY, Rule 8 & 10) ── */}
+            {/* ── TRACKING TIMELINE ── */}
             <div>
               <h4 className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono mb-2.5 flex items-center gap-1.5">
-                <Package className="w-3.5 h-3.5" style={{ color: '#00a896' }} />
+                <Package className="w-3.5 h-3.5 text-[#00a896]" />
                 <span>Realtime Fulfillment Journey</span>
               </h4>
 
@@ -503,43 +439,9 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                           </svg>
                         )}
                       </div>
-<<<<<<< HEAD
                       <div className="flex-1 flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800">
-                        <span className={`font-semibold ${step.active ? 'text-teal-900 font-extrabold' : step.done ? 'text-slate-800' : 'text-slate-400'}`}>
+                        <span className={`font-semibold ${step.active ? 'text-teal-900 dark:text-cyan-300 font-extrabold' : step.done ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400'}`}>
                           {step.label}
-=======
-
-                      {/* RIGHT — content */}
-                      <motion.div
-                        initial={{ opacity: 0, x: -6 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className={`flex-1 flex items-center justify-between gap-2 ${isLast ? 'pb-0' : 'pb-1.5'}`}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-bold leading-tight ${
-                            step.done || step.active
-                              ? 'text-slate-900 dark:text-white'
-                              : 'text-slate-500 dark:text-slate-400 dark:text-slate-500'
-                          }`}>
-                            {step.label}
-                          </span>
-                          {step.active && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[8px] font-extrabold"
-                              style={{ background: 'rgba(0,168,150,.12)', color: '#00897b', border: '1px solid rgba(0,168,150,.25)' }}>
-                              Live
-                            </span>
-                          )}
-                        </div>
-                        <span className={`text-[10px] font-mono font-bold shrink-0 ${
-                          step.done
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : step.active
-                            ? 'text-[#00a896] dark:text-cyan-400'
-                            : 'text-slate-500 dark:text-slate-400'
-                        }`}>
-                          {step.time}
->>>>>>> origin/main
                         </span>
                         <span className="font-mono text-[10px] text-slate-400 font-bold">{step.time}</span>
                       </div>
@@ -549,14 +451,14 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               </div>
             </div>
 
-            {/* ── PHARMACY & DELIVERY DETAILS (Rule 5 & 24) ── */}
-            <div className="space-y-1.5 pt-2 border-t border-teal-500/15 text-[11px] text-slate-600">
+            {/* ── PHARMACY & DELIVERY DETAILS ── */}
+            <div className="space-y-1.5 pt-2 border-t border-teal-500/15 text-[11px] text-slate-600 dark:text-slate-400">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-teal-500/10">
                   <Building2 className="w-3 h-3 text-[#00a896]" />
                 </div>
                 <span>
-                  Fulfilling Pharmacy: <strong className="text-slate-900 font-extrabold">{pharmacyName}</strong>
+                  Fulfilling Pharmacy: <strong className="text-slate-900 dark:text-white font-extrabold">{pharmacyName}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -564,52 +466,34 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   <MapPin className="w-3 h-3 text-[#00a896]" />
                 </div>
                 <span>
-                  Delivery Address: <strong className="text-slate-900 font-semibold">{deliveryAddress}</strong>
+                  Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">{deliveryAddress}</strong>
                 </span>
               </div>
             </div>
 
-<<<<<<< HEAD
-            {/* ── PRESCRIBED ITEMS LIST (Rule 5 & 24) ── */}
+            {/* ── PRESCRIBED ITEMS LIST ── */}
             {orderItems.length > 0 && (
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Prescribed Formulations</span>
-                <div className="text-[11px] text-slate-700 space-y-0.5">
+                <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
                   {orderItems.map((item: any, i: number) => (
                     <div key={i} className="flex justify-between">
                       <span className="font-semibold">{item.medicineName || item.name} {item.dosage && `(${item.dosage})`}</span>
-                      <span className="font-mono text-slate-500">Qty: {item.quantity}</span>
+                      <span className="font-mono text-slate-500 dark:text-slate-400">Qty: {item.quantity}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-=======
-            {/* ── FOOTER ACTIONS ── */}
-            <div className="pt-3 flex items-center gap-3" style={{ borderTop: '1px solid rgba(20,184,166,.12)' }}>
-              {canCancel && (
-                <button
-                  onClick={() => onOpenCancelModal(order)}
-                  className="py-2 px-3.5 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer hover:opacity-80 shrink-0 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
-                >
-                  <Ban className="w-3.5 h-3.5" />
-                  <span>Cancel Order</span>
-                </button>
-              )}
->>>>>>> origin/main
 
-            {/* ── FOOTER (READ-ONLY PATIENT, Rule 16) ── */}
+            {/* ── FOOTER ── */}
             <div className="pt-2 flex items-center justify-between gap-3 border-t border-teal-500/15">
               <span className="text-[10px] text-slate-400 font-medium">
                 Observer Mode • Read-only realtime sync
               </span>
               <button
                 onClick={onClose}
-<<<<<<< HEAD
-                className="py-2 px-6 rounded-xl text-xs font-extrabold bg-white border border-teal-500/30 text-teal-800 hover:bg-teal-50 transition-colors cursor-pointer shadow-sm"
-=======
-                className="flex-1 py-2 px-4 rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center cursor-pointer bg-white/90 dark:bg-slate-800/90 border-[1.5px] border-teal-500/25 text-teal-700 dark:text-teal-400 shadow-[0_1px_4px_rgba(20,184,166,0.08)]"
->>>>>>> origin/main
+                className="py-2 px-6 rounded-xl text-xs font-extrabold bg-white dark:bg-slate-800 border border-teal-500/30 text-teal-800 dark:text-cyan-300 hover:bg-teal-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-sm"
               >
                 Close
               </button>

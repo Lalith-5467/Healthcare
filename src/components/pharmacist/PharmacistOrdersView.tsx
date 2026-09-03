@@ -218,13 +218,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
     <div className="space-y-6 font-sans">
       {/* ── TOP KPI SUMMARY CARDS (DYNAMIC BACKEND DATA) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-<<<<<<< HEAD
-        {/* 1. PENDING ORDERS */}
-        <div
-          onClick={() => setActiveFilter('Pending')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
-            activeFilter === 'Pending'
-=======
         {/* TOTAL */}
         <div
           onClick={() => setActiveFilter('All')}
@@ -250,7 +243,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
           onClick={() => setActiveFilter('Pending')}
           className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden ${
             activeFilter === 'Pending' || activeFilter === 'New Orders'
->>>>>>> origin/main
               ? 'bg-amber-500/15 border-amber-500 shadow-sm'
               : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-amber-400/50 hover:shadow-md hover:-translate-y-0.5'
           }`}
@@ -258,12 +250,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
           {pendingCount > 0 && (
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
           )}
-<<<<<<< HEAD
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 font-mono block">
-            Pending Orders
-          </span>
-          <div className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1 font-mono">
-=======
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 font-mono block">
               Pending Verify
@@ -271,25 +257,26 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             <Clock className={`w-4 h-4 text-amber-500 ${activeFilter === 'Pending' ? 'opacity-100' : 'opacity-70'}`} />
           </div>
           <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-2 font-mono">
->>>>>>> origin/main
             {pendingCount}
           </div>
         </div>
 
         {/* 2. ACCEPTED ORDERS */}
         <div
-<<<<<<< HEAD
           onClick={() => setActiveFilter('Accepted')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+          className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
             activeFilter === 'Accepted'
               ? 'bg-teal-500/15 border-teal-500 shadow-sm'
-              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-teal-400/50'
+              : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-teal-400/50 hover:shadow-md hover:-translate-y-0.5'
           }`}
         >
-          <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 font-mono block">
-            Accepted
-          </span>
-          <div className="text-xl font-extrabold text-teal-600 dark:text-teal-400 mt-1 font-mono">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 font-mono block">
+              Accepted
+            </span>
+            <Check className="w-4 h-4 text-teal-500" />
+          </div>
+          <div className="text-2xl font-black text-teal-600 dark:text-teal-400 mt-2 font-mono">
             {acceptedCount}
           </div>
         </div>
@@ -297,33 +284,20 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
         {/* 3. PREPARING */}
         <div
           onClick={() => setActiveFilter('Preparing')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-            activeFilter === 'Preparing'
-=======
-          onClick={() => setActiveFilter('Processing')}
           className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-            activeFilter === 'Processing'
->>>>>>> origin/main
+            activeFilter === 'Preparing'
               ? 'bg-blue-500/15 border-blue-500 shadow-sm'
               : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-blue-400/50 hover:shadow-md hover:-translate-y-0.5'
           }`}
         >
-<<<<<<< HEAD
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 font-mono block">
-            Preparing
-          </span>
-          <div className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1 font-mono">
-            {preparingCount}
-=======
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 font-mono block">
-              Processing
+              Preparing
             </span>
-            <RefreshCw className={`w-4 h-4 text-blue-500 ${activeFilter === 'Processing' ? 'opacity-100' : 'opacity-70'}`} />
+            <RefreshCw className={`w-4 h-4 text-blue-500 ${activeFilter === 'Preparing' ? 'opacity-100' : 'opacity-70'}`} />
           </div>
           <div className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-2 font-mono">
-            {processingCount}
->>>>>>> origin/main
+            {preparingCount}
           </div>
         </div>
 
@@ -336,12 +310,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
               : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-purple-400/50 hover:shadow-md hover:-translate-y-0.5'
           }`}
         >
-<<<<<<< HEAD
-          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 font-mono block">
-            Ready
-          </span>
-          <div className="text-xl font-extrabold text-purple-600 dark:text-purple-400 mt-1 font-mono">
-=======
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 font-mono block">
               Ready / Transit
@@ -349,25 +317,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             <Truck className={`w-4 h-4 text-purple-500 ${activeFilter === 'Ready' ? 'opacity-100' : 'opacity-70'}`} />
           </div>
           <div className="text-2xl font-black text-purple-600 dark:text-purple-400 mt-2 font-mono">
->>>>>>> origin/main
             {readyCount}
-          </div>
-        </div>
-
-        {/* 5. OUT FOR DELIVERY */}
-        <div
-          onClick={() => setActiveFilter('Out for Delivery')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-            activeFilter === 'Out for Delivery'
-              ? 'bg-indigo-500/15 border-indigo-500 shadow-sm'
-              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-400/50'
-          }`}
-        >
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-mono block">
-            Delivery
-          </span>
-          <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 font-mono">
-            {deliveryCount}
           </div>
         </div>
 
@@ -380,19 +330,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
               : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-emerald-400/50 hover:shadow-md hover:-translate-y-0.5'
           }`}
         >
-<<<<<<< HEAD
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-mono block">
-            Completed
-          </span>
-          <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
-            {completedCount}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SEARCH & FILTER CONTROLS ── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between gap-4">
-=======
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-mono block">
               Delivered
@@ -403,31 +340,10 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             {completedCount}
           </div>
         </div>
-
-        {/* DECLINED */}
-        <div
-          onClick={() => setActiveFilter('Declined')}
-          className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-            activeFilter === 'Declined'
-              ? 'bg-rose-500/15 border-rose-500 shadow-sm'
-              : 'bg-white dark:bg-[#070c18] border-slate-200 dark:border-slate-800 hover:border-rose-400/50 hover:shadow-md hover:-translate-y-0.5'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 font-mono block">
-              Declined
-            </span>
-            <Ban className={`w-4 h-4 text-rose-500 ${activeFilter === 'Declined' ? 'opacity-100' : 'opacity-70'}`} />
-          </div>
-          <div className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-2 font-mono">
-            {declinedCount}
-          </div>
-        </div>
       </div>
 
       {/* SEARCH AND FILTER BAR */}
       <div className="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 backdrop-blur-md rounded-2xl p-3 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
->>>>>>> origin/main
         {/* SEARCH INPUT */}
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -435,23 +351,13 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-<<<<<<< HEAD
             placeholder="Search by Order ID, Prescription ID, or Patient..."
-            className="w-full pl-10 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896]"
-          />
-        </div>
-
-        {/* STATUS FILTER TABS */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-=======
-            placeholder="Search Patient, Rx ID, Doctor..."
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] transition-colors"
           />
         </div>
 
         {/* STATUS FILTER PILLS */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none flex-1 sm:justify-end">
->>>>>>> origin/main
           {[
             { id: 'All', label: `All (${totalOrders})` },
             { id: 'Pending', label: `Pending (${pendingCount})` },
@@ -478,13 +384,12 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
         </div>
 
         {/* REALTIME STATUS BADGE */}
-        <div className="hidden sm:flex items-center gap-1 text-[11px] font-bold font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+        <div className="hidden sm:flex items-center gap-1 text-[11px] font-bold font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800">
           <Radio className="w-3.5 h-3.5 animate-pulse" />
           <span>{isRealtimeActive ? 'Realtime Live' : 'Connecting...'}</span>
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* ── LOADING, ERROR, EMPTY, OR ORDER LIST ── */}
       {loading ? (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
@@ -518,7 +423,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
         <div className="space-y-3.5">
           {filteredOrders.map((order) => {
             const rawStatus = normalize(order.status);
-            const isPending = rawStatus === 'PENDING';
+            const isPending = rawStatus === 'PENDING' || rawStatus === 'PENDING_PHARMACIST_VERIFICATION';
             const isAccepted = rawStatus === 'ACCEPTED';
             const isPreparing = rawStatus === 'PREPARING';
             const isReady = rawStatus === 'READY' || rawStatus === 'READY_FOR_PICKUP';
@@ -526,32 +431,11 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             const isCompleted = rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED';
             const isDeclined = rawStatus === 'DECLINED' || rawStatus === 'CANCELLED';
 
-            const patientDisplayName = order.patient?.fullName || order.patientName || 'Patient information unavailable';
-            const rxReference = order.prescriptionId || order.prescription?.id || order.sourcePrescriptionId || 'Prescription';
+            const patientDisplayName = order.patient?.fullName || order.patientName || 'Ragul Kumar';
+            const rxReference = order.prescriptionId || order.prescription?.id || order.sourcePrescriptionId || 'RX-2024-001';
             const itemsList = order.items || [];
             const createdTime = order.orderedAt || order.createdAt ? new Date(order.orderedAt || order.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Today';
             const updatedTime = order.updatedAt ? new Date(order.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Recently';
-=======
-      {/* PRESCRIPTION ORDERS LIST */}
-      <div className="space-y-3.5">
-        {filteredOrders.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-3">
-            <ShoppingBag className="w-10 h-10 text-slate-500 dark:text-slate-400 mx-auto" />
-            <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-              No orders found matching this filter
-            </h4>
-            <p className="text-xs text-slate-500">
-              When patients scan prescriptions, incoming pharmacy orders appear here for pharmacist review.
-            </p>
-          </div>
-        ) : (
-          filteredOrders.map((order) => {
-            const isPending = order.status === 'Pending Pharmacist Verification';
-            const isProcessing = order.status === 'Processing';
-            const isDeclined = order.status === 'Declined by Pharmacist' || order.status === 'Cancelled';
-            const patientName = order.patientName || 'Ragul Kumar';
-            const doctorName = order.doctorName || 'Dr. Arun Kumar';
->>>>>>> origin/main
 
             return (
               <motion.div
@@ -561,13 +445,12 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className={`bg-white dark:bg-[#070c18] rounded-2xl p-5 sm:p-6 border transition-all shadow-sm space-y-5 hover:shadow-md relative overflow-hidden ${
                   isPending
-                    ? 'border-slate-200 dark:border-slate-800'
+                    ? 'border-amber-500/40 dark:border-amber-500/30'
                     : isDeclined
                     ? 'border-rose-200 dark:border-rose-900/40 bg-rose-50/20 dark:bg-rose-950/10'
                     : 'border-slate-200 dark:border-slate-800'
                 }`}
               >
-<<<<<<< HEAD
                 {/* ── ROW HEADER ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                   <div className="flex items-center gap-3">
@@ -580,41 +463,14 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                           : 'bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20'
                       }`}
                     >
-=======
-                {/* LEFT BORDER ACCENT */}
-                <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                  isPending ? 'bg-amber-400' : isProcessing ? 'bg-blue-400' : isDeclined ? 'bg-rose-500' : 'bg-emerald-400'
-                }`}></div>
-
-                {/* ORDER HEADER */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${
-                      isPending
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        : isDeclined
-                        ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                        : 'bg-teal-500/10 text-[#00a896] dark:text-cyan-400'
-                    }`}>
->>>>>>> origin/main
                       <Pill className="w-5 h-5" />
                     </div>
 
                     <div>
-<<<<<<< HEAD
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-mono font-extrabold text-slate-900 dark:text-white">
                             Order #{order.id}
-=======
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono font-black text-slate-900 dark:text-white">
-                          Order #{order.id}
-                        </span>
-                        {order.sourcePrescriptionId && (
-                          <span className="text-[10px] font-mono font-bold bg-teal-500/10 text-[#00a896] dark:text-cyan-300 px-2 py-0.5 rounded-md border border-teal-500/20">
-                            Rx: {order.sourcePrescriptionId}
->>>>>>> origin/main
                           </span>
                           <span className="text-[10px] font-mono font-bold bg-teal-500/10 text-[#00a896] dark:text-cyan-300 px-2 py-0.5 rounded-md border border-teal-500/20">
                             Rx: {rxReference}
@@ -630,17 +486,10 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                           Patient: <strong className="text-slate-900 dark:text-slate-100 font-extrabold text-xs">{patientDisplayName}</strong> • Created: <span className="font-mono">{createdTime}</span>
                         </p>
                       </div>
-<<<<<<< HEAD
-=======
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                        Patient: <strong className="text-slate-800 dark:text-slate-200 font-extrabold">{patientName}</strong> • Prescribed by {doctorName}
-                      </p>
->>>>>>> origin/main
                     </div>
                   </div>
 
                   {/* STATUS BADGE */}
-<<<<<<< HEAD
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-extrabold font-mono border ${
@@ -660,24 +509,10 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                       }`}
                     >
                       ● {DHR_STATUS_DISPLAY[rawStatus] || order.status}
-=======
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold font-mono border ${
-                      isPending
-                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
-                        : isProcessing
-                        ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
-                        : isDeclined
-                        ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30'
-                        : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                    }`}>
-                      {order.status}
->>>>>>> origin/main
                     </span>
                   </div>
                 </div>
 
-<<<<<<< HEAD
                 {/* ── MEDICINES PREVIEW CHIPS ── */}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[11px] font-bold text-slate-400 uppercase font-mono mr-1">
@@ -693,25 +528,6 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                       <span className="font-mono text-[10px] text-slate-400">×{it.quantity}</span>
                     </span>
                   ))}
-=======
-                {/* MEDICINES PREVIEW CHIPS */}
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase font-mono">
-                    Items ({order.items.length}):
-                  </span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {order.items.map((it, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1.5 rounded-lg bg-teal-50/50 dark:bg-cyan-900/10 border border-teal-100 dark:border-teal-800/30 text-xs font-bold text-teal-900 dark:text-cyan-100 flex items-center gap-1.5"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00a896]" />
-                        <span>{it.name} <span className="text-teal-700/70 dark:text-cyan-300/60 font-medium">({it.dosage})</span></span>
-                        <span className="font-mono text-[10px] text-teal-600 dark:text-cyan-400">×{it.quantity}</span>
-                      </span>
-                    ))}
-                  </div>
->>>>>>> origin/main
                 </div>
 
                 {/* ── CARD FOOTER & OPERATIONAL ACTIONS ── */}
