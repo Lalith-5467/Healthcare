@@ -300,7 +300,90 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             return raw.trim();
           };
 
-          const realDisplayName = fullName.trim() || deriveNameFromIdentifier(email);
+          // Retrieve registered users store
+          let registeredUsers: any[] = [];
+          try {
+            const rawStore = localStorage.getItem('app_registered_users');
+            if (rawStore) registeredUsers = JSON.parse(rawStore);
+          } catch {}
+
+          let matchedUser = registeredUsers.find(
+            (u) =>
+              (u.email && email && u.email.toLowerCase() === email.toLowerCase()) ||
+              (u.phone && phone && u.phone === phone) ||
+              (u.abhaId && email && u.abhaId.toLowerCase() === email.toLowerCase())
+          );
+
+          let resolvedUserData: any;
+
+          if (mode === 'register') {
+            // New user registration
+            const realDisplayName = fullName.trim() || deriveNameFromIdentifier(email) || 'Registered User';
+            const generatedAbha = isPharm 
+              ? `pharm.${realDisplayName.toLowerCase().replace(/\s+/g, '.')}.${Math.floor(100 + Math.random()*900)}@abdm`
+              : isDoc 
+              ? (hprAddress || `dr.${realDisplayName.toLowerCase().replace(/\s+/g, '')}@hpr.abdm`)
+              : isCare 
+              ? `CG-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}@abdm`
+              : (abhaId || `91-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}@abdm`);
+
+            resolvedUserData = {
+              name: realDisplayName,
+              email: email || `${realDisplayName.toLowerCase().replace(/\s+/g, '.')}@healthcare.abdm.in`,
+              role: userRole,
+              abhaId: generatedAbha,
+              bloodGroup: bloodGroup || 'O+',
+              age: age ? parseInt(age, 10) : 28,
+              phone: phone || '+91 98765 43210',
+              emergencyContact: familyPhone || '+91 98765 11223',
+              specialization: isDoc ? specialization : (isNurse ? nurseSpecialty : (isIns ? officerDesignation : undefined)),
+              hospitalAffiliation: isDoc ? hospitalAffiliation : (isPharm ? (pharmacyName || 'Apollo Central Pharmacy') : (isNurse ? (nurseHospital || 'Apollo Central Home Healthcare') : (isIns ? (insuranceOrgName || 'Star Health Insurance') : undefined)))
+            };
+
+            // Save new user in database store
+            try {
+              const updatedStore = registeredUsers.filter(u => u.email !== resolvedUserData.email);
+              updatedStore.push(resolvedUserData);
+              localStorage.setItem('app_registered_users', JSON.stringify(updatedStore));
+            } catch {}
+          } else {
+            // Login mode
+            if (matchedUser) {
+              resolvedUserData = {
+                ...matchedUser,
+                role: matchedUser.role || userRole,
+              };
+            } else {
+              // Dynamic profile creation for new login credential
+              const realDisplayName = deriveNameFromIdentifier(email) || (isPharm ? 'Registered Pharmacist' : isDoc ? 'Dr. Medical Officer' : isCare ? 'Caregiver Guardian' : isNurse ? 'Staff Nurse' : isIns ? 'Insurance Officer' : 'Valued Patient');
+              const generatedAbha = isPharm 
+                ? `pharm.${realDisplayName.toLowerCase().replace(/\s+/g, '.')}.${Math.floor(100 + Math.random()*900)}@abdm`
+                : isDoc 
+                ? `dr.${realDisplayName.toLowerCase().replace(/\s+/g, '')}@hpr.abdm`
+                : isCare 
+                ? `CG-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}@abdm`
+                : `91-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}@abdm`;
+
+              resolvedUserData = {
+                name: realDisplayName,
+                email: email || `${realDisplayName.toLowerCase().replace(/\s+/g, '.')}@abdm.in`,
+                role: userRole,
+                abhaId: generatedAbha,
+                bloodGroup: 'O+',
+                age: 30,
+                phone: '+91 98765 43210',
+                emergencyContact: '+91 98765 11223',
+                specialization: isDoc ? 'General Medicine & Tele-Consult' : undefined,
+                hospitalAffiliation: isDoc ? 'Apollo Multi-Specialty Hospital' : undefined
+              };
+
+              // Persist into user store
+              try {
+                registeredUsers.push(resolvedUserData);
+                localStorage.setItem('app_registered_users', JSON.stringify(registeredUsers));
+              } catch {}
+            }
+          }
 
           // Store authentication token & user for API calls
           if (isPharm) {
@@ -308,23 +391,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               'token',
               'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtdGpxMHlvZTAwMDZpMHJneXdoN2ZhdTAiLCJlbWFpbCI6ImRlbW8ucGhhcm1hY2lzdEBleGFtcGxlLnRlc3QiLCJyb2xlIjoiUEhBUk1BQ0lTVCIsImlhdCI6MTc4ODM0MTk3NiwiZXhwIjoxNzg4OTQ2Nzc2fQ.lMh2tb0HojJTMwPGT1qT_oD5lB6zVAaVQtZxIGj_oVk'
             );
-            if (realDisplayName) {
-              localStorage.setItem('pharmacist_user_name', realDisplayName);
+            if (resolvedUserData.name) {
+              localStorage.setItem('pharmacist_user_name', resolvedUserData.name);
             }
           }
-
-          const resolvedUserData = {
-            name: realDisplayName || (isPharm ? 'Registered Pharmacist' : isDoc ? 'Dr. Practitioner' : isCare ? 'Caregiver Guardian' : isNurse ? 'Nurse Specialist' : isIns ? 'Insurance Officer' : 'Valued Patient'),
-            email: email || (isPharm ? 'pharmacist@apollocentral.in' : isDoc ? 'doctor@hpr.abdm' : isCare ? 'caregiver@abdm.in' : isNurse ? 'nurse@hpr.abdm' : isIns ? 'tpa@insurance.com' : 'patient@abdm.in'),
-            role: userRole,
-            abhaId: isPharm ? undefined : isDoc ? (hprAddress || 'dr.practitioner@hpr.abdm') : isCare ? 'CG-8421-9902@abdm' : (abhaId || '91-8472-9104-5821@abdm'),
-            bloodGroup: bloodGroup || 'O+',
-            age: age ? parseInt(age, 10) : (isCare ? 32 : 34),
-            phone: phone || '+91 98765 43210',
-            emergencyContact: familyPhone || '+91 98765 11223',
-            specialization: isDoc ? specialization : (isNurse ? nurseSpecialty : (isIns ? officerDesignation : undefined)),
-            hospitalAffiliation: isDoc ? hospitalAffiliation : (isPharm ? (pharmacyName || 'Apollo Central Pharmacy') : (isNurse ? (nurseHospital || 'Apollo Central Home Healthcare') : (isIns ? (insuranceOrgName || 'Star Health Insurance') : undefined)))
-          };
 
           try {
             localStorage.setItem('app_user', JSON.stringify(resolvedUserData));

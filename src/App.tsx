@@ -389,20 +389,22 @@ export const App: React.FC = () => {
     age?: number;
     phone?: string;
     emergencyContact?: string;
+    specialization?: string;
+    hospitalAffiliation?: string;
   }) => {
     const userRole = userData.role || 'Patient';
-    const isPharm = userRole === 'Pharmacist';
-    const isCare = userRole === 'Caregiver';
 
     const newUser = {
-      name: userData.name || (isPharm ? 'Suresh Nair' : isCare ? 'Anita Sharma' : 'Ragul Kumar'),
-      email: userData.email || (isPharm ? 'suresh.nair@apollopharmacy.in' : isCare ? 'anita.caregiver@abdm.in' : 'ragul.kumar@abdm.in'),
+      name: userData.name || 'User',
+      email: userData.email || 'user@abdm.in',
       role: userRole,
-      abhaId: userData.abhaId || (isPharm ? 'pharm.apollo.central@abdm' : isCare ? 'CG-8421-9902@abdm' : '91-8472-9104-5821@abdm'),
+      abhaId: userData.abhaId || `91-${Math.floor(1000 + Math.random()*9000)}-${Math.floor(1000 + Math.random()*9000)}@abdm`,
       bloodGroup: userData.bloodGroup || 'O+',
-      age: userData.age || (isPharm ? 38 : isCare ? 32 : 34),
+      age: userData.age || 30,
       phone: userData.phone || '+91 98765 43210',
-      emergencyContact: userData.emergencyContact || '+91 98765 11223'
+      emergencyContact: userData.emergencyContact || '+91 98765 11223',
+      specialization: userData.specialization,
+      hospitalAffiliation: userData.hospitalAffiliation
     };
 
     setIsLoggedIn(true);
