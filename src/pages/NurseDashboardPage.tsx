@@ -9,6 +9,7 @@ import {
   ChevronDown 
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { NurseSidebar } from '../components/nurse-dashboard/NurseSidebar';
 import { NurseOverviewView } from '../components/nurse-dashboard/views/NurseOverviewView';
 import { CareRequestsView } from '../components/nurse-dashboard/views/CareRequestsView';
@@ -82,7 +83,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
           </div>
         </div>
         
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-4">
           {/* Notifications */}
           <button 
             onClick={() => setActiveNav('alerts')}
@@ -94,7 +95,8 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
             )}
           </button>
-
+          
+          <ThemeToggle />
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
 
           {/* Quick Profile pill */}
@@ -112,7 +114,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
             onClick={onLogout}
             className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
           >
-            <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
+            <LogOut className="w-4 h-4" />
             <span className="text-xs font-bold hidden sm:block">Logout</span>
           </button>
         </div>

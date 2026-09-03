@@ -10,15 +10,28 @@ interface QRScannerViewProps {
 export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) => {
   const { records } = useDoctorWorkflow();
   const [isScanning, setIsScanning] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [scannedPatient, setScannedPatient] = useState<any>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleDemoScan = () => {
     setIsScanning(true);
     // Simulate scan delay
     setTimeout(() => {
       setIsScanning(false);
+      setIsCameraActive(false);
       setScannedPatient(records[0]); // Abinesh Kumar
     }, 1500);
+  };
+
+  const handleStartCamera = () => {
+    setIsCameraActive(true);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleDemoScan();
+    }
   };
 
   const handleProceed = () => {
@@ -67,7 +80,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-teal-500 rounded-br-xl"></div>
                 
                 {/* Scanning Laser */}
-                {isScanning && (
+                {(isScanning || isCameraActive) && (
                   <motion.div 
                     animate={{ top: ['0%', '100%', '0%'] }}
                     transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
@@ -76,7 +89,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
                 )}
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Scan className={`w-16 h-16 text-white/20 ${isScanning ? 'animate-pulse' : ''}`} />
+                  <Scan className={`w-16 h-16 ${isCameraActive ? 'text-teal-400' : 'text-white/20'} ${(isScanning || isCameraActive) ? 'animate-pulse' : ''}`} />
                 </div>
               </div>
             </div>
@@ -88,10 +101,25 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black rounded-xl transition-colors flex items-center justify-center gap-2">
-                  <Camera className="w-5 h-5" /> Start Camera
+                <button 
+                  onClick={handleStartCamera}
+                  disabled={isScanning || isCameraActive}
+                  className={`flex-1 py-3 font-black rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${isCameraActive ? 'bg-teal-500/10 text-teal-600 border border-teal-500/30' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                >
+                  <Camera className="w-5 h-5" /> {isCameraActive ? 'Camera Active' : 'Start Camera'}
                 </button>
-                <button className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black rounded-xl transition-colors flex items-center justify-center gap-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isScanning}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
                   <Upload className="w-5 h-5" /> Upload Image
                 </button>
               </div>

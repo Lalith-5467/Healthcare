@@ -184,7 +184,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
           
           <div className="flex items-center gap-3">
             <Logo />
-            <div className="hidden xl:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
+            <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
               <span className="text-xs font-black uppercase tracking-wider text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-900/30 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-500/20">
                 <Pill className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" /> Pharmacist Portal
               </span>

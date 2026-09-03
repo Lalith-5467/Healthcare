@@ -48,7 +48,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNav
   if (!patient) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <Scan className="w-16 h-16 text-slate-600 dark:text-slate-300 mb-4" />
+        <Scan className="w-16 h-16 text-slate-300 mb-4" />
         <h2 className="text-xl font-black text-slate-900 dark:text-white">No Patient Selected</h2>
         <p className="text-slate-500">Please scan a patient QR code to access their records.</p>
       </div>
@@ -435,7 +435,7 @@ const MedicationsTab = ({ patient }: { patient: DoctorPatientRecord }) => {
 
       {/* General Medications */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">General Medications</h2>
+        <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-6">General Medications</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {others.map(med => (
             <div key={med.id} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
@@ -466,7 +466,7 @@ const VitalsTab = ({ patient }: { patient: DoctorPatientRecord }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Vitals Trends */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
           <Activity className="w-4 h-4 text-teal-500" /> Vitals Trends
         </h2>
         
@@ -474,11 +474,11 @@ const VitalsTab = ({ patient }: { patient: DoctorPatientRecord }) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700">
-                <th className="pb-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Date</th>
-                <th className="pb-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">BP</th>
-                <th className="pb-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">HR</th>
-                <th className="pb-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Temp</th>
-                <th className="pb-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">SpO2</th>
+                <th className="pb-3 text-xs font-bold text-slate-400 uppercase">Date</th>
+                <th className="pb-3 text-xs font-bold text-slate-400 uppercase">BP</th>
+                <th className="pb-3 text-xs font-bold text-slate-400 uppercase">HR</th>
+                <th className="pb-3 text-xs font-bold text-slate-400 uppercase">Temp</th>
+                <th className="pb-3 text-xs font-bold text-slate-400 uppercase">SpO2</th>
               </tr>
             </thead>
             <tbody>
@@ -498,7 +498,7 @@ const VitalsTab = ({ patient }: { patient: DoctorPatientRecord }) => {
 
       {/* Lab Reports */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
           <TestTube className="w-4 h-4 text-teal-500" /> Lab Reports
         </h2>
         
@@ -532,7 +532,7 @@ const VitalsTab = ({ patient }: { patient: DoctorPatientRecord }) => {
 const TimelineTab = ({ patient }: { patient: DoctorPatientRecord }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm max-w-3xl mx-auto">
-      <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-8 text-center">Patient Clinical Timeline</h2>
+      <h2 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-8 text-center">Patient Clinical Timeline</h2>
       
       <div className="relative pl-6 sm:pl-8">
         <div className="absolute left-[31px] sm:left-[39px] top-4 bottom-4 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
@@ -540,7 +540,7 @@ const TimelineTab = ({ patient }: { patient: DoctorPatientRecord }) => {
         <div className="space-y-8">
           {patient.timeline.map((event, i) => {
             let Icon = History;
-            let iconColor = 'text-slate-500 dark:text-slate-400';
+            let iconColor = 'text-slate-400';
             
             if (event.type === 'consultation') { Icon = Stethoscope; iconColor = 'text-teal-500'; }
             if (event.type === 'prescription') { Icon = Pill; iconColor = 'text-rose-500'; }
@@ -561,7 +561,7 @@ const TimelineTab = ({ patient }: { patient: DoctorPatientRecord }) => {
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex-1">
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="font-black text-slate-900 dark:text-white">{event.title}</h3>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-white dark:bg-slate-900 px-2 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{event.date}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase bg-white dark:bg-slate-900 px-2 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-800">{event.date}</span>
                   </div>
                   <p className="text-xs font-bold text-slate-500 mb-2">{event.actor} • {event.time}</p>
                   {event.details && (

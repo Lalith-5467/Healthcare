@@ -59,22 +59,22 @@ export const ScheduleAuditView: React.FC = () => {
     <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto">
       
       {/* HEADER BANNER */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/70 to-slate-900 text-white border border-slate-800 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-50 via-amber-50/50 to-white dark:from-slate-900 dark:via-amber-950/70 dark:to-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-black uppercase tracking-wider border border-amber-400/30 font-mono">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 text-[11px] font-black uppercase tracking-wider border border-amber-500/20 dark:border-amber-400/30 font-mono">
             <Lock className="w-3.5 h-3.5" /> CDSCO Schedule H1 / H / X Audit Register
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             Controlled Drug Regulatory Logs
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-2xl">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300 font-medium max-w-2xl">
             Statutory digital dispensing register for habit-forming, psychotropic, and restricted antibiotics as mandated by the Drugs & Cosmetics Act.
           </p>
         </div>
 
         <div className="flex items-center gap-3 relative z-10 shrink-0">
-          <button className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all">
-            <Download className="w-4 h-4 text-amber-300" />
+          <button className="px-5 py-3 rounded-2xl bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 text-slate-900 dark:text-white font-bold text-xs border border-slate-200 dark:border-white/15 shadow-sm dark:shadow-none backdrop-blur-md flex items-center gap-2 cursor-pointer transition-all">
+            <Download className="w-4 h-4 text-amber-500 dark:text-amber-300" />
             <span>Export Drug Inspector PDF</span>
           </button>
         </div>

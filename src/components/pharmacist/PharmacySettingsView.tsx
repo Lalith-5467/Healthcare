@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Settings, 
   Building2, 
@@ -66,14 +66,6 @@ export const PharmacySettingsView: React.FC<PharmacySettingsViewProps> = ({ user
 
       {/* FORM CARD */}
       <form onSubmit={handleSave} className="bg-white dark:bg-slate-900/90 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
-        
-        {saved && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Dispensary credentials and licenses updated successfully.</span>
-          </div>
-        )}
-
         <div className="space-y-4">
           <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
             1. Pharmacy Facility Information
@@ -167,6 +159,20 @@ export const PharmacySettingsView: React.FC<PharmacySettingsViewProps> = ({ user
         </div>
       </form>
 
+      {/* FLOATING SUCCESS TOAST */}
+      <AnimatePresence>
+        {saved && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white"
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            <p className="text-sm font-black">Dispensary credentials and licenses updated successfully.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

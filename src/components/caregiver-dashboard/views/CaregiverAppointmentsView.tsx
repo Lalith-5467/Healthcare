@@ -118,7 +118,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
       {/* APPOINTMENTS LIST */}
       <div className="space-y-4">
         {activeWard.appointments.length === 0 ? (
-          <div className="p-12 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 text-center space-y-3">
+          <div className="p-12 rounded-3xl bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 text-center space-y-3">
             <div className="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-cyan-400 flex items-center justify-center mx-auto">
               <Calendar className="w-7 h-7" />
             </div>
@@ -130,7 +130,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
             </p>
             <button
               onClick={() => setIsBookOpen(true)}
-              className="px-4 py-2 rounded-xl bg-teal-500 text-slate-950 font-black text-xs shadow-md"
+              className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md transition-all"
             >
               Book Now
             </button>

@@ -262,7 +262,6 @@ export const SearchInsuranceView: React.FC<SearchInsuranceViewProps> = ({ onSear
           </motion.div>
         )}
       </AnimatePresence>
-
       <div className="mt-8 mx-auto max-w-xl">
         <div className="flex items-center justify-center gap-4 px-6 py-4 rounded-full bg-white/60 dark:bg-[#0b1120]/80 backdrop-blur-md border border-slate-200/50 dark:border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] text-slate-700 dark:text-slate-300 text-xs font-bold text-center">
           <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.2)] shrink-0">

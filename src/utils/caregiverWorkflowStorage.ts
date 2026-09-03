@@ -113,6 +113,7 @@ const STORAGE_KEY_WARDS = 'medicare_caregiver_wards_v2';
 const STORAGE_KEY_TASKS = 'medicare_caregiver_tasks_v2';
 const STORAGE_KEY_ALERTS = 'medicare_caregiver_alerts_v2';
 const STORAGE_KEY_NOTIFS = 'medicare_caregiver_notifs_v2';
+const STORAGE_KEY_ACTIVE_WARD = 'medicare_caregiver_active_ward_v2';
 
 const INITIAL_WARDS: WardDependent[] = [
   {
@@ -562,7 +563,15 @@ export const useCaregiverWorkflow = () => {
     return saved ? JSON.parse(saved) : INITIAL_NOTIFS;
   });
 
-  const [activeWardId, setActiveWardId] = useState<string>('ward-1');
+  const [activeWardId, setActiveWardIdState] = useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEY_ACTIVE_WARD) || 'ward-1';
+  });
+
+  const setActiveWardId = (id: string) => {
+    setActiveWardIdState(id);
+    localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, id);
+    window.dispatchEvent(new Event('medicare_caregiver_sync'));
+  };
 
   const activeWard = wards.find(w => w.id === activeWardId) || wards[0] || INITIAL_WARDS[0];
 
@@ -571,6 +580,7 @@ export const useCaregiverWorkflow = () => {
     localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(newTasks));
     localStorage.setItem(STORAGE_KEY_ALERTS, JSON.stringify(newAlerts));
     localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(newNotifs));
+    localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, activeWardId);
     window.dispatchEvent(new Event('medicare_caregiver_sync'));
   };
 
@@ -580,11 +590,13 @@ export const useCaregiverWorkflow = () => {
       const savedTasks = localStorage.getItem(STORAGE_KEY_TASKS);
       const savedAlerts = localStorage.getItem(STORAGE_KEY_ALERTS);
       const savedNotifs = localStorage.getItem(STORAGE_KEY_NOTIFS);
+      const savedActiveWard = localStorage.getItem(STORAGE_KEY_ACTIVE_WARD);
 
       if (savedWards) setWards(JSON.parse(savedWards));
       if (savedTasks) setTasks(JSON.parse(savedTasks));
       if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
       if (savedNotifs) setNotifications(JSON.parse(savedNotifs));
+      if (savedActiveWard) setActiveWardIdState(savedActiveWard);
     };
 
     window.addEventListener('storage', handleSync);

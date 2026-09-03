@@ -519,9 +519,11 @@ export const App: React.FC = () => {
   const isUserPath = window.location.pathname.toLowerCase().startsWith('/user');
   const isPharmacist = !isUserPath && ((user?.role === 'Pharmacist') || window.location.pathname.toLowerCase().startsWith('/pharmacist'));
   const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
+  
+  const themeKey = currentPage === 'dashboard' ? 'theme-dashboard' : (currentPage === 'login' || currentPage === 'register') ? 'theme-auth' : 'theme-landing';
 
   return (
-    <ThemeProvider>
+    <ThemeProvider key={themeKey} storageKey={themeKey}>
       <GlobalToastManager />
       <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
         

@@ -48,7 +48,7 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200/90 dark:border-slate-800/80 flex flex-col h-full select-none font-sans overflow-y-auto">
+    <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200/90 dark:border-slate-800/80 flex flex-col h-[calc(100vh-4rem)] select-none font-sans overflow-y-auto">
       
       {/* CLEARINGHOUSE OPERATOR CARD */}
       <div className="p-3.5 border-b border-slate-100 dark:border-slate-800/80">

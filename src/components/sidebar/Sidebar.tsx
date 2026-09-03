@@ -63,13 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onOpenPremiumModal={() => setPremiumModalOpen(true)}
         />
 
-        {/* PATIENT PROFILE CARD & POPUP */}
-        <SidebarProfile
-          user={user}
-          isCollapsed={isCollapsed}
-          onLogout={onLogout}
-          onNavigate={handleSelectNav}
-        />
       </aside>
 
       {/* FRONTEND PREMIUM MODAL */}
