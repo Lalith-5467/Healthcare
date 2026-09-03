@@ -5,6 +5,7 @@ import {
   Stethoscope, Activity, FileText, Pill, Video, CheckCircle2, 
   ArrowUpRight, HeartPulse, Clock, Sparkles
 } from 'lucide-react';
+import { getGreeting } from '../../../utils/greeting';
 
 interface DoctorOverviewViewProps {
   onNavigate: (id: string) => void;
@@ -34,7 +35,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-            Good Morning, {doctorName}
+            {getGreeting()}, {doctorName}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 max-w-2xl font-medium">
             You have <strong className="text-teal-700 dark:text-teal-300 font-black">8 appointments</strong> today, <strong className="text-amber-600 dark:text-amber-300 font-black">3 patients</strong> in the waiting room, and <strong className="text-rose-600 dark:text-rose-300 font-black">1 urgent lab report</strong> pending review.

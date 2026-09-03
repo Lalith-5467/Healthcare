@@ -1,65 +1,293 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Truck, Building2, MapPin, Ban, Package } from 'lucide-react';
+import { X, Truck, Building2, MapPin, Package, AlertCircle, Radio, Bell, RefreshCw } from 'lucide-react';
 import type { PharmacyOrder } from './pharmacyData';
+import {
+  fetchPatientPharmacyOrderById,
+  DHR_STATUS_DISPLAY,
+  DHR_STATUS_PERCENT,
+  type BackendPharmacyOrder,
+} from '../../services/pharmacyOrderApi';
+import { socketService, type OrderStatusUpdatePayload } from '../../services/socketService';
 
 interface OrderTrackingModalProps {
-  order: PharmacyOrder | null;
+  order: PharmacyOrder | BackendPharmacyOrder | null;
   isOpen: boolean;
   onClose: () => void;
-  onOpenCancelModal: (order: PharmacyOrder) => void;
+  onOpenCancelModal?: (order: any) => void;
 }
 
 export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
-  order,
+  order: initialOrder,
   isOpen,
   onClose,
-  onOpenCancelModal,
+  onOpenCancelModal: _onOpenCancelModal,
 }) => {
-  if (!isOpen || !order) return null;
+  // Rule 3: Single authoritative order state
+  const [currentOrder, setCurrentOrder] = useState<any>(initialOrder);
+  const [isRealtimeActive, setIsRealtimeActive] = useState<boolean>(false);
+  const [liveNotification, setLiveNotification] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const isDeclined = order.status === 'Declined by Pharmacist' || order.status === 'Cancelled';
-  const isPending = order.status === 'Pending Pharmacist Verification';
-  const isProcessing = order.status === 'Processing' || order.status === 'Preparing' || order.status === 'Confirmed';
-  const isReady = order.status === 'Ready for Pickup' || order.status === 'Out for Delivery';
-  const isDelivered = order.status === 'Delivered';
+  const pollingRef = useRef<any>(null);
+  const lastProcessedUpdateRef = useRef<string>('');
+  const wasDisconnectedRef = useRef<boolean>(false);
+  const trackedOrderIdRef = useRef<string>(initialOrder?.id || '');
 
-  const trackingSteps = isDeclined
+  // Keep trackedOrderIdRef in sync
+  useEffect(() => {
+    if (initialOrder?.id) {
+      trackedOrderIdRef.current = initialOrder.id;
+      setCurrentOrder(initialOrder);
+    }
+  }, [initialOrder]);
+
+  // Realtime Socket.IO Connection + Resilient Fallback Polling
+  useEffect(() => {
+    if (!isOpen || !initialOrder?.id) {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
+    const orderId = initialOrder.id;
+    trackedOrderIdRef.current = orderId;
+
+    // Helper: Authoritative REST fetch (Rule 4 & 5)
+    const fetchAuthoritativeOrder = async () => {
+      try {
+        setFetchError(null);
+        let liveOrder = await fetchPatientPharmacyOrderById(orderId);
+        if (!liveOrder) {
+          // If orderId is a legacy local string (e.g. RX-ORD-...), resolve the real active order from MySQL
+          const { fetchPatientPharmacyOrders } = await import('../../services/pharmacyOrderApi');
+          const allOrders = await fetchPatientPharmacyOrders();
+          if (allOrders && allOrders.length > 0) {
+            liveOrder = allOrders[0];
+          }
+        }
+
+        if (liveOrder) {
+          setCurrentOrder(liveOrder);
+          trackedOrderIdRef.current = liveOrder.id;
+          setFetchError(null);
+
+          // Rule 15: Terminal states stop polling
+          if (
+            liveOrder.status === 'COMPLETED' ||
+            liveOrder.status === 'DELIVERED' ||
+            liveOrder.status === 'DECLINED' ||
+            liveOrder.status === 'CANCELLED'
+          ) {
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
+            }
+          }
+        } else {
+          setFetchError('Access denied or order not found (404)');
+        }
+      } catch (err: any) {
+        setFetchError(err.message || 'Unable to sync order details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // 1. Initial authoritative fetch
+    setLoading(true);
+    fetchAuthoritativeOrder();
+
+    // 2. Connect Socket.IO
+    socketService.connect();
+
+    // 3. Connection state monitor & fallback management (Rule 14 & 19)
+    const unsubConn = socketService.onConnectionChange((connected) => {
+      setIsRealtimeActive(connected);
+
+      if (connected) {
+        // Socket is healthy: Stop fallback polling
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
+        // Rule 14: If reconnecting, re-fetch authoritative database state once
+        if (wasDisconnectedRef.current) {
+          wasDisconnectedRef.current = false;
+          fetchAuthoritativeOrder();
+        }
+      } else {
+        // Socket disconnected: Start 5-second polling fallback
+        wasDisconnectedRef.current = true;
+        if (!pollingRef.current) {
+          pollingRef.current = setInterval(fetchAuthoritativeOrder, 5000);
+        }
+      }
+    });
+
+    // 4. Realtime Order Update Listener (Rule 11, 12, 13)
+    const unsubOrder = socketService.subscribeToOrderUpdates((payload: OrderStatusUpdatePayload) => {
+      // Rule 12: An event for Order A MUST NOT update Order B
+      if (payload.orderId !== trackedOrderIdRef.current) {
+        return;
+      }
+
+      // Rule 13: Duplicate event protection (status + updatedAt)
+      const updateKey = `${payload.status}-${payload.updatedAt}`;
+      if (lastProcessedUpdateRef.current === updateKey) return;
+      lastProcessedUpdateRef.current = updateKey;
+
+      // Rule 11: Immediate UI synchronization
+      setCurrentOrder((prev: any) => ({
+        ...prev,
+        status: payload.status,
+        updatedAt: payload.updatedAt,
+      }));
+
+      // In-app live notification
+      const label = DHR_STATUS_DISPLAY[payload.status] || payload.status;
+      setLiveNotification(payload.message || `Status updated to ${label}`);
+      setTimeout(() => setLiveNotification(null), 4500);
+
+      // Rule 15: Terminal state cleanup
+      if (
+        payload.status === 'COMPLETED' ||
+        payload.status === 'DELIVERED' ||
+        payload.status === 'DECLINED' ||
+        payload.status === 'CANCELLED'
+      ) {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      }
+    });
+
+    return () => {
+      unsubConn();
+      unsubOrder();
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [isOpen, initialOrder?.id]);
+
+  if (!isOpen) return null;
+
+  if (!currentOrder && !loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+          <h4 className="text-base font-extrabold text-slate-800 dark:text-white">No active pharmacy order</h4>
+          <p className="text-xs text-slate-500">No active pharmacy order found for this record.</p>
+          <button
+            onClick={onClose}
+            className="w-full py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Normalize raw status
+  const rawStatus = (currentOrder?.status || 'PENDING').toString().toUpperCase();
+  const isDeclined = rawStatus === 'DECLINED';
+  const isCancelled = rawStatus === 'CANCELLED';
+  const isPending = rawStatus === 'PENDING';
+  const isAccepted = rawStatus === 'ACCEPTED';
+  const isPreparing = rawStatus === 'PREPARING';
+  const isReady = rawStatus === 'READY';
+  const isReadyPickup = rawStatus === 'READY_FOR_PICKUP';
+  const isOutForDelivery = rawStatus === 'OUT_FOR_DELIVERY';
+  const isCompleted = rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED';
+
+  // Rule 6 & 7: Final patient status mapping without conflict
+  const displayStatus = DHR_STATUS_DISPLAY[rawStatus] || 'Waiting for Pharmacy';
+
+  // Rule 9: Status-driven progress
+  const progressPercent = DHR_STATUS_PERCENT[rawStatus] ?? (isPending ? 20 : 0);
+
+  // Rule 8 & 10: Status-driven timeline with separated READY and OUT_FOR_DELIVERY
+  const trackingSteps = isDeclined || isCancelled
     ? [
-        { label: 'Prescription Order Placed', time: '10:02 AM', done: true, active: false },
-        { label: 'Pharmacist Clinical Review', time: '10:08 AM', done: true, active: false },
-        { label: 'Order Declined by Pharmacist', time: '10:10 AM', done: false, active: true, isError: true },
+        { label: 'Prescription Order Placed', time: 'Confirmed', done: true, active: false },
+        { label: 'Pharmacist Clinical Review', time: 'Completed', done: true, active: false },
+        {
+          label: isCancelled ? 'Order Cancelled' : 'Order Declined',
+          time: 'Terminal',
+          done: false,
+          active: true,
+          isError: true,
+        },
       ]
     : [
-        { label: 'Prescription Order Placed', time: '10:02 AM', done: true, active: false },
-        { label: 'Pharmacist Verified & Accepted', time: (order as any).verifiedAt || '10:08 AM', done: !isPending, active: isPending },
-        { label: 'Dispensing & Packaging', time: isProcessing ? 'In Progress' : isReady || isDelivered ? 'Completed' : 'Pending', done: isReady || isDelivered, active: isProcessing },
-        { label: 'Out for Delivery / Ready', time: isReady ? 'In Transit' : isDelivered ? '10:30 AM' : 'Pending', done: isDelivered, active: isReady },
-        { label: 'Delivered to Home', time: isDelivered ? 'Delivered' : 'Pending', done: isDelivered, active: false },
+        {
+          label: 'Prescription Order Placed',
+          time: 'Confirmed',
+          done: true,
+          active: false,
+        },
+        {
+          label: 'Waiting for Pharmacy',
+          time: isPending ? 'In Review' : 'Completed',
+          done: isAccepted || isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isPending,
+        },
+        {
+          label: 'Order Accepted',
+          time: isAccepted ? 'Accepted' : isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isAccepted,
+        },
+        {
+          label: 'Preparing Your Medicines',
+          time: isPreparing ? 'In Progress' : isReady || isReadyPickup || isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isPreparing,
+        },
+        {
+          label: isReadyPickup ? 'Ready for Pickup' : 'Ready',
+          time: isReady || isReadyPickup ? 'Ready' : isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isOutForDelivery || isCompleted,
+          active: isReady || isReadyPickup,
+        },
+        {
+          label: 'Out for Delivery',
+          time: isOutForDelivery ? 'In Transit' : isCompleted ? 'Delivered' : 'Pending',
+          done: isCompleted,
+          active: isOutForDelivery,
+        },
+        {
+          label: 'Completed',
+          time: isCompleted ? 'Delivered' : 'Pending',
+          done: isCompleted,
+          active: false,
+        },
       ];
 
-  const canCancel = isPending || order.status === 'Order Received';
-
-  /* Dot colours */
   const getDotStyle = (step: any) => {
     if (step.isError) return { bg: '#e11d48', border: '#f43f5e', glow: 'rgba(225,29,72,.35)' };
-    if (step.done)   return { bg: '#10b981', border: '#34d399', glow: 'rgba(16,185,129,.35)' };
+    if (step.done) return { bg: '#10b981', border: '#34d399', glow: 'rgba(16,185,129,.35)' };
     if (step.active) return { bg: '#00a896', border: '#5eead4', glow: 'rgba(0,168,150,.35)' };
-    return            { bg: '#ffffff',    border: '#d1d5db', glow: 'transparent' };
+    return { bg: '#ffffff', border: '#d1d5db', glow: 'transparent' };
   };
 
-  /* Connector gradient between two steps */
-  const getConnectorGradient = (idx: number) => {
-    const cur  = trackingSteps[idx];
-    const next = trackingSteps[idx + 1];
-    const from = cur.done ? '#10b981' : cur.active ? '#00a896' : '#e2e8f0';
-    const to   = next?.done ? '#10b981' : next?.active ? '#00a896' : '#e2e8f0';
-    return `linear-gradient(to bottom, ${from}, ${to})`;
-  };
+  const pharmacyName = currentOrder?.pharmacy?.name || currentOrder?.pharmacyName || '—';
+  const deliveryAddress = currentOrder?.deliveryAddress || '—';
+  const totalAmount = currentOrder?.totalAmount != null ? `₹${currentOrder.totalAmount}` : '—';
+  const orderItems = currentOrder?.items || [];
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center font-sans">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -67,234 +295,209 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
           className="w-full max-w-lg my-auto font-sans relative bg-gradient-to-br from-slate-50 via-teal-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
         >
-          {/* Decorative ambient glows */}
-          <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle,rgba(20,184,166,.10) 0%,transparent 70%)' }} />
-
-          <div className="relative z-10 p-5 sm:p-6 space-y-3.5">
-
+          <div className="relative z-10 p-5 sm:p-6 space-y-4">
             {/* ── HEADER ── */}
-            <div className="flex items-center justify-between pb-3"
-              style={{ borderBottom: '1px solid rgba(20,184,166,.12)' }}>
+            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(20,184,166,.12)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shadow-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}>
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}
+                >
                   <Truck className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-extrabold font-mono uppercase tracking-wider block"
-                    style={{ color: '#00a896' }}>{order.id}</span>
+                  <span className="text-[10px] font-extrabold font-mono uppercase tracking-wider block" style={{ color: '#00a896' }}>
+                    #{currentOrder?.id || '—'}
+                  </span>
                   <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-tight">
-                    Live Order Tracking
+                    Realtime Pharmacy Tracking
                   </h3>
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-900 dark:text-white transition-colors cursor-pointer bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
-                aria-label="Close Tracking Modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Realtime Status Indicator Badge */}
+                {!isCompleted && !isDeclined && !isCancelled && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                      isRealtimeActive
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                        : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                    }`}
+                  >
+                    {isRealtimeActive ? (
+                      <>
+                        <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                        <span>Realtime Live</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3 h-3 text-amber-600" />
+                        <span>Auto-Syncing</span>
+                      </>
+                    )}
+                  </span>
+                )}
+
+                <button
+                  onClick={onClose}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-4.5 h-4.5" />
+                </button>
+              </div>
             </div>
 
-            {/* ── DELIVERY BANNER ── */}
-            <div className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 bg-white/85 dark:bg-slate-900/80 border border-teal-500/15 backdrop-blur-sm shadow-[0_2px_8px_rgba(20,184,166,0.04)]">
+            {/* ── LIVE TOAST BANNER (Rule 14) ── */}
+            <AnimatePresence>
+              {liveNotification && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-cyan-300 text-xs font-bold flex items-center gap-2"
+                >
+                  <Bell className="w-4 h-4 text-teal-600 dark:text-cyan-400 shrink-0" />
+                  <span>{liveNotification}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── ETA & PHARMACY HEADER CARD (Rule 24) ── */}
+            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-teal-500/15 flex items-center justify-between shadow-xs">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Estimated Delivery</span>
-                <h4 className="text-sm sm:text-base font-extrabold mt-0.5" style={{ color: '#059669' }}>
-                  {order.estimatedDelivery}
+                <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider font-mono">
+                  Estimated Delivery Time
+                </span>
+                <h4 className="text-sm sm:text-base font-extrabold mt-0.5 text-emerald-600 dark:text-emerald-400">
+                  {currentOrder?.estimatedDelivery || '35 - 45 mins'}
                 </h4>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Status: <strong className="text-slate-800 dark:text-white">{order.status}</strong>
+                  Fulfilling Partner: <strong className="text-slate-800 dark:text-slate-200">{pharmacyName}</strong>
                 </p>
               </div>
               <div className="text-right font-mono">
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold block">Total Amount</span>
-                <span className="text-lg font-extrabold" style={{ color: '#d97706' }}>₹{order.totalAmount}</span>
+                <span className="text-[9px] text-slate-400 font-bold block">Total Amount</span>
+                <span className="text-lg font-extrabold text-amber-600 dark:text-amber-400">{totalAmount}</span>
               </div>
             </div>
 
+            {/* ── DECLINED ALERT BANNER ── */}
+            {isDeclined && (
+              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-800 dark:text-rose-300 text-xs space-y-1">
+                <div className="font-extrabold flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  <span>Pharmacy Did Not Accept Order</span>
+                </div>
+                <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                  The selected pharmacy could not fulfill this prescription at this time.
+                </p>
+              </div>
+            )}
+
             {/* ── PROGRESS BAR ── */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                <span className="font-mono uppercase tracking-wider text-[9px]">Order Progress</span>
-                <span className="font-mono font-extrabold" style={{ color: '#00a896' }}>{order.progressPercent}%</span>
+            {!isDeclined && !isCancelled && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[11px] font-bold text-slate-500 font-mono">
+                  <span className="uppercase tracking-wider text-[9px]">Fulfillment Progress</span>
+                  <span style={{ color: '#00a896' }}>{progressPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full overflow-hidden bg-teal-500/10 border border-teal-500/20">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercent}%` }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="h-full rounded-full bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500"
+                  />
+                </div>
               </div>
-              <div className="w-full h-2 rounded-full overflow-hidden"
-                style={{ background: 'rgba(20,184,166,.1)', border: '1px solid rgba(20,184,166,.15)' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${order.progressPercent}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="h-full rounded-full"
-                  style={{ background: 'linear-gradient(90deg,#00a896,#06b6d4,#34d399)' }}
-                />
-              </div>
-            </div>
+            )}
 
             {/* ── TRACKING TIMELINE ── */}
             <div>
               <h4 className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono mb-2.5 flex items-center gap-1.5">
-                <Package className="w-3.5 h-3.5" style={{ color: '#00a896' }} />
-                Tracking History
+                <Package className="w-3.5 h-3.5 text-[#00a896]" />
+                <span>Realtime Fulfillment Journey</span>
               </h4>
 
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {trackingSteps.map((step, idx) => {
                   const dot = getDotStyle(step);
-                  const isLast = idx === trackingSteps.length - 1;
-                  const isPending = !step.done && !step.active;
-
                   return (
-                    <div key={idx} className="flex gap-3 items-stretch">
-                      {/* LEFT — dot + connector */}
-                      <div className="flex flex-col items-center" style={{ width: '20px', flexShrink: 0 }}>
-                        {/* Dot */}
-                        <motion.div
-                          initial={{ scale: 0.5, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.3, delay: idx * 0.05 }}
-                          className="flex items-center justify-center my-0.5"
-                          style={{
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            background: dot.bg,
-                            border: `2px solid ${dot.border}`,
-                            boxShadow: step.done || step.active ? `0 0 0 3px ${dot.glow}` : 'none',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {step.done && (
-                            <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                              <path d="M2 5.5 L4.2 7.5 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                          {step.active && (
-                            <motion.div
-                              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-                              transition={{ duration: 1.2, repeat: Infinity }}
-                              style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white' }}
-                            />
-                          )}
-                        </motion.div>
-
-                        {/* Vertical connector */}
-                        {!isLast && (
-                          <div style={{
-                            width: '2px',
-                            flex: 1,
-                            minHeight: '16px',
-                            background: getConnectorGradient(idx),
-                            borderRadius: '2px',
-                            opacity: isPending ? 0.3 : 1,
-                          }} />
+                    <div key={idx} className="flex gap-3 items-center">
+                      <div
+                        className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
+                        style={{
+                          background: dot.bg,
+                          border: `2px solid ${dot.border}`,
+                          boxShadow: step.done || step.active ? `0 0 0 3px ${dot.glow}` : 'none',
+                        }}
+                      >
+                        {step.done && (
+                          <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                            <path d="M2 5.5 L4.2 7.5 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         )}
                       </div>
-
-                      {/* RIGHT — content */}
-                      <motion.div
-                        initial={{ opacity: 0, x: -6 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: idx * 0.05 }}
-                        className={`flex-1 flex items-center justify-between gap-2 ${isLast ? 'pb-0' : 'pb-1.5'}`}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-bold leading-tight ${
-                            step.done || step.active
-                              ? 'text-slate-900 dark:text-white'
-                              : 'text-slate-500 dark:text-slate-400 dark:text-slate-500'
-                          }`}>
-                            {step.label}
-                          </span>
-                          {step.active && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[8px] font-extrabold"
-                              style={{ background: 'rgba(0,168,150,.12)', color: '#00897b', border: '1px solid rgba(0,168,150,.25)' }}>
-                              Live
-                            </span>
-                          )}
-                        </div>
-                        <span className={`text-[10px] font-mono font-bold shrink-0 ${
-                          step.done
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : step.active
-                            ? 'text-[#00a896] dark:text-cyan-400'
-                            : 'text-slate-500 dark:text-slate-400'
-                        }`}>
-                          {step.time}
+                      <div className="flex-1 flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800">
+                        <span className={`font-semibold ${step.active ? 'text-teal-900 dark:text-cyan-300 font-extrabold' : step.done ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400'}`}>
+                          {step.label}
                         </span>
-                      </motion.div>
+                        <span className="font-mono text-[10px] text-slate-400 font-bold">{step.time}</span>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* ── DECLINED OR VERIFIED ALERTS ── */}
-            {isDeclined && (
-              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-700 dark:text-rose-300 space-y-1">
-                <div className="font-extrabold flex items-center gap-1.5">
-                  <Ban className="w-4 h-4 text-rose-600" />
-                  <span>Order Declined by Pharmacist</span>
+            {/* ── PHARMACY & DELIVERY DETAILS ── */}
+            <div className="space-y-1.5 pt-2 border-t border-teal-500/15 text-[11px] text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-teal-500/10">
+                  <Building2 className="w-3 h-3 text-[#00a896]" />
                 </div>
-                <p className="text-[11px] font-medium">
-                  <strong>Reason:</strong> {(order as any).declineReason || 'Medicines currently unavailable or prescription details unclear'}
-                </p>
-                {(order as any).pharmacistNotes && (
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                    <strong>Pharmacist Notes:</strong> {(order as any).pharmacistNotes}
-                  </p>
-                )}
+                <span>
+                  Fulfilling Pharmacy: <strong className="text-slate-900 dark:text-white font-extrabold">{pharmacyName}</strong>
+                </span>
               </div>
-            )}
-
-            {!isDeclined && !isPending && (
-              <div className="p-2.5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-800 dark:text-cyan-300 flex items-center justify-between">
-                <span>✓ Verified by <strong>{(order as any).pharmacistName || 'Registered Pharmacist'}</strong></span>
-                <span className="font-mono text-[10px] text-slate-500">{(order as any).verifiedAt || 'Verified Today'}</span>
-              </div>
-            )}
-
-            {/* ── PHARMACY & ADDRESS ── */}
-            <div className="space-y-1.5 pt-2" style={{ borderTop: '1px solid rgba(20,184,166,.12)' }}>
-              <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(20,184,166,.1)' }}>
-                  <Building2 className="w-3 h-3" style={{ color: '#00a896' }} />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-teal-500/10">
+                  <MapPin className="w-3 h-3 text-[#00a896]" />
                 </div>
-                <span>Fulfilling Pharmacy: <strong className="text-slate-900 dark:text-white font-extrabold">{order.pharmacyName}</strong></span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(20,184,166,.1)' }}>
-                  <MapPin className="w-3 h-3" style={{ color: '#00a896' }} />
-                </div>
-                <span>Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">{(order as any).deliveryAddress || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai'}</strong></span>
+                <span>
+                  Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">{deliveryAddress}</strong>
+                </span>
               </div>
             </div>
 
-            {/* ── FOOTER ACTIONS ── */}
-            <div className="pt-3 flex items-center gap-3" style={{ borderTop: '1px solid rgba(20,184,166,.12)' }}>
-              {canCancel && (
-                <button
-                  onClick={() => onOpenCancelModal(order)}
-                  className="py-2 px-3.5 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer hover:opacity-80 shrink-0 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
-                >
-                  <Ban className="w-3.5 h-3.5" />
-                  <span>Cancel Order</span>
-                </button>
-              )}
+            {/* ── PRESCRIBED ITEMS LIST ── */}
+            {orderItems.length > 0 && (
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Prescribed Formulations</span>
+                <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
+                  {orderItems.map((item: any, i: number) => (
+                    <div key={i} className="flex justify-between">
+                      <span className="font-semibold">{item.medicineName || item.name} {item.dosage && `(${item.dosage})`}</span>
+                      <span className="font-mono text-slate-500 dark:text-slate-400">Qty: {item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
+            {/* ── FOOTER ── */}
+            <div className="pt-2 flex items-center justify-between gap-3 border-t border-teal-500/15">
+              <span className="text-[10px] text-slate-400 font-medium">
+                Observer Mode • Read-only realtime sync
+              </span>
               <button
                 onClick={onClose}
-                className="flex-1 py-2 px-4 rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center cursor-pointer bg-white/90 dark:bg-slate-800/90 border-[1.5px] border-teal-500/25 text-teal-700 dark:text-teal-400 shadow-[0_1px_4px_rgba(20,184,166,0.08)]"
+                className="py-2 px-6 rounded-xl text-xs font-extrabold bg-white dark:bg-slate-800 border border-teal-500/30 text-teal-800 dark:text-cyan-300 hover:bg-teal-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-sm"
               >
                 Close
               </button>
             </div>
-
           </div>
         </motion.div>
       </div>

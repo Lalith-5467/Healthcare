@@ -5,6 +5,7 @@ import {
   ChevronRight, Building2, Zap, ArrowRight, ArrowUpRight, TrendingUp, Check
 } from 'lucide-react';
 import { useInsuranceWorkflow } from '../../../utils/insuranceWorkflowStorage';
+import { getGreeting } from '../../../utils/greeting';
 
 interface InsuranceOverviewViewProps {
   onNavigate: (id: string) => void;
@@ -67,7 +68,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
           </div>
 
           <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
-            Insurance & Cashless Pre-Auth Desk
+            {getGreeting()}, Insurance & Cashless Pre-Auth Desk
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 font-medium max-w-2xl leading-relaxed">
             Connected to Ayushman Bharat (ABDM) health records, live hospital billing gateways, e-prescriptions, and cashless discharge adjudication.

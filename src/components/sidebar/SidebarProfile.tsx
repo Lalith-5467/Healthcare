@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, User, Settings, ShieldCheck, LogOut, Sun, Moon, Home } from 'lucide-react';
+import { LogOut, ChevronDown } from 'lucide-react';
 import type { UserProfile } from './types';
-import { useTheme } from '../theme/ThemeProvider';
 
 interface SidebarProfileProps {
   user?: UserProfile;
@@ -11,22 +10,13 @@ interface SidebarProfileProps {
 }
 
 export const SidebarProfile: React.FC<SidebarProfileProps> = ({
-  user = {
-    name: 'Samson L.',
-    email: 'samson.l@abdm.in',
-    role: 'Patient',
-    abhaId: '91-8472-9104-5821@abdm',
-    bloodGroup: 'O+',
-    age: 32,
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80'
-  },
+  user = { name: 'Ragul Kumar', email: 'ragul@example.com', bloodGroup: 'O+', age: 34 },
   isCollapsed,
   onLogout,
   onNavigate
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isDark, toggleTheme } = useTheme();
 
   // Close dropdown on click outside
   useEffect(() => {

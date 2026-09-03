@@ -4,12 +4,12 @@ import {
   Bell, 
   Calendar, 
   Stethoscope, 
-  AlertTriangle,
-  ShieldCheck,
-  User,
-  Settings,
-  Package,
-  History
+  AlertTriangle, 
+  ShieldCheck, 
+  User, 
+  Settings, 
+  Package, 
+  History 
 } from 'lucide-react';
 import { useNurseWorkflow } from '../../utils/nurseWorkflowStorage';
 
@@ -216,7 +216,7 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
       <div className="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span className="truncate">ABDM Verified</span>
+          <span className="truncate">ABDM Verified Nurse Portal</span>
         </div>
       </div>
     </aside>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Bell, Sparkles, Home, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Bell, Sparkles, User, Settings, LogOut, Home } from 'lucide-react';
+import { getGreeting } from '../../utils/greeting';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
 import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
@@ -10,6 +11,7 @@ interface DashboardHeaderProps {
   onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
   onNavigateHome?: () => void;
+  onNavigate?: (id: string) => void;
   onLogout?: () => void;
 }
 
@@ -18,6 +20,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onOpenNotifications,
   onOpenProfile,
   onNavigateHome,
+  onNavigate,
   onLogout
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
