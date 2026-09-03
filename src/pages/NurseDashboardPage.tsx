@@ -6,7 +6,8 @@ import {
   X, 
   Bell, 
   LogOut, 
-  ChevronDown 
+  ChevronDown,
+  ShieldCheck 
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
