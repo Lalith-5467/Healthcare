@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
             : 'bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-xs'
         }`}
       >
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
           {/* BRAND LOGO */}
           <button
