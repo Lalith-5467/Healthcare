@@ -124,6 +124,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleSaveProfile = (updated: UserProfileSettings) => {
     setProfile(updated);
     localStorage.setItem('user_settings_profile', JSON.stringify(updated));
+    
+    try {
+      const existingProfileStr = localStorage.getItem('user_profile_data');
+      const existingProfile = existingProfileStr ? JSON.parse(existingProfileStr) : {};
+      
+      const syncedProfileData = {
+        ...existingProfile,
+        name: updated.fullName,
+        email: updated.email,
+        phone: updated.phone,
+        dob: updated.dob,
+        gender: updated.gender,
+        location: updated.location,
+        bloodGroup: updated.bloodGroup
+      };
+      
+      localStorage.setItem('user_profile_data', JSON.stringify(syncedProfileData));
+    } catch (e) {
+      console.error('Failed to sync profile data', e);
+    }
+
     setHasUnsaved(false);
     showToast('✓ Profile updated successfully');
   };
@@ -255,10 +276,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <AccountSettingsSection account={account} onDeactivateAccount={handleDeactivateAccount} />
           )}
 
-          {activeSection === 'profile' && (
-            <ProfileSettingsSection profile={profile} onSaveProfile={handleSaveProfile} onMarkUnsaved={() => setHasUnsaved(true)} />
-          )}
-
 
 
           {activeSection === 'notifications' && (
@@ -295,16 +312,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* UNSAVED CHANGES BAR */}
-      <UnsavedChangesBar
-        hasUnsaved={hasUnsaved}
-        onSave={() => handleSaveProfile(profile)}
-        onDiscard={() => {
-          setProfile(INITIAL_USER_PROFILE);
-          setHasUnsaved(false);
-          showToast('✓ Unsaved changes discarded');
-        }}
-      />
+
     </div>
   );
 };

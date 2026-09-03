@@ -156,7 +156,7 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
               disabled={!isEditing}
               value={dob}
               onChange={(e) => { setDob(e.target.value); onMarkUnsaved(); }}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896]"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white disabled:opacity-75 focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] dark:[color-scheme:dark] font-sans"
             />
           </div>
 
