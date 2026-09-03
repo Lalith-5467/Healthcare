@@ -17,6 +17,9 @@ import { PharmacistDashboardPage } from './pages/PharmacistDashboardPage';
 import { DoctorDashboardPage } from './pages/DoctorDashboardPage';
 import { NurseDashboardPage } from './pages/NurseDashboardPage';
 import { InsuranceDashboardPage } from './pages/InsuranceDashboardPage';
+import { CaregiverDashboardPage } from './pages/CaregiverDashboardPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 
 // MODALS
 import { ABHAModal } from './components/modals/ABHAModal';
@@ -31,6 +34,15 @@ const DEFAULT_PATIENT_USER = {
   abhaId: '91-8472-9104-5821@abdm',
   bloodGroup: 'O+',
   age: 34
+};
+
+const DEFAULT_CAREGIVER_USER = {
+  name: 'Anita Sharma',
+  email: 'anita.caregiver@abdm.in',
+  role: 'Caregiver',
+  abhaId: 'CG-8421-9902@abdm',
+  bloodGroup: 'A+',
+  age: 32
 };
 
 const DEFAULT_PHARMACIST_USER = {
@@ -93,10 +105,12 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
   if (page === 'register') return '/register';
   if (page === 'dashboard') {
     const nav = navId || 'dashboard';
+    if (userRole === 'Admin' || userRole === 'Super Admin') return `/admin/${nav}`;
     if (userRole === 'Pharmacist') return `/pharmacist/${nav}`;
     if (userRole === 'Doctor') return `/doctor/${nav}`;
     if (userRole === 'Nurse') return `/nurse/${nav}`;
     if (userRole === 'Insurance') return `/insurance/${nav}`;
+    if (userRole === 'Caregiver') return `/caregiver/${nav}`;
     
     if (nav === 'family' || nav === 'family-connect') return '/user/family-connect';
     if (nav === 'consultation' || nav === 'video-consultation') return '/user/video-consultation';
@@ -121,17 +135,21 @@ const getInitialAppState = () => {
   const path = window.location.pathname.toLowerCase();
   const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
 
+  const isAdminPath = path.startsWith('/admin');
   const isUserPath = path.startsWith('/user');
   const isPharmacistPath = path.startsWith('/pharmacist');
   const isDoctorPath = path.startsWith('/doctor');
   const isNursePath = path.startsWith('/nurse');
   const isInsurancePath = path.startsWith('/insurance');
+  const isCaregiverPath = path.startsWith('/caregiver');
 
-  const target = isUserPath ? path.replace('/user/', '').replace('/user', '')
+  const target = isAdminPath ? path.replace('/admin/', '').replace('/admin', '')
+    : isUserPath ? path.replace('/user/', '').replace('/user', '')
     : isPharmacistPath ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
     : isDoctorPath ? path.replace('/doctor/', '').replace('/doctor', '')
     : isNursePath ? path.replace('/nurse/', '').replace('/nurse', '')
     : isInsurancePath ? path.replace('/insurance/', '').replace('/insurance', '')
+    : isCaregiverPath ? path.replace('/caregiver/', '').replace('/caregiver', '')
     : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash.startsWith('pharmacist/') ? rawHash.replace('pharmacist/', '') : rawHash);
 
   const savedNav = localStorage.getItem('app_active_nav_id');
@@ -156,7 +174,12 @@ const getInitialAppState = () => {
     userData = null;
   }
 
-  if (isUserPath) {
+  if (isAdminPath) {
+    if (!userData || (userData.role !== 'Admin' && userData.role !== 'Super Admin')) {
+      userData = { name: 'Vikramaditya Rao', email: 'superadmin@dhr-medicare.in', role: 'Super Admin' };
+    }
+    loggedIn = true;
+  } else if (isUserPath) {
     if (!userData || userData.role !== 'Patient') userData = DEFAULT_PATIENT_USER;
     loggedIn = true;
   } else if (isPharmacistPath) {
@@ -171,6 +194,9 @@ const getInitialAppState = () => {
   } else if (isInsurancePath) {
     if (!userData || userData.role !== 'Insurance') userData = { name: 'Insurance Agent', email: 'agent@insurance.com', role: 'Insurance' };
     loggedIn = true;
+  } else if (isCaregiverPath) {
+    if (!userData || userData.role !== 'Caregiver') userData = DEFAULT_CAREGIVER_USER;
+    loggedIn = true;
   } else if (!userData && loggedIn) {
     userData = DEFAULT_PATIENT_USER;
   }
@@ -178,16 +204,24 @@ const getInitialAppState = () => {
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
   let nav = target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard';
 
+  // Role detection for authentication forms
+  let targetRole: 'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance' = 'patient';
+  if (isDoctorPath) targetRole = 'doctor';
+  else if (isNursePath) targetRole = 'nurse';
+  else if (isInsurancePath) targetRole = 'insurance';
+  else if (isCaregiverPath) targetRole = 'caregiver';
+  else if (isPharmacistPath) targetRole = 'pharmacist';
+
   // ROUTE DETERMINATION DERIVED FROM URL PATH
   if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
     page = 'home';
   } else if (path === '/about') {
     page = 'about';
-  } else if (path === '/login') {
+  } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login' || path === '/admin/login') {
     page = 'login';
-  } else if (path === '/register') {
+  } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
     page = 'register';
-  } else if (isUserPath || isPharmacistPath || (target && NAV_MAP[target])) {
+  } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target])) {
     if (loggedIn) {
       page = 'dashboard';
       if (target && NAV_MAP[target]) {
@@ -200,14 +234,16 @@ const getInitialAppState = () => {
     page = 'home';
   }
 
-  return { page, nav, loggedIn, userData };
+  return { page, nav, loggedIn, userData, targetRole };
 };
+
 
 export const App: React.FC = () => {
   const initialState = getInitialAppState();
 
   // Page & User States
   const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'login' | 'register' | 'dashboard'>(initialState.page);
+  const [selectedAuthRole, setSelectedAuthRole] = useState<'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance'>(initialState.targetRole);
   const [isLoggedIn, setIsLoggedIn] = useState(initialState.loggedIn);
   const [user, setUser] = useState<{
     name: string;
@@ -272,11 +308,26 @@ export const App: React.FC = () => {
     const handlePopState = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
-      const isPharmacistPath = path.startsWith('/pharmacist/');
-      const target = path.startsWith('/user/')
-        ? path.replace('/user/', '')
-        : path.startsWith('/pharmacist/')
-        ? path.replace('/pharmacist/', '')
+
+      const isUserPath = path.startsWith('/user');
+      const isPharmacistPath = path.startsWith('/pharmacist');
+      const isDoctorPath = path.startsWith('/doctor');
+      const isNursePath = path.startsWith('/nurse');
+      const isInsurancePath = path.startsWith('/insurance');
+      const isCaregiverPath = path.startsWith('/caregiver');
+
+      const target = isPharmacistPath
+        ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
+        : isUserPath
+        ? path.replace('/user/', '').replace('/user', '')
+        : isDoctorPath
+        ? path.replace('/doctor/', '').replace('/doctor', '')
+        : isNursePath
+        ? path.replace('/nurse/', '').replace('/nurse', '')
+        : isInsurancePath
+        ? path.replace('/insurance/', '').replace('/insurance', '')
+        : isCaregiverPath
+        ? path.replace('/caregiver/', '').replace('/caregiver', '')
         : (rawHash.startsWith('user/') ? rawHash.replace('user/', '') : rawHash.startsWith('pharmacist/') ? rawHash.replace('pharmacist/', '') : rawHash);
 
       const savedLoggedIn = localStorage.getItem('app_is_logged_in');
@@ -289,15 +340,23 @@ export const App: React.FC = () => {
         loggedIn = savedLoggedIn === 'true';
       }
 
+      let popRole: 'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance' = 'patient';
+      if (isDoctorPath) popRole = 'doctor';
+      else if (isNursePath) popRole = 'nurse';
+      else if (isInsurancePath) popRole = 'insurance';
+      else if (isCaregiverPath) popRole = 'caregiver';
+      else if (isPharmacistPath) popRole = 'pharmacist';
+      setSelectedAuthRole(popRole);
+
       if (path === '/' || path === '' || path === '/home' || path === '/index.html') {
         setCurrentPage('home');
       } else if (path === '/about') {
         setCurrentPage('about');
-      } else if (path === '/login') {
+      } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login') {
         setCurrentPage('login');
-      } else if (path === '/register') {
+      } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
         setCurrentPage('register');
-      } else if (path.startsWith('/user/') || path.startsWith('/pharmacist/') || path.startsWith('/doctor/') || path.startsWith('/nurse/') || path.startsWith('/insurance/') || (target && NAV_MAP[target])) {
+      } else if (isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target])) {
         if (loggedIn) {
           setCurrentPage('dashboard');
           if (target && NAV_MAP[target]) {
@@ -332,14 +391,15 @@ export const App: React.FC = () => {
   }) => {
     const userRole = userData.role || 'Patient';
     const isPharm = userRole === 'Pharmacist';
+    const isCare = userRole === 'Caregiver';
 
     const newUser = {
-      name: userData.name || (isPharm ? 'Suresh Nair' : 'Ragul Kumar'),
-      email: userData.email || (isPharm ? 'suresh.nair@apollopharmacy.in' : 'ragul.kumar@abdm.in'),
+      name: userData.name || (isPharm ? 'Suresh Nair' : isCare ? 'Anita Sharma' : 'Ragul Kumar'),
+      email: userData.email || (isPharm ? 'suresh.nair@apollopharmacy.in' : isCare ? 'anita.caregiver@abdm.in' : 'ragul.kumar@abdm.in'),
       role: userRole,
-      abhaId: userData.abhaId || (isPharm ? 'pharm.apollo.central@abdm' : '91-8472-9104-5821@abdm'),
+      abhaId: userData.abhaId || (isPharm ? 'pharm.apollo.central@abdm' : isCare ? 'CG-8421-9902@abdm' : '91-8472-9104-5821@abdm'),
       bloodGroup: userData.bloodGroup || 'O+',
-      age: userData.age || (isPharm ? 38 : 34),
+      age: userData.age || (isPharm ? 38 : isCare ? 32 : 34),
       phone: userData.phone || '+91 98765 43210',
       emergencyContact: userData.emergencyContact || '+91 98765 11223'
     };
@@ -413,8 +473,9 @@ export const App: React.FC = () => {
       }
       const normalizedId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
       setInitialNavId(normalizedId);
-      setCurrentPage('dashboard');
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      if (currentPage !== 'dashboard') {
+        setCurrentPage('dashboard');
+      }
       return;
     }
 
@@ -480,19 +541,36 @@ export const App: React.FC = () => {
             onExploreFeatures={() => handleNavigate('features')}
           />
         ) : currentPage === 'login' ? (
-          <LoginPage 
-            onNavigateHome={() => handleNavigate('home')}
-            onNavigate={handleNavigate}
-            onSuccessLogin={handleSuccessLogin}
-          />
+          window.location.pathname.toLowerCase().startsWith('/admin') ? (
+            <AdminLoginPage
+              onNavigateHome={() => handleNavigate('home')}
+              onNavigate={handleNavigate}
+              onSuccessLogin={(userData) => handleSuccessLogin(userData as any)}
+            />
+          ) : (
+            <LoginPage 
+              initialRole={selectedAuthRole}
+              onNavigateHome={() => handleNavigate('home')}
+              onNavigate={handleNavigate}
+              onSuccessLogin={handleSuccessLogin}
+            />
+          )
         ) : currentPage === 'register' ? (
           <RegisterPage 
+            initialRole={selectedAuthRole}
             onNavigateHome={() => handleNavigate('home')}
             onNavigate={handleNavigate}
             onSuccessLogin={handleSuccessLogin}
           />
         ) : currentPage === 'dashboard' ? (
-          user?.role === 'Pharmacist' || isPharmacist ? (
+          user?.role === 'Admin' || user?.role === 'Super Admin' || window.location.pathname.toLowerCase().startsWith('/admin') ? (
+            <AdminDashboardPage 
+              user={user as any || undefined} 
+              initialNavId={initialNavId}
+              onLogout={handleLogout} 
+              onNavigate={handleNavigate}
+            />
+          ) : user?.role === 'Pharmacist' || isPharmacist ? (
             <PharmacistDashboardPage
               user={user || undefined}
               initialNavId={initialNavId}
@@ -505,6 +583,13 @@ export const App: React.FC = () => {
             <NurseDashboardPage user={user as any || undefined} onLogout={handleLogout} />
           ) : user?.role === 'Insurance' ? (
             <InsuranceDashboardPage user={user as any || undefined} onLogout={handleLogout} />
+          ) : user?.role === 'Caregiver' ? (
+            <CaregiverDashboardPage 
+              user={user as any || undefined} 
+              initialNavId={initialNavId}
+              onLogout={handleLogout} 
+              onNavigate={handleNavigate}
+            />
           ) : (
             <DashboardPage
               user={user as any || undefined}

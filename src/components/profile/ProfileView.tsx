@@ -82,7 +82,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         setProfileData(prev => ({
           ...prev,
           ...parsed,
-          name: user?.name || parsed.name || prev.name
+          name: parsed.name || user?.name || prev.name
         }));
       } catch (e) {
         console.error(e);

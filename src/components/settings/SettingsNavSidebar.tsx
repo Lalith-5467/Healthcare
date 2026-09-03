@@ -17,7 +17,6 @@ import {
 
 export type SettingsSectionKey =
   | 'account'
-  | 'profile'
   | 'notifications'
   | 'appearance'
   | 'health'
@@ -33,7 +32,6 @@ interface SettingsNavSidebarProps {
 
 export const SETTINGS_NAV_ITEMS: { key: SettingsSectionKey; label: string; icon: any }[] = [
   { key: 'account', label: 'Account', icon: ShieldCheck },
-  { key: 'profile', label: 'Profile', icon: User },
   { key: 'notifications', label: 'Notifications', icon: Bell },
   { key: 'appearance', label: 'Appearance', icon: Palette },
   { key: 'health', label: 'Health Preferences', icon: Heart },
