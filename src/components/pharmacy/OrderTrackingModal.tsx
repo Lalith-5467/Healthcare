@@ -280,6 +280,201 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     return { bg: '#ffffff', border: '#d1d5db', glow: 'transparent' };
   };
 
+            }
+          }
+        } else {
+          setFetchError('Access denied or order not found (404)');
+        }
+      } catch (err: any) {
+        setFetchError(err.message || 'Unable to sync order details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // 1. Initial authoritative fetch
+    setLoading(true);
+    fetchAuthoritativeOrder();
+
+    // 2. Connect Socket.IO
+    socketService.connect();
+
+    // 3. Connection state monitor & fallback management (Rule 14 & 19)
+    const unsubConn = socketService.onConnectionChange((connected) => {
+      setIsRealtimeActive(connected);
+
+      if (connected) {
+        // Socket is healthy: Stop fallback polling
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
+        // Rule 14: If reconnecting, re-fetch authoritative database state once
+        if (wasDisconnectedRef.current) {
+          wasDisconnectedRef.current = false;
+          fetchAuthoritativeOrder();
+        }
+      } else {
+        // Socket disconnected: Start 5-second polling fallback
+        wasDisconnectedRef.current = true;
+        if (!pollingRef.current) {
+          pollingRef.current = setInterval(fetchAuthoritativeOrder, 5000);
+        }
+      }
+    });
+
+    // 4. Realtime Order Update Listener (Rule 11, 12, 13)
+    const unsubOrder = socketService.subscribeToOrderUpdates((payload: OrderStatusUpdatePayload) => {
+      // Rule 12: An event for Order A MUST NOT update Order B
+      if (payload.orderId !== trackedOrderIdRef.current) {
+        return;
+      }
+
+      // Rule 13: Duplicate event protection (status + updatedAt)
+      const updateKey = `${payload.status}-${payload.updatedAt}`;
+      if (lastProcessedUpdateRef.current === updateKey) return;
+      lastProcessedUpdateRef.current = updateKey;
+
+      // Rule 11: Immediate UI synchronization
+      setCurrentOrder((prev: any) => ({
+        ...prev,
+        status: payload.status,
+        updatedAt: payload.updatedAt,
+      }));
+
+      // In-app live notification
+      const label = DHR_STATUS_DISPLAY[payload.status] || payload.status;
+      setLiveNotification(payload.message || `Status updated to ${label}`);
+      setTimeout(() => setLiveNotification(null), 4500);
+
+      // Rule 15: Terminal state cleanup
+      if (
+        payload.status === 'COMPLETED' ||
+        payload.status === 'DELIVERED' ||
+        payload.status === 'DECLINED' ||
+        payload.status === 'CANCELLED'
+      ) {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      }
+    });
+
+    return () => {
+      unsubConn();
+      unsubOrder();
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [isOpen, initialOrder?.id]);
+
+  if (!isOpen) return null;
+
+  if (!currentOrder && !loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+          <h4 className="text-base font-extrabold text-slate-800 dark:text-white">No active pharmacy order</h4>
+          <p className="text-xs text-slate-500">No active pharmacy order found for this record.</p>
+          <button
+            onClick={onClose}
+            className="w-full py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Normalize raw status
+  const rawStatus = (currentOrder?.status || 'PENDING').toString().toUpperCase();
+  const isDeclined = rawStatus === 'DECLINED';
+  const isCancelled = rawStatus === 'CANCELLED';
+  const isPending = rawStatus === 'PENDING';
+  const isAccepted = rawStatus === 'ACCEPTED';
+  const isPreparing = rawStatus === 'PREPARING';
+  const isReady = rawStatus === 'READY';
+  const isReadyPickup = rawStatus === 'READY_FOR_PICKUP';
+  const isOutForDelivery = rawStatus === 'OUT_FOR_DELIVERY';
+  const isCompleted = rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED';
+
+  // Rule 6 & 7: Final patient status mapping without conflict
+  const displayStatus = DHR_STATUS_DISPLAY[rawStatus] || 'Waiting for Pharmacy';
+
+  // Rule 9: Status-driven progress
+  const progressPercent = DHR_STATUS_PERCENT[rawStatus] ?? (isPending ? 20 : 0);
+
+  // Rule 8 & 10: Status-driven timeline with separated READY and OUT_FOR_DELIVERY
+  const trackingSteps = isDeclined || isCancelled
+    ? [
+        { label: 'Prescription Order Placed', time: 'Confirmed', done: true, active: false },
+        { label: 'Pharmacist Clinical Review', time: 'Completed', done: true, active: false },
+        {
+          label: isCancelled ? 'Order Cancelled' : 'Order Declined',
+          time: 'Terminal',
+          done: false,
+          active: true,
+          isError: true,
+        },
+      ]
+    : [
+        {
+          label: 'Prescription Order Placed',
+          time: 'Confirmed',
+          done: true,
+          active: false,
+        },
+        {
+          label: 'Waiting for Pharmacy',
+          time: isPending ? 'In Review' : 'Completed',
+          done: isAccepted || isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isPending,
+        },
+        {
+          label: 'Order Accepted',
+          time: isAccepted ? 'Accepted' : isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isPreparing || isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isAccepted,
+        },
+        {
+          label: 'Preparing Your Medicines',
+          time: isPreparing ? 'In Progress' : isReady || isReadyPickup || isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isReady || isReadyPickup || isOutForDelivery || isCompleted,
+          active: isPreparing,
+        },
+        {
+          label: isReadyPickup ? 'Ready for Pickup' : 'Ready',
+          time: isReady || isReadyPickup ? 'Ready' : isOutForDelivery || isCompleted ? 'Completed' : 'Pending',
+          done: isOutForDelivery || isCompleted,
+          active: isReady || isReadyPickup,
+        },
+        {
+          label: 'Out for Delivery',
+          time: isOutForDelivery ? 'In Transit' : isCompleted ? 'Delivered' : 'Pending',
+          done: isCompleted,
+          active: isOutForDelivery,
+        },
+        {
+          label: 'Completed',
+          time: isCompleted ? 'Delivered' : 'Pending',
+          done: isCompleted,
+          active: false,
+        },
+      ];
+
+  const getDotStyle = (step: any) => {
+    if (step.isError) return { bg: '#e11d48', border: '#f43f5e', glow: 'rgba(225,29,72,.35)' };
+    if (step.done) return { bg: '#10b981', border: '#34d399', glow: 'rgba(16,185,129,.35)' };
+    if (step.active) return { bg: '#00a896', border: '#5eead4', glow: 'rgba(0,168,150,.35)' };
+    return { bg: '#ffffff', border: '#d1d5db', glow: 'transparent' };
+  };
+
   const pharmacyName = currentOrder?.pharmacy?.name || currentOrder?.pharmacyName || '—';
   const deliveryAddress = currentOrder?.deliveryAddress || '—';
   const totalAmount = currentOrder?.totalAmount != null ? `₹${currentOrder.totalAmount}` : '—';
@@ -287,67 +482,68 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center font-sans">
+      <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md overflow-y-auto p-4 sm:p-6 flex items-center justify-center font-sans">
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 12 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-          className="w-full max-w-lg my-auto font-sans relative bg-gradient-to-br from-slate-50 via-teal-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
+          exit={{ opacity: 0, scale: 0.96, y: 15 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+          className="w-full max-w-lg my-auto font-sans relative bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
         >
-          <div className="relative z-10 p-5 sm:p-6 space-y-4">
-            {/* ── HEADER ── */}
-            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(20,184,166,.12)' }}>
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg,#2dd4bf,#059669)', boxShadow: '0 4px 12px rgba(20,184,166,.3)' }}
-                >
-                  <Truck className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold font-mono uppercase tracking-wider block" style={{ color: '#00a896' }}>
-                    #{currentOrder?.id || '—'}
-                  </span>
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-tight">
-                    Realtime Pharmacy Tracking
-                  </h3>
-                </div>
+          {/* ── HEADER ── */}
+          <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between shrink-0 bg-white dark:bg-[#0b1120]">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0 bg-gradient-to-tr from-[#00a896] to-teal-500"
+              >
+                <Truck className="w-5 h-5" />
               </div>
-
-              <div className="flex items-center gap-2">
-                {/* Realtime Status Indicator Badge */}
-                {!isCompleted && !isDeclined && !isCancelled && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                      isRealtimeActive
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
-                        : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
-                    }`}
-                  >
-                    {isRealtimeActive ? (
-                      <>
-                        <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
-                        <span>Realtime Live</span>
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-3 h-3 text-amber-600" />
-                        <span>Auto-Syncing</span>
-                      </>
-                    )}
-                  </span>
-                )}
-
-                <button
-                  onClick={onClose}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-4.5 h-4.5" />
-                </button>
+              <div>
+                <span className="text-[10px] font-black font-mono uppercase tracking-wider text-[#00a896] dark:text-cyan-400 block">
+                  #{currentOrder?.id || '—'}
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+                  Realtime Pharmacy Tracking
+                </h3>
               </div>
             </div>
 
+            <div className="flex items-center gap-2">
+              {/* Realtime Status Indicator Badge */}
+              {!isCompleted && !isDeclined && !isCancelled && (
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                    isRealtimeActive
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800'
+                      : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800'
+                  }`}
+                >
+                  {isRealtimeActive ? (
+                    <>
+                      <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                      <span>Realtime Live</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3 h-3 text-amber-600" />
+                      <span>Auto-Syncing</span>
+                    </>
+                  )}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* ── SCROLLABLE MODAL BODY ── */}
+          <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-slate-900 dark:text-white">
             {/* ── LIVE TOAST BANNER (Rule 14) ── */}
             <AnimatePresence>
               {liveNotification && (
@@ -355,41 +551,41 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-cyan-300 text-xs font-bold flex items-center gap-2"
+                  className="p-3 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-cyan-300 text-xs font-bold flex items-center gap-2"
                 >
-                  <Bell className="w-4 h-4 text-teal-600 dark:text-cyan-400 shrink-0" />
+                  <Bell className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
                   <span>{liveNotification}</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* ── ETA & PHARMACY HEADER CARD (Rule 24) ── */}
-            <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-teal-500/15 flex items-center justify-between shadow-xs">
+            {/* ── ETA & PHARMACY HEADER CARD ── */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-xs">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider font-mono">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider font-mono">
                   Estimated Delivery Time
                 </span>
-                <h4 className="text-sm sm:text-base font-extrabold mt-0.5 text-emerald-600 dark:text-emerald-400">
+                <h4 className="text-base sm:text-lg font-black mt-0.5 text-emerald-600 dark:text-emerald-400">
                   {currentOrder?.estimatedDelivery || '35 - 45 mins'}
                 </h4>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Fulfilling Partner: <strong className="text-slate-800 dark:text-slate-200">{pharmacyName}</strong>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">
+                  Fulfilling Partner: <strong className="text-slate-900 dark:text-white font-bold">{pharmacyName}</strong>
                 </p>
               </div>
               <div className="text-right font-mono">
-                <span className="text-[9px] text-slate-400 font-bold block">Total Amount</span>
-                <span className="text-lg font-extrabold text-amber-600 dark:text-amber-400">{totalAmount}</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase">Total Amount</span>
+                <span className="text-xl font-black text-amber-600 dark:text-amber-400">{totalAmount}</span>
               </div>
             </div>
 
             {/* ── DECLINED ALERT BANNER ── */}
             {isDeclined && (
-              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-800 dark:text-rose-300 text-xs space-y-1">
-                <div className="font-extrabold flex items-center gap-1.5">
+              <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-300 text-xs space-y-1">
+                <div className="font-black flex items-center gap-1.5">
                   <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   <span>Pharmacy Did Not Accept Order</span>
                 </div>
-                <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">
                   The selected pharmacy could not fulfill this prescription at this time.
                 </p>
               </div>
@@ -398,11 +594,11 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             {/* ── PROGRESS BAR ── */}
             {!isDeclined && !isCancelled && (
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] font-bold text-slate-500 font-mono">
-                  <span className="uppercase tracking-wider text-[9px]">Fulfillment Progress</span>
-                  <span style={{ color: '#00a896' }}>{progressPercent}%</span>
+                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 font-mono">
+                  <span className="uppercase tracking-wider text-[10px]">Fulfillment Progress</span>
+                  <span className="text-[#00a896] dark:text-cyan-400 font-black">{progressPercent}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full overflow-hidden bg-teal-500/10 border border-teal-500/20">
+                <div className="w-full h-2.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
@@ -415,18 +611,18 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
             {/* ── TRACKING TIMELINE ── */}
             <div>
-              <h4 className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono mb-2.5 flex items-center gap-1.5">
+              <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono mb-3 flex items-center gap-1.5">
                 <Package className="w-3.5 h-3.5 text-[#00a896]" />
                 <span>Realtime Fulfillment Journey</span>
               </h4>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {trackingSteps.map((step, idx) => {
                   const dot = getDotStyle(step);
                   return (
                     <div key={idx} className="flex gap-3 items-center">
                       <div
-                        className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
+                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                         style={{
                           background: dot.bg,
                           border: `2px solid ${dot.border}`,
@@ -434,16 +630,18 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                         }}
                       >
                         {step.done && (
-                          <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                            <path d="M2 5.5 L4.2 7.5 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M2 5.5 L4.2 7.5 L8 3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
                       </div>
-                      <div className="flex-1 flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800">
-                        <span className={`font-semibold ${step.active ? 'text-teal-900 dark:text-cyan-300 font-extrabold' : step.done ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400'}`}>
+                      <div className="flex-1 flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-800/80">
+                        <span className={`font-semibold ${step.active ? 'text-teal-700 dark:text-cyan-300 font-black' : step.done ? 'text-slate-800 dark:text-slate-200 font-bold' : 'text-slate-400 dark:text-slate-500'}`}>
                           {step.label}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400 font-bold">{step.time}</span>
+                        <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md ${step.active ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-cyan-300' : step.done ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' : 'text-slate-400'}`}>
+                          {step.time}
+                        </span>
                       </div>
                     </div>
                   );
@@ -452,52 +650,53 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             </div>
 
             {/* ── PHARMACY & DELIVERY DETAILS ── */}
-            <div className="space-y-1.5 pt-2 border-t border-teal-500/15 text-[11px] text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-teal-500/10">
-                  <Building2 className="w-3 h-3 text-[#00a896]" />
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 bg-teal-500/15 text-[#00a896]">
+                  <Building2 className="w-3.5 h-3.5" />
                 </div>
                 <span>
-                  Fulfilling Pharmacy: <strong className="text-slate-900 dark:text-white font-extrabold">{pharmacyName}</strong>
+                  Fulfilling Pharmacy: <strong className="text-slate-900 dark:text-white font-black">{pharmacyName}</strong>
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-teal-500/10">
-                  <MapPin className="w-3 h-3 text-[#00a896]" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 bg-teal-500/15 text-[#00a896]">
+                  <MapPin className="w-3.5 h-3.5" />
                 </div>
-                <span>
-                  Delivery Address: <strong className="text-slate-900 dark:text-white font-semibold">{deliveryAddress}</strong>
+                <span className="truncate">
+                  Delivery Address: <strong className="text-slate-900 dark:text-white font-bold">{deliveryAddress}</strong>
                 </span>
               </div>
             </div>
 
             {/* ── PRESCRIBED ITEMS LIST ── */}
             {orderItems.length > 0 && (
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Prescribed Formulations</span>
-                <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">Prescribed Formulations</span>
+                <div className="text-xs text-slate-800 dark:text-slate-200 space-y-1.5 divide-y divide-slate-200/60 dark:divide-slate-700/60">
                   {orderItems.map((item: any, i: number) => (
-                    <div key={i} className="flex justify-between">
-                      <span className="font-semibold">{item.medicineName || item.name} {item.dosage && `(${item.dosage})`}</span>
-                      <span className="font-mono text-slate-500 dark:text-slate-400">Qty: {item.quantity}</span>
+                    <div key={i} className={`flex justify-between items-center ${i > 0 ? 'pt-1.5' : ''}`}>
+                      <span className="font-bold">{item.medicineName || item.name} {item.dosage && <span className="text-slate-500 text-[11px]">({item.dosage})</span>}</span>
+                      <span className="font-mono font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">Qty: {item.quantity}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+          </div>
 
-            {/* ── FOOTER ── */}
-            <div className="pt-2 flex items-center justify-between gap-3 border-t border-teal-500/15">
-              <span className="text-[10px] text-slate-400 font-medium">
-                Observer Mode • Read-only realtime sync
-              </span>
-              <button
-                onClick={onClose}
-                className="py-2 px-6 rounded-xl text-xs font-extrabold bg-white dark:bg-slate-800 border border-teal-500/30 text-teal-800 dark:text-cyan-300 hover:bg-teal-50 dark:hover:bg-slate-700 transition-colors cursor-pointer shadow-sm"
-              >
-                Close
-              </button>
-            </div>
+          {/* ── FOOTER ── */}
+          <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 flex items-center justify-between gap-3 shrink-0">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              Observer Mode • Read-only realtime sync
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-6 rounded-xl text-xs font-black bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-cyan-600 text-white transition-all cursor-pointer shadow-md shadow-teal-500/20 active:scale-95"
+            >
+              Close
+            </button>
           </div>
         </motion.div>
       </div>
