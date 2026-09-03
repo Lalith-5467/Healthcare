@@ -46,7 +46,7 @@ export const RecordSummaryCards: React.FC<RecordSummaryCardsProps> = ({
             className={`p-3.5 rounded-2xl border transition-all cursor-pointer select-none space-y-1.5 ${
               isActive
                 ? 'bg-gradient-to-br from-[#00a896]/20 to-cyan-600/10 border-[#00a896] shadow-lg shadow-teal-500/10'
-                : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 shadow-sm'
+                : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-200 dark:border-slate-700 shadow-sm'
             }`}
           >
             <div className="flex items-center justify-between">

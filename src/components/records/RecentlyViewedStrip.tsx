@@ -39,7 +39,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                 {rec.type} • {rec.date}
               </p>
             </div>
-            <Eye className="w-3.5 h-3.5 text-slate-400 group-hover:text-cyan-400 shrink-0" />
+            <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-cyan-400 shrink-0" />
           </div>
         ))}
       </div>

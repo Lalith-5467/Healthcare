@@ -64,7 +64,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose }) =
 
         {/* HEADER */}
         <div className="text-center flex flex-col items-center space-y-3 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/25">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-purple-500 to-indigo-600 text-slate-900 dark:text-white flex items-center justify-center shadow-lg shadow-purple-500/25">
             <Crown className="w-7 h-7" />
           </div>
           <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -79,7 +79,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose }) =
           <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 text-center space-y-2 relative z-10">
             <ShieldCheck className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto animate-bounce" />
             <h4 className="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">Welcome to Premium Health!</h4>
-            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Your account benefits have been activated (Frontend Demo).</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Your account benefits have been activated successfully.</p>
           </div>
         ) : (
           <div className="space-y-4 relative z-10">
@@ -105,18 +105,18 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose }) =
 
             <div className="p-4 rounded-2xl bg-purple-50/80 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-500/30 flex items-center justify-between">
               <div>
-                <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-300 tracking-wider">Demo Special</span>
+                <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-300 tracking-wider">Special Offer</span>
                 <div className="text-xl font-black text-slate-900 dark:text-white">
-                  ₹0 <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ Free Upgrade</span>
+                  ₹499 <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ month</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleUpgrade}
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-extrabold text-xs shadow-lg shadow-purple-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-slate-900 dark:text-white font-extrabold text-xs shadow-lg shadow-purple-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Activate Premium (Demo)</span>
+                <span>Activate Premium</span>
               </button>
             </div>
           </div>

@@ -139,7 +139,7 @@ export const AddEditContactModal: React.FC<AddEditContactModalProps> = ({
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+            className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer mt-2"
           >
             {submitting ? (
               <>

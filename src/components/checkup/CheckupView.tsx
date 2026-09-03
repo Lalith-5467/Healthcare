@@ -193,7 +193,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Activity className="w-4 h-4" />
               <span>Start Assessment</span>
@@ -203,14 +203,14 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       />
 
       {/* 2. HERO CARD SECTION */}
-      <div className="bg-gradient-to-br from-teal-50/80 via-cyan-50/50 to-white rounded-[2rem] p-6 sm:p-10 space-y-6 shadow-2xl shadow-teal-900/5 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-teal-50/80 via-cyan-50/50 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-800 border border-transparent dark:border-slate-800 rounded-[2rem] p-6 sm:p-10 space-y-6 shadow-2xl shadow-teal-900/5 dark:shadow-none relative overflow-hidden">
         {/* Decorative background elements */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-40 -bottom-20 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-teal-400/10 dark:bg-teal-900/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-40 -bottom-20 w-64 h-64 bg-cyan-400/10 dark:bg-cyan-900/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative z-10">
           <div className="space-y-4 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-100/50 border border-teal-200/50 text-teal-700 font-mono text-[11px] font-extrabold shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-100/50 dark:bg-teal-500/10 border border-teal-200/50 dark:border-teal-500/20 text-teal-700 dark:text-teal-400 font-mono text-[11px] font-extrabold shadow-sm">
               <Stethoscope className="w-3.5 h-3.5" />
               <span>Interactive Digital Health Check</span>
             </div>
@@ -220,15 +220,15 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
             </p>
 
             <div className="flex flex-wrap items-center gap-5 text-[11px] font-mono pt-2">
-              <div className="flex items-center gap-1.5 text-teal-700 font-bold bg-white/60 px-3 py-1.5 rounded-lg shadow-sm border border-white">
+              <div className="flex items-center gap-1.5 text-teal-700 dark:text-teal-400 font-bold bg-white/60 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-white dark:border-slate-700">
                 <Clock className="w-4 h-4" />
                 <span>Est. Time: 5–7 min</span>
               </div>
-              <div className="flex items-center gap-1.5 text-purple-700 font-bold bg-white/60 px-3 py-1.5 rounded-lg shadow-sm border border-white">
+              <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-400 font-bold bg-white/60 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-white dark:border-slate-700">
                 <FileText className="w-4 h-4" />
                 <span>12 Questions</span>
               </div>
-              <div className="flex items-center gap-1.5 text-amber-700 font-bold bg-white/60 px-3 py-1.5 rounded-lg shadow-sm border border-white">
+              <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold bg-white/60 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg shadow-sm border border-white dark:border-slate-700">
                 <Calendar className="w-4 h-4" />
                 <span>Last Check: 18 Aug 2026</span>
               </div>
@@ -241,7 +241,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="w-full lg:w-auto px-8 py-4 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2.5 cursor-pointer hover:-translate-y-0.5"
+              className="w-full lg:w-auto px-8 py-4 rounded-2xl font-extrabold text-sm text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2.5 cursor-pointer hover:-translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start Check-Up (12 Steps)</span>
@@ -288,7 +288,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 setIsQuickMode(false);
                 setWizardOpen(true);
               }}
-              className="px-4 py-2 rounded-xl font-extrabold text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-md shadow-teal-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
+              className="px-4 py-2 rounded-xl font-extrabold text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-md shadow-teal-500/20 cursor-pointer flex items-center gap-1.5 transition-all"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
               <span>Resume Check-Up</span>
@@ -305,10 +305,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Overview of your current check-up completion status</p>
           </div>
           <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 bg-teal-50 px-4 py-2.5 rounded-xl border border-teal-100 shadow-sm">
-               <Activity className="w-4 h-4 text-teal-600" />
-               <span className="text-xs font-bold text-teal-800">Overall Progress:</span>
-               <span className="text-sm font-extrabold text-teal-600 font-mono">
+             <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-500/10 px-4 py-2.5 rounded-xl border border-teal-100 dark:border-teal-500/20 shadow-sm">
+               <Activity className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+               <span className="text-xs font-bold text-teal-800 dark:text-teal-300">Overall Progress:</span>
+               <span className="text-sm font-extrabold text-teal-600 dark:text-teal-400 font-mono">
                  {Math.round(categories.reduce((acc, cat) => acc + cat.progressPercentage, 0) / (categories.length || 1))}%
                </span>
              </div>
@@ -317,10 +317,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-white/80 backdrop-blur-sm border border-slate-200/60 p-5 rounded-3xl flex flex-col items-center text-center space-y-4 shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+            <div key={cat.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-800/60 p-5 rounded-3xl flex flex-col items-center text-center space-y-4 shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
               <div className="relative w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
+                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100 dark:text-slate-800" />
                   <circle 
                     cx="40" cy="40" r="34" 
                     stroke="currentColor" 
@@ -332,7 +332,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                     className={`transition-all duration-1000 ease-out ${cat.status === 'Completed' ? 'text-emerald-400' : cat.status === 'In Progress' ? 'text-teal-400' : 'text-slate-200'}`} 
                   />
                 </svg>
-                <div className="absolute flex flex-col items-center justify-center text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm">
+                <div className="absolute flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm">
                   {cat.iconName === 'Stethoscope' && <Stethoscope className="w-7 h-7" />}
                   {cat.iconName === 'Heart' && <Heart className="w-7 h-7" />}
                   {cat.iconName === 'Activity' && <Activity className="w-7 h-7" />}
@@ -343,8 +343,8 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               </div>
 
               <div>
-                <div className="text-2xl font-extrabold text-slate-800 font-mono tracking-tighter">
-                  {cat.progressPercentage}<span className="text-xs text-slate-400 ml-0.5">%</span>
+                <div className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono tracking-tighter">
+                  {cat.progressPercentage}<span className="text-xs text-slate-500 dark:text-slate-400 ml-0.5">%</span>
                 </div>
                 <h4 className="font-bold text-slate-700 dark:text-slate-300 text-xs mt-1 leading-tight">{cat.title}</h4>
               </div>
@@ -375,7 +375,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       </div>
 
       {/* 6. PREVIOUS CHECK-UPS HISTORY LOG */}
-      <div id="history-section" className="bg-white/60 backdrop-blur-md border border-white/60 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/50 dark:shadow-none">
+      <div id="history-section" className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-800/60 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/50 dark:shadow-none">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Previous Check-Ups</h3>
@@ -384,7 +384,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
           <div className="flex items-center gap-2 self-stretch sm:self-auto">
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -407,13 +407,13 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
             <div key={item.id} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm hover:shadow-md hover:border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:-translate-y-0.5">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/60 flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-extrabold text-teal-600 uppercase tracking-wider">{item.date} • {item.time}</span>
                   <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">{item.type}</h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-1 font-bold">
-                    Score: <strong className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-1">{item.completionScore}%</strong>
+                    Score: <strong className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded ml-1">{item.completionScore}%</strong>
                   </p>
                 </div>
               </div>
@@ -427,7 +427,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
                 </button>
                 <button
                   onClick={() => handleDeleteRecord(item.id)}
-                  className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
+                  className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 text-slate-500 dark:text-slate-400 hover:text-rose-500 border border-transparent hover:border-rose-100 cursor-pointer transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -446,10 +446,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={() => onNavigate('appointments')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-teal-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-white/60 dark:border-slate-800/60 hover:border-teal-200 dark:hover:border-teal-500/50 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-teal-600 group-hover:scale-110 transition-transform" />
+          <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Appointments</h4>
@@ -459,10 +459,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <button
           onClick={() => onNavigate('medicines')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-purple-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-white/60 dark:border-slate-800/60 hover:border-purple-200 dark:hover:border-purple-500/50 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
-            <Pill className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform" />
+          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center">
+            <Pill className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Medicines</h4>
@@ -472,10 +472,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <button
           onClick={() => onNavigate('records')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-amber-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-white/60 dark:border-slate-800/60 hover:border-amber-200 dark:hover:border-amber-500/50 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-amber-600 group-hover:scale-110 transition-transform" />
+          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Medical Records</h4>
@@ -485,10 +485,10 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
 
         <button
           onClick={() => onNavigate('analytics')}
-          className="p-6 bg-white/80 backdrop-blur-sm border border-white/60 hover:border-cyan-200 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
+          className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-white/60 dark:border-slate-800/60 hover:border-cyan-200 dark:hover:border-cyan-500/50 rounded-3xl text-left space-y-3 transition-all cursor-pointer shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-cyan-600 group-hover:scale-110 transition-transform" />
+          <div className="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Analytics</h4>

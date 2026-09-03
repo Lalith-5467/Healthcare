@@ -230,7 +230,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                 className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative shadow-sm h-full min-h-[145px] ${
                   isActive
                     ? `bg-white dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-2xl backdrop-blur-xl scale-[1.02]`
-                    : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-850 backdrop-blur-md opacity-85 hover:opacity-100'
+                    : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-850 backdrop-blur-md opacity-85 hover:opacity-100'
                 }`}
               >
                 {/* ACTIVE TAB ACCENT GRADIENT GLOW */}
@@ -343,7 +343,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                   
                   {/* 1. DIGITAL HEALTH RECORDS MOCKUP */}
                   {activeFeature.id === 'phr-locker' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-teal-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-teal-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
                       {/* SIMULATED SCANNING LASER */}
                       <motion.div 
                         animate={{ y: [0, 240, 0] }}
@@ -351,19 +351,19 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                         className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,1)] pointer-events-none z-20"
                       />
 
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
                           <FileCheck2 className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Encrypted Medical Vault</span>
+                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Encrypted Medical Vault</span>
                         </div>
                         <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
                           ABDM Verified
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white">Pathology Lab Diagnostics.pdf</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">Pathology Lab Diagnostics.pdf</span>
                           <span className="text-[10px] text-teal-400 font-mono font-bold">2.4 MB · AES-256</span>
                         </div>
                         <div className="flex flex-wrap gap-2 text-[10px] font-mono">
@@ -375,8 +375,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
                             <strong className="text-xs font-black text-teal-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
@@ -386,11 +386,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 2. MEDICINE REMINDERS MOCKUP */}
                   {activeFeature.id === 'med-reminder' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-purple-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-purple-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
                           <BellRing className="w-4 h-4 text-purple-400" />
-                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Daily Dosage Schedule</span>
+                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Daily Dosage Schedule</span>
                         </div>
                         <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
                           99.4% Adherence
@@ -399,14 +399,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                       <div className="space-y-2.5">
                         {/* DOSE 1 */}
-                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
                               <Check className="w-4 h-4 stroke-[3]" />
                             </div>
                             <div>
-                              <span className="text-xs font-black text-white block">Metformin 500mg</span>
-                              <span className="text-[10px] text-slate-400 font-mono">08:00 AM · After Breakfast</span>
+                              <span className="text-xs font-black text-slate-900 dark:text-white block">Metformin 500mg</span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">08:00 AM · After Breakfast</span>
                             </div>
                           </div>
                           <span className="text-[10px] font-black text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded">Taken</span>
@@ -423,7 +423,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                               <Pill className="w-4 h-4" />
                             </div>
                             <div>
-                              <span className="text-xs font-black text-white block">Vitamin D3 60k UI</span>
+                              <span className="text-xs font-black text-slate-900 dark:text-white block">Vitamin D3 60k UI</span>
                               <span className="text-[10px] text-purple-300 font-mono">01:30 PM · Due Now</span>
                             </div>
                           </div>
@@ -442,8 +442,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
                             <strong className="text-xs font-black text-purple-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
@@ -453,11 +453,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 3. DOCTOR & CLINIC SHARING MOCKUP */}
                   {activeFeature.id === 'doctor-share' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-cyan-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-cyan-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
                           <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Active Consent Session</span>
+                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Active Consent Session</span>
                         </div>
                         <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full font-mono border ${
                           isAccessRevoked 
@@ -468,15 +468,15 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs border border-cyan-500/30">
                               DR
                             </div>
                             <div>
-                              <strong className="text-xs text-white block">Dr. Rajesh Varma</strong>
-                              <span className="text-[10px] text-slate-400 font-mono">Apollo Cardiology · OTP Verified</span>
+                              <strong className="text-xs text-slate-900 dark:text-white block">Dr. Rajesh Varma</strong>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Apollo Cardiology · OTP Verified</span>
                             </div>
                           </div>
                           <button 
@@ -494,8 +494,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
                             <strong className="text-xs font-black text-cyan-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
@@ -505,11 +505,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 4. EMERGENCY SOS PASS MOCKUP */}
                   {activeFeature.id === 'emergency-sos' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-rose-500/30 text-white shadow-2xl space-y-5 relative overflow-hidden">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-rose-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
                           <ShieldAlert className="w-4 h-4 text-rose-400 animate-pulse" />
-                          <span className="text-xs font-black uppercase text-slate-300 font-mono">Offline Emergency QR Matrix</span>
+                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Offline Emergency QR Matrix</span>
                         </div>
                         <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
                           Zero-Latency SOS
@@ -520,13 +520,13 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-[10px] font-bold uppercase text-rose-300 font-mono">Primary Patient</span>
-                            <h4 className="text-sm font-black text-white">Rahul Sharma · 34 Yrs</h4>
+                            <h4 className="text-sm font-black text-slate-900 dark:text-white">Rahul Sharma · 34 Yrs</h4>
                           </div>
                           <span className="px-3 py-1 rounded-lg bg-rose-500 text-white font-black text-xs shadow-md">
                             Blood: O+
                           </span>
                         </div>
-                        <div className="text-[11px] text-slate-300 space-y-1">
+                        <div className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
                           <div><strong className="text-rose-400 font-mono">Allergies:</strong> Penicillin, Sulfa, Peanuts</div>
                           <div><strong className="text-teal-400 font-mono">ICE Contact:</strong> Dr. Sen (+91 98765 43210)</div>
                         </div>
@@ -534,8 +534,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[9px] font-bold uppercase text-slate-400 font-mono block">{st.label}</span>
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                            <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
                             <strong className="text-xs font-black text-rose-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}

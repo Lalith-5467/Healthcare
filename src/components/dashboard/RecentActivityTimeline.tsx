@@ -62,12 +62,7 @@ export const RecentActivityTimeline: React.FC = () => {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="p-6 rounded-3xl font-sans relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(150deg,#f8fafc 0%,#f0fdfa 50%,#ffffff 100%)',
-        border: '1.5px solid rgba(20,184,166,.12)',
-        boxShadow: '0 4px 24px rgba(20,184,166,.06), 0 1px 3px rgba(0,0,0,.04)'
-      }}
+      className="p-6 rounded-3xl font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50/20 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-teal-500/10 dark:border-teal-500/10 shadow-[0_4px_24px_rgba(20,184,166,0.06),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
     >
       {/* Decorative glow */}
       <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
@@ -76,7 +71,7 @@ export const RecentActivityTimeline: React.FC = () => {
       {/* ── HEADER ── */}
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-md"
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-slate-900 dark:text-white shadow-md"
             style={{ background: 'linear-gradient(135deg,#818cf8,#6366f1)', boxShadow: '0 4px 12px rgba(99,102,241,.3)' }}>
             <Activity className="w-4.5 h-4.5" />
           </div>
@@ -84,7 +79,7 @@ export const RecentActivityTimeline: React.FC = () => {
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Recent Patient Activity
             </h3>
-            <span className="text-[11px] text-slate-400 font-medium">Real-time Portal Audit Feed</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Real-time Portal Audit Feed</span>
           </div>
         </div>
 
@@ -143,22 +138,20 @@ export const RecentActivityTimeline: React.FC = () => {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.06 }}
-                className={`flex-1 rounded-2xl px-4 py-3 ${isLast ? 'mb-0' : 'mb-3'}`}
-                style={{
-                  background: act.itemBg,
-                  border: `1px solid ${act.itemBorder}`,
-                  boxShadow: '0 1px 6px rgba(0,0,0,.04)'
-                }}
+                className={`flex-1 rounded-2xl px-4 py-3 relative overflow-hidden ${isLast ? 'mb-0' : 'mb-3'}`}
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="absolute inset-0 dark:hidden pointer-events-none" style={{ background: act.itemBg, border: `1px solid ${act.itemBorder}`, boxShadow: '0 1px 6px rgba(0,0,0,.04)' }} />
+                <div className="absolute inset-0 hidden dark:block pointer-events-none bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 shadow-[0_1px_6px_rgba(0,0,0,.3)]" />
+                
+                <div className="relative z-10 flex items-start justify-between gap-2">
                   <h4 className="text-xs font-extrabold text-slate-900 dark:text-white leading-snug">
                     {act.title}
                   </h4>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 font-mono shrink-0 pt-px whitespace-nowrap">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 font-mono shrink-0 pt-px whitespace-nowrap">
                     {act.time}
                   </span>
                 </div>
-                <span className="mt-1 inline-block text-[10px] font-extrabold"
+                <span className="mt-1 inline-block text-[10px] font-extrabold relative z-10"
                   style={{ color: act.categoryColor }}>
                   {act.category}
                 </span>

@@ -97,7 +97,7 @@ export const HealthOverviewGrid: React.FC<HealthOverviewGridProps> = ({
                   <span className="text-base font-black text-slate-900 dark:text-white tracking-tight block">
                     {c.value}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 block mt-0.5">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mt-0.5">
                     {c.status}
                   </span>
                 </div>

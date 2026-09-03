@@ -83,7 +83,7 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -95,7 +95,7 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* PATIENT CARD */}
             <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-[#00a896]" />
                 <span>Patient Information</span>
               </span>
@@ -109,7 +109,7 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
 
             {/* DOCTOR CARD */}
             <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-blue-500" />
                 <span>Prescribing Physician</span>
               </span>
@@ -151,7 +151,7 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
 
                     return (
                       <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 font-mono font-bold text-slate-400">{idx + 1}</td>
+                        <td className="p-3 font-mono font-bold text-slate-500 dark:text-slate-400">{idx + 1}</td>
                         <td className="p-3">
                           <div className="font-extrabold text-slate-900 dark:text-white">{item.name}</div>
                           <div className="text-[11px] font-mono text-teal-600 dark:text-cyan-400 font-bold">

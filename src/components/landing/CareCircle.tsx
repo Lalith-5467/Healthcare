@@ -84,7 +84,7 @@ export const CareCircle: React.FC<CareCircleProps> = ({ onManageConsent }) => {
               {/* VISUAL DIAGRAM: PATIENT -> CAREGIVER */}
               <div className="py-6 flex items-center justify-around relative">
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-14 h-14 rounded-2xl bg-[#0f3980] text-white flex items-center justify-center font-bold text-lg shadow-md">
+                  <div className="w-14 h-14 rounded-2xl bg-[#0f3980] text-slate-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-md">
                     LP
                   </div>
                   <span className="text-xs font-bold text-slate-900 dark:text-white">Lalith Patel</span>
@@ -152,7 +152,7 @@ export const CareCircle: React.FC<CareCircleProps> = ({ onManageConsent }) => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">{item.type}</h4>
-                        <span className="text-[10px] text-slate-400 font-medium">{item.time}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{item.time}</span>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                         {item.desc}

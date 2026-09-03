@@ -301,15 +301,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {/* 2. FOUR SUMMARY CARDS WITH ACCENT COLORS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div
-          className="p-4 rounded-2xl flex items-center gap-3.5"
-          style={{
-            background: 'linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)',
-            border: '1px solid rgba(20,184,166,.2)',
-            boxShadow: '0 2px 10px rgba(20,184,166,.05)'
-          }}
+          className="p-4 rounded-2xl flex items-center gap-3.5 bg-gradient-to-br from-[#f0fdfa] to-white dark:from-slate-900/80 dark:to-slate-900/40 border border-teal-500/20 dark:border-teal-500/10 shadow-[0_2px_10px_rgba(20,184,166,.05)] dark:shadow-none"
         >
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg,#00a896,#0d9488)', boxShadow: '0 3px 10px rgba(0,168,150,.3)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shrink-0 bg-gradient-to-br from-[#00a896] to-teal-600 shadow-[0_3px_10px_rgba(0,168,150,.3)]">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -319,15 +313,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         </div>
 
         <div
-          className="p-4 rounded-2xl flex items-center gap-3.5"
-          style={{
-            background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)',
-            border: '1px solid rgba(59,130,246,.2)',
-            boxShadow: '0 2px 10px rgba(59,130,246,.05)'
-          }}
+          className="p-4 rounded-2xl flex items-center gap-3.5 bg-gradient-to-br from-[#eff6ff] to-white dark:from-slate-900/80 dark:to-slate-900/40 border border-blue-500/20 dark:border-blue-500/10 shadow-[0_2px_10px_rgba(59,130,246,.05)] dark:shadow-none"
         >
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', boxShadow: '0 3px 10px rgba(59,130,246,.3)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shrink-0 bg-gradient-to-br from-blue-500 to-blue-700 shadow-[0_3px_10px_rgba(59,130,246,.3)]">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
@@ -339,15 +327,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         </div>
 
         <div
-          className="p-4 rounded-2xl flex items-center gap-3.5"
-          style={{
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)',
-            border: '1px solid rgba(16,185,129,.2)',
-            boxShadow: '0 2px 10px rgba(16,185,129,.05)'
-          }}
+          className="p-4 rounded-2xl flex items-center gap-3.5 bg-gradient-to-br from-[#f0fdf4] to-white dark:from-slate-900/80 dark:to-slate-900/40 border border-emerald-500/20 dark:border-emerald-500/10 shadow-[0_2px_10px_rgba(16,185,129,.05)] dark:shadow-none"
         >
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 3px 10px rgba(16,185,129,.3)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-[0_3px_10px_rgba(16,185,129,.3)]">
             <FileText className="w-5 h-5" />
           </div>
           <div>
@@ -357,15 +339,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         </div>
 
         <div
-          className="p-4 rounded-2xl flex items-center gap-3.5"
-          style={{
-            background: 'linear-gradient(135deg, #fdf4ff 0%, #ffffff 100%)',
-            border: '1px solid rgba(192,132,252,.2)',
-            boxShadow: '0 2px 10px rgba(192,132,252,.05)'
-          }}
+          className="p-4 rounded-2xl flex items-center gap-3.5 bg-gradient-to-br from-[#fdf4ff] to-white dark:from-slate-900/80 dark:to-slate-900/40 border border-purple-500/20 dark:border-purple-500/10 shadow-[0_2px_10px_rgba(192,132,252,.05)] dark:shadow-none"
         >
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg,#a855f7,#7c3aed)', boxShadow: '0 3px 10px rgba(168,85,247,.3)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-slate-900 dark:text-white shrink-0 bg-gradient-to-br from-purple-500 to-purple-600 shadow-[0_3px_10px_rgba(168,85,247,.3)]">
             <Layers className="w-5 h-5" />
           </div>
           <div>

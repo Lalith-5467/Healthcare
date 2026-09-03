@@ -112,7 +112,7 @@ Cashless Verification Active via MediCare Portal.`;
               setShowShareOptions(false);
               onClose();
             }}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -120,7 +120,7 @@ Cashless Verification Active via MediCare Portal.`;
 
         {/* DIGITAL CARD GRAPHIC CONTAINER */}
         <div
-          className="p-5 sm:p-6 rounded-3xl space-y-4 shadow-xl relative overflow-hidden text-xs text-white"
+          className="p-5 sm:p-6 rounded-3xl space-y-4 shadow-xl relative overflow-hidden text-xs text-slate-900 dark:text-white"
           style={{
             background: 'linear-gradient(135deg, #092038 0%, #00695c 50%, #004d40 100%)',
             border: '1.5px solid rgba(20,184,166,.4)'
@@ -130,7 +130,7 @@ Cashless Verification Active via MediCare Portal.`;
             <div className="flex items-center gap-2.5">
               <ShieldCheck className="w-6 h-6 text-teal-300 shrink-0" />
               <div>
-                <h4 className="font-extrabold text-white text-base leading-tight">{policy.providerName}</h4>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{policy.providerName}</h4>
                 <span className="text-[10px] text-teal-200 font-mono">{policy.planName}</span>
               </div>
             </div>
@@ -142,7 +142,7 @@ Cashless Verification Active via MediCare Portal.`;
           <div className="space-y-1.5 font-mono pt-2 border-t border-teal-600/40 text-[11px]">
             <div className="flex justify-between">
               <span className="text-teal-200/80 font-sans">Member Name:</span>
-              <strong className="text-white font-sans">{policy.policyHolder}</strong>
+              <strong className="text-slate-900 dark:text-white font-sans">{policy.policyHolder}</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-teal-200/80 font-sans">Member ID:</span>
@@ -150,7 +150,7 @@ Cashless Verification Active via MediCare Portal.`;
             </div>
             <div className="flex justify-between">
               <span className="text-teal-200/80 font-sans">Policy Number:</span>
-              <strong className="text-white">{policy.policyNumber}</strong>
+              <strong className="text-slate-900 dark:text-white">{policy.policyNumber}</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-teal-200/80 font-sans">Valid Until:</span>
@@ -187,7 +187,7 @@ Cashless Verification Active via MediCare Portal.`;
                 </span>
                 <button
                   onClick={() => setShowShareOptions(false)}
-                  className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   Hide Options
                 </button>

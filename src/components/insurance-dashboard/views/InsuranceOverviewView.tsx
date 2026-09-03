@@ -6,6 +6,7 @@ import {
   Percent, FileCheck, Check, Sparkles, Filter
 } from 'lucide-react';
 import { useInsuranceWorkflow } from '../../../utils/insuranceWorkflowStorage';
+import { getGreeting } from '../../../utils/greeting';
 
 interface InsuranceOverviewViewProps {
   onNavigate: (id: string) => void;
@@ -59,7 +60,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
-            Insurance & Cashless Pre-Auth Desk
+            {getGreeting()}, Insurance & Cashless Pre-Auth Desk
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-2xl">
             Connected to Ayushman Bharat (ABDM) health records, live hospital billing gateways, e-prescriptions, and cashless discharge adjudication.
@@ -127,6 +128,10 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                   <FileText className="w-4 h-4 text-blue-500" /> Real-Time Hospital Claims Stream
                 </h2>
                 <p className="text-xs text-slate-400">Click any patient claim to review hospital billing and approve cashless discharge.</p>
+                    <ChevronRight className="w-5 h-5 text-slate-500 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-10px] group-hover:translate-x-0 hidden sm:block" />
+                  </div>
+                </div>
+>>>>>>> origin/main
               </div>
 
               <button

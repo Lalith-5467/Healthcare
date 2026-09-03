@@ -54,12 +54,24 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
       case 'settings':
         return <InsuranceSettingsView />;
       default:
+<<<<<<< HEAD
         return <InsuranceOverviewView onNavigate={setActiveNav} onSelectClaim={handleSearchSuccess} />;
+=======
+        return (
+          <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
+            <p className="font-bold">Module "{activeNav}" is under construction.</p>
+          </div>
+        );
+>>>>>>> origin/main
     }
   };
 
   return (
+<<<<<<< HEAD
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
+=======
+    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col">
+>>>>>>> origin/main
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
@@ -78,8 +90,13 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
               </span>
             </div>
             
+<<<<<<< HEAD
             <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-500" /> ABDM Claims Gateway
+=======
+            <div className="hidden md:flex items-center gap-1 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+              <ShieldCheck className="w-3 h-3" /> Secure Data Access
+>>>>>>> origin/main
             </div>
           </div>
         </div>
@@ -102,11 +119,15 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           </div>
 
           {/* Notifications */}
+<<<<<<< HEAD
           <button 
             onClick={() => setActiveNav('claims')}
             className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
             title="Notifications"
           >
+=======
+          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+>>>>>>> origin/main
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
           </button>
@@ -115,7 +136,11 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
 
           <button 
             onClick={onLogout}
+<<<<<<< HEAD
             className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+=======
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2"
+>>>>>>> origin/main
           >
             <LogOut className="w-4 h-4" />
             <span className="text-xs font-bold hidden sm:block">Logout</span>

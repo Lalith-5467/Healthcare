@@ -26,7 +26,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-2 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl">
       {/* SEARCH FIELD */}
       <div className="relative flex-1">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="text"
           value={searchQuery}
@@ -37,7 +37,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
         {searchQuery && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -66,7 +66,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
 
         {/* SORT DROPDOWN */}
         <div className="relative flex items-center">
-          <div className="p-2.5 rounded-l-2xl bg-slate-50 dark:bg-slate-900 border-l border-t border-b border-slate-200/80 dark:border-slate-800 text-slate-400">
+          <div className="p-2.5 rounded-l-2xl bg-slate-50 dark:bg-slate-900 border-l border-t border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400">
             <ArrowUpDown className="w-4 h-4" />
           </div>
           <select
@@ -90,7 +90,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               viewMode === 'list'
                 ? 'bg-[#00a896] text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-500 dark:text-slate-400 hover:text-white'
             }`}
           >
             <LayoutList className="w-4 h-4" />
@@ -101,7 +101,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
             className={`p-2 rounded-xl transition-all cursor-pointer ${
               viewMode === 'timeline'
                 ? 'bg-[#00a896] text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-500 dark:text-slate-400 hover:text-white'
             }`}
           >
             <Clock className="w-4 h-4" />

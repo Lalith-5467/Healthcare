@@ -65,7 +65,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [hasUnsaved, setHasUnsaved] = useState(false);
 
   // SETTINGS STATE
-  const [profile, setProfile] = useState<UserProfileSettings>(INITIAL_USER_PROFILE);
+  const [profile, setProfile] = useState<UserProfileSettings>(() => {
+    return {
+      ...INITIAL_USER_PROFILE,
+      fullName: _user?.name || INITIAL_USER_PROFILE.fullName,
+      email: _user?.email || INITIAL_USER_PROFILE.email,
+      bloodGroup: _user?.bloodGroup || INITIAL_USER_PROFILE.bloodGroup,
+    };
+  });
   const [account, setAccount] = useState<AccountSettings>(INITIAL_ACCOUNT_SETTINGS);
   const [security, setSecurity] = useState<SecuritySettingsState>(INITIAL_SECURITY_SETTINGS);
   const [notificationSetts, setNotificationSetts] = useState<NotificationSettingsState>(INITIAL_NOTIFICATION_SETTINGS);
@@ -80,7 +87,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (savedProfile) { 
       try { 
         const parsedProfile = JSON.parse(savedProfile);
-        if (parsedProfile.fullName === 'Arun Kumar') {
+        if (_user && parsedProfile.email !== _user.email) {
+          localStorage.removeItem('user_settings_profile');
+        } else if (parsedProfile.fullName === 'Arun Kumar') {
           // Clear the old cached mock data so Devi's profile loads
           localStorage.removeItem('user_settings_profile');
         } else {
@@ -95,6 +104,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const savedAppear = localStorage.getItem('user_settings_appearance');
     if (savedAppear) { try { setAppearanceSetts(JSON.parse(savedAppear)); } catch (e) { console.error(e); } }
   }, []);
+
+  useEffect(() => {
+    if (_user) {
+      setProfile(prev => ({
+        ...prev,
+        fullName: _user.name,
+        email: _user.email,
+        bloodGroup: _user.bloodGroup,
+      }));
+    }
+  }, [_user]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -239,17 +259,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <ProfileSettingsSection profile={profile} onSaveProfile={handleSaveProfile} onMarkUnsaved={() => setHasUnsaved(true)} />
           )}
 
-          {activeSection === 'security' && (
-            <SecuritySettingsSection security={security} onUpdateSecurity={handleUpdateSecurity} onShowToast={showToast} />
-          )}
+
 
           {activeSection === 'notifications' && (
             <NotificationsSettingsSection settings={notificationSetts} onUpdateSettings={handleUpdateNotifications} />
           )}
 
-          {activeSection === 'privacy' && (
-            <PrivacySettingsSection privacy={privacySetts} onUpdatePrivacy={handleUpdatePrivacy} onShowToast={showToast} />
-          )}
+
 
           {activeSection === 'appearance' && (
             <AppearanceSettingsSection appearance={appearanceSetts} onUpdateAppearance={handleUpdateAppearance} onShowToast={showToast} />
@@ -259,13 +275,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <HealthPreferencesSection preferences={healthPrefSetts} onUpdatePreferences={handleUpdateHealthPref} onShowToast={showToast} />
           )}
 
-          {activeSection === 'emergency' && (
-            <EmergencySettingsSection onNavigateEmergency={() => onNavigate('emergency')} />
-          )}
 
-          {activeSection === 'family' && (
-            <FamilySettingsSection onNavigateFamily={() => onNavigate('family')} />
-          )}
 
           {activeSection === 'services' && (
             <ConnectedServicesSection services={connectedServices} onToggleService={handleToggleService} />

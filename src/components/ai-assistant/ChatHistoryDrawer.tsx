@@ -42,7 +42,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -71,18 +71,18 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                       e.stopPropagation();
                       onDeleteConversation(conv.id);
                     }}
-                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
+                    className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
                     title="Delete Conversation"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-300" />
+                  <ChevronRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-[#00a896] dark:group-hover:text-cyan-300" />
                 </div>
               </div>
             ))
           ) : (
             <div className="py-12 text-center text-slate-500 font-mono space-y-2">
-              <MessageSquare className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
+              <MessageSquare className="w-8 h-8 mx-auto text-slate-600 dark:text-slate-300 dark:text-slate-700" />
               <p>No saved conversation history yet.</p>
             </div>
           )}

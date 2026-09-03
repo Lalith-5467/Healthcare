@@ -1,31 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  MapPin, 
-  Car, 
-  Stethoscope, 
-  Activity, 
-  Pill, 
-  ClipboardList, 
-  FileText,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  Heart,
-  Droplets,
-  Thermometer,
-  KeyRound,
-  Check,
-  Send
+  Heart, Activity, Thermometer, Droplets, Clock, CheckCircle2, 
+  MapPin, Phone, AlertTriangle, ShieldCheck, FileText, Check, 
+  ChevronRight, Car, User, Pill, ArrowRight, ClipboardList, KeyRound, Stethoscope
 } from 'lucide-react';
-import { useNurseWorkflow, type CareRequest, type BookingStatus } from '../../../utils/nurseWorkflowStorage';
+import { useNurseWorkflow, type BookingStatus } from '../../../utils/nurseWorkflowStorage';
 
-export const PatientCareView: React.FC = () => {
-  const { bookings, updateBookingStatus, updateBookingData, toggleChecklistItem, addNotification } = useNurseWorkflow();
+interface PatientCareViewProps {
+  onNavigate: (id: string) => void;
+}
+
+export const PatientCareView: React.FC<PatientCareViewProps> = ({ onNavigate }) => {
+  const { bookings, updateBookingStatus, updateBookingData, addNotification, toggleChecklistItem } = useNurseWorkflow();
   const [activeTab, setActiveTab] = useState<'tracking' | 'vitals' | 'checklist' | 'notes'>('tracking');
 
-  // Active in-progress or accepted booking
+  // Find active booking
   const activeBooking = bookings.find(b => 
     b.status !== 'Pending' && 
     b.status !== 'Rejected' && 
@@ -96,81 +86,85 @@ export const PatientCareView: React.FC = () => {
   const handleCompleteVisit = () => {
     updateBookingData(activeBooking.id, { notes });
     updateBookingStatus(activeBooking.id, 'Completed');
-    addNotification('Home visit signed off and telemetry report submitted to Doctor.', 'success');
+    addNotification('In-Home Nursing Visit finalized and synced to ABDM EHR.', 'success');
   };
-
-  const getButtonConfig = () => {
-    switch(activeBooking.status) {
-      case 'Accepted':
-      case 'Scheduled':
-        return { label: 'Start Travel to Patient', icon: Car, color: 'bg-blue-600 hover:bg-blue-500', shadow: 'shadow-blue-500/20' };
-      case 'On the Way':
-        return { label: 'Mark Arrived at Doorstep', icon: MapPin, color: 'bg-amber-600 hover:bg-amber-500', shadow: 'shadow-amber-500/20' };
-      case 'Arrived':
-        return { label: 'Verify PIN & Start Care', icon: Activity, color: 'bg-rose-600 hover:bg-rose-500', shadow: 'shadow-rose-500/20' };
-      case 'Care in Progress':
-        return { label: 'Complete Visit & Submit EHR', icon: CheckCircle2, color: 'bg-emerald-600 hover:bg-emerald-500', shadow: 'shadow-emerald-500/20' };
-      default:
-        return null;
-    }
-  };
-  
-  const btnConfig = getButtonConfig();
 
   const defaultChecklist = activeBooking.checklist || [
-    { id: 'c1', label: 'Sterile surgical field & PPE setup', done: true },
-    { id: 'c2', label: 'Incision site inspection & redness check', done: true },
-    { id: 'c3', label: 'Antiseptic swab & sterile dressing change', done: false },
-    { id: 'c4', label: 'IV Cannula patency check & flush', done: false },
-    { id: 'c5', label: 'Record post-procedure telemetry vitals', done: false }
+    { id: '1', label: 'Verify patient identity & ABHA ID', done: true },
+    { id: '2', label: 'Sanitize hands & equip sterile clinical kit', done: true },
+    { id: '3', label: 'Record baseline vitals (BP, SpO2, Temperature)', done: false },
+    { id: '4', label: 'Perform procedure according to doctor prescription', done: false },
+    { id: '5', label: 'Dispose biomedical waste per clinical standards', done: false }
   ];
 
   return (
-    <div className="space-y-6 pb-16 font-sans select-none">
+    <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto">
       
-      {/* 1. PATIENT HEADER PROFILE CARD */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-600 flex items-center justify-center text-2xl font-black text-white shadow-md shrink-0">
-              {activeBooking.patientName.charAt(0)}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-md border border-rose-200 dark:border-rose-800">
-                  {activeBooking.status}
-                </span>
-                <span className="text-xs font-mono font-bold text-slate-400">
-                  {activeBooking.id}
-                </span>
-              </div>
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {activeBooking.patientName} ({activeBooking.patientAge})
-              </h1>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                {activeBooking.serviceType} • Location: <strong className="text-slate-800 dark:text-slate-200">{activeBooking.location}</strong>
-              </p>
-            </div>
+      {/* 1. PATIENT CARE HERO CARD */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-rose-500/20">
+            {activeBooking.patientName.charAt(0)}
           </div>
-          
-          {btnConfig && (
-            <button 
-              onClick={handleStatusAdvance}
-              className={`px-6 py-3.5 text-white font-black text-xs rounded-2xl transition-all shadow-lg flex items-center gap-2 cursor-pointer hover:scale-105 ${btnConfig.color} ${btnConfig.shadow}`}
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 px-2.5 py-0.5 rounded-md">
+                Active In-Home Care
+              </span>
+              <span className="text-xs font-mono font-bold text-slate-400">
+                {activeBooking.id}
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {activeBooking.patientName} ({activeBooking.patientAge}y)
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+              <span>{activeBooking.serviceType}</span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-rose-500" />
+                {activeBooking.location}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {activeBooking.patientPhone && (
+            <a 
+              href={`tel:${activeBooking.patientPhone}`}
+              className="px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <btnConfig.icon className="w-4 h-4" />
-              <span>{btnConfig.label}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <Phone className="w-4 h-4 text-emerald-500" />
+              <span>Call Patient</span>
+            </a>
+          )}
+
+          {activeBooking.status !== 'Completed' && (
+            <button
+              onClick={handleStatusAdvance}
+              className="px-6 py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-black rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-500/30 cursor-pointer transition-all hover:scale-102"
+            >
+              <Car className="w-4 h-4" />
+              <span>
+                {activeBooking.status === 'Accepted' || activeBooking.status === 'Scheduled' 
+                  ? 'Start Travel → On the Way'
+                  : activeBooking.status === 'On the Way'
+                  ? 'Confirm Doorstep Arrival'
+                  : activeBooking.status === 'Arrived'
+                  ? 'Begin Bedside Care'
+                  : 'Complete Visit'}
+              </span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. TABS */}
-      <div className="flex overflow-x-auto hide-scrollbar gap-2 p-1.5 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl w-fit">
+      {/* 2. SUBTAB CONTROLS */}
+      <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl w-fit">
         {[
-          { id: 'tracking', label: 'Live Travel & GPS', icon: MapPin },
-          { id: 'vitals', label: 'Record Vitals & Telemetry', icon: Activity },
+          { id: 'tracking', label: 'Visit Navigation & Live Transit', icon: Car },
+          { id: 'vitals', label: 'Bedside Vitals & Telemetry', icon: Activity },
           { id: 'checklist', label: 'Clinical Checklist', icon: ClipboardList },
           { id: 'notes', label: 'EHR Clinical Notes', icon: FileText },
         ].map(tab => (

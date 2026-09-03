@@ -137,7 +137,7 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -302,7 +302,7 @@ export const AddMedicineModal: React.FC<AddMedicineModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveTimeSlot(idx)}
-                        className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+                        className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

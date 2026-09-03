@@ -175,7 +175,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-40 bg-slate-950 text-white flex flex-col justify-between overflow-hidden animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-40 bg-slate-950 text-slate-900 dark:text-white flex flex-col justify-between overflow-hidden animate-in fade-in duration-300">
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
@@ -192,23 +192,23 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
       </AnimatePresence>
 
       {/* 1. TOP HEADER BAR */}
-      <div className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between z-30">
+      <div className="bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between z-30">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
           <div>
-            <h2 className="text-sm sm:text-base font-extrabold text-white">{appointment.doctor.name}</h2>
+            <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">{appointment.doctor.name}</h2>
             <p className="text-[11px] text-teal-400 font-semibold">{appointment.doctor.speciality}</p>
           </div>
         </div>
 
         {/* TIMER & CONNECTION STATUS */}
         <div className="flex items-center gap-4">
-          <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+          <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span className="font-mono text-xs sm:text-sm font-extrabold text-cyan-400">{formatTimer(callSeconds)}</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-bold text-emerald-400 border border-slate-700">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-bold text-emerald-400 border border-slate-200 dark:border-slate-700">
             <Wifi className="w-3.5 h-3.5" />
             <span>{connectionStatus} Connection</span>
           </div>
@@ -239,8 +239,8 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                   LIVE CONSULTATION STREAM
                 </span>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-2">{appointment.doctor.name}</h3>
-                <p className="text-xs text-slate-400">{appointment.doctor.hospital}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-2">{appointment.doctor.name}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{appointment.doctor.hospital}</p>
               </div>
             </div>
 
@@ -248,8 +248,8 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
             {screenSharing && (
               <div className="absolute inset-4 bg-slate-900/90 backdrop-blur-md border border-cyan-500/40 rounded-3xl p-6 flex items-center justify-center text-center space-y-3">
                 <Monitor className="w-12 h-12 text-cyan-400 mx-auto animate-pulse" />
-                <h4 className="text-lg font-bold text-white">Patient Screen Share Active</h4>
-                <p className="text-xs text-slate-300">Sharing medical reports with {appointment.doctor.name}</p>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">Patient Screen Share Active</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Sharing medical reports with {appointment.doctor.name}</p>
               </div>
             )}
           </div>
@@ -258,7 +258,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           <motion.div
             drag
             dragConstraints={{ left: -300, right: 0, top: 0, bottom: 200 }}
-            className="absolute top-4 right-4 z-20 w-36 sm:w-48 aspect-video rounded-2xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden cursor-move"
+            className="absolute top-4 right-4 z-20 w-36 sm:w-48 aspect-video rounded-2xl bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden cursor-move"
           >
             {cameraEnabled ? (
               <video
@@ -269,13 +269,13 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                 className="w-full h-full object-cover transform -scale-x-100"
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-400 p-2 text-center">
+              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-500 dark:text-slate-400 p-2 text-center">
                 <User className="w-6 h-6 mb-1" />
                 <span className="text-[9px] font-bold">You (Cam Off)</span>
               </div>
             )}
 
-            <div className="absolute bottom-1 left-2 px-1.5 py-0.5 rounded bg-slate-950/80 text-[9px] font-bold text-white font-mono">
+            <div className="absolute bottom-1 left-2 px-1.5 py-0.5 rounded bg-slate-950/80 text-[9px] font-bold text-slate-900 dark:text-white font-mono">
               You {!micEnabled && '(Muted)'}
             </div>
           </motion.div>
@@ -288,16 +288,16 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
               initial={{ x: 300, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 300, opacity: 0 }}
-              className="w-full sm:w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col justify-between z-20 shadow-2xl"
+              className="w-full sm:w-80 lg:w-96 bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col justify-between z-20 shadow-2xl"
             >
               {/* PANEL HEADER */}
-              <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {activePanel === 'chat' && <MessageSquare className="w-4 h-4 text-cyan-400" />}
                   {activePanel === 'notes' && <FileText className="w-4 h-4 text-teal-400" />}
                   {activePanel === 'documents' && <Paperclip className="w-4 h-4 text-amber-400" />}
                   {activePanel === 'details' && <Info className="w-4 h-4 text-cyan-400" />}
-                  <h3 className="text-sm font-extrabold text-white capitalize">
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white capitalize">
                     {activePanel === 'chat' && 'Consultation Chat'}
                     {activePanel === 'notes' && 'Consultation Notes'}
                     {activePanel === 'documents' && 'Shared Records'}
@@ -306,7 +306,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                 </div>
                 <button
                   onClick={() => setActivePanel(null)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -323,12 +323,12 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                           key={msg.id}
                           className={`flex flex-col ${msg.sender === 'Patient' ? 'items-end' : 'items-start'}`}
                         >
-                          <span className="text-[10px] text-slate-400 mb-0.5">{msg.senderName} • {msg.timestamp}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">{msg.senderName} • {msg.timestamp}</span>
                           <div
                             className={`p-3 rounded-2xl max-w-[85%] leading-relaxed ${
                               msg.sender === 'Patient'
                                 ? 'bg-[#00a896] text-white rounded-br-none'
-                                : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
+                                : 'bg-slate-800 text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-none'
                             }`}
                           >
                             {msg.text}
@@ -343,13 +343,13 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                       )}
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2 pt-2 border-t border-slate-800">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                       <input
                         type="text"
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-cyan-500"
+                        className="flex-1 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-cyan-500"
                       />
                       <button
                         type="submit"
@@ -364,7 +364,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                 {/* 2. NOTES PANEL */}
                 {activePanel === 'notes' && (
                   <div className="space-y-4">
-                    <p className="text-slate-400 leading-relaxed">
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
                       Write private consultation notes for your personal health journal:
                     </p>
                     <textarea
@@ -372,7 +372,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                       value={notesText}
                       onChange={(e) => setNotesText(e.target.value)}
                       placeholder="Add private notes..."
-                      className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-teal-500 resize-none"
+                      className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-teal-500 resize-none"
                     />
                     <button
                       onClick={() => showToast('✓ Consultation notes saved to health record')}
@@ -386,12 +386,12 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
                 {/* 3. DOCUMENTS PANEL */}
                 {activePanel === 'documents' && (
                   <div className="space-y-3">
-                    <p className="text-slate-400">Recently attached records shared with doctor:</p>
+                    <p className="text-slate-500 dark:text-slate-400">Recently attached records shared with doctor:</p>
                     {MOCK_SHARED_DOCUMENTS.map((doc) => (
-                      <div key={doc.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
+                      <div key={doc.id} className="p-3 bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <div>
-                          <h4 className="font-bold text-white">{doc.title}</h4>
-                          <p className="text-[10px] text-slate-400">{doc.date} • {doc.type}</p>
+                          <h4 className="font-bold text-slate-900 dark:text-white">{doc.title}</h4>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{doc.date} • {doc.type}</p>
                         </div>
                         <button
                           onClick={onNavigateRecords}
@@ -406,21 +406,21 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
 
                 {/* 4. DETAILS PANEL */}
                 {activePanel === 'details' && (
-                  <div className="space-y-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                  <div className="space-y-3 bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Doctor:</span>
-                      <span className="font-bold text-white">{appointment.doctor.name}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Doctor:</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{appointment.doctor.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Hospital:</span>
-                      <span className="font-semibold text-slate-300">{appointment.doctor.hospital}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Hospital:</span>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300">{appointment.doctor.hospital}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Appointment ID:</span>
+                      <span className="text-slate-500 dark:text-slate-400">Appointment ID:</span>
                       <span className="font-mono text-cyan-400 font-bold">{appointment.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Elapsed Time:</span>
+                      <span className="text-slate-500 dark:text-slate-400">Elapsed Time:</span>
                       <span className="font-mono font-bold text-emerald-400">{formatTimer(callSeconds)}</span>
                     </div>
                   </div>
@@ -432,13 +432,13 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
       </div>
 
       {/* 3. BOTTOM FLOATING CONTROL BAR */}
-      <div className="bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-center gap-3 sm:gap-4 z-30">
+      <div className="bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-center gap-3 sm:gap-4 z-30">
         {/* MUTE */}
         <button
           onClick={onToggleMic}
           title="Mute / Unmute (Press M)"
           className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-            micEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+            micEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
           }`}
         >
           {micEnabled ? <Mic className="w-5 h-5 text-teal-400" /> : <MicOff className="w-5 h-5" />}
@@ -449,7 +449,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           onClick={onToggleCamera}
           title="Turn Camera On / Off (Press V)"
           className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-            cameraEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+            cameraEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
           }`}
         >
           {cameraEnabled ? <Camera className="w-5 h-5 text-cyan-400" /> : <CameraOff className="w-5 h-5" />}
@@ -460,7 +460,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           onClick={onToggleSpeaker}
           title="Speaker Toggle"
           className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-            speakerEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+            speakerEnabled ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
           }`}
         >
           {speakerEnabled ? <Volume2 className="w-5 h-5 text-amber-400" /> : <VolumeX className="w-5 h-5" />}
@@ -474,7 +474,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           }}
           title="Share Screen"
           className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-            screenSharing ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+            screenSharing ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700'
           }`}
         >
           <Monitor className="w-5 h-5" />
@@ -488,7 +488,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           }}
           title="Chat Panel (Press C)"
           className={`p-3.5 rounded-2xl border transition-all relative cursor-pointer ${
-            activePanel === 'chat' ? 'bg-[#00a896] text-white border-teal-400' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+            activePanel === 'chat' ? 'bg-[#00a896] text-white border-teal-400' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700'
           }`}
         >
           <MessageSquare className="w-5 h-5" />
@@ -504,7 +504,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           onClick={() => setActivePanel((prev) => (prev === 'notes' ? null : 'notes'))}
           title="Consultation Notes"
           className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-            activePanel === 'notes' ? 'bg-[#00a896] text-white border-teal-400' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+            activePanel === 'notes' ? 'bg-[#00a896] text-white border-teal-400' : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-200 dark:border-slate-700'
           }`}
         >
           <FileText className="w-5 h-5" />
@@ -515,19 +515,19 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           <button
             onClick={() => setMoreMenuOpen(!moreMenuOpen)}
             title="More Options"
-            className="p-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 cursor-pointer"
+            className="p-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <MoreVertical className="w-5 h-5" />
           </button>
 
           {moreMenuOpen && (
-            <div className="absolute bottom-16 right-0 w-48 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 space-y-1 text-xs font-bold z-50">
+            <div className="absolute bottom-16 right-0 w-48 bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-1.5 space-y-1 text-xs font-bold z-50">
               <button
                 onClick={() => {
                   setMoreMenuOpen(false);
                   onOpenDeviceSettings();
                 }}
-                className="w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+                className="w-full text-left px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
               >
                 Device Settings
               </button>
@@ -569,7 +569,7 @@ export const ActiveConsultationRoom: React.FC<ActiveConsultationRoomProps> = ({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-slate-900 dark:text-white">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
-              <button onClick={() => setShortcutsModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
+              <button onClick={() => setShortcutsModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-900 dark:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>

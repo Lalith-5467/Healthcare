@@ -97,7 +97,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
               </div>
 
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-                <p className="text-xs font-bold text-slate-400 mb-3">DEVELOPMENT / DEMO</p>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">DEVELOPMENT / DEMO</p>
                 <button 
                   onClick={handleDemoScan}
                   disabled={isScanning}
@@ -124,7 +124,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
             
             <div className="p-8">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
-                <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 border-4 border-white dark:border-slate-900 shadow-lg flex items-center justify-center text-3xl font-black text-slate-400">
+                <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 border-4 border-white dark:border-slate-900 shadow-lg flex items-center justify-center text-3xl font-black text-slate-500 dark:text-slate-400">
                   {scannedPatient.name.charAt(0)}
                 </div>
                 <div className="text-center sm:text-left flex-1">
@@ -139,18 +139,18 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
               
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Known Allergies</p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Known Allergies</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white">{scannedPatient.allergies.join(', ') || 'None'}</p>
                 </div>
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Visit</p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Last Visit</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white">Aug 20, 2026</p>
                 </div>
               </div>
 
               <button 
                 onClick={handleProceed}
-                className="w-full py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-black rounded-xl transition-all shadow-lg shadow-teal-500/20 text-lg"
+                className="w-full py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-900 dark:text-white font-black rounded-xl transition-all shadow-lg shadow-teal-500/20 text-lg"
               >
                 View Full Patient Profile
               </button>

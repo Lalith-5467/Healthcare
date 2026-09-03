@@ -120,7 +120,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
       <div className="absolute bottom-6 right-6 z-20">
         <button
           onClick={toggleSound}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700 text-white shadow-lg hover:bg-slate-900 transition-all text-xs font-semibold cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-white shadow-lg hover:bg-slate-900 transition-all text-xs font-semibold cursor-pointer"
           title={isMuted ? "Unmute Video Audio" : "Mute Video Audio"}
           aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
         >
@@ -150,7 +150,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
             className="lg:col-span-7 space-y-6 text-left"
           >
             {/* MAIN HEADLINE */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15] drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15] drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
               Your Health, <br />
               <span className="text-[#00a896]">Always With You.</span>
             </h1>
@@ -172,7 +172,11 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
 
               <button
                 onClick={onSeeHowItWorks}
+<<<<<<< HEAD
                 className="group w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-teal-500/15 backdrop-blur-md rounded-xl transition-all duration-200 gap-2 cursor-pointer active:scale-95 active:translate-y-0"
+=======
+                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-slate-900/80 hover:bg-slate-900 border border-slate-200 dark:border-slate-700/80 backdrop-blur-md rounded-xl transition-all shadow-md gap-2 cursor-pointer"
+>>>>>>> origin/main
               >
                 <FileText className="w-4 h-4 text-[#00a896] transition-transform duration-200 group-hover:scale-110 group-hover:text-teal-300" />
                 <span>Connect ABHA</span>

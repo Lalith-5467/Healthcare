@@ -49,6 +49,92 @@ interface AnalyticsViewProps {
   onNavigate: (page: string) => void;
 }
 
+const vitalPreviewData: Record<string, {
+  color: string;
+  chartPath: string;
+  cx: string;
+  cy: string;
+  title: string;
+}> = {
+  'Heart Rate': {
+    color: '#f43f5e', // rose-500
+    chartPath: 'M0,65 S8,60 16.6,60 S25,62 33.3,62 S41.6,68 50,68 S58.3,62 66.6,62 S75,50 83.3,50 S91.6,65 100,65',
+    cx: '50',
+    cy: '68',
+    title: 'Heart Rate'
+  },
+  'Blood Pressure': {
+    color: '#818cf8', // indigo-400
+    chartPath: 'M0,50 C 7,50 7,45 15,45 S 22,55 30,55 S 37,50 45,50 S 52,45 60,45 S 67,30 75,30 S 82,40 90,40 S 95,45 100,45',
+    cx: '75',
+    cy: '30',
+    title: 'Blood Pressure'
+  },
+  'Temperature': {
+    color: '#f59e0b', // amber-500
+    chartPath: 'M0,70 C 10,70 10,65 20,65 S 30,50 40,50 S 50,55 60,55 S 70,45 80,45 S 90,60 100,60',
+    cx: '40',
+    cy: '50',
+    title: 'Temperature'
+  },
+  'SpO2': {
+    color: '#3b82f6', // blue-500
+    chartPath: 'M0,30 C 12,30 12,25 25,25 S 37,20 50,20 S 62,10 75,10 S 87,15 100,15',
+    cx: '50',
+    cy: '20',
+    title: 'SpO2'
+  },
+  'Weight': {
+    color: '#10b981', // emerald-500
+    chartPath: 'M0,45 C 10,45 10,40 20,40 S 30,35 40,35 S 50,32 60,32 S 70,30 80,30 S 90,32 100,32',
+    cx: '80',
+    cy: '30',
+    title: 'Body Weight'
+  }
+};
+
+const generateSmoothPath = (points: {x: number, y: number}[]) => {
+  if (points.length === 0) return '';
+  let path = `M${points[0].x},${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const mx = (p1.x + p2.x) / 2;
+    path += ` C${mx},${p1.y} ${mx},${p2.y} ${p2.x},${p2.y}`;
+  }
+  return path;
+};
+
+const getDynamicPoints = (metric: string, timeframe: string, targetCx: number, targetCy: number) => {
+  let numPoints = 7;
+  if (timeframe === '30D') numPoints = 6;
+  if (timeframe === '3M') numPoints = 4;
+  if (timeframe === '1Y') numPoints = 6;
+
+  // Find which index is closest to the target cx
+  let closestIdx = 0;
+  let minDiff = 100;
+  
+  const points = [];
+  for (let i = 0; i < numPoints; i++) {
+    const x = (i / (numPoints - 1)) * 100;
+    const diff = Math.abs(x - targetCx);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIdx = i;
+    }
+    
+    // Deterministic pseudo-random y
+    const seed = metric.charCodeAt(0) + i * 13 + timeframe.charCodeAt(0);
+    const y = 50 + (Math.sin(seed) * 15);
+    points.push({ x, y });
+  }
+  
+  // Force the closest point to match the tooltip target
+  points[closestIdx].y = targetCy;
+  return { points, activeIndex: closestIdx };
+};
+
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   user: _user,
   onNavigate,
@@ -60,7 +146,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   // VITALS CHART METRIC SELECTOR ('Heart Rate' | 'Blood Pressure' | 'Temperature' | 'SpO2' | 'Weight')
   const [selectedVitalMetric, setSelectedVitalMetric] = useState<'Heart Rate' | 'Blood Pressure' | 'Temperature' | 'SpO2' | 'Weight'>('Heart Rate');
-  const [vitalsTimeframe, setVitalsTimeframe] = useState<'7D' | '30D' | '3M'>('7D');
+  const [vitalsTimeframe, setVitalsTimeframe] = useState<'7D' | '30D' | '3M' | '1Y'>('7D');
   const [hoveredVital, setHoveredVital] = useState<VitalDataPoint | null>(null);
 
   // GOALS & LOCALSTORAGE
@@ -80,6 +166,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     status: 'All',
     dateRange: '30 Days'
   });
+
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -306,27 +393,36 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         </div>
       </div>
 
-      {/* 4. VITALS OVERVIEW & INTERACTIVE TREND CHARTS */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm font-sans">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      {/* 4. VITALS OVERVIEW & INTERACTIVE TREND CHARTS (REDESIGNED) */}
+      <div className="bg-slate-50 dark:bg-[#121626] border border-slate-200 dark:border-slate-800/60 rounded-[1.5rem] p-3.5 sm:p-4 space-y-3 shadow-xl font-sans text-slate-900 dark:text-white">
+        
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Vitals Overview</h3>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                Nors heale data, Atloe, pickrond & oltro meafits
+              <div className="p-1.5 rounded-xl bg-indigo-500/20 text-indigo-400 shadow-inner">
+                <Activity className="w-4 h-4" />
+              </div>
+              <h3 className="text-lg font-bold tracking-wide">Vitals Overview</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#00a896]/10 text-[#00a896] border border-[#00a896]/30 flex items-center gap-1.5 shadow-sm uppercase tracking-wider backdrop-blur-sm">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a896] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-[#00a896] shadow-[0_0_8px_#00a896]"></span>
+                </span>
+                All systems normal
               </span>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Track heart rate, blood pressure & vital metrics</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">Track heart rate, blood pressure & vital metrics</p>
           </div>
 
           {/* TIMEFRAME SELECTOR */}
-          <div className="flex items-center gap-1.5 p-1 rounded-full border border-slate-200 dark:border-slate-800 text-xs font-sans">
-            {(['7D', '30D', '3M'] as const).map((tf) => (
+          <div className="flex items-center gap-1 p-1 rounded-full bg-slate-200/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 text-[10px] font-sans shadow-inner">
+            {(['7D', '30D', '3M', '1Y'] as const).map((tf) => (
               <button
                 key={tf}
-                onClick={() => setVitalsTimeframe(tf)}
+                onClick={() => setVitalsTimeframe(tf as any)}
                 className={`px-4 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-                  vitalsTimeframe === tf ? 'bg-[#00a896] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  vitalsTimeframe === tf ? 'bg-blue-600/90 text-white shadow-[0_0_12px_rgba(37,99,235,0.6)]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {tf}
@@ -335,85 +431,356 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           </div>
         </div>
 
-        {/* METRIC TOGGLES */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        {/* METRIC TOGGLES GRID */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           {[
-            { id: 'Heart Rate', label: 'Heart Rate', val: '72 BPM', img: '/vitals/heart.jpg', color: 'text-rose-500', isNormal: true },
-            { id: 'Blood Pressure', label: 'Blood Pressure', val: '120/80', img: '/vitals/bp.jpg', color: 'text-[#00a896]', isNormal: true },
-            { id: 'Temperature', label: 'Temperature', val: '98.4°F', img: '/vitals/thermo.jpg', color: 'text-amber-500', isNormal: true },
-            { id: 'SpO2', label: 'SpO₂ Oxygen', val: '98%', img: '/vitals/lungs.jpg', color: 'text-teal-500', isNormal: true },
-            { id: 'Weight', label: 'Body Weight', val: '68 kg (-1.2)', img: '/vitals/scale.jpg', color: 'text-purple-500', isNormal: true }
+            { id: 'Heart Rate', label: 'Heart Rate', val: '72', unit: 'BPM', icon: Heart, iconBg: 'bg-rose-500/20', iconColor: 'text-rose-500', isNormal: true, sparkline: 'M0,10 L5,8 L10,12 L15,4 L20,10', activeBorder: 'border-rose-500', glow: 'bg-rose-500/10' },
+            { id: 'Blood Pressure', label: 'Blood Pressure', val: '120/80', unit: 'mmHg', icon: Activity, iconBg: 'bg-indigo-500/20', iconColor: 'text-indigo-400', isNormal: true, sparkline: 'M0,10 L5,5 L10,12 L15,8 L20,10', activeBorder: 'border-indigo-500', glow: 'bg-indigo-500/10' },
+            { id: 'Temperature', label: 'Temperature', val: '98.4', unit: '°F', icon: Thermometer, iconBg: 'bg-amber-500/20', iconColor: 'text-amber-500', isNormal: true, sparkline: 'M0,10 L5,10 L10,8 L15,11 L20,10', activeBorder: 'border-amber-500', glow: 'bg-amber-500/10' },
+            { id: 'SpO2', label: 'SpO₂ • Oxygen', val: '98', unit: '%', icon: Wind, iconBg: 'bg-blue-500/20', iconColor: 'text-blue-500', isNormal: true, sparkline: 'M0,10 L5,9 L10,10 L15,7 L20,10', activeBorder: 'border-blue-500', glow: 'bg-blue-500/10' },
+            { id: 'Weight', label: 'Body Weight', val: '68', unit: 'kg (-1.2)', icon: Scale, iconBg: 'bg-emerald-500/20', iconColor: 'text-emerald-500', isNormal: true, sparkline: 'M0,10 L5,12 L10,10 L15,14 L20,10', activeBorder: 'border-emerald-500', glow: 'bg-emerald-500/10' }
           ].map((m) => {
             const isSelected = selectedVitalMetric === m.id;
             return (
               <button
                 key={m.id}
                 onClick={() => setSelectedVitalMetric(m.id as any)}
-                className={`p-4 rounded-3xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 relative overflow-hidden ${
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden ${
                   isSelected
-                    ? 'bg-slate-50 dark:bg-slate-800 border-[#00a896] dark:border-teal-400 shadow-sm'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    ? `bg-slate-100 dark:bg-[#1a1f33] ${m.activeBorder} shadow-[0_0_12px_rgba(0,0,0,0.5)]`
+                    : 'bg-white dark:bg-[#15192b] border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:bg-[#1a1f33]'
                 }`}
               >
-                <div className="flex items-center justify-between w-full z-10">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">{m.label}</span>
-                  <img src={m.img} alt={m.label} className="w-8 h-8 rounded-lg object-contain mix-blend-multiply dark:mix-blend-screen drop-shadow-sm" />
+                <div className={`absolute -top-4 -left-4 w-32 h-32 ${m.glow} blur-2xl pointer-events-none rounded-full transition-opacity duration-500 ${isSelected ? 'opacity-100' : 'opacity-50'}`}></div>
+                <div className={`absolute bottom-0 right-0 w-24 h-24 ${m.glow} blur-xl pointer-events-none rounded-full transition-opacity duration-500 opacity-20`}></div>
+                <div className="flex items-center gap-2.5 z-10">
+                  <div className={`p-2 rounded-lg ${m.iconBg} ${m.iconColor} shadow-inner`}>
+                    <m.icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block leading-tight">{m.label}</span>
+                    <div className="flex items-baseline gap-1 mt-0">
+                      <span className="font-sans font-bold text-xl text-slate-900 dark:text-white leading-tight">{m.val}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{m.unit}</span>
+                    </div>
+                  </div>
                 </div>
+                <div className="h-px w-full bg-slate-700/50 z-10 my-0"></div>
                 <div className="flex items-center justify-between w-full z-10">
-                  <span className="font-sans font-extrabold text-lg text-slate-900 dark:text-white">{m.val.split(' ')[0]} <span className="text-sm font-medium">{m.val.split(' ').slice(1).join(' ')}</span></span>
                   {m.isNormal && (
-                    <span className="flex items-center gap-1 text-[9px] font-bold text-[#00a896] bg-teal-50 px-1.5 py-0.5 rounded-md border border-teal-100">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00a896]"></span> normal
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20 leading-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#34d399]"></span> Normal
                     </span>
                   )}
+                  <svg className={`w-6 h-3 ${m.iconColor}`} viewBox="0 0 20 20" preserveAspectRatio="none">
+                     <path d={m.sparkline} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  </svg>
                 </div>
-                {isSelected && (
-                   <div className="absolute top-0 right-0 w-16 h-16 bg-teal-50 dark:bg-teal-900/20 rounded-full blur-xl -mr-4 -mt-4 pointer-events-none"></div>
-                )}
               </button>
             );
           })}
         </div>
 
-        {/* CHART VISUALIZER */}
-        <div className="bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 space-y-4">
-          <div className="flex items-center justify-between text-xs font-sans">
-            <span className="font-bold text-slate-900 dark:text-white">{selectedVitalMetric} Trend Line</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-              <Sparkles className="w-3 h-3"/> Interactive preview
-            </span>
-          </div>
+        {/* MIDDLE SECTION: MAIN CHART & TODAY'S SUMMARY */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+          
+          {/* Main Chart (Left 8 cols) */}
+          <div className={`lg:col-span-8 bg-[#0b1120] border rounded-2xl p-5 relative overflow-hidden flex flex-col shadow-inner ${selectedVitalMetric === 'Heart Rate' ? 'border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)]' : 'border-slate-800'}`}>
+            {/* Glowing edge effect like image 1 */}
+            {selectedVitalMetric === 'Heart Rate' && (
+              <>
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-rose-500/80 to-transparent"></div>
+                <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-rose-500/80 to-transparent"></div>
+                <div className="absolute top-0 left-0 w-48 h-48 bg-rose-500/20 blur-[60px] rounded-full pointer-events-none"></div>
+              </>
+            )}
 
-          <div className="h-48 pt-6 relative border-b border-slate-200 dark:border-slate-800 flex items-end w-full">
-            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-              <defs>
-                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#00a896" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#00a896" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M0,100 L0,70 Q10,60 20,65 T40,80 T60,50 T80,30 T100,40 L100,100 Z"
-                fill="url(#chartGradient)"
-                className="transition-all duration-700 ease-in-out"
-              />
-              <path
-                d="M0,70 Q10,60 20,65 T40,80 T60,50 T80,30 T100,40"
-                fill="none"
-                stroke="#00a896"
-                strokeWidth="2"
-                className="transition-all duration-700 ease-in-out drop-shadow-md"
-              />
-              <circle cx="60" cy="50" r="2.5" fill="white" stroke="#00a896" strokeWidth="1.5" className="animate-pulse" />
-            </svg>
-            
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between transform translate-y-6 px-1">
-               {['01 Aug', '11 Aug', '17 Aug', '23 Aug', '27 Aug'].map((d, i) => (
-                  <span key={i} className="text-[10px] font-medium text-slate-500">{d}</span>
-               ))}
+            <div className="flex items-start justify-between mb-8 relative z-10">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Heart className={`w-5 h-5 ${selectedVitalMetric === 'Heart Rate' ? 'text-rose-500' : 'text-slate-400'}`} fill={selectedVitalMetric === 'Heart Rate' ? 'currentColor' : 'none'} />
+                  <span className="text-lg font-bold text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  {vitalsTimeframe === '7D' && 'Week View: Aug 21 - Aug 27'}
+                  {vitalsTimeframe === '30D' && 'Month View: Aug 01 - Aug 30'}
+                  {vitalsTimeframe === '3M' && 'Quarter View: Jun 01 - Aug 31'}
+                  {vitalsTimeframe === '1Y' && 'Year View: 2026'}
+                </div>
+              </div>
+              <div className="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center gap-2 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                <span className="text-xs text-slate-300 font-medium">Active</span>
+              </div>
+            </div>
+
+            <div className="w-full relative pb-6 pl-8 flex items-end h-[220px] mt-2 border-l border-b border-slate-700/50">
+              {/* Y-axis labels */}
+              <div className="absolute left-[-26px] top-0 bottom-6 flex flex-col justify-between text-[11px] text-slate-400 font-medium">
+                <span>100</span>
+                <span>90</span>
+                <span>80</span>
+                <span>70</span>
+                <span>60</span>
+                <span>50</span>
+                <span>40</span>
+              </div>
+              <div className="absolute inset-0 z-0 flex flex-col justify-between pb-6">
+                {[...Array(7)].map((_, i) => (
+                  <div key={`h-${i}`} className="w-full h-px border-t border-dashed border-slate-700/60"></div>
+                ))}
+              </div>
+              <div className="absolute inset-0 z-0 flex justify-between pl-8 pr-2">
+                {[...Array(
+                  vitalsTimeframe === '7D' ? 7 :
+                  vitalsTimeframe === '30D' ? 6 :
+                  vitalsTimeframe === '3M' ? 4 : 6
+                )].map((_, i) => (
+                  <div key={`v-${i}`} className="h-full w-px border-l border-dashed border-slate-700/60"></div>
+                ))}
+              </div>
+
+              {/* Chart SVG */}
+              {(() => {
+                const cx = parseInt(vitalPreviewData[selectedVitalMetric]?.cx || '50');
+                const cy = parseInt(vitalPreviewData[selectedVitalMetric]?.cy || '40');
+                const { points, activeIndex } = getDynamicPoints(selectedVitalMetric, vitalsTimeframe, cx, cy);
+                const pathStr = generateSmoothPath(points);
+                const activePoint = points[activeIndex];
+                
+                return (
+                  <>
+                    <svg key={vitalsTimeframe + selectedVitalMetric} className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none" viewBox="0 0 100 100">
+                      <defs>
+                        <linearGradient id="chartGradientBeautiful" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor={selectedVitalMetric === 'Heart Rate' ? '#f43f5e' : vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} stopOpacity="0.85" />
+                          <stop offset="100%" stopColor="#0f766e" stopOpacity="0.1" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d={`${pathStr} L100,100 L0,100 Z`}
+                        fill="url(#chartGradientBeautiful)"
+                        className="transition-all duration-700 ease-in-out"
+                      />
+                      <path
+                        d={pathStr}
+                        fill="none"
+                        stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-all duration-700 ease-in-out drop-shadow-lg"
+                      />
+
+                      {/* Highlight Glow behind Active Point */}
+                      <circle cx={activePoint.x} cy={activePoint.y} r="12" fill={`${vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}40`} className="animate-pulse blur-md" />
+
+                      {/* Data Points */}
+                      {points.map((point, i) => (
+                        <circle
+                          key={`pt-${i}`}
+                          cx={point.x}
+                          cy={point.y}
+                          r={i === activeIndex ? "4" : "2"}
+                          fill="white"
+                          stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
+                          strokeWidth="2"
+                          className="transition-all duration-700 ease-in-out shadow-sm"
+                        />
+                      ))}
+                      
+                      {/* Vertical dash line for tooltip */}
+                      <line 
+                        x1={activePoint.x} 
+                        y1={activePoint.y} 
+                        x2={activePoint.x} 
+                        y2="100" 
+                        stroke="currentColor" 
+                        strokeDasharray="3,3" 
+                        strokeWidth="1.5" 
+                        className="text-slate-500/70 transition-all duration-700 ease-in-out" 
+                      />
+                    </svg>
+
+                    {/* Tooltip */}
+                    <div 
+                      className="absolute z-20 transition-all duration-700 ease-in-out"
+                      style={{
+                        left: `calc(1rem + ${activePoint.x}%)`,
+                        top: `calc(${activePoint.y}% - 60px)`,
+                        transform: 'translateX(-50%)'
+                      }}
+                    >
+                      <div className="bg-[#1e293b]/95 backdrop-blur-md border border-slate-600/60 text-white rounded-xl px-4 py-2.5 shadow-2xl relative min-w-[130px] flex flex-col items-center">
+                        <div className="text-xl font-black tracking-wide leading-none mb-1.5">{vitalPreviewData[selectedVitalMetric]?.title === 'Heart Rate' ? '72 BPM' : vitalPreviewData[selectedVitalMetric]?.title === 'SpO2' ? '98%' : vitalPreviewData[selectedVitalMetric]?.title === 'Temperature' ? '98.4 °F' : vitalPreviewData[selectedVitalMetric]?.title === 'Body Weight' ? '68 kg' : '120/80 mmHg'}</div>
+                        <div className="text-[10px] text-slate-300 font-medium whitespace-nowrap leading-none">22 Aug, 10:30 AM</div>
+                        <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap mt-1.5 leading-none flex items-center gap-1">
+                          <ArrowUpRight className="w-3 h-3 text-slate-400" /> Active Reading
+                        </div>
+                        {/* Tooltip caret pointing down */}
+                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#1e293b] border-r border-b border-slate-600/60 transform rotate-45"></div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+              
+              {/* X-axis labels */}
+              <div className="absolute bottom-[-24px] left-8 right-2 flex justify-between text-[11px] font-medium text-slate-400">
+                 {vitalsTimeframe === '7D' && <><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></>}
+                 {vitalsTimeframe === '30D' && <><span>01 Aug</span><span>08 Aug</span><span>15 Aug</span><span>22 Aug</span><span>29 Aug</span><span>05 Sep</span></>}
+                 {vitalsTimeframe === '3M' && <><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></>}
+                 {vitalsTimeframe === '1Y' && <><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span></>}
+              </div>
+              
+              {/* Average text */}
+              <div className="absolute right-2 bottom-8 text-[11px] text-slate-300/80 font-medium">
+                Avg. Week: 70 BPM
+              </div>
+
+              {/* Sparkle icon at bottom right */}
+              <Sparkles className="absolute right-[-12px] bottom-[-16px] w-10 h-10 text-slate-400/20 rotate-12" />
             </div>
           </div>
-          <div className="h-4"></div>
+
+          {/* Today's Summary (Right 4 cols) */}
+          <div className="lg:col-span-4 bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <CalendarIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+              <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Today's Summary</span>
+            </div>
+            
+            {/* Donut Chart visual */}
+            <div className="flex justify-center my-1.5">
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                 {/* SVG donut */}
+                 {/* Enhanced Circular Gauge */}
+                 <div className="absolute inset-0 rounded-full bg-emerald-500/5 blur-xl pointer-events-none"></div>
+                 <svg className="w-full h-full transform -rotate-90 drop-shadow-lg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="url(#donutGradient)" strokeWidth="8" strokeDasharray="276.46" strokeDashoffset="5.5" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.5))' }} className="animate-fade-in" />
+                    <defs>
+                       <linearGradient id="donutGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#38bdf8" />
+                          <stop offset="50%" stopColor="#34d399" />
+                          <stop offset="100%" stopColor="#fbbf24" />
+                       </linearGradient>
+                    </defs>
+                 </svg>
+                 <div className="absolute text-center flex flex-col items-center justify-center pt-1">
+                    <span className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tighter shadow-sm leading-none">98<span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold ml-0.5">%</span></span>
+                    <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mt-1 leading-none">Vitals Score</span>
+                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-0.5 text-xs">
+              {[
+                { label: 'Heart Rate', icon: Heart, color: 'text-rose-500' },
+                { label: 'Blood Pressure', icon: Activity, color: 'text-indigo-400' },
+                { label: 'Temperature', icon: Thermometer, color: 'text-amber-500' },
+                { label: 'SpO₂ • Oxygen', icon: Wind, color: 'text-blue-500' },
+                { label: 'Body Weight', icon: Scale, color: 'text-emerald-500' }
+              ].map((v, i) => (
+                <div key={i} className="flex items-center justify-between py-1.5 px-0.5 border-b border-slate-200 dark:border-slate-800/40 last:border-0">
+                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                     <v.icon className={`w-3.5 h-3.5 ${v.color}`} />
+                     <span className="font-medium text-[11px] tracking-wide">{v.label}</span>
+                   </div>
+                   <span className="text-[10px] font-bold text-emerald-400 tracking-wide">Normal</span>
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setReportModalOpen(true)}
+              className="mt-2 w-full py-2 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer"
+            >
+               View Full Report <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* BOTTOM SECTION: 3 PANELS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          
+          {/* Health Insights */}
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+             <div className="flex items-center gap-2 mb-2.5">
+                <Sparkles className="w-4 h-4 text-rose-500" />
+                <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Health Insights</span>
+             </div>
+             <div className="bg-slate-50 dark:bg-[#121626] border border-slate-200 dark:border-rose-900/20 rounded-lg p-2.5 flex gap-2 items-center shadow-sm dark:shadow-lg relative overflow-hidden">
+                {/* Subtle glow behind the text */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 blur-xl rounded-full"></div>
+                
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium relative z-10 w-2/3">
+                  Your heart rate is slightly elevated after 6 PM. Consider light activities or meditation.
+                </p>
+                <div className="shrink-0 relative z-10 flex-1 flex justify-end">
+                   <Heart className="w-8 h-8 text-rose-500 drop-shadow-[0_0_6px_rgba(244,63,94,0.5)]" strokeWidth={1.5} />
+                </div>
+             </div>
+          </div>
+
+          {/* Weekly Averages */}
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-shadow">
+             <div className="flex items-center gap-2 mb-2.5">
+                <BarChart3 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Weekly Averages</span>
+             </div>
+             <div className="space-y-1.5">
+               {[
+                 { label: 'Heart Rate', val: '68 BPM', icon: Heart, color: 'text-rose-500', valColor: 'text-rose-500' },
+                 { label: 'Blood Pressure', val: '118/76 mmHg', icon: Activity, color: 'text-indigo-400', valColor: 'text-indigo-400' },
+                 { label: 'Temperature', val: '98.2 °F', icon: Thermometer, color: 'text-amber-500', valColor: 'text-amber-500' },
+                 { label: 'SpO₂', val: '97%', icon: Wind, color: 'text-blue-500', valColor: 'text-blue-500' },
+                 { label: 'Body Weight', val: '68.6 kg', icon: Scale, color: 'text-emerald-500', valColor: 'text-emerald-500' }
+               ].map((v, i) => (
+                 <div key={i} className="flex items-center justify-between text-[11px] px-0.5">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                      <v.icon className={`w-3.5 h-3.5 ${v.color}`} />
+                      <span className="font-medium tracking-wide text-xs">{v.label}</span>
+                    </div>
+                    <span className={`font-bold tracking-wide text-xs ${v.valColor}`}>{v.val}</span>
+                 </div>
+               ))}
+             </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 relative shadow-sm hover:shadow-md transition-shadow">
+             <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                   <Activity className="w-4 h-4 text-blue-500" />
+                   <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-wide">Recent Activity</span>
+                </div>
+                <span className="text-[9px] font-bold text-blue-400 cursor-pointer hover:text-blue-300 tracking-wide uppercase">View All</span>
+             </div>
+             <div className="space-y-0 relative mt-1">
+               {/* Timeline line */}
+               <div className="absolute left-[4.5px] top-1.5 bottom-2.5 w-px bg-slate-700/50 z-0"></div>
+               
+               {[
+                 { label: 'Heart Rate recorded', val: '72 BPM', time: '10:30 AM', color: 'bg-rose-500', valColor: 'text-rose-500' },
+                 { label: 'Blood Pressure recorded', val: '120/80 mmHg', time: '10:25 AM', color: 'bg-indigo-500', valColor: 'text-indigo-400' },
+                 { label: 'Temperature recorded', val: '98.4 °F', time: '10:20 AM', color: 'bg-amber-500', valColor: 'text-amber-500' }
+               ].map((a, i) => (
+                 <div key={i} className="flex items-start gap-2.5 py-1.5 relative z-10 border-b border-slate-200 dark:border-slate-800/40 last:border-0 px-0.5">
+                    <div className={`w-2.5 h-2.5 shrink-0 rounded-full bg-slate-900 border-[1.5px] border-[#0b1120] flex items-center justify-center mt-[3px] shadow-sm`}>
+                       <span className={`w-1 h-1 rounded-full ${a.color}`}></span>
+                    </div>
+                    <div className="flex-1 flex justify-between items-center text-[11px]">
+                       <span className="text-slate-600 dark:text-slate-300 font-medium tracking-wide">{a.label}</span>
+                       <div className="flex gap-2.5 text-right items-center">
+                          <span className={`font-bold tracking-wide ${a.valColor}`}>{a.val}</span>
+                          <span className="text-[10px] text-slate-500 font-medium w-10 tracking-wide">{a.time}</span>
+                       </div>
+                    </div>
+                 </div>
+               ))}
+             </div>
+          </div>
         </div>
       </div>
 
@@ -527,7 +894,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
                 placeholder="Search activity..."
@@ -560,7 +927,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{act.subtitle}</p>
                   </div>
                   <div className="text-right shrink-0 font-mono">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Today</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-500 block font-medium">Today</span>
                     <span className="text-[10px] font-bold text-[#00a896] dark:text-teal-400">{act.time}</span>
                   </div>
                 </div>
