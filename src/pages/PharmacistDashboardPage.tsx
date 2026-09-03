@@ -200,7 +200,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         <div className="flex-1 max-w-xl mx-2 relative">
           <form onSubmit={handleSearchSubmit} className="relative">
             <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -215,7 +215,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                   onClick={() => {
                     setSearchQuery('');
                   }}
-                  className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -367,13 +367,15 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           
           {/* THEME TOGGLE */}
-          <ThemeToggle />
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
 
           {/* NOTIFICATION BELL */}
-          <div className="relative">
+          <div className="relative flex items-center">
             <button
               onClick={() => setNotificationPopoverOpen(!notificationPopoverOpen)}
-              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
               title="Dispensary Alerts & Notifications"
             >
               <Bell className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
@@ -392,7 +394,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
 
           {/* User pill */}
-          <div className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <div className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {(effectiveUser.name || 'Pharmacist').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
@@ -401,11 +403,11 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
 
           <button 
             onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-xs font-bold hidden sm:block">Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
