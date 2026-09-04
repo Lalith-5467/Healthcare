@@ -23,112 +23,33 @@ interface DoctorAppointmentsScheduleViewProps {
   onViewConsultation?: (patientId: string) => void;
 }
 
-const mockSlots = [
-  {
-    id: 'apt-6',
-    recordId: '1',
-    patientId: 'PT-09882',
-    patientName: 'Arun Raj',
-    age: 41,
-    gender: 'Male',
-    time: '09:00 AM',
-    date: 'Today',
-    type: 'Tele-Consultation',
-    status: 'Completed',
-    completedAt: '09:25 AM',
-    reason: 'Thyroid Level Review',
-    isTele: true,
-    department: 'Endocrinology'
-  },
-  {
-    id: 'apt-1',
-    recordId: '1',
-    patientId: 'PT-10245',
-    patientName: 'Abinesh Kumar',
-    age: 28,
-    gender: 'Male',
-    time: '10:30 AM',
-    date: 'Today',
-    type: 'OPD In-Clinic',
-    status: 'Scheduled',
-    reason: 'Post-Appendectomy Suture Review',
-    isTele: false,
-    department: 'General Surgery'
-  },
-  {
-    id: 'apt-2',
-    recordId: '2',
-    patientId: 'PT-10892',
-    patientName: 'Ragul Kumar',
-    age: 45,
-    gender: 'Male',
-    time: '10:45 AM',
-    date: 'Today',
-    type: 'Tele-Consultation',
-    status: 'Delayed',
-    delayDuration: '20 min',
-    reason: 'Hypertension Medication Check',
-    isTele: true,
-    department: 'Cardiology',
-    arrivedAt: '10:55 AM'
-  },
-  {
-    id: 'apt-3',
-    recordId: '3',
-    patientId: 'PT-10331',
-    patientName: 'Mrs. Meenakshi Sundaram',
-    age: 62,
-    gender: 'Female',
-    time: '11:15 AM',
-    date: 'Today',
-    type: 'Tele-Consultation',
-    status: 'In Consultation',
-    startedAt: '11:18 AM',
-    reason: 'Diabetes Vitals & Routine Adherence',
-    isTele: true,
-    department: 'Internal Medicine'
-  },
-  {
-    id: 'apt-4',
-    recordId: '1',
-    patientId: 'PT-11005',
-    patientName: 'Suresh Menon',
-    age: 55,
-    gender: 'Male',
-    time: '12:00 PM',
-    date: 'Today',
-    type: 'OPD In-Clinic',
-    status: 'No-show',
-    reason: 'General Executive Health Checkup',
-    isTele: false,
-    department: 'General Medicine',
-    scheduled: '12:00 PM',
-    expectedArrival: '12:00 PM',
-    statusUpdated: '12:20 PM'
-  },
-  {
-    id: 'apt-5',
-    recordId: '2',
-    patientId: 'PT-10944',
-    patientName: 'Priya S',
-    age: 31,
-    gender: 'Female',
-    time: '01:30 PM',
-    date: 'Today',
-    type: 'OPD In-Clinic',
-    status: 'Cancelled',
-    cancelReason: 'Cancelled by Patient',
-    reason: 'Migraine Follow-up',
-    isTele: false,
-    department: 'Neurology'
-  }
-];
-
 export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation, onViewProfile, onViewConsultation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('Today');
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
+  
+  // Real data states
+  const [slots, setSlots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/appointments/schedule');
+        const data = await response.json();
+        if (data.success) {
+          setSlots(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch schedule:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSchedule();
+  }, []);
+
 
   const statuses = ['All', 'Scheduled', 'In Consultation', 'Completed', 'Delayed', 'No-show', 'Cancelled'];
 
@@ -142,11 +63,11 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Scheduled': return 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800/50 dark:bg-emerald-950/40';
-      case 'Completed': return 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800/50 dark:bg-emerald-950/40';
-      case 'In Consultation': return 'text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800/50 dark:bg-blue-950/40';
-      case 'Delayed': return 'text-amber-600 border-amber-200 bg-amber-50 dark:text-amber-400 dark:border-amber-800/50 dark:bg-amber-950/40';
-      case 'No-show': return 'text-rose-600 border-rose-200 bg-rose-50 dark:text-rose-400 dark:border-rose-800/50 dark:bg-rose-950/40';
+      case 'Completed': return 'text-emerald-700 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800/50 dark:bg-emerald-950/40';
+      case 'Scheduled': 
+      case 'In Consultation': return 'text-blue-700 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800/50 dark:bg-blue-950/40';
+      case 'Delayed': return 'text-orange-700 border-orange-200 bg-orange-50 dark:text-orange-400 dark:border-orange-800/50 dark:bg-orange-950/40';
+      case 'No-show': return 'text-rose-700 border-rose-200 bg-rose-50 dark:text-rose-400 dark:border-rose-800/50 dark:bg-rose-950/40';
       case 'Cancelled': return 'text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-400 dark:border-slate-700/50 dark:bg-slate-800/60';
       default: return 'text-slate-600 border-slate-200 bg-slate-50 dark:text-slate-400 dark:border-slate-700 dark:bg-slate-800';
     }
@@ -154,10 +75,10 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
   
   const getStatusDot = (status: string) => {
     switch (status) {
-      case 'Scheduled': return 'bg-emerald-500';
       case 'Completed': return 'bg-emerald-500';
+      case 'Scheduled': 
       case 'In Consultation': return 'bg-blue-500';
-      case 'Delayed': return 'bg-amber-500';
+      case 'Delayed': return 'bg-orange-500';
       case 'No-show': return 'bg-rose-500';
       case 'Cancelled': return 'bg-slate-400';
       default: return 'bg-slate-400';
@@ -165,7 +86,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
   };
 
   const filteredSlots = useMemo(() => {
-    return mockSlots.filter(apt => {
+    return slots.filter(apt => {
       // Date filter
       if (dateFilter !== 'All Dates' && apt.date !== dateFilter) return false;
       
@@ -183,15 +104,15 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       return true;
     });
-  }, [searchQuery, statusFilter, dateFilter]);
+  }, [slots, searchQuery, statusFilter, dateFilter]);
 
   // Summary stats
-  const totalToday = mockSlots.filter(s => s.date === 'Today').length;
-  const totalCompleted = mockSlots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
-  const totalWaiting = mockSlots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
-  const totalDelayed = mockSlots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
-  const totalNoShow = mockSlots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
-  const totalCancelled = mockSlots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
+  const totalToday = slots.filter(s => s.date === 'Today').length;
+  const totalCompleted = slots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
+  const totalWaiting = slots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
+  const totalDelayed = slots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
+  const totalNoShow = slots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
+  const totalCancelled = slots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
 
   return (
     <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto relative">
@@ -212,18 +133,18 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       </div>
 
       {/* SUMMARY CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {[
-          { label: 'Today\'s Appts', value: totalToday, color: 'text-slate-900 dark:text-white', bg: 'bg-white dark:bg-slate-800/50', border: 'border-slate-200 dark:border-slate-700/50' },
-          { label: 'Completed', value: totalCompleted, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/20' },
-          { label: 'Waiting', value: totalWaiting, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50/50 dark:bg-teal-500/10', border: 'border-teal-200 dark:border-teal-500/20' },
-          { label: 'Delayed', value: totalDelayed, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50/50 dark:bg-amber-500/10', border: 'border-amber-200 dark:border-amber-500/20' },
-          { label: 'No-show', value: totalNoShow, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50/50 dark:bg-rose-500/10', border: 'border-rose-200 dark:border-rose-500/20' },
-          { label: 'Cancelled', value: totalCancelled, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-100/50 dark:bg-slate-500/10', border: 'border-slate-200 dark:border-slate-500/20' }
+          { label: 'Today\'s Appts', value: totalToday, color: 'text-slate-900 dark:text-white', bg: 'bg-white dark:bg-slate-900', border: 'border-slate-200 dark:border-slate-800' },
+          { label: 'Completed', value: totalCompleted, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-950/20', border: 'border-emerald-200/50 dark:border-emerald-900/50' },
+          { label: 'Waiting/Active', value: totalWaiting, color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50/50 dark:bg-blue-950/20', border: 'border-blue-200/50 dark:border-blue-900/50' },
+          { label: 'Delayed', value: totalDelayed, color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-50/50 dark:bg-orange-950/20', border: 'border-orange-200/50 dark:border-orange-900/50' },
+          { label: 'No-show', value: totalNoShow, color: 'text-rose-700 dark:text-rose-400', bg: 'bg-rose-50/50 dark:bg-rose-950/20', border: 'border-rose-200/50 dark:border-rose-900/50' },
+          { label: 'Cancelled', value: totalCancelled, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/30', border: 'border-slate-200 dark:border-slate-800' }
         ].map((stat, idx) => (
-          <div key={idx} className={`${stat.bg} ${stat.border} rounded-2xl p-4 border shadow-sm flex flex-col justify-center items-center text-center transition-all`}>
-            <span className={`text-2xl font-black ${stat.color} leading-none`}>{stat.value}</span>
-            <span className="text-[10px] uppercase font-bold text-slate-500 mt-1.5 tracking-wider">{stat.label}</span>
+          <div key={idx} className={`${stat.bg} ${stat.border} rounded-2xl p-4 sm:p-5 border shadow-sm flex flex-col justify-center items-center text-center transition-all`}>
+            <span className={`text-2xl sm:text-3xl font-black ${stat.color} leading-none mb-1`}>{stat.value}</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{stat.label}</span>
           </div>
         ))}
       </div>
@@ -271,7 +192,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                 onClick={() => setStatusFilter(tab)}
                 className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   statusFilter === tab 
-                    ? 'bg-white dark:bg-[#0b1120] text-teal-700 dark:text-cyan-400 shadow-sm border border-slate-200/60 dark:border-cyan-500/30' 
+                    ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm border border-slate-200/60 dark:border-slate-700' 
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
@@ -283,158 +204,166 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       </div>
 
       {/* APPOINTMENTS CARDS */}
-      <div className="space-y-4">
-        {filteredSlots.length === 0 && (
-          <div className="p-10 text-center text-slate-500 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200 dark:border-slate-800">
-            No appointments found matching your criteria.
-          </div>
-        )}
-        
-        {filteredSlots.map((apt, i) => (
-          <motion.div
-            key={apt.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className={`p-5 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col lg:flex-row gap-6 hover:border-teal-500/40 transition-all border-l-4 ${apt.status === 'Delayed' || apt.status === 'No-show' ? 'border-l-amber-500' : apt.status === 'Cancelled' ? 'border-l-slate-400' : apt.status === 'In Consultation' ? 'border-l-blue-500' : 'border-l-teal-500'}`}
-          >
-            
-            {/* Column 1: Patient Info (w-1/3) */}
-            <div className="flex items-start gap-4 lg:w-[35%] min-w-0">
-              {/* Avatar */}
-              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-black text-slate-700 dark:text-slate-300 shrink-0 text-sm shadow-sm mt-0.5">
-                {getInitials(apt.patientName)}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm font-bold text-slate-500">Loading your schedule...</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <AnimatePresence>
+            {filteredSlots.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200 dark:border-slate-800">
+                No appointments found matching your criteria.
               </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h3 className="text-base font-black text-slate-900 dark:text-white truncate">{apt.patientName}</h3>
-                  <span className="text-[10px] font-mono font-bold text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">
-                    {apt.patientId}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2">
-                  {apt.age}y • {apt.gender}
-                </div>
-                
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50 inline-flex">
-                  {apt.isTele ? <Video className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> : <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />}
-                  <span>{apt.type}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Column 2: Schedule & Status (w-1/4) */}
-            <div className="lg:w-[25%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
-              <div className="flex items-center gap-2 mb-2.5">
-                <span className={`w-2 h-2 rounded-full ${getStatusDot(apt.status)}`} />
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm ${getStatusColor(apt.status)}`}>
-                  {apt.status}
-                </span>
-              </div>
-              
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 space-y-1">
-                {apt.status === 'Delayed' && (
-                  <>
-                    <p className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1 mb-1">
-                      <Clock className="w-3 h-3" /> Delayed {apt.delayDuration}
-                    </p>
-                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Arrived:</span> <span className="text-slate-900 dark:text-slate-200">{apt.arrivedAt}</span></p>
-                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Scheduled:</span> <span className="text-slate-900 dark:text-slate-200">{apt.time}</span></p>
-                  </>
-                )}
-                {apt.status === 'In Consultation' && (
-                  <p className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Started:</span>
-                    <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">{apt.startedAt}</span>
-                  </p>
-                )}
-                {apt.status === 'No-show' && (
-                  <>
-                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Expected:</span> <span className="text-slate-900 dark:text-slate-200">{apt.expectedArrival}</span></p>
-                    <p className="flex justify-between max-w-[140px]"><span className="text-slate-500">Updated:</span> <span className="text-slate-900 dark:text-slate-200">{apt.statusUpdated}</span></p>
-                  </>
-                )}
-                {apt.status === 'Cancelled' && (
-                  <p className="text-[11px] italic text-slate-500">"{apt.cancelReason}"</p>
-                )}
-                {apt.status === 'Completed' && (
-                  <p className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Completed:</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">{apt.completedAt}</span>
-                  </p>
-                )}
-                {apt.status === 'Scheduled' && (
-                  <p className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Scheduled:</span>
-                    <span className="text-slate-900 dark:text-slate-200 font-mono font-bold">{apt.time}</span>
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Column 3: Reason for Visit (w-1/5) */}
-            <div className="lg:w-[20%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
-               <span className="uppercase text-[9px] font-bold text-slate-400 tracking-widest mb-1 block">Reason for Visit</span>
-               <span className="text-xs text-slate-700 dark:text-slate-300 font-bold leading-relaxed pr-2">{apt.reason}</span>
-            </div>
-
-            {/* Column 4: Actions (w-1/5) */}
-            <div className="lg:w-[20%] flex flex-col justify-center items-end border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0 shrink-0 space-y-2">
-              <button 
-                onClick={() => setSelectedPatient(apt)}
-                className="w-full px-4 py-2 rounded-xl font-bold text-[11px] bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer text-center"
-              >
-                View Profile
-              </button>
-              
-              {apt.status === 'Completed' && (
-                <button
-                  onClick={() => onViewConsultation && onViewConsultation(apt.recordId)}
-                  className="w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer"
+            ) : (
+              filteredSlots.map((apt, i) => (
+                <motion.div
+                  key={apt.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.05 }}
+                  className={`p-5 lg:p-6 bg-white dark:bg-[#0b1120] rounded-[24px] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row gap-6 hover:border-blue-500/30 transition-all border-l-[6px] ${apt.status === 'Delayed' ? 'border-l-orange-500' : apt.status === 'No-show' ? 'border-l-rose-500' : apt.status === 'Cancelled' ? 'border-l-slate-400' : apt.status === 'Completed' ? 'border-l-emerald-500' : 'border-l-blue-500'}`}
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>View Consultation</span>
-                </button>
-              )}
+                  
+                  {/* Column 1: Patient Info (w-3/12 -> 25%) */}
+                  <div className="flex items-start gap-4 lg:w-[25%] min-w-0">
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-black text-slate-700 dark:text-slate-300 shrink-0 text-sm shadow-sm mt-0.5">
+                      {getInitials(apt.patientName)}
+                    </div>
 
-              {apt.status !== 'Cancelled' && apt.status !== 'Completed' && (
-                <button
-                  onClick={() => onStartConsultation(apt.recordId)}
-                  disabled={apt.status === 'No-show'}
-                  className={`w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 ${
-                    apt.status === 'No-show'
-                      ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
-                      : apt.isTele
-                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-sm cursor-pointer hover:scale-[1.02]'
-                        : 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white shadow-sm cursor-pointer hover:scale-[1.02]'
-                  }`}
-                >
-                  {apt.status === 'In Consultation' ? (
-                    <span>Continue Consultation</span>
-                  ) : apt.status === 'No-show' ? (
-                    <span>Mark as No-show</span>
-                  ) : (
-                    <>
-                      {apt.isTele ? <Video className="w-3.5 h-3.5" /> : <Stethoscope className="w-3.5 h-3.5" />}
-                      <span>Begin Consultation</span>
-                    </>
-                  )}
-                </button>
-              )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="text-base font-black text-slate-900 dark:text-white truncate">{apt.patientName}</h3>
+                        <span className="text-[10px] font-mono font-bold text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">
+                          {apt.patientId}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2">
+                        {apt.age}y • {apt.gender}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50 inline-flex">
+                        {apt.isTele ? <Video className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> : <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />}
+                        <span>{apt.type}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              {apt.status === 'Cancelled' && (
-                <button
-                  onClick={() => setSelectedPatient(apt)}
-                  className="w-full px-4 py-2 rounded-xl font-black text-[11px] transition-all flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white shadow-sm cursor-pointer hover:scale-[1.02]"
-                >
-                  View Details
-                </button>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </div>
+                  {/* Column 2: Schedule & Status (w-3/12 -> 25%) */}
+                  <div className="lg:w-[25%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm flex items-center gap-1.5 ${getStatusColor(apt.status)}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(apt.status)} ${apt.status === 'In Consultation' ? 'animate-pulse' : ''}`} />
+                        {apt.status}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 space-y-1.5">
+                      {apt.status === 'Delayed' && (
+                        <>
+                          <p className="text-orange-600 dark:text-orange-400 font-bold flex items-center gap-1 mb-1">
+                            <Clock className="w-3 h-3" /> Delayed {apt.delayDuration}
+                          </p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Arrived:</span> <span className="text-slate-900 dark:text-slate-200">{apt.arrivedAt}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Scheduled:</span> <span className="text-slate-900 dark:text-slate-200">{apt.time}</span></p>
+                        </>
+                      )}
+                      {apt.status === 'In Consultation' && (
+                        <p className="flex items-center gap-1.5">
+                          <span className="text-slate-500">Started:</span>
+                          <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">{apt.startedAt}</span>
+                        </p>
+                      )}
+                      {apt.status === 'No-show' && (
+                        <>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Expected:</span> <span className="text-slate-900 dark:text-slate-200">{apt.expectedArrival}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Updated:</span> <span className="text-slate-900 dark:text-slate-200">{apt.statusUpdated}</span></p>
+                        </>
+                      )}
+                      {apt.status === 'Cancelled' && (
+                        <p className="text-[11px] italic text-slate-500 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-slate-700">"{apt.cancelReason}"</p>
+                      )}
+                      {apt.status === 'Completed' && (
+                        <p className="flex items-center gap-1.5">
+                          <span className="text-slate-500">Completed:</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">{apt.completedAt}</span>
+                        </p>
+                      )}
+                      {apt.status === 'Scheduled' && (
+                        <p className="flex items-center gap-1.5">
+                          <span className="text-slate-500">Scheduled:</span>
+                          <span className="text-slate-900 dark:text-slate-200 font-mono font-bold">{apt.time}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Column 3: Reason for Visit (w-3/12 -> 25%) */}
+                  <div className="lg:w-[25%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
+                    <span className="uppercase text-[9px] font-bold text-slate-400 tracking-widest mb-1.5 block">Reason for Visit</span>
+                    <span className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-relaxed pr-2">{apt.reason}</span>
+                  </div>
+
+                  {/* Column 4: Actions (w-3/12 -> 25%) */}
+                  <div className="lg:w-[25%] flex flex-col justify-center items-end border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0 shrink-0 space-y-2.5">
+                    <button 
+                      onClick={() => setSelectedPatient(apt)}
+                      className="w-full px-4 py-2.5 rounded-xl font-bold text-xs bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer text-center shadow-sm"
+                    >
+                      View Profile
+                    </button>
+                    
+                    {apt.status === 'Completed' && (
+                      <button
+                        onClick={() => onViewConsultation && onViewConsultation(apt.recordId)}
+                        className="w-full px-4 py-2.5 rounded-xl font-black text-xs transition-all flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 cursor-pointer shadow-sm"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Consultation</span>
+                      </button>
+                    )}
+
+                    {apt.status !== 'Cancelled' && apt.status !== 'Completed' && (
+                      <button
+                        onClick={() => onStartConsultation(apt.recordId)}
+                        disabled={apt.status === 'No-show'}
+                        className={`w-full px-4 py-2.5 rounded-xl font-black text-xs transition-all flex justify-center items-center gap-2 shadow-sm ${
+                          apt.status === 'No-show'
+                            ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer hover:scale-[1.02]'
+                        }`}
+                      >
+                        {apt.status === 'In Consultation' ? (
+                          <span>Continue Consultation</span>
+                        ) : apt.status === 'No-show' ? (
+                          <span>Mark as No-show</span>
+                        ) : (
+                          <>
+                            {apt.isTele ? <Video className="w-3.5 h-3.5" /> : <Stethoscope className="w-3.5 h-3.5" />}
+                            <span>Begin Consultation</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {apt.status === 'Cancelled' && (
+                      <button
+                        onClick={() => setSelectedPatient(apt)}
+                        className="w-full px-4 py-2.5 rounded-xl font-black text-xs transition-all flex justify-center items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-sm cursor-pointer border border-slate-200 dark:border-slate-700"
+                      >
+                        View Details
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* CENTERED MODAL FOR PATIENT DETAILS */}
       <AnimatePresence>

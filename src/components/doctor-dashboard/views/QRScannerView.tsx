@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scan, Camera, Upload, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
@@ -12,7 +12,33 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [scannedPatient, setScannedPatient] = useState<any>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    let currentStream: MediaStream | null = null;
+
+    if (isCameraActive) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(mediaStream => {
+          currentStream = mediaStream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = mediaStream;
+          }
+        })
+        .catch(err => {
+          console.error("Error accessing camera:", err);
+          setIsCameraActive(false);
+          alert("Could not access camera. Please check your permissions.");
+        });
+    }
+
+    return () => {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isCameraActive]);
 
   const handleDemoScan = () => {
     setIsScanning(true);
@@ -25,7 +51,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
   };
 
   const handleStartCamera = () => {
-    setIsCameraActive(true);
+    setIsCameraActive(prev => !prev);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +95,18 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
             {/* Scanner Area */}
             <div className="aspect-square sm:aspect-video bg-slate-900 relative flex items-center justify-center overflow-hidden">
               {/* Fake camera feed background */}
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-600 via-slate-900 to-black"></div>
+              {!isCameraActive && (
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-600 via-slate-900 to-black"></div>
+              )}
+              
+              {/* Video Element for Camera Stream */}
+              <video 
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isCameraActive ? 'opacity-100' : 'opacity-0'}`}
+              />
               
               {/* Target Frame */}
               <div className="relative w-64 h-64 sm:w-80 sm:h-80">
@@ -89,7 +126,9 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
                 )}
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Scan className={`w-16 h-16 ${isCameraActive ? 'text-teal-400' : 'text-white/20'} ${(isScanning || isCameraActive) ? 'animate-pulse' : ''}`} />
+                  {!isCameraActive && (
+                    <Scan className={`w-16 h-16 text-white/20 ${isScanning ? 'animate-pulse' : ''}`} />
+                  )}
                 </div>
               </div>
             </div>
@@ -103,10 +142,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
                   onClick={handleStartCamera}
-                  disabled={isScanning || isCameraActive}
+                  disabled={isScanning}
                   className={`flex-1 py-3 font-black rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${isCameraActive ? 'bg-teal-500/10 text-teal-600 border border-teal-500/30' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                 >
-                  <Camera className="w-5 h-5" /> {isCameraActive ? 'Camera Active' : 'Start Camera'}
+                  <Camera className="w-5 h-5" /> {isCameraActive ? 'Stop Camera' : 'Start Camera'}
                 </button>
                 <input 
                   type="file" 
@@ -143,8 +182,8 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
             animate={{ opacity: 1, y: 0 }}
             className="bg-white dark:bg-slate-900 rounded-[2rem] border border-emerald-200 dark:border-emerald-800/50 shadow-xl shadow-emerald-500/5 overflow-hidden"
           >
-            <div className="bg-emerald-500 text-white p-6 text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="bg-emerald-500 dark:bg-emerald-900/40 text-white dark:text-emerald-400 p-6 text-center border-b border-transparent dark:border-emerald-800/50">
+              <div className="w-16 h-16 bg-white/20 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h2 className="text-2xl font-black">Patient Identified</h2>
@@ -160,7 +199,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScanSuccess }) =
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                     <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-lg text-sm">{scannedPatient.patientId}</span>
                     <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-lg text-sm">{scannedPatient.age}</span>
-                    <span className="px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-bold rounded-lg text-sm">{scannedPatient.bloodGroup}</span>
+                    <span className="px-3 py-1 bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold rounded-lg text-sm">{scannedPatient.bloodGroup}</span>
                   </div>
                 </div>
               </div>

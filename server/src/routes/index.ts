@@ -7,6 +7,8 @@ import medicalRecordRoutes from './medicalRecord.routes';
 import prescriptionRoutes from './prescription.routes';
 import pharmacyRoutes from './pharmacy.routes';
 import pharmacyOrderRoutes from './pharmacyOrder.routes';
+import appointmentRoutes from './appointment.routes';
+import consultationRoutes from './consultation.routes';
 
 const router = Router();
 
@@ -33,5 +35,11 @@ router.use('/pharmacies', pharmacyRoutes);
 
 // Pharmacy Order Routing APIs
 router.use('/pharmacy-orders', pharmacyOrderRoutes);
+
+// Doctor Dashboard Appointment APIs
+router.use('/appointments', appointmentRoutes);
+
+// Consultation APIs
+router.use('/consultations', consultationRoutes);
 
 export default router;
