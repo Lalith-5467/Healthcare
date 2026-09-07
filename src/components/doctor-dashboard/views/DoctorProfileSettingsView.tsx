@@ -35,9 +35,13 @@ const Toggle = ({ checked, onChange }: { checked: boolean, onChange: (v: boolean
   </button>
 );
 
-export const DoctorProfileSettingsView: React.FC = () => {
+interface DoctorProfileSettingsViewProps {
+  user?: { name: string; email: string };
+}
+
+export const DoctorProfileSettingsView: React.FC<DoctorProfileSettingsViewProps> = ({ user }) => {
   const [profile, setProfile] = useState({
-    name: 'Dr. Rajesh Varma',
+    name: user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins',
     regNumber: 'MCI-TN-2015-84920',
     specialty: 'Internal Medicine & Preventive Cardiology',
     department: 'Cardiology',

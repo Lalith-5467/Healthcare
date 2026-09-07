@@ -33,17 +33,28 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   const [activeNav, setActiveNav] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
+  const [scannedPatientName, setScannedPatientName] = useState<string | undefined>(undefined);
+  const [patient360Tab, setPatient360Tab] = useState('summary');
   const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
 
-  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
+  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
 
   const handleScanSuccess = (patientId: string) => {
     setScannedPatientId(patientId);
+    setPatient360Tab('summary');
     setActiveNav('patient-360');
   };
 
   const handleSelectPatient = (patientId: string) => {
     setScannedPatientId(patientId);
+    setPatient360Tab('summary');
+    setActiveNav('patient-360');
+  };
+
+  const handleViewProfile = (patientId: string, tab: string = 'summary', name?: string) => {
+    setScannedPatientId(patientId);
+    setScannedPatientName(name);
+    setPatient360Tab(tab);
     setActiveNav('patient-360');
   };
 
@@ -67,7 +78,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
         return (
           <DoctorAppointmentsScheduleView 
             onStartConsultation={handleStartConsultation} 
-            onViewProfile={handleSelectPatient}
+            onViewProfile={handleViewProfile}
             onViewConsultation={handleViewConsultation}
           />
         );
@@ -85,7 +96,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
       case 'labs':
       case 'documents':
       case 'nurse-updates':
-        return <Patient360View patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+        return <Patient360View patientId={scannedPatientId || '1'} patientName={scannedPatientName} onNavigate={setActiveNav} initialTab={patient360Tab} />;
       case 'consultation-details':
         return <ConsultationDetailsView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
       case 'consultation-workspace':
@@ -96,7 +107,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
         return <ClinicalNotesPrescriptionsView />;
       case 'settings':
       case 'profile':
-        return <DoctorProfileSettingsView />;
+        return <DoctorProfileSettingsView user={user} />;
       default:
         return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
     }

@@ -62,3 +62,67 @@ export const getTodaySchedule = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
+
+export const createAppointment = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { doctorId, patientId, patientName, date, time, type, reason } = req.body;
+
+    // Use a fallback patient and doctor if not provided or if it's a mock ID
+    const fallbackPatient = await prisma.patient.findFirst();
+    const fallbackDoctor = await prisma.doctor.findFirst();
+
+    if (!fallbackPatient || !fallbackDoctor) {
+      return res.status(500).json({ success: false, message: 'Database must have at least 1 patient and 1 doctor' });
+    }
+
+    let actualPatientId = fallbackPatient.id;
+    if (patientId) {
+      const p = await prisma.patient.findUnique({ where: { id: patientId } });
+      if (p) actualPatientId = p.id;
+    } else if (patientName) {
+      const p = await prisma.patient.findFirst({ where: { fullName: patientName } });
+      if (p) actualPatientId = p.id;
+    }
+
+    let actualDoctorId = fallbackDoctor.id;
+    if (doctorId) {
+      const d = await prisma.doctor.findUnique({ where: { id: doctorId } });
+      if (d) actualDoctorId = d.id;
+    }
+
+    // Parse date (e.g. "07 Sep 2026")
+    let appointmentDate = new Date();
+    if (date) {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate.getTime())) {
+        appointmentDate = parsedDate;
+      }
+    }
+
+    // Prisma Enum for type is 'VIDEO' or 'IN_PERSON'
+    const appointmentType = type === 'Video' ? 'VIDEO' : 'IN_PERSON';
+
+    const newAppointment = await prisma.appointment.create({
+      data: {
+        patientId: actualPatientId,
+        doctorId: actualDoctorId,
+        appointmentDate: appointmentDate,
+        slotTime: time || '10:00 AM',
+        type: appointmentType,
+        status: 'CONFIRMED', // Set as confirmed right away for simplicity
+        reason: reason || 'Routine Checkup'
+      },
+      include: {
+        doctor: true,
+        patient: true
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: newAppointment
+    });
+  } catch (error) {
+    next(error);
+  }
+};

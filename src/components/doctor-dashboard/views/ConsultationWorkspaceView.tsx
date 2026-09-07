@@ -145,9 +145,18 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
 
   if (!data || !data.appointment) {
     return (
-      <div className="h-full flex flex-col items-center justify-center">
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">Workspace Not Available</h2>
-        <button onClick={() => onNavigate('appointments')} className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-xl">Back</button>
+      <div className="h-[calc(100vh-4rem)] flex flex-col items-center justify-center bg-slate-50 dark:bg-[#070c18] absolute inset-0 top-16 z-40">
+        <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+          <Stethoscope className="w-8 h-8 text-slate-400" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900 dark:text-white">No Active Consultation Selected</h2>
+        <p className="text-sm text-slate-500 mt-2 max-w-sm text-center">Please select a patient from your appointments schedule to begin or resume a consultation.</p>
+        <button 
+          onClick={() => onNavigate('appointments')} 
+          className="mt-6 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg shadow-teal-500/20 transition-all"
+        >
+          View Appointments
+        </button>
       </div>
     );
   }

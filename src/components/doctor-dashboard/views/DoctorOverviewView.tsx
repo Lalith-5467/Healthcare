@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, Users, RefreshCw, Bell, AlertTriangle, ChevronRight, Scan, 
   Stethoscope, Activity, FileText, Pill, Video, CheckCircle2, 
-  ArrowUpRight, HeartPulse, Clock, Sparkles
+  ArrowUpRight, HeartPulse, Clock, Sparkles, Loader2
 } from 'lucide-react';
 import { getGreeting } from '../../../utils/greeting';
 
@@ -12,8 +12,87 @@ interface DoctorOverviewViewProps {
   user?: { name: string; email: string };
 }
 
+interface DashboardData {
+  doctor: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  statistics: {
+    todayAppointments: number;
+    confirmedAppointments: number;
+    pendingAppointments: number;
+    completedAppointments: number;
+    activeConsultations: number;
+    totalPatients: number;
+  };
+  todaySchedule: any[];
+  activeQueue: any[];
+}
+
 export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNavigate, user }) => {
-  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma';
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // In a real scenario, this would use a properly configured api client 
+      // with baseUrl and credentials
+      const response = await fetch('http://localhost:5000/api/doctor/dashboard');
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      const result = await response.json();
+      if (result.success) {
+        setData(result.data);
+      } else {
+        throw new Error(result.message || 'Failed to fetch dashboard data');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <Loader2 className="w-12 h-12 text-teal-500 animate-spin" />
+        <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading Doctor Dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <AlertTriangle className="w-12 h-12 text-rose-500" />
+        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Unable to load dashboard data.</p>
+        <p className="text-xs text-slate-500">{error}</p>
+        <button 
+          onClick={fetchDashboardData}
+          className="mt-4 px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold shadow-sm transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const fallbackName = data.doctor.name.startsWith('Dr') ? data.doctor.name : `Dr. ${data.doctor.name}`;
+  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : fallbackName;
+  const { statistics, activeQueue } = data;
 
   return (
     <div className="space-y-6 pb-16 max-w-7xl mx-auto">
@@ -38,7 +117,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
             {getGreeting()}, {doctorName}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 max-w-2xl font-medium">
-            You have <strong className="text-teal-700 dark:text-teal-300 font-black">8 appointments</strong> today, <strong className="text-amber-600 dark:text-amber-300 font-black">3 patients</strong> in the waiting room, and <strong className="text-rose-600 dark:text-rose-300 font-black">1 urgent lab report</strong> pending review.
+            You have <strong className="text-teal-700 dark:text-teal-300 font-black">{statistics.todayAppointments} appointments</strong> today, <strong className="text-amber-600 dark:text-amber-300 font-black">{statistics.pendingAppointments} patients</strong> in the waiting room, and <strong className="text-blue-600 dark:text-blue-300 font-black">{statistics.activeConsultations} active consultations</strong>.
           </p>
         </div>
 
@@ -64,11 +143,11 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
       {/* 2. STATS OVERVIEW CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
         {[
-          { label: 'Today\'s Appointments', value: 8, icon: Calendar, color: 'text-cyan-500', bg: 'bg-cyan-500/10 border-cyan-500/20', trend: '4 completed' },
-          { label: 'Waiting Patients', value: 3, icon: Users, color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/20', trend: 'Avg. 8m wait' },
-          { label: 'Routine Follow-ups', value: 5, icon: RefreshCw, color: 'text-teal-500', bg: 'bg-teal-500/10 border-teal-500/20', trend: 'Next @ 11:45 AM' },
-          { label: 'e-Prescriptions Issued', value: 14, icon: Pill, color: 'text-indigo-500', bg: 'bg-indigo-500/10 border-indigo-500/20', trend: '100% ABDM sync' },
-          { label: 'Clinical Alerts', value: 2, icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20', trend: '1 critical vitals' }
+          { label: 'Today\'s Appointments', value: statistics.todayAppointments, icon: Calendar, color: 'text-cyan-500', bg: 'bg-cyan-500/10 border-cyan-500/20', trend: `${statistics.completedAppointments} completed` },
+          { label: 'Waiting Patients', value: statistics.pendingAppointments, icon: Users, color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/20', trend: 'In Clinic' },
+          { label: 'Confirmed Schedule', value: statistics.confirmedAppointments, icon: RefreshCw, color: 'text-teal-500', bg: 'bg-teal-500/10 border-teal-500/20', trend: 'Up next' },
+          { label: 'Unique Patients', value: statistics.totalPatients, icon: Pill, color: 'text-indigo-500', bg: 'bg-indigo-500/10 border-indigo-500/20', trend: 'Total today' },
+          { label: 'Active Consults', value: statistics.activeConsultations, icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20', trend: 'In progress' }
         ].map((stat, i) => (
           <motion.div 
             key={i}
@@ -112,87 +191,48 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
             </div>
             
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {[
-                { 
-                  id: '1', 
-                  name: 'Abinesh Kumar', 
-                  age: 38, 
-                  gender: 'Male',
-                  time: '10:30 AM', 
-                  reason: 'Post-Op Surgical Incision Review', 
-                  vitals: 'BP 124/82 · HR 74 · SpO2 99%',
-                  status: 'In Consultation', 
-                  statusColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                },
-                { 
-                  id: '2', 
-                  name: 'Ragul Kumar', 
-                  age: 45, 
-                  gender: 'Male',
-                  time: '11:45 AM', 
-                  reason: 'Routine Cardiology & ECG Telemetry Review', 
-                  vitals: 'BP 138/88 · HR 82 · SpO2 98%',
-                  status: 'Waiting in Clinic', 
-                  statusColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                },
-                { 
-                  id: '3', 
-                  name: 'Mrs. Meenakshi Sundaram', 
-                  age: 62, 
-                  gender: 'Female',
-                  time: '03:00 PM', 
-                  reason: 'Elderly Vitals Check & Glycemic Adherence', 
-                  vitals: 'BP 130/80 · Fasting Glu 118 mg/dL',
-                  status: 'Confirmed', 
-                  statusColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
-                },
-                { 
-                  id: '4', 
-                  name: 'Sneha Roy', 
-                  age: 29, 
-                  gender: 'Female',
-                  time: '04:15 PM', 
-                  reason: 'Thyroid Panel & Medication Adjustment', 
-                  vitals: 'BP 118/76 · HR 68',
-                  status: 'Tele-Consult Pending', 
-                  statusColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
-                }
-              ].map((apt) => (
-                <div key={apt.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all group cursor-pointer border-l-2 border-transparent hover:border-teal-500">
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-white flex items-center justify-center font-black shrink-0 shadow-md">
-                      {apt.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-slate-900 dark:text-white text-sm group-hover:text-teal-600 dark:group-hover:text-cyan-400 transition-colors">{apt.name}</h3>
-                        <span className="text-[10px] text-slate-500 font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md">{apt.age}y · {apt.gender}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-1 uppercase tracking-wide">{apt.reason}</p>
-                      <p className="text-[11px] font-mono font-bold text-teal-700 dark:text-cyan-300 mt-1.5 flex items-center gap-1.5 bg-teal-50 dark:bg-teal-950/30 w-max px-2 py-1 rounded-md border border-teal-100 dark:border-teal-800/50">
-                        <Activity className="w-3.5 h-3.5 text-rose-500" />
-                        {apt.vitals}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0">
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-sm ${apt.statusColor}`}>
-                      {apt.status}
-                    </span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigate('patient-360');
-                      }}
-                      className="text-[11px] font-black text-white dark:text-slate-900 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl shadow-[0_4px_15px_rgba(20,184,166,0.3)] dark:shadow-teal-500/20 transition-all hover:scale-105"
-                    >
-                      <span>Chart 360°</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+              {activeQueue.length === 0 ? (
+                <div className="p-10 text-center text-slate-500 bg-white dark:bg-[#0b1120]">
+                  No appointments scheduled for today.
                 </div>
-              ))}
+              ) : (
+                activeQueue.map((apt: any) => (
+                  <div key={apt.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all group cursor-pointer border-l-2 border-transparent hover:border-teal-500">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-white flex items-center justify-center font-black shrink-0 shadow-md">
+                        {apt.patientName.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black text-slate-900 dark:text-white text-sm group-hover:text-teal-600 dark:group-hover:text-cyan-400 transition-colors">{apt.patientName}</h3>
+                          <span className="text-[10px] text-slate-500 font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md">{apt.age}y · {apt.gender}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-1 uppercase tracking-wide">{apt.reason}</p>
+                        <p className="text-[11px] font-mono font-bold text-teal-700 dark:text-cyan-300 mt-1.5 flex items-center gap-1.5 bg-teal-50 dark:bg-teal-950/30 w-max px-2 py-1 rounded-md border border-teal-100 dark:border-teal-800/50">
+                          <Activity className="w-3.5 h-3.5 text-teal-500" />
+                          {apt.time} • {apt.type}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-sm ${apt.statusColor}`}>
+                        {apt.status}
+                      </span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate('patient-360');
+                        }}
+                        className="text-[11px] font-black text-white dark:text-slate-900 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl shadow-[0_4px_15px_rgba(20,184,166,0.3)] dark:shadow-teal-500/20 transition-all hover:scale-105"
+                      >
+                        <span>Chart 360°</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -258,32 +298,32 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
             <div className="space-y-3">
               <div className="p-3.5 rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400">Ragul Kumar (Ward 3B)</span>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">10m ago</span>
+                  <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400">System Notification</span>
+                  <span className="text-[10px] font-mono font-bold text-slate-400">Now</span>
                 </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Elevated Systolic BP (158/96 mmHg) detected via telemetry.</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Elevated Systolic BP warnings detected on telemetry.</p>
                 <div className="pt-1 flex items-center gap-2">
                   <button 
                     onClick={() => onNavigate('patient-360')}
                     className="text-[11px] font-black text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
                   >
-                    Review Vitals Log →
+                    Review Alerts →
                   </button>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400">Sneha Roy · Lab Alert</span>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">45m ago</span>
+                  <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400">Lab Reports Available</span>
+                  <span className="text-[10px] font-mono font-bold text-slate-400">Recent</span>
                 </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">TSH report uploaded (6.8 uIU/mL). Prescription review requested.</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">New diagnostic reports uploaded. Prescription review requested.</p>
                 <div className="pt-1 flex items-center gap-2">
                   <button 
                     onClick={() => onNavigate('prescriptions')}
                     className="text-[11px] font-black text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
                   >
-                    Adjust Dosage →
+                    Check Inbox →
                   </button>
                 </div>
               </div>
@@ -304,7 +344,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium relative z-10">
-              3 new diagnostic summaries compiled from ABHA hospital telemetry for your upcoming cases today.
+              New diagnostic summaries compiled from ABHA hospital telemetry for your upcoming cases today.
             </p>
 
             <div className="p-3 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 space-y-1 relative z-10 backdrop-blur-sm">
@@ -350,4 +390,3 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({ onNaviga
     </div>
   );
 };
-

@@ -28,6 +28,30 @@ import { MOCK_SPECIALITIES, MOCK_DOCTORS } from './appointmentsData';
 import { DoctorFilterDrawer } from './DoctorFilterDrawer';
 import type { DoctorFilterState } from './DoctorFilterDrawer';
 
+const generateAvailableDates = () => {
+  const dates = [];
+  const today = new Date();
+  
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    
+    const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
+    const formattedDate = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const displayDayMonth = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+    const pseudoRandom = (d.getDate() * (d.getMonth() + 1) * 17) % 10;
+    const slots = 8 + pseudoRandom; 
+    
+    dates.push({
+      day: dayName,
+      date: formattedDate,
+      displayDayMonth,
+      slots
+    });
+  }
+  return dates;
+};
+
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,7 +73,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     initialDoctor ? initialDoctor.speciality : 'General Physician'
   );
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(initialDoctor || MOCK_DOCTORS[0]);
-  const [selectedDate, setSelectedDate] = useState<string>('23 Aug 2026');
+  const availableDates = React.useMemo(() => generateAvailableDates(), []);
+  const [selectedDate, setSelectedDate] = useState<string>(availableDates[0].date);
   const [selectedTime, setSelectedTime] = useState<string>('10:30 AM');
   const [consultationType, setConsultationType] = useState<'Video' | 'In-Person'>('Video');
   const [reason, setReason] = useState<string>('');
@@ -353,15 +378,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </label>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                {[
-                  { day: 'Today', date: '23 Aug 2026', slots: 12 },
-                  { day: 'Tomorrow', date: '24 Aug 2026', slots: 16 },
-                  { day: 'Wed', date: '25 Aug 2026', slots: 14 },
-                  { day: 'Thu', date: '26 Aug 2026', slots: 10 },
-                  { day: 'Fri', date: '27 Aug 2026', slots: 18 },
-                  { day: 'Sat', date: '28 Aug 2026', slots: 8 },
-                  { day: 'Mon', date: '30 Aug 2026', slots: 15 },
-                ].map((item) => {
+                {availableDates.map((item) => {
                   const isSel = selectedDate === item.date;
                   return (
                     <button
@@ -375,7 +392,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       }`}
                     >
                       <div className={`text-[10px] uppercase font-bold ${isSel ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>{item.day}</div>
-                      <div className="text-xs font-black mt-0.5">{item.date.split(' ')[0]} Aug</div>
+                      <div className="text-xs font-black mt-0.5">{item.displayDayMonth}</div>
                       <div className={`text-[9px] font-mono mt-1 ${isSel ? 'text-teal-100' : 'text-[#00a896]'}`}>{item.slots} slots</div>
                     </button>
                   );

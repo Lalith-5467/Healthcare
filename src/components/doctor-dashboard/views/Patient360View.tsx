@@ -7,18 +7,27 @@ import { useDoctorWorkflow, type DoctorPatientRecord } from '../../../utils/doct
 
 interface Patient360ViewProps {
   patientId: string | null;
+  patientName?: string;
   onNavigate: (id: string) => void;
+  initialTab?: string;
 }
 
-export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNavigate }) => {
+export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patientName, onNavigate, initialTab = 'summary' }) => {
   const { records } = useDoctorWorkflow();
-  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'timeline'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'timeline'>(initialTab as any);
+
+  useEffect(() => {
+    setActiveTab(initialTab as any);
+  }, [initialTab]);
   
   // AI Simulation State
   const [isProcessing, setIsProcessing] = useState(true);
   const [processingStep, setProcessingStep] = useState(0);
 
-  const patient = records.find(p => p.id === patientId) || records[0];
+  // Look up patient by ID first, then by name, then fall back to records[0]
+  const patient = records.find(p => p.id === patientId) 
+    || (patientName ? records.find(p => p.name === patientName) : null)
+    || records[0];
 
   useEffect(() => {
     if (patient) {

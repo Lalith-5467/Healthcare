@@ -204,7 +204,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   };
 
   // HANDLERS
-  const handleConfirmNewBooking = (newApt: Partial<Appointment>) => {
+  const handleConfirmNewBooking = async (newApt: Partial<Appointment>) => {
     const created: Appointment = {
       id: newApt.id || `APT-2026-${Math.floor(10000 + Math.random() * 90000)}`,
       doctorId: newApt.doctorId || 'DOC-101',
@@ -221,9 +221,34 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       reason: newApt.reason
     };
 
-    const updated = [created, ...appointments];
-    saveAppointments(updated);
-    showToast(`✓ Appointment booked with ${created.doctorName}`);
+    try {
+      const response = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctorId: created.doctorId,
+          date: created.date,
+          time: created.time,
+          type: created.type,
+          reason: created.reason,
+          patientName: _user?.name
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Server returned an error');
+      }
+      
+      // Only proceed with local save if backend succeeded
+      const updated = [created, ...appointments];
+      saveAppointments(updated);
+      showToast(`✓ Appointment booked with ${created.doctorName}`);
+      
+    } catch (e: any) {
+      console.error('Failed to sync appointment with backend', e);
+      showToast(`❌ Booking Failed: ${e.message}`);
+    }
   };
 
   const handleConfirmReschedule = (aptId: string, newDate: string, newTime: string) => {
