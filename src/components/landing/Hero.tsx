@@ -150,13 +150,13 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
             className="lg:col-span-7 space-y-6 text-left"
           >
             {/* MAIN HEADLINE */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15] drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
               Your Health, <br />
-              <span className="text-[#00a896]">Always With You.</span>
+              <span className="text-[#00d2be] drop-shadow-[0_2px_12px_rgba(0,210,190,0.3)]">Always With You.</span>
             </h1>
 
             {/* SUBTITLE */}
-            <p className="text-base sm:text-lg text-slate-100 max-w-xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            <p className="text-base sm:text-lg text-slate-100 max-w-xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               Secure your medical records, manage your medicines, share health information with doctors, and stay prepared for emergencies — all in one place.
             </p>
 
