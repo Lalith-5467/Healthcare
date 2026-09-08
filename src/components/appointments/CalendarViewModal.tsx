@@ -15,9 +15,9 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
   appointments,
   onSelectAppointment,
 }) => {
-  // Default to August 2026 (Month index 7)
-  const [currentDate, setCurrentDate] = useState<Date>(new Date(2026, 7, 23));
-  const [selectedDay, setSelectedDay] = useState<number>(23);
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState<Date>(today);
+  const [selectedDay, setSelectedDay] = useState<number>(today.getDate());
 
   if (!isOpen) return null;
 
@@ -54,21 +54,23 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date(2026, 7, 23));
-    setSelectedDay(23);
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDay(today.getDate());
   };
 
   // Map appointments for specific day in current displayed month & year
   const getAppointmentsForDay = (day: number) => {
+    const today = new Date();
+    const isTodayInView = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+    const paddedDay = day < 10 ? `0${day}` : `${day}`;
+
     return appointments.filter((apt) => {
       const matchDay = apt.date.includes(`${day} ${currentShortMonth}`) ||
                        apt.date.includes(`${currentShortMonth} ${day}`) ||
-                       (month === 7 && year === 2026 && (
-                         (day === 23 && (apt.date.includes('23') || apt.date.includes('Today'))) ||
-                         (day === 25 && apt.date.includes('25')) ||
-                         (day === 28 && apt.date.includes('28')) ||
-                         (day === 18 && apt.date.includes('18'))
-                       ));
+                       apt.date.includes(`${paddedDay} ${currentShortMonth}`) ||
+                       apt.date.includes(`${currentShortMonth} ${paddedDay}`) ||
+                       (isTodayInView && apt.date.includes('Today'));
       return matchDay;
     });
   };
@@ -118,14 +120,14 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrevMonth}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
               title="Next Month"
             >
               <ChevronRight className="w-4 h-4" />
@@ -167,7 +169,7 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
                       ? 'bg-[#00a896] text-white font-black shadow-md scale-105 z-10'
                       : hasApts
                       ? 'bg-teal-50 dark:bg-slate-800 hover:bg-teal-100 text-teal-900 dark:text-cyan-300 font-bold border border-teal-300 dark:border-teal-500/30'
-                      : 'bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 text-slate-700 dark:text-slate-400 font-medium border border-transparent'
+                      : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-400 font-medium border border-transparent'
                   }`}
                 >
                   <span>{day}</span>

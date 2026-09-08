@@ -287,13 +287,13 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center font-sans">
+      <div className="fixed inset-0 z-50 bg-slate-900/30 dark:bg-slate-950/60 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex items-start sm:items-center justify-center font-sans">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 12 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-          className="w-full max-w-lg my-auto font-sans relative bg-gradient-to-br from-slate-50 via-teal-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
+          className="w-full max-w-lg my-auto font-sans relative bg-white dark:bg-slate-900 border-[1.5px] border-teal-500/20 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.15),0_4px_16px_rgba(20,184,166,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_4px_16px_rgba(20,184,166,0.1)]"
         >
           <div className="relative z-10 p-5 sm:p-6 space-y-4">
             {/* ── HEADER ── */}
@@ -440,10 +440,10 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                         )}
                       </div>
                       <div className="flex-1 flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800">
-                        <span className={`font-semibold ${step.active ? 'text-teal-900 dark:text-cyan-300 font-extrabold' : step.done ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400'}`}>
+                        <span className={`font-semibold ${step.active ? 'text-teal-900 dark:text-cyan-300 font-extrabold' : step.done ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-500'}`}>
                           {step.label}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400 font-bold">{step.time}</span>
+                        <span className={`font-mono text-[10px] font-bold ${step.active ? 'text-teal-700 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-500'}`}>{step.time}</span>
                       </div>
                     </div>
                   );
@@ -488,7 +488,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
             {/* ── FOOTER ── */}
             <div className="pt-2 flex items-center justify-between gap-3 border-t border-teal-500/15">
-              <span className="text-[10px] text-slate-400 font-medium">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                 Observer Mode • Read-only realtime sync
               </span>
               <button

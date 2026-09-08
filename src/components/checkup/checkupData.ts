@@ -89,7 +89,7 @@ export const INITIAL_CATEGORIES: CheckupCategory[] = [
     title: 'Health History',
     iconName: 'FileText',
     description: 'Review recent health information.',
-    status: 'Not Started',
+    status: 'In Progress',
     progressPercentage: 50
   }
 ];

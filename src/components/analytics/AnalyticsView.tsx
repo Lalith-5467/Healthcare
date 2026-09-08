@@ -483,40 +483,36 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         {/* MIDDLE SECTION: MAIN CHART & TODAY'S SUMMARY */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-          
-          {/* Main Chart (Left 8 cols) */}
-          <div className={`lg:col-span-8 bg-[#0b1120] border rounded-2xl p-5 relative overflow-hidden flex flex-col shadow-inner ${selectedVitalMetric === 'Heart Rate' ? 'border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)]' : 'border-slate-800'}`}>
-            {/* Glowing edge effect like image 1 */}
-            {selectedVitalMetric === 'Heart Rate' && (
-              <>
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-rose-500/80 to-transparent"></div>
-                <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-rose-500/80 to-transparent"></div>
-                <div className="absolute top-0 left-0 w-48 h-48 bg-rose-500/20 blur-[60px] rounded-full pointer-events-none"></div>
-              </>
-            )}
+               {/* Main Chart (Left 8 cols) */}
+          <div className="lg:col-span-8 bg-[#0b132b] border border-slate-800/80 rounded-[20px] p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+            {/* Ambient Background Gradient Glow */}
+            <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-900/10 blur-[100px] rounded-full pointer-events-none"></div>
 
+            {/* Header */}
             <div className="flex items-start justify-between mb-8 relative z-10">
               <div>
-                <div className="flex items-center gap-2">
-                  <Heart className={`w-5 h-5 ${selectedVitalMetric === 'Heart Rate' ? 'text-rose-500' : 'text-slate-400'}`} fill={selectedVitalMetric === 'Heart Rate' ? 'currentColor' : 'none'} />
-                  <span className="text-lg font-bold text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
+                <div className="flex items-center gap-2 mb-1">
+                  <Heart className={`w-5 h-5 ${selectedVitalMetric === 'Heart Rate' ? 'text-[#ff4d6d]' : 'text-slate-400'}`} fill={selectedVitalMetric === 'Heart Rate' ? 'currentColor' : 'none'} />
+                  <span className="text-lg font-extrabold text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  {vitalsTimeframe === '7D' && 'Week View: Aug 21 - Aug 27'}
-                  {vitalsTimeframe === '30D' && 'Month View: Aug 01 - Aug 30'}
-                  {vitalsTimeframe === '3M' && 'Quarter View: Jun 01 - Aug 31'}
-                  {vitalsTimeframe === '1Y' && 'Year View: 2026'}
+                <div className="text-[11px] text-slate-400 font-medium">
+                  {vitalsTimeframe === '7D' && 'Week View · Aug 21 - Aug 27'}
+                  {vitalsTimeframe === '30D' && 'Month View · Aug 01 - Aug 30'}
+                  {vitalsTimeframe === '3M' && 'Quarter View · Jun 01 - Aug 31'}
+                  {vitalsTimeframe === '1Y' && 'Year View · 2026'}
                 </div>
               </div>
-              <div className="px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center gap-2 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
-                <span className="text-xs text-slate-300 font-medium">Active</span>
+              <div className="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-2 shadow-sm backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]"></span>
+                <span className="text-[10px] text-slate-200 font-bold tracking-wide">Active</span>
               </div>
             </div>
 
-            <div className="w-full relative pb-6 pl-8 flex items-end h-[220px] mt-2 border-l border-b border-slate-700/50">
+            {/* Chart Area */}
+            <div className="w-full relative pb-8 pl-8 pr-2 flex items-end h-[260px] mt-2">
+              
               {/* Y-axis labels */}
-              <div className="absolute left-[-26px] top-0 bottom-6 flex flex-col justify-between text-[11px] text-slate-400 font-medium">
+              <div className="absolute left-[0px] top-0 bottom-8 flex flex-col justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span>100</span>
                 <span>90</span>
                 <span>80</span>
@@ -525,108 +521,123 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 <span>50</span>
                 <span>40</span>
               </div>
-              <div className="absolute inset-0 z-0 flex flex-col justify-between pb-6">
+
+              {/* Grid Lines (Horizontal) */}
+              <div className="absolute inset-0 z-0 flex flex-col justify-between pb-8 pl-8 pr-2">
                 {[...Array(7)].map((_, i) => (
-                  <div key={`h-${i}`} className="w-full h-px border-t border-dashed border-slate-700/60"></div>
+                  <div key={`h-${i}`} className="w-full h-[1px] border-t border-dashed border-slate-700/30"></div>
                 ))}
               </div>
-              <div className="absolute inset-0 z-0 flex justify-between pl-8 pr-2">
+
+              {/* Grid Lines (Vertical) */}
+              <div className="absolute inset-0 z-0 flex justify-between pl-8 pr-2 pb-8">
                 {[...Array(
                   vitalsTimeframe === '7D' ? 7 :
                   vitalsTimeframe === '30D' ? 6 :
                   vitalsTimeframe === '3M' ? 4 : 6
                 )].map((_, i) => (
-                  <div key={`v-${i}`} className="h-full w-px border-l border-dashed border-slate-700/60"></div>
+                  <div key={`v-${i}`} className="h-full w-[1px] border-l border-dashed border-slate-700/30"></div>
                 ))}
               </div>
 
-              {/* Chart SVG */}
-              {(() => {
-                const cx = parseInt(vitalPreviewData[selectedVitalMetric]?.cx || '50');
-                const cy = parseInt(vitalPreviewData[selectedVitalMetric]?.cy || '40');
-                const { points, activeIndex } = getDynamicPoints(selectedVitalMetric, vitalsTimeframe, cx, cy);
-                const pathStr = generateSmoothPath(points);
-                const activePoint = points[activeIndex];
-                
-                return (
-                  <>
-                    <svg key={vitalsTimeframe + selectedVitalMetric} className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none" viewBox="0 0 100 100">
-                      <defs>
-                        <linearGradient id="chartGradientBeautiful" x1="0" x2="0" y1="0" y2="1">
-                          <stop offset="0%" stopColor={selectedVitalMetric === 'Heart Rate' ? '#f43f5e' : vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'} stopOpacity="0.85" />
-                          <stop offset="100%" stopColor="#0f766e" stopOpacity="0.1" />
-                        </linearGradient>
-                      </defs>
-                      <path
-                        d={`${pathStr} L100,100 L0,100 Z`}
-                        fill="url(#chartGradientBeautiful)"
-                        className="transition-all duration-700 ease-in-out"
-                      />
-                      <path
-                        d={pathStr}
-                        fill="none"
-                        stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="transition-all duration-700 ease-in-out drop-shadow-lg"
-                      />
-
-                      {/* Highlight Glow behind Active Point */}
-                      <circle cx={activePoint.x} cy={activePoint.y} r="12" fill={`${vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}40`} className="animate-pulse blur-md" />
-
-                      {/* Data Points */}
-                      {points.map((point, i) => (
-                        <circle
-                          key={`pt-${i}`}
-                          cx={point.x}
-                          cy={point.y}
-                          r={i === activeIndex ? "4" : "2"}
-                          fill="white"
-                          stroke={vitalPreviewData[selectedVitalMetric]?.color || '#f43f5e'}
-                          strokeWidth="2"
-                          className="transition-all duration-700 ease-in-out shadow-sm"
+              {/* Chart SVG container */}
+              <div className="w-full h-full relative z-10">
+                {(() => {
+                  const cx = parseInt(vitalPreviewData[selectedVitalMetric]?.cx || '50');
+                  const cy = parseInt(vitalPreviewData[selectedVitalMetric]?.cy || '40');
+                  const { points, activeIndex } = getDynamicPoints(selectedVitalMetric, vitalsTimeframe, cx, cy);
+                  const pathStr = generateSmoothPath(points);
+                  const activePoint = points[activeIndex];
+                  const chartColor = selectedVitalMetric === 'Heart Rate' ? '#ff4d6d' : vitalPreviewData[selectedVitalMetric]?.color || '#ff4d6d';
+                  
+                  return (
+                    <>
+                      <svg key={vitalsTimeframe + selectedVitalMetric} className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <defs>
+                          <linearGradient id="chartGradientPremium" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stopColor={chartColor} stopOpacity="0.4" />
+                            <stop offset="100%" stopColor={chartColor} stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        
+                        {/* Gradient Fill */}
+                        <path
+                          d={`${pathStr} L100,100 L0,100 Z`}
+                          fill="url(#chartGradientPremium)"
+                          className="transition-all duration-700 ease-in-out"
                         />
-                      ))}
-                      
-                      {/* Vertical dash line for tooltip */}
-                      <line 
-                        x1={activePoint.x} 
-                        y1={activePoint.y} 
-                        x2={activePoint.x} 
-                        y2="100" 
-                        stroke="currentColor" 
-                        strokeDasharray="3,3" 
-                        strokeWidth="1.5" 
-                        className="text-slate-500/70 transition-all duration-700 ease-in-out" 
-                      />
-                    </svg>
+                        
+                        {/* Chart Line */}
+                        <path
+                          d={pathStr}
+                          fill="none"
+                          stroke={chartColor}
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="transition-all duration-700 ease-in-out"
+                          style={{ filter: `drop-shadow(0 4px 8px ${chartColor}60)` }}
+                        />
+                        
+                        {/* Vertical Highlight Guide Line */}
+                        <line 
+                          x1={activePoint.x} 
+                          y1={activePoint.y} 
+                          x2={activePoint.x} 
+                          y2="100" 
+                          stroke="rgba(255, 255, 255, 0.15)" 
+                          strokeDasharray="4,4" 
+                          strokeWidth="1.5" 
+                          className="transition-all duration-700 ease-in-out" 
+                        />
+                        
+                        {/* Highlight Glow behind Active Point */}
+                        <circle cx={activePoint.x} cy={activePoint.y} r="14" fill={`${chartColor}30`} className="animate-pulse blur-md" />
 
-                    {/* Tooltip */}
-                    <div 
-                      className="absolute z-20 transition-all duration-700 ease-in-out"
-                      style={{
-                        left: `calc(1rem + ${activePoint.x}%)`,
-                        top: `calc(${activePoint.y}% - 60px)`,
-                        transform: 'translateX(-50%)'
-                      }}
-                    >
-                      <div className="bg-[#1e293b]/95 backdrop-blur-md border border-slate-600/60 text-white rounded-xl px-4 py-2.5 shadow-2xl relative min-w-[130px] flex flex-col items-center">
-                        <div className="text-xl font-black tracking-wide leading-none mb-1.5">{vitalPreviewData[selectedVitalMetric]?.title === 'Heart Rate' ? '72 BPM' : vitalPreviewData[selectedVitalMetric]?.title === 'SpO2' ? '98%' : vitalPreviewData[selectedVitalMetric]?.title === 'Temperature' ? '98.4 °F' : vitalPreviewData[selectedVitalMetric]?.title === 'Body Weight' ? '68 kg' : '120/80 mmHg'}</div>
-                        <div className="text-[10px] text-slate-300 font-medium whitespace-nowrap leading-none">22 Aug, 10:30 AM</div>
-                        <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap mt-1.5 leading-none flex items-center gap-1">
-                          <ArrowUpRight className="w-3 h-3 text-slate-400" /> Active Reading
+                        {/* Data Points */}
+                        {points.map((point, i) => (
+                          <circle
+                            key={`pt-${i}`}
+                            cx={point.x}
+                            cy={point.y}
+                            r={i === activeIndex ? "5" : "3"}
+                            fill="#ffffff"
+                            stroke={chartColor}
+                            strokeWidth={i === activeIndex ? "3" : "2"}
+                            className="transition-all duration-700 ease-in-out shadow-lg"
+                          />
+                        ))}
+                      </svg>
+
+                      {/* Tooltip */}
+                      <div 
+                        className="absolute z-30 transition-all duration-700 ease-in-out"
+                        style={{
+                          left: `${activePoint.x}%`,
+                          top: `calc(${activePoint.y}% - 85px)`,
+                          transform: 'translateX(-50%)'
+                        }}
+                      >
+                        <div className="bg-[#0f172a] border border-slate-700/60 rounded-2xl px-5 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col items-center">
+                          <div className="text-[22px] font-black tracking-tight text-white leading-none mb-1.5">
+                            {vitalPreviewData[selectedVitalMetric]?.title === 'Heart Rate' ? '72 BPM' : vitalPreviewData[selectedVitalMetric]?.title === 'SpO2' ? '98%' : vitalPreviewData[selectedVitalMetric]?.title === 'Temperature' ? '98.4 °F' : vitalPreviewData[selectedVitalMetric]?.title === 'Body Weight' ? '68 kg' : '120/80 mmHg'}
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap mb-2.5">22 Aug, 10:30 AM</div>
+                          <div className="flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/50">
+                            <ArrowUpRight className="w-3 h-3 text-[#10b981]" />
+                            <span className="text-[9px] text-slate-200 font-bold uppercase tracking-wider">Active Reading</span>
+                          </div>
+                          {/* Arrow down */}
+                          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-[#0f172a] border-r border-b border-slate-700/60 transform rotate-45"></div>
                         </div>
-                        {/* Tooltip caret pointing down */}
-                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#1e293b] border-r border-b border-slate-600/60 transform rotate-45"></div>
                       </div>
-                    </div>
-                  </>
-                );
-              })()}
+                    </>
+                  );
+                })()}
+              </div>
               
               {/* X-axis labels */}
-              <div className="absolute bottom-[-24px] left-8 right-2 flex justify-between text-[11px] font-medium text-slate-400">
+              <div className="absolute bottom-[-20px] left-8 right-2 flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                  {vitalsTimeframe === '7D' && <><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></>}
                  {vitalsTimeframe === '30D' && <><span>01 Aug</span><span>08 Aug</span><span>15 Aug</span><span>22 Aug</span><span>29 Aug</span><span>05 Sep</span></>}
                  {vitalsTimeframe === '3M' && <><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></>}
@@ -634,15 +645,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               </div>
               
               {/* Average text */}
-              <div className="absolute right-2 bottom-8 text-[11px] text-slate-300/80 font-medium">
+              <div className="absolute right-2 bottom-6 text-[10px] text-slate-400 font-bold bg-slate-800/30 px-2.5 py-1 rounded-md backdrop-blur-sm z-20 border border-slate-700/30">
                 Avg. Week: 70 BPM
               </div>
-
-              {/* Sparkle icon at bottom right */}
-              <Sparkles className="absolute right-[-12px] bottom-[-16px] w-10 h-10 text-slate-400/20 rotate-12" />
             </div>
           </div>
-
           {/* Today's Summary (Right 4 cols) */}
           <div className="lg:col-span-4 bg-white/90 dark:bg-[#15192b]/90 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/50 rounded-xl p-3.5 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-1.5 mb-1.5">

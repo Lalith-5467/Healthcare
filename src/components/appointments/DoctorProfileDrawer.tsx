@@ -93,25 +93,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
           </div>
         </div>
 
-        {/* FOOTER ACTIONS */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0 flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[10px] text-slate-500 uppercase font-bold block">Consultation Fee</span>
-            <strong className="text-base font-black text-slate-900 dark:text-white font-mono">₹{doctor.fee}</strong>
-          </div>
 
-          <button
-            onClick={() => {
-              onClose();
-              if (onBookDoctor) onBookDoctor(doctor);
-              if (onBookAppointment) onBookAppointment(doctor);
-            }}
-            className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Book Consultation</span>
-          </button>
-        </div>
       </div>
     </div>
   );
