@@ -33,6 +33,7 @@ import { PharmacyFilterDrawer } from './PharmacyFilterDrawer';
 import { CancelOrderModal } from './CancelOrderModal';
 import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT } from '../../services/pharmacyOrderApi';
 import { socketService } from '../../services/socketService';
+import { pharmacyApi } from '../../services/dhrApis';
 
 interface UserProfile {
   name: string;
@@ -55,8 +56,8 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // STATE & LOCALSTORAGE PERSISTENCE
-  const [pharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
+  // STATE & LOCALSTORAGE PERSISTENCE (Live from MySQL)
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
   const [stockItems] = useState<StockItem[]>(INITIAL_MEDICINE_STOCK);
   const [orders, setOrders] = useState<ExtendedPharmacyOrder[]>(INITIAL_ORDERS as ExtendedPharmacyOrder[]);
   const [prescriptions, setPrescriptions] = useState<LinkedPrescription[]>(INITIAL_PRESCRIPTIONS);
@@ -66,7 +67,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [stockFilter, setStockFilter] = useState<'All' | 'Low Stock' | 'Good Stock'>('All');
 
   // PREFERENCES
-  const [preferredPharmacy, setPreferredPharmacy] = useState<string>('HealthPlus Pharmacy');
+  const [preferredPharmacy, setPreferredPharmacy] = useState<string>('Apollo Central Pharmacy');
   const [preferredDelivery, setPreferredDelivery] = useState<'Home Delivery' | 'Pickup'>('Home Delivery');
 
   // MODALS & DRAWERS
@@ -78,7 +79,29 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
   const loadAllData = async () => {
     try {
-      const liveOrders = await fetchPatientPharmacyOrders();
+      const [liveOrders, livePharmaciesRes] = await Promise.all([
+        fetchPatientPharmacyOrders().catch(() => null),
+        pharmacyApi.getPharmacies().catch(() => null),
+      ]);
+
+      if (livePharmaciesRes && livePharmaciesRes.data && livePharmaciesRes.data.length > 0) {
+        const mappedPharms: Pharmacy[] = livePharmaciesRes.data.map((p: any) => ({
+          id: p.pharmacyId || p.id,
+          name: p.name,
+          rating: 4.8,
+          reviewCount: 142,
+          distanceKm: 1.2,
+          deliveryTime: '30–45 mins',
+          deliveryAvailable: true,
+          pickupAvailable: true,
+          address: p.address || 'Chennai, Tamil Nadu',
+          phone: p.phone || '+91 98400 12345',
+          hours: '24/7 Delivery Available',
+          isPreferred: p.tieUpStatus === 'ACTIVE',
+        }));
+        setPharmacies(mappedPharms);
+      }
+
       if (liveOrders && liveOrders.length > 0) {
         const mappedLive: ExtendedPharmacyOrder[] = liveOrders.map((bo) => ({
           id: bo.id,
@@ -134,7 +157,16 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
         fetchPatientPharmacyOrders()
           .then((live) => {
             if (live && live.length > 0) {
-              setTrackingOrder(live[0] as any);
+              const targetId = latestWf.pharmacyOrder?.id;
+              const targetRxId = latestWf.prescription?.id;
+              const matching = live.find(
+                (o) => o.id === targetId || o.prescriptionId === targetRxId || (targetId && o.id.includes(targetId))
+              );
+              if (matching) {
+                setTrackingOrder(matching as any);
+              } else {
+                setTrackingOrder(live[0] as any);
+              }
             } else {
               const loaded = getStoredPharmacyOrders();
               const found = loaded.find(

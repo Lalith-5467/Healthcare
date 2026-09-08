@@ -74,7 +74,7 @@ export class PharmacyOrderService {
    * Helper: verify pharmacist or admin authority for a specific order
    */
   private static async verifyPharmacistAuthority(
-    order: { pharmacyId: string | null },
+    order: { pharmacyId: string | null; pharmacy?: any },
     user: AuthUser
   ) {
     if (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) {
@@ -89,6 +89,7 @@ export class PharmacyOrderService {
 
     const pharmacist = await prisma.pharmacist.findUnique({
       where: { userId: user.id },
+      include: { pharmacy: true },
     });
 
     if (!pharmacist || !pharmacist.pharmacyId) {
@@ -97,7 +98,13 @@ export class PharmacyOrderService {
       throw err;
     }
 
-    if (order.pharmacyId !== pharmacist.pharmacyId) {
+    const isMatch =
+      order.pharmacyId === pharmacist.pharmacyId ||
+      order.pharmacyId === pharmacist.pharmacy?.id ||
+      order.pharmacyId === pharmacist.pharmacy?.pharmacyId ||
+      (order.pharmacy && pharmacist.pharmacy && order.pharmacy.pharmacyId === pharmacist.pharmacy.pharmacyId);
+
+    if (!isMatch) {
       const err: AppError = new Error('Access denied: You can only manage orders assigned to your registered pharmacy');
       err.statusCode = 403;
       throw err;
@@ -248,6 +255,35 @@ export class PharmacyOrderService {
       updatedAt: order.orderedAt.toISOString(),
       message: `New prescription order received #${order.id}`,
     });
+
+    // Notify Patient
+    if (prescription.patient?.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: prescription.patient.userId,
+          title: 'Pharmacy Order Placed',
+          message: `Your prescription order #${order.id.slice(-6)} has been placed with ${pharmacy.name}.`,
+          type: 'ORDER',
+          category: 'Pharmacy',
+          relatedModule: 'orders',
+        },
+      });
+    }
+
+    // Notify Pharmacists of that pharmacy
+    const pharmacists = await prisma.pharmacist.findMany({ where: { pharmacyId: pharmacy.id } });
+    for (const ph of pharmacists) {
+      await prisma.notification.create({
+        data: {
+          userId: ph.userId,
+          title: 'New Pharmacy Order Received',
+          message: `Order #${order.id.slice(-6)} from ${prescription.patient?.fullName || 'Patient'} (${order.items.length} items) is ready for fulfillment.`,
+          type: 'ORDER',
+          category: 'Pharmacy',
+          relatedModule: 'orders',
+        },
+      });
+    }
 
     return order;
   }
@@ -663,6 +699,20 @@ export class PharmacyOrderService {
       updatedAt: updatedOrder.updatedAt.toISOString(),
       message: statusMessages[updatedOrder.status] || `Order status updated to ${updatedOrder.status}`,
     });
+
+    // Notify Patient
+    if (updatedOrder.patient?.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: updatedOrder.patient.userId,
+          title: 'Pharmacy Order Update',
+          message: statusMessages[updatedOrder.status] || `Your order #${updatedOrder.id.slice(-6)} is now ${updatedOrder.status.replace(/_/g, ' ')}.`,
+          type: 'ORDER',
+          category: 'Pharmacy',
+          relatedModule: 'orders',
+        },
+      });
+    }
 
     return updatedOrder;
   }

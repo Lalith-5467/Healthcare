@@ -112,6 +112,7 @@ export function getStoredAuthToken(): string | null {
     typeof window !== 'undefined' && window.location.pathname.includes('/pharmacist');
 
   const candidateTokens = [
+    typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null,
     typeof localStorage !== 'undefined'
       ? localStorage.getItem(isPharmacistRoute ? 'pharmacist_token' : 'patient_token')
       : null,

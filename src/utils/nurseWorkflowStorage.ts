@@ -8,19 +8,49 @@ export type BookingStatus =
   | 'Arrived' // Nurse at location
   | 'Care in Progress' // Visit active
   | 'Completed' // Visit done
-  | 'Rejected'; // Nurse rejected
+  | 'Rejected' // Nurse rejected
+  | 'Cancelled';
 
 export interface CareRequest {
   id: string;
+  patientId?: string;
+  patientUserId?: string;
   patientName: string;
   patientAge: string;
+  patientGender?: string;
+  patientBloodGroup?: string;
   patientPhone?: string;
+  patientEmail?: string;
+  patientAbhaId?: string;
   serviceType: string;
+  careCategory?: string;
   prefDate: string;
+  scheduledDate?: string | Date;
   time: string;
+  duration?: string;
+  bookingType?: string;
+  repeatFrequency?: string | null;
+  endDate?: string | null;
   location: string;
+  landmark?: string;
+  city?: string;
+  pincode?: string;
+  locationType?: string;
   distanceKm?: string;
   instructions: string;
+  conditionReason?: string;
+  mobilityStatus?: string;
+  currentMedications?: string;
+  allergies?: string;
+  medicalEquipment?: string;
+  specialCareRequirements?: string;
+  nurseGenderPreference?: string;
+  preferredExperience?: string;
+  preferredLanguage?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyInstructions?: string;
+  relationshipToPatient?: string;
   status: BookingStatus;
   createdAt: number;
   nurseId?: string;
@@ -36,6 +66,7 @@ export interface CareRequest {
     bs: string;
   };
   notes?: string;
+  metadata?: any;
   checklist?: {
     id: string;
     label: string;
@@ -182,14 +213,28 @@ const getNotifications = (): NurseNotification[] => {
   }
 };
 
+import { clinicalApi } from '../services/dhrApis';
+
 export const useNurseWorkflow = () => {
   const [bookings, setBookings] = useState<CareRequest[]>(() => getBookings());
   const [notifications, setNotifications] = useState<NurseNotification[]>(() => getNotifications());
 
-  // Load initial data and set up storage event listener
+  const refreshBookings = async () => {
+    try {
+      const res = await clinicalApi.getNurseCareRequests();
+      if (res && res.data && Array.isArray(res.data)) {
+        setBookings(res.data);
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(res.data));
+      }
+    } catch {
+      // Fall back to localStorage if network request fails
+      setBookings(getBookings());
+    }
+  };
+
+  // Load initial data and set up storage & window focus listeners
   useEffect(() => {
-    setBookings(getBookings());
-    setNotifications(getNotifications());
+    refreshBookings();
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY_BOOKINGS) {
@@ -201,16 +246,22 @@ export const useNurseWorkflow = () => {
     };
 
     const handleCustomEvent = () => {
-      setBookings(getBookings());
+      refreshBookings();
       setNotifications(getNotifications());
+    };
+
+    const handleWindowFocus = () => {
+      refreshBookings();
     };
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('medicare_sync_nurse', handleCustomEvent);
+    window.addEventListener('focus', handleWindowFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('medicare_sync_nurse', handleCustomEvent);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, []);
 
@@ -257,6 +308,11 @@ export const useNurseWorkflow = () => {
     });
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
     setBookings(updated);
+    clinicalApi.updateCareRequest(id, { 
+      status, 
+      ...(extra?.notes ? { notes: extra.notes } : {}), 
+      ...(extra?.etaMinutes ? { etaMinutes: extra.etaMinutes } : {}) 
+    }).catch(() => {});
     triggerSync();
   };
   
@@ -314,6 +370,7 @@ export const useNurseWorkflow = () => {
   return {
     bookings,
     notifications,
+    refreshBookings,
     createBooking,
     updateBookingStatus,
     updateBookingData,

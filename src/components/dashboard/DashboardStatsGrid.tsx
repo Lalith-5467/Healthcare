@@ -282,6 +282,8 @@ const initialStats: StatItem[] = [
   },
 ];
 
+import { dashboardApi } from '../../services/dhrApis';
+
 /* ─────────────────────────────────────────────────────────────
    COMPONENT — grid/padding/gap UNCHANGED
    ───────────────────────────────────────────────────────────── */
@@ -289,6 +291,36 @@ const initialStats: StatItem[] = [
 export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNavigate }) => {
   const [items, setItems] = useState<StatItem[]>(initialStats);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    dashboardApi.getStats().then((res) => {
+      if (res && res.data) {
+        const d = res.data;
+        setItems((prev) =>
+          prev.map((item) => {
+            if (item.id === 'appointments') {
+              const count = d.upcomingAppointments ?? 2;
+              return {
+                ...item,
+                value: count.toString().padStart(2, '0'),
+                subtitle: `${count} upcoming scheduled`,
+                badgeText: `📅 ${count} Upcoming`,
+              };
+            }
+            if (item.id === 'medicines') {
+              const count = d.activePrescriptions ?? 3;
+              return {
+                ...item,
+                value: count.toString().padStart(2, '0'),
+                subtitle: `${count} active prescribed therapies`,
+              };
+            }
+            return item;
+          })
+        );
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isHovered) return;
@@ -301,7 +333,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
       });
     }, 3500);
     return () => clearInterval(id);
-  }, [isHovered, items]);
+  }, [isHovered]);
 
   return (
     /* ── ORIGINAL: grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 — UNCHANGED ── */

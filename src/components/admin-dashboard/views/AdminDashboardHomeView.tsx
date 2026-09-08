@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, UserCheck, Stethoscope, HeartPulse, Pill, HeartHandshake, 
@@ -7,6 +7,7 @@ import {
   Clock, ShieldAlert, Zap, Filter
 } from 'lucide-react';
 import { INITIAL_ACTIVITY_LOGS, INITIAL_ADMIN_USERS, type ActivityLogItem } from '../../../utils/adminMockStorage';
+import { dashboardApi } from '../../../services/dhrApis';
 
 interface AdminDashboardHomeViewProps {
   onNavigate: (id: string) => void;
@@ -18,16 +19,34 @@ export const AdminDashboardHomeView: React.FC<AdminDashboardHomeViewProps> = ({
   currentRole
 }) => {
   const isSuperAdmin = currentRole === 'Super Admin';
+  const [stats, setStats] = useState<any>({
+    totalUsers: 26,
+    totalPatients: 9,
+    totalDoctors: 6,
+    totalPharmacies: 4,
+    totalPrescriptions: 3,
+    totalOrders: 3,
+  });
+
+  useEffect(() => {
+    dashboardApi.getStats()
+      .then((res) => {
+        if (res && res.data) {
+          setStats((prev: any) => ({ ...prev, ...res.data }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const KPI_CARDS = [
-    { label: 'Total Registered Users', value: '12,486', change: '+14.2%', isUp: true, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
-    { label: 'Registered Patients', value: '8,420', change: '+8.4%', isUp: true, icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-    { label: 'Verified Doctors', value: '1,240', change: '+3.1%', isUp: true, icon: Stethoscope, color: 'text-teal-500', bg: 'bg-teal-500/10 border-teal-500/20' },
-    { label: 'Clinical Nurses', value: '1,850', change: '+5.6%', isUp: true, icon: HeartPulse, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20' },
-    { label: 'Licensed Pharmacists', value: '426', change: '+2.0%', isUp: true, icon: Pill, color: 'text-cyan-500', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-    { label: 'Authorized Caregivers', value: '550', change: '+11.8%', isUp: true, icon: HeartHandshake, color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/20' },
-    { label: 'Insurance / TPA Desks', value: '320', change: '+4.5%', isUp: true, icon: ShieldCheck, color: 'text-indigo-500', bg: 'bg-indigo-500/10 border-indigo-500/20' },
-    { label: 'Daily Active Concurrency', value: '9,842', change: '+19.3%', isUp: true, icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20' }
+    { label: 'Total Registered Users', value: stats.totalUsers?.toString() || '26', change: '+14.2%', isUp: true, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
+    { label: 'Registered Patients', value: stats.totalPatients?.toString() || '9', change: '+8.4%', isUp: true, icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+    { label: 'Verified Doctors', value: stats.totalDoctors?.toString() || '6', change: '+3.1%', isUp: true, icon: Stethoscope, color: 'text-teal-500', bg: 'bg-teal-500/10 border-teal-500/20' },
+    { label: 'Clinical Nurses', value: '2', change: '+5.6%', isUp: true, icon: HeartPulse, color: 'text-rose-500', bg: 'bg-rose-500/10 border-rose-500/20' },
+    { label: 'Licensed Pharmacists', value: stats.totalPharmacies?.toString() || '4', change: '+2.0%', isUp: true, icon: Pill, color: 'text-cyan-500', bg: 'bg-cyan-500/10 border-cyan-500/20' },
+    { label: 'Prescriptions Issued', value: stats.totalPrescriptions?.toString() || '3', change: '+11.8%', isUp: true, icon: FileText, color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/20' },
+    { label: 'Pharmacy Orders', value: stats.totalOrders?.toString() || '3', change: '+4.5%', isUp: true, icon: ShieldCheck, color: 'text-indigo-500', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+    { label: 'Database Health Status', value: 'Optimal', change: 'Live', isUp: true, icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20' }
   ];
 
   return (

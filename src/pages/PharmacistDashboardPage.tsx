@@ -14,6 +14,7 @@ import { ScheduleAuditView } from '../components/pharmacist/ScheduleAuditView';
 import { PharmacyBillingView } from '../components/pharmacist/PharmacyBillingView';
 import { PharmacySettingsView } from '../components/pharmacist/PharmacySettingsView';
 import { PharmacistNotificationPopover } from '../components/pharmacist/PharmacistNotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 import { showGlobalToast } from '../components/common/GlobalToastManager';
 import { getPharmacyOrders } from '../utils/healthWorkflowStorage';
 import { INITIAL_MEDICINE_STOCK } from '../components/pharmacy/pharmacyData';
@@ -40,7 +41,24 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
   const [orderFilterSubtab, setOrderFilterSubtab] = useState<string>('All');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   // Resolve logged-in username dynamically from user prop or localStorage
   const effectiveUser = React.useMemo(() => {
@@ -376,10 +394,14 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             <button
               onClick={() => setNotificationPopoverOpen(!notificationPopoverOpen)}
               className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
-              title="Dispensary Alerts & Notifications"
+              title="Notifications"
             >
               <Bell className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                </span>
+              )}
             </button>
 
             <PharmacistNotificationPopover

@@ -7,8 +7,29 @@ import medicalRecordRoutes from './medicalRecord.routes';
 import prescriptionRoutes from './prescription.routes';
 import pharmacyRoutes from './pharmacy.routes';
 import pharmacyOrderRoutes from './pharmacyOrder.routes';
+import appointmentRoutes from './appointment.routes';
+import vitalRoutes from './vital.routes';
+import reminderRoutes from './reminder.routes';
+import medicineRoutes from './medicine.routes';
+import notificationRoutes from './notification.routes';
+import dashboardRoutes from './dashboard.routes';
+import clinicalRoutes from './clinical.routes';
+import healthShareRoutes from './healthShare.routes';
+import insuranceRoutes from './insurance.routes';
+import caregiverRoutes from './caregiver.routes';
 
 const router = Router();
+
+// Base API Index
+router.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    name: 'MediCare Digital Health Record (DHR) API Gateway',
+    version: '1.0.0',
+    status: 'online',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Health Check APIs
 router.use('/health', healthRoutes);
@@ -34,4 +55,35 @@ router.use('/pharmacies', pharmacyRoutes);
 // Pharmacy Order Routing APIs
 router.use('/pharmacy-orders', pharmacyOrderRoutes);
 
+// Appointments APIs
+router.use('/appointments', appointmentRoutes);
+
+// Vitals & Telemetry APIs
+router.use('/vitals', vitalRoutes);
+
+// Reminders & Follow-up Tracking APIs
+router.use('/reminders', reminderRoutes);
+
+// Medicines Inventory & Active Doses APIs
+router.use('/medicines', medicineRoutes);
+
+// Notifications APIs
+router.use('/notifications', notificationRoutes);
+
+// Dashboard Aggregates & Stats APIs
+router.use('/dashboard', dashboardRoutes);
+
+// Clinical Workflows APIs (Doctor & Nurse)
+router.use('/clinical', clinicalRoutes);
+
+// Secure QR & Health Share APIs
+router.use('/health-share', healthShareRoutes);
+
+// Insurance Policies, Claims & Settlements APIs
+router.use('/insurance', insuranceRoutes);
+
+// Caregiver Wards, Tasks & Telemetry APIs
+router.use('/caregiver', caregiverRoutes);
+
 export default router;
+

@@ -124,13 +124,54 @@ const mockSlots = [
   }
 ];
 
+import { appointmentApi } from '../../../services/dhrApis';
+
 export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation, onViewProfile, onViewConsultation }) => {
+  const [liveAppointments, setLiveAppointments] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('Today');
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
 
   const statuses = ['All', 'Scheduled', 'In Consultation', 'Completed', 'Delayed', 'No-show', 'Cancelled'];
+
+  const loadAppointments = async () => {
+    try {
+      const res = await appointmentApi.getAppointments();
+      if (res && res.data && res.data.length > 0) {
+        const mapped = res.data.map((apt: any, idx: number) => {
+          const p = apt.patient || {};
+          const u = p.user || {};
+          const isToday = new Date(apt.appointmentDate).toDateString() === new Date().toDateString();
+          return {
+            id: apt.id,
+            recordId: `${idx + 1}`,
+            patientId: p.id ? p.id.slice(-6).toUpperCase() : `PT-${10200 + idx}`,
+            patientName: p.fullName || u.email?.split('@')[0] || 'Patient',
+            age: p.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 35,
+            gender: p.gender || 'Male',
+            time: apt.slotTime || '10:00 AM',
+            date: isToday ? 'Today' : new Date(apt.appointmentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+            type: apt.type === 'VIDEO' ? 'Tele-Consultation' : 'OPD In-Clinic',
+            status: apt.status === 'CONFIRMED' ? 'Scheduled' : apt.status === 'COMPLETED' ? 'Completed' : apt.status === 'CANCELLED' ? 'Cancelled' : 'Scheduled',
+            reason: apt.reason || 'Routine Consultation',
+            isTele: apt.type === 'VIDEO',
+            department: 'Cardiology',
+            meetingLink: apt.meetingLink,
+          };
+        });
+        setLiveAppointments(mapped);
+      }
+    } catch (err: any) {
+      console.error('Failed to load appointments from MySQL:', err?.message);
+    }
+  };
+
+  React.useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const allSlots = liveAppointments.length > 0 ? liveAppointments : mockSlots;
 
   const getInitials = (name: string) => {
     const parts = name.replace('Mrs. ', '').replace('Dr. ', '').split(' ');
@@ -165,7 +206,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
   };
 
   const filteredSlots = useMemo(() => {
-    return mockSlots.filter(apt => {
+    return allSlots.filter(apt => {
       // Date filter
       if (dateFilter !== 'All Dates' && apt.date !== dateFilter) return false;
       
@@ -183,15 +224,15 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       return true;
     });
-  }, [searchQuery, statusFilter, dateFilter]);
+  }, [allSlots, searchQuery, statusFilter, dateFilter]);
 
   // Summary stats
-  const totalToday = mockSlots.filter(s => s.date === 'Today').length;
-  const totalCompleted = mockSlots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
-  const totalWaiting = mockSlots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
-  const totalDelayed = mockSlots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
-  const totalNoShow = mockSlots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
-  const totalCancelled = mockSlots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
+  const totalToday = allSlots.filter(s => s.date === 'Today').length;
+  const totalCompleted = allSlots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
+  const totalWaiting = allSlots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
+  const totalDelayed = allSlots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
+  const totalNoShow = allSlots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
+  const totalCancelled = allSlots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
 
   return (
     <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto relative">

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { QrCode, CheckCircle2, Share2, ExternalLink, Copy, Check } from 'lucide-react';
+import { QrCode, CheckCircle2, Share2, ExternalLink, Copy, Check, ShieldCheck } from 'lucide-react';
 import { QRModal } from './QRModal';
+import { PatientAccessRequestsModal } from './PatientAccessRequestsModal';
 import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 
 interface HealthAccessCardProps {
@@ -16,6 +17,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   onToast
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [requestsModalOpen, setRequestsModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -94,11 +96,15 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         {/* ICON-TRIO ROW (Share / Verified / Filter) — matches reference design */}
         <div className="flex items-center justify-around mb-3 relative z-10">
           {[
-            { icon: Share2, label: 'Share', color: '#059669', bg: 'rgba(16,185,129,.1)' },
-            { icon: CheckCircle2, label: 'Verified', color: '#0891b2', bg: 'rgba(6,182,212,.1)' },
-            { icon: Copy, label: 'Filter', color: '#7c3aed', bg: 'rgba(124,58,237,.1)' },
-          ].map(({ icon: IconComp, label, color, bg }) => (
-            <button key={label} className="flex flex-col items-center gap-1 cursor-pointer group/ico">
+            { icon: ShieldCheck, label: 'Consents', color: '#059669', bg: 'rgba(16,185,129,.1)', onClick: () => setRequestsModalOpen(true) },
+            { icon: CheckCircle2, label: 'Verified', color: '#0891b2', bg: 'rgba(6,182,212,.1)', onClick: () => setModalOpen(true) },
+            { icon: Copy, label: 'Copy ABHA', color: '#7c3aed', bg: 'rgba(124,58,237,.1)', onClick: handleCopy },
+          ].map(({ icon: IconComp, label, color, bg, onClick }) => (
+            <button 
+              key={label} 
+              onClick={onClick}
+              className="flex flex-col items-center gap-1 cursor-pointer group/ico"
+            >
               <div className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover/ico:scale-110" style={{ background: bg }}>
                 <IconComp className="w-4 h-4" style={{ color }} />
               </div>
@@ -107,7 +113,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
           ))}
         </div>
 
-        {/* FOOTER BUTTONS — unchanged logic */}
+        {/* FOOTER BUTTONS */}
         <div className="flex items-center gap-3 relative z-10 font-sans">
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -123,14 +129,11 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleCopy}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-800 text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            onClick={() => setRequestsModalOpen(true)}
+            className="flex-1 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-white text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
           >
-            {copied ? (
-              <><Check className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600">Copied</span></>
-            ) : (
-              <><Share2 className="w-4 h-4" /><span>Copy ID</span></>
-            )}
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Access Consents</span>
           </motion.button>
         </div>
       </motion.div>
@@ -140,6 +143,12 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         onClose={() => setModalOpen(false)}
         abhaId={abhaId}
         userName={userName}
+      />
+
+      <PatientAccessRequestsModal
+        isOpen={requestsModalOpen}
+        onClose={() => setRequestsModalOpen(false)}
+        onToast={onToast}
       />
     </>
   );

@@ -16,6 +16,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { getPharmacyOrders } from '../../utils/healthWorkflowStorage';
+import { notificationApi } from '../../services/dhrApis';
 
 export interface PharmacistNotificationItem {
   id: string;
@@ -84,6 +85,18 @@ const INITIAL_PHARMACIST_NOTIFICATIONS: PharmacistNotificationItem[] = [
   }
 ];
 
+const formatTimeAgo = (dateStr?: string) => {
+  if (!dateStr) return 'Just now';
+  const diff = Math.max(0, Date.now() - new Date(dateStr).getTime());
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
 interface PharmacistNotificationPopoverProps {
   isOpen: boolean;
   onClose: () => void;
@@ -95,70 +108,64 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
   onClose,
   onNavigate
 }) => {
-  const [notifications, setNotifications] = useState<PharmacistNotificationItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('pharmacist_notifications_list');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_PHARMACIST_NOTIFICATIONS;
-  });
-
+  const [notifications, setNotifications] = useState<PharmacistNotificationItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all');
 
-  // Sync with real incoming orders
-  useEffect(() => {
-    const orders = getPharmacyOrders();
-    const pendingOrders = orders.filter((o) => (o.status as string) === 'Pending Pharmacist Verification' || (o.status as string) === 'PENDING');
-    if (pendingOrders.length > 0) {
-      setNotifications((prev) => {
-        const hasLatestPending = prev.some((n) => n.id === `order-${pendingOrders[0].id}`);
-        if (!hasLatestPending) {
-          const newNotif: PharmacistNotificationItem = {
-            id: `order-${pendingOrders[0].id}`,
-            title: `New Prescription Order #${pendingOrders[0].id.slice(-6)}`,
-            message: `${pendingOrders[0].patientName || 'Patient'} submitted an order with ${pendingOrders[0].items?.length || 3} prescribed items.`,
-            category: 'order',
-            time: 'Just now',
-            isRead: false,
-            isUrgent: true,
-            actionNav: 'orders',
-            actionLabel: 'Review Order'
-          };
-          const updated = [newNotif, ...prev];
-          localStorage.setItem('pharmacist_notifications_list', JSON.stringify(updated));
-          return updated;
-        }
-        return prev;
-      });
-    }
-  }, [isOpen]);
-
-  const saveNotifications = (newNotifs: PharmacistNotificationItem[]) => {
-    setNotifications(newNotifs);
+  const loadNotifications = async () => {
     try {
-      localStorage.setItem('pharmacist_notifications_list', JSON.stringify(newNotifs));
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        const mapped: PharmacistNotificationItem[] = res.data.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          category: (n.category?.toLowerCase() || 'order') as any,
+          time: formatTimeAgo(n.createdAt),
+          isRead: n.isRead,
+          isUrgent: n.type === 'ALERT' || n.title.toLowerCase().includes('urgent'),
+          actionNav: n.relatedModule || 'orders',
+          actionLabel: 'View Details'
+        }));
+        setNotifications(mapped);
+        return;
+      }
     } catch {}
   };
+
+  useEffect(() => {
+    loadNotifications();
+    const handleUpdate = () => loadNotifications();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, [isOpen]);
 
   const handleMarkRead = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    notificationApi.markAsRead(id).catch(() => {});
     const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-    saveNotifications(updated);
+    setNotifications(updated);
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const handleMarkAllRead = () => {
+    notificationApi.markAllAsRead().catch(() => {});
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
-    saveNotifications(updated);
+    setNotifications(updated);
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const handleClearAll = () => {
-    saveNotifications([]);
+    notificationApi.markAllAsRead().catch(() => {});
+    setNotifications([]);
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const handleRemoveSingle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    notificationApi.markAsRead(id).catch(() => {});
     const updated = notifications.filter((n) => n.id !== id);
-    saveNotifications(updated);
+    setNotifications(updated);
+    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const handleActionClick = (notif: PharmacistNotificationItem) => {
@@ -198,18 +205,19 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
 
   return (
     <>
-      <div 
-        className="fixed inset-0 z-40 cursor-default" 
-        onClick={onClose} 
-      />
       <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 12, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="absolute right-0 top-14 w-84 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden font-sans text-xs"
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200" 
+          onClick={onClose}
         >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden font-sans text-xs max-h-[85vh] flex flex-col"
+          >
         {/* HEADER */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-teal-500/10 to-transparent dark:from-teal-950/30">
           <div className="flex items-center gap-2.5">
@@ -369,7 +377,8 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
           </button>
         </div>
       </motion.div>
-    </AnimatePresence>
-    </>
-  );
+    </div>
+  </AnimatePresence>
+  </>
+);
 };

@@ -7,6 +7,12 @@ import type { MedicineItem, DoseRecord } from '../components/medicines/medicines
 import { INITIAL_MEDICINES, INITIAL_TODAY_DOSES } from '../components/medicines/medicinesData';
 import type { MedicalRecordItem } from '../components/records/recordsData';
 import { INITIAL_RECORDS } from '../components/records/recordsData';
+import {
+  recordApi,
+  reminderApi,
+  pharmacyApi,
+  notificationApi,
+} from '../services/dhrApis';
 
 // LOCAL STORAGE KEYS
 export const STORAGE_KEYS = {
@@ -96,6 +102,21 @@ export const saveReminder = (reminder: ExtendedReminderItem): boolean => {
   const exists = current.some((r) => r.id === reminder.id);
   const updated = exists ? current.map((r) => (r.id === reminder.id ? reminder : r)) : [reminder, ...current];
   const ok = setStoredJSON(STORAGE_KEYS.REMINDERS, updated);
+
+  // Sync to Backend MySQL asynchronously
+  reminderApi.createReminder({
+    title: reminder.title,
+    type: reminder.category === 'Medication' ? 'MEDICATION' : 'APPOINTMENT',
+    scheduledTime: reminder.time || '09:00 AM',
+    frequency: reminder.repeat || 'Once daily',
+    status: 'ACTIVE',
+    sourcePrescriptionId: reminder.sourcePrescriptionId,
+    doctorName: reminder.doctorName,
+    clinicName: reminder.clinicName,
+    followUpStatus: reminder.followUpStatus || 'Pending',
+    priority: reminder.priority || 'Normal',
+  }).catch(() => {});
+
   if (ok) dispatchWorkflowEvent('health_workflow_updated');
   return ok;
 };
@@ -124,6 +145,10 @@ export const updateReminderFollowUpStatus = (
   }
 
   const ok = setStoredJSON(STORAGE_KEYS.REMINDERS, updated);
+
+  // Sync to Backend MySQL API
+  reminderApi.updateFollowUpStatus(reminderId, newStatus).catch(() => {});
+
   if (ok) {
     // Add Notification Log
     addNotification({
@@ -219,8 +244,16 @@ export const updatePharmacyOrderStatus = (
   }
 
   const ok = setStoredJSON(STORAGE_KEYS.PHARMACY_ORDERS, updated);
+
+  // Sync to Backend MySQL
+  const isDeclined = newStatus === 'Declined by Pharmacist' || newStatus === 'Cancelled';
+  if (isDeclined) {
+    pharmacyApi.declineOrder(orderId, declineReason || 'Declined by Pharmacist').catch(() => {});
+  } else {
+    pharmacyApi.updateOrderStatus(orderId, newStatus, pharmacistNotes).catch(() => {});
+  }
+
   if (ok) {
-    const isDeclined = newStatus === 'Declined by Pharmacist' || newStatus === 'Cancelled';
     addNotification({
       id: `NOTIF-PHARM-STATUS-${Date.now().toString().slice(-5)}`,
       title: isDeclined ? 'Pharmacy Order Declined' : 'Pharmacy Order Verified & Processing',
@@ -314,6 +347,19 @@ export const saveMedicalRecord = (record: MedicalRecordItem): boolean => {
   const current = getMedicalRecords();
   const exists = current.some((r) => r.id === record.id);
   const updated = exists ? current.map((r) => (r.id === record.id ? record : r)) : [record, ...current];
+  
+  // Asynchronously sync record to MySQL backend
+  recordApi.createMedicalRecord({
+    title: record.title,
+    type: record.type?.toUpperCase().replace(/ /g, '_') || 'OTHER',
+    hospital: record.hospital,
+    status: record.status || 'Normal',
+    fileName: record.fileName,
+    fileSize: record.fileSize,
+    isImportant: record.isImportant ?? false,
+    notes: record.notes,
+  }).catch(() => {});
+
   return setStoredJSON(STORAGE_KEYS.MEDICAL_RECORDS, updated);
 };
 

@@ -225,11 +225,20 @@ const getDoctorRecords = (): DoctorPatientRecord[] => {
   }
 };
 
+import { clinicalApi } from '../services/dhrApis';
+
 export const useDoctorWorkflow = () => {
   const [records, setRecords] = useState<DoctorPatientRecord[]>(() => getDoctorRecords());
 
   useEffect(() => {
-    setRecords(getDoctorRecords());
+    clinicalApi.getDoctorPatients()
+      .then((res) => {
+        if (res && res.data && res.data.length > 0) {
+          setRecords(res.data);
+          localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(res.data));
+        }
+      })
+      .catch(() => {});
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY_DOCTOR) {

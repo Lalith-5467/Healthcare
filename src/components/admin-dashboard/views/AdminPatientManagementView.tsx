@@ -1,15 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   UserCheck, Search, Filter, Stethoscope, FileText, Activity, 
   ChevronRight, Eye, ShieldAlert, HeartPulse, UserX
 } from 'lucide-react';
 import { INITIAL_PATIENTS, type PatientAdminRecord } from '../../../utils/adminMockStorage';
+import { adminApi, authApi } from '../../../services/dhrApis';
+import { setAuthToken } from '../../../services/apiClient';
 
 export const AdminPatientManagementView: React.FC = () => {
   const [patients, setPatients] = useState<PatientAdminRecord[]>(INITIAL_PATIENTS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<PatientAdminRecord | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await adminApi.getUsers({ role: 'PATIENT' });
+        if (res && res.data && res.data.length > 0) {
+          const mapped: PatientAdminRecord[] = res.data.map((u: any, idx: number) => {
+            const prof = u.patient || u.profile || {};
+            return {
+              id: `PAT-${idx + 1}`,
+              patientId: u.id.slice(-6).toUpperCase(),
+              name: prof.fullName || u.email.split('@')[0],
+              age: prof.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(prof.dateOfBirth).getFullYear()) : 34,
+              gender: (prof.gender as any) || 'Male',
+              phone: u.phoneNumber || '+91 98401 23456',
+              bloodGroup: prof.bloodGroup || 'O+',
+              assignedDoctor: 'Dr. Rajesh Varma',
+              status: u.isActive ? 'Active' : 'Disabled',
+              lastVisit: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              abhaId: u.abhaId || '91-8472-9104-5821',
+              admittedWard: 'Outpatient (OPD)',
+            };
+          });
+          setPatients(mapped);
+        }
+      } catch (err: any) {
+        console.error('Failed to load patient management data:', err?.message);
+      }
+    };
+    load();
+  }, []);
 
   const filtered = patients.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

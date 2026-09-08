@@ -4,7 +4,7 @@ import { Search, Bell, Sparkles, User, Settings, LogOut, Home } from 'lucide-rea
 import { getGreeting } from '../../utils/greeting';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
-import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
+import { notificationApi } from '../../services/dhrApis';
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -16,7 +16,7 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  userName = 'Samson',
+  userName = 'Patient',
   onOpenNotifications,
   onOpenProfile,
   onNavigateHome,
@@ -35,18 +35,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     year: 'numeric'
   });
 
-  const checkUnreadCount = () => {
-    const saved = localStorage.getItem('user_notifications');
-    if (saved) {
-      try {
-        const notifs = JSON.parse(saved);
-        setUnreadCount(notifs.filter((n: any) => !n.isRead).length);
-      } catch (e) {
-        setUnreadCount(INITIAL_NOTIFICATIONS.filter(n => !n.isRead).length);
+  const checkUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadCount(res.data.filter((n: any) => !n.isRead).length);
       }
-    } else {
-      setUnreadCount(INITIAL_NOTIFICATIONS.filter(n => !n.isRead).length);
-    }
+    } catch {}
   };
 
   useEffect(() => {

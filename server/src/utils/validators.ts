@@ -62,7 +62,7 @@ export const roleUpdateSchema = z.object({
 // MEDICAL RECORD VALIDATION SCHEMAS
 // ==========================================
 export const createMedicalRecordSchema = z.object({
-  patientId: z.string().min(1, 'patientId is required'),
+  patientId: z.string().optional(),
   title: z.string().min(1, 'title is required').max(200),
   type: z.nativeEnum(RecordType).optional(),
   hospital: z.string().max(200).optional(),
@@ -104,7 +104,7 @@ export const prescriptionItemInputSchema = z.object({
 });
 
 export const createPrescriptionSchema = z.object({
-  patientId: z.string().min(1, 'patientId is required'),
+  patientId: z.string().optional(),
   diagnosis: z.string().max(2000).optional(),
   notes: z.string().max(5000).optional(),
   validUntil: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)).optional(),

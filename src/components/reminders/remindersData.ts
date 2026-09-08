@@ -1,18 +1,18 @@
 export interface ReminderItem {
   id: string;
   title: string;
-  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System';
+  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System' | 'Clinical Access' | string;
   description: string;
   date: string; // e.g. "24 Aug 2026"
   time: string; // e.g. "12:30 PM"
   repeat: 'Does not repeat' | 'Daily' | 'Weekly' | 'Monthly' | 'Custom';
   customDays?: string[];
   timing: 'At scheduled time' | '5 minutes before' | '15 minutes before' | '30 minutes before' | '1 hour before' | '1 day before';
-  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled';
+  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled' | string;
   priority: 'Normal' | 'Important' | 'High Priority';
   completedTime?: string;
   snoozedUntil?: string;
-  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation' | 'health-share' | 'dashboard' | string;
   sourcePrescriptionId?: string;
   doctorName?: string;
   clinicName?: string;
@@ -24,11 +24,11 @@ export interface NotificationLog {
   id: string;
   title: string;
   description: string;
-  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System';
+  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System' | 'Clinical Access' | string;
   timeAgo: string;
   date: string;
   isRead: boolean;
-  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation' | 'health-share' | 'dashboard' | string;
 }
 
 export interface NotificationSettingsState {

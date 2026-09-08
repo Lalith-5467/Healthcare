@@ -12,6 +12,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
+import { prescriptionApi } from '../../../services/dhrApis';
 
 export const ClinicalNotesPrescriptionsView: React.FC = () => {
   const { records, addPrescription, saveClinicalNotes } = useDoctorWorkflow();
@@ -38,6 +39,23 @@ export const ClinicalNotesPrescriptionsView: React.FC = () => {
       instructions: newInstructions,
       isAntibiotic: newMedName.toLowerCase().includes('cillin') || newMedName.toLowerCase().includes('biotic')
     });
+
+    // Sync to MySQL Database
+    prescriptionApi.createPrescription({
+      patientId: selectedPatient.patientId || selectedPatient.id,
+      diagnosis: selectedPatient.diagnosis?.join(', ') || 'Clinical Consultation',
+      notes: notesText || `Prescription issued by attending doctor`,
+      items: [
+        {
+          medicineName: newMedName,
+          dosage: newDose,
+          unit: 'mg',
+          frequency: newFrequency,
+          durationDays: 7,
+          instructions: newInstructions || 'Take as prescribed',
+        }
+      ]
+    }).catch(() => {});
 
     setNewMedName('');
     setNewDose('');

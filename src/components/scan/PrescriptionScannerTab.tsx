@@ -49,6 +49,7 @@ import {
 } from '../../utils/healthWorkflowStorage';
 import type { WorkflowConfirmationResult, ExtendedReminderItem } from '../../utils/healthWorkflowStorage';
 import { INITIAL_PHARMACIES, type Pharmacy } from '../pharmacy/pharmacyData';
+import { OrderTrackingModal } from '../pharmacy/OrderTrackingModal';
 
 interface PrescriptionScannerTabProps {
   user?: {
@@ -76,7 +77,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   const [step, setStep] = useState<'upload' | 'scanning' | 'review' | 'success'>('upload');
 
   // CUSTOM PATIENT NAME
-  const [patientNameInput, setPatientNameInput] = useState<string>(user?.name || 'Ragul Kumar');
+  const [patientNameInput, setPatientNameInput] = useState<string>(user?.name || 'Patient');
   const [isEditingPatientName, setIsEditingPatientName] = useState(false);
 
   // Sync patient name if user object updates
@@ -107,6 +108,8 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   const [isPharmacyPickerOpen, setIsPharmacyPickerOpen] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authDeclinedNotice, setAuthDeclinedNotice] = useState<string | null>(null);
+  const [isLiveTrackingOpen, setIsLiveTrackingOpen] = useState<boolean>(false);
+  const [liveTrackingOrder, setLiveTrackingOrder] = useState<any>(null);
 
   // Fetch available registered tie-up pharmacies from backend if available
   useEffect(() => {
@@ -202,7 +205,8 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         setPatientNameInput(extracted.patientName);
       }
       setStep('review');
-      onToast('✓ Prescription data extracted. Review details and select pharmacy.');
+      setShowAuthModal(true);
+      onToast('✓ Prescription scanned! Choose your preferred fulfillment action.');
     } catch (err) {
       console.error(err);
       setScanError('Unable to parse document automatically. You can complete the fields manually.');
@@ -312,6 +316,98 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     onToast('✕ Prescription transfer authorization was cancelled.');
   };
 
+  // SAVE TO PERSONAL HEALTH RECORDS ONLY (NO PHARMACY ORDER TRANSMISSION)
+  const handleSaveToRecordsOnly = async () => {
+    if (!prescriptionData) {
+      onToast('Please review your prescription details before saving.');
+      return;
+    }
+    setShowAuthModal(false);
+    setAuthDeclinedNotice(null);
+    setIsConfirming(true);
+    setConfirmStatusText('Saving prescription to Digital Health Locker...');
+
+    try {
+      const chosenPharm = {
+        id: 'VAULT',
+        name: 'Personal Health Locker',
+        address: 'Secured ABDM Record Vault',
+      };
+
+      const result = processPrescriptionConfirmation(prescriptionData, chosenPharm);
+      const vaultResult: any = {
+        ...result,
+        pharmacyOrder: null,
+      };
+
+      // Also persist to backend DB if logged in
+      try {
+        const { getStoredAuthToken } = await import('../../services/pharmacyOrderApi');
+        const token = getStoredAuthToken();
+        if (token) {
+          const profRes = await fetch('http://localhost:5000/api/profile/patient', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const profData = await profRes.json();
+          const patientId = profData?.data?.id;
+
+          if (patientId) {
+            const rxPayload = {
+              patientId,
+              diagnosis: prescriptionData.notes || 'Clinical Prescription Scan',
+              notes: `Doctor: ${prescriptionData.doctorName} (${prescriptionData.clinicName}). Patient: ${prescriptionData.patientName || 'Patient'}. Saved to personal record vault.`,
+              items: (prescriptionData.medicines || []).map((m) => ({
+                medicineName: m.name,
+                dosage: m.dosage || '1',
+                unit: 'mg',
+                frequency: m.frequency || 'Once daily',
+                durationDays: m.duration ? parseInt(m.duration, 10) || 7 : 7,
+                instructions: m.instructions || 'Take as prescribed',
+                foodInstruction: m.foodInstruction || 'After food',
+              })),
+            };
+
+            const rxRes = await fetch('http://localhost:5000/api/prescriptions', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(rxPayload),
+            });
+
+            if (rxRes.ok) {
+              const rxCreated = await rxRes.json();
+              const rxId = rxCreated?.data?.id;
+              if (rxId) {
+                await fetch(`http://localhost:5000/api/prescriptions/${rxId}/confirm`, {
+                  method: 'PATCH',
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+              }
+            }
+          }
+        }
+      } catch (backendErr) {
+        console.warn('Backend record save warning:', backendErr);
+      }
+
+      setConfirmationResult(vaultResult);
+      setLatestWorkflow(vaultResult);
+      if (vaultResult.reminderItem) {
+        setLatestReminder(vaultResult.reminderItem);
+      }
+
+      setIsConfirming(false);
+      setStep('success');
+      onToast('✓ Prescription saved to your Digital Health Locker!');
+    } catch (err) {
+      console.error(err);
+      setIsConfirming(false);
+      onToast('Failed to save to health records. Please try again.');
+    }
+  };
+
   // ACCEPT AUTHENTICATION & DISPATCH TO PHARMACY
   const handleConfirmPrescription = async () => {
     if (!prescriptionData) {
@@ -324,10 +420,10 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     setConfirmStatusText(`Authenticating transfer to ${selectedPharmacy?.name || 'Pharmacy'}...`);
 
     // Multi-stage visual loading sequence to ensure clear status feedback
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 500));
     setConfirmStatusText(`Routing order to ${selectedPharmacy?.name || 'Pharmacy'}...`);
 
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 500));
 
     try {
       const chosenPharm = selectedPharmacy || {
@@ -341,11 +437,6 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         name: chosenPharm.name,
         address: chosenPharm.address,
       });
-      setConfirmationResult(result);
-      setLatestWorkflow(result);
-      if (result.reminderItem) {
-        setLatestReminder(result.reminderItem);
-      }
 
       // 2. Submit to DHR Backend Database & Dispatch to Registered Pharmacist Realtime Queue
       try {
@@ -420,12 +511,13 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                         pharmacyName: chosenPharm.name,
                         pharmacyId: chosenPharm.id,
                         sourcePrescriptionId: rxId,
-                        status: 'Pending Pharmacist Verification',
-                        progressPercent: 20,
+                        status: 'PENDING',
+                        progressPercent: 15,
                       },
                     };
                     setConfirmationResult(updatedResult);
                     setLatestWorkflow(updatedResult);
+                    setLiveTrackingOrder(realOrder);
                   }
                 }
               }
@@ -436,11 +528,21 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         console.error('Backend submission warning:', backendErr);
       }
 
+      if (!liveTrackingOrder && result.pharmacyOrder) {
+        setConfirmationResult(result);
+        setLatestWorkflow(result);
+        setLiveTrackingOrder(result.pharmacyOrder);
+      }
+
+      if (result.reminderItem) {
+        setLatestReminder(result.reminderItem);
+      }
+
       setConfirmStatusText('Prescription submitted successfully.');
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 200));
       setIsConfirming(false);
       setStep('success');
-      onToast(`✓ Authenticated! Prescription transferred to ${chosenPharm.name}.`);
+      onToast(`✓ Transmitted! Live order request sent to ${chosenPharm.name}.`);
     } catch (err) {
       console.error(err);
       setIsConfirming(false);
@@ -572,7 +674,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 ) : (
                   <div className="flex items-center gap-2 mt-0.5">
                     <h3 className="text-base font-black text-slate-900 dark:text-white">
-                      {patientNameInput || 'Ragul Kumar'}
+                      {patientNameInput || user?.name || 'Patient'}
                     </h3>
                     <button
                       type="button"
@@ -1562,27 +1664,48 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
               <div className="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs text-teal-950 dark:text-teal-200 flex items-start gap-2.5">
                 <Lock className="w-4 h-4 text-[#00a896] shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
-                  I authorize the Digital Health Record (DHR) system to transmit this prescription to <strong>{selectedPharmacy.name}</strong> for clinical verification, inventory reservation, and dispatch.
+                  Choose how you want to proceed. You can transmit this prescription for live pharmacy fulfillment and real-time tracking, save it to your personal Health Locker only, or edit your medications.
                 </p>
               </div>
 
-              {/* 4. ACTIONS */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={handleDeclineAuth}
-                  className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5"
-                >
-                  <X className="w-4 h-4 text-rose-500" />
-                  <span>Decline / Cancel</span>
-                </button>
+              {/* 4. ACTIONS / PERMISSION CHOICES */}
+              <div className="space-y-2.5 pt-1">
+                {/* PRIMARY: SEND TO PHARMACY & TRACK LIVE */}
                 <button
                   type="button"
                   onClick={handleConfirmPrescription}
-                  className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-[#00897b] hover:to-teal-700 text-white font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-[#00897b] hover:to-teal-700 text-white font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center justify-between gap-2 cursor-pointer group"
                 >
-                  <Check className="w-4 h-4" />
-                  <span>Accept & Authorize Transfer</span>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-white shrink-0" />
+                    <span className="text-left font-black">Send Request to Pharmacy & Track Live</span>
+                  </div>
+                  <span className="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider group-hover:bg-white/30 transition-colors">
+                    Fulfill Order →
+                  </span>
+                </button>
+
+                {/* SECONDARY: SAVE TO HEALTH LOCKER ONLY */}
+                <button
+                  type="button"
+                  onClick={handleSaveToRecordsOnly}
+                  className="w-full py-3 px-4 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-700 dark:text-cyan-300 font-extrabold text-xs transition-colors flex items-center justify-between gap-2 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileCheck2 className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
+                    <span>Save to Digital Health Locker Only (No Pharmacy)</span>
+                  </div>
+                  <span className="text-[10px] font-mono opacity-80">Vault Only</span>
+                </button>
+
+                {/* CANCEL / EDIT */}
+                <button
+                  type="button"
+                  onClick={handleDeclineAuth}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5"
+                >
+                  <X className="w-4 h-4 text-slate-400" />
+                  <span>Review & Edit Medications First</span>
                 </button>
               </div>
             </motion.div>
@@ -1666,14 +1789,22 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLiveTrackingOpen(true)}
+                  className="flex-1 py-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Track Live Status Popup →</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => onNavigate('pharmacy')}
-                  className="w-full py-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  className="py-3 px-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 text-xs font-extrabold transition-all border border-teal-500/20 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Track Pharmacy Order →</span>
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Pharmacy View</span>
                 </button>
               </div>
             </div>
@@ -1770,6 +1901,13 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
           </div>
         </motion.div>
       )}
+
+      {/* LIVE TRACKING MODAL */}
+      <OrderTrackingModal
+        isOpen={isLiveTrackingOpen}
+        order={liveTrackingOrder || confirmationResult?.pharmacyOrder || null}
+        onClose={() => setIsLiveTrackingOpen(false)}
+      />
     </div>
   );
 };

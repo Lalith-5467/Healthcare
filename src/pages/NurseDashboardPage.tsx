@@ -21,18 +21,43 @@ import { NurseHistoryView } from '../components/nurse-dashboard/views/NurseHisto
 import { NurseAlertsView } from '../components/nurse-dashboard/views/NurseAlertsView';
 import { NurseProfileView } from '../components/nurse-dashboard/views/NurseProfileView';
 import { NurseSettingsView } from '../components/nurse-dashboard/views/NurseSettingsView';
-import { useNurseWorkflow } from '../utils/nurseWorkflowStorage';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 
 interface NurseDashboardPageProps {
   onLogout: () => void;
   user?: { name: string; email: string };
+  initialNavId?: string;
+  onNavigate?: (navId: string) => void;
 }
 
-export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout, user }) => {
-  const [activeNav, setActiveNav] = useState('dashboard');
+export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const [activeNav, setActiveNav] = useState(initialNavId || 'dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { notifications } = useNurseWorkflow();
-  const unreadNotifs = notifications.filter(n => !n.read).length;
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNav(initialNavId);
+    }
+  }, [initialNavId]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   const nurseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Sarah Jenkins, RN';
 
@@ -108,13 +133,15 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
           {/* Notifications */}
           <button 
             type="button"
-            onClick={() => setActiveNav('alerts')}
+            onClick={() => setNotificationPopoverOpen(true)}
             className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
-            title="Emergency Alerts"
+            title="Nurse Notifications & Alerts"
           >
             <Bell className="w-5 h-5 text-rose-500" />
-            {unreadNotifs > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
+                {unreadNotificationsCount}
+              </span>
             )}
           </button>
 
@@ -202,6 +229,16 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
           {renderActiveView()}
         </main>
       </div>
+
+      {/* NOTIFICATIONS POPOVER */}
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          setActiveNav('alerts');
+        }}
+      />
     </div>
   );
 };

@@ -18,6 +18,7 @@ import { UploadRecordModal } from './UploadRecordModal';
 import { ShareRecordModal } from './ShareRecordModal';
 import { DeleteRecordModal } from './DeleteRecordModal';
 import { RecordsSkeleton } from './RecordsSkeleton';
+import { recordApi } from '../../services/dhrApis';
 
 interface UserProfile {
   name: string;
@@ -40,7 +41,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // RECORDS STATE (Persisted in localStorage)
+  // RECORDS STATE (Live from MySQL)
   const [records, setRecords] = useState<MedicalRecordItem[]>(INITIAL_RECORDS);
 
   // CATEGORY, SEARCH & VIEW STATES
@@ -69,18 +70,44 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
     hospital: 'All'
   });
 
-  // Load records from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('user_medical_records');
-    if (saved) {
-      try {
-        setRecords(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
+  const fetchLiveRecords = async () => {
+    try {
+      const res = await recordApi.getMedicalRecords();
+      if (res && res.data && res.data.length > 0) {
+        const mapped: MedicalRecordItem[] = res.data.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          type: (r.type === 'LAB_REPORT' ? 'Lab Report' : r.type === 'CONSULTATION' ? 'Consultation' : r.type === 'PRESCRIPTION' ? 'Prescription' : r.type === 'IMAGING' ? 'Imaging' : r.type === 'DISCHARGE' ? 'Discharge' : r.type === 'VACCINATION' ? 'Vaccination' : 'Other') as MedicalRecordItem['type'],
+          hospital: r.hospital || 'Apollo Diagnostics Centre',
+          doctor: r.doctor?.fullName || 'Dr. Rajesh Varma',
+          date: r.recordDate ? new Date(r.recordDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '20 Aug 2026',
+          timestamp: new Date(r.recordDate || r.createdAt).getTime(),
+          status: (['Normal', 'Attention', 'Reviewed', 'Pending'].includes(r.status) ? r.status : 'Normal') as MedicalRecordItem['status'],
+          fileSize: r.fileSize || '1.8 MB',
+          fileName: r.fileName || `${r.title.replace(/\s+/g, '_')}.pdf`,
+          isImportant: r.isImportant ?? false,
+          notes: r.notes || '',
+        }));
+        setRecords(mapped);
+        localStorage.setItem('user_medical_records', JSON.stringify(mapped));
       }
+    } catch (err) {
+      console.log('Using cached records:', err);
+    } finally {
+      setLoading(false);
     }
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+  };
+
+  // Load records on mount & listen to updates
+  useEffect(() => {
+    fetchLiveRecords();
+
+    const handleUpdate = () => fetchLiveRecords();
+    window.addEventListener('health_workflow_updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('health_workflow_updated', handleUpdate);
+    };
   }, []);
 
   // Persist records to localStorage when changed
@@ -95,16 +122,19 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   };
 
   // HANDLERS
-  const handleToggleImportant = (id: string) => {
-    const updated = records.map((r) => {
-      if (r.id === id) {
-        const nextState = !r.isImportant;
-        showToast(nextState ? '★ Added to Important Records' : 'Removed from Important Records');
-        return { ...r, isImportant: nextState };
-      }
-      return r;
-    });
-    saveRecordsToStorage(updated);
+  const handleToggleImportant = async (id: string) => {
+    const target = records.find((r) => r.id === id);
+    if (!target) return;
+    const nextState = !target.isImportant;
+
+    try {
+      await recordApi.updateMedicalRecord(id, { isImportant: nextState });
+      await fetchLiveRecords();
+    } catch {
+      const updated = records.map((r) => (r.id === id ? { ...r, isImportant: nextState } : r));
+      saveRecordsToStorage(updated);
+    }
+    showToast(nextState ? '★ Added to Important Records' : 'Removed from Important Records');
   };
 
   const handleViewRecord = (rec: MedicalRecordItem) => {
@@ -124,25 +154,49 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
     setShareRecord(rec);
   };
 
-  const handleDeleteConfirm = (id: string) => {
-    const updated = records.filter((r) => r.id !== id);
-    saveRecordsToStorage(updated);
+  const handleDeleteConfirm = async (id: string) => {
+    try {
+      await recordApi.deleteMedicalRecord(id);
+      await fetchLiveRecords();
+    } catch {
+      const updated = records.filter((r) => r.id !== id);
+      saveRecordsToStorage(updated);
+    }
     setSelectedIds((prev) => prev.filter((item) => item !== id));
     showToast('✓ Medical record deleted');
   };
 
-  const handleRename = (rec: MedicalRecordItem) => {
+  const handleRename = async (rec: MedicalRecordItem) => {
     const newName = prompt('Enter new document title:', rec.title);
     if (newName && newName.trim()) {
-      const updated = records.map((r) => (r.id === rec.id ? { ...r, title: newName.trim() } : r));
-      saveRecordsToStorage(updated);
+      try {
+        await recordApi.updateMedicalRecord(rec.id, { title: newName.trim() });
+        await fetchLiveRecords();
+      } catch {
+        const updated = records.map((r) => (r.id === rec.id ? { ...r, title: newName.trim() } : r));
+        saveRecordsToStorage(updated);
+      }
       showToast('✓ Medical record title updated');
     }
   };
 
-  const handleAddRecord = (newRec: MedicalRecordItem) => {
-    const updated = [newRec, ...records];
-    saveRecordsToStorage(updated);
+  const handleAddRecord = async (newRec: MedicalRecordItem) => {
+    try {
+      await recordApi.createMedicalRecord({
+        title: newRec.title,
+        type: newRec.type?.toUpperCase().replace(/ /g, '_') || 'OTHER',
+        hospital: newRec.hospital,
+        status: newRec.status || 'Normal',
+        fileName: newRec.fileName,
+        fileSize: newRec.fileSize,
+        isImportant: newRec.isImportant ?? false,
+        notes: newRec.notes,
+      });
+      await fetchLiveRecords();
+    } catch {
+      const updated = [newRec, ...records];
+      saveRecordsToStorage(updated);
+    }
     showToast('✓ Record uploaded successfully');
   };
 

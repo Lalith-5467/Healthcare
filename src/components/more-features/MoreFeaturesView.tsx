@@ -167,6 +167,10 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
   });
 
   const handleCardClick = (cardId: string) => {
+    if (cardId === 'nurse-booking') {
+      onNavigate('nurse-booking');
+      return;
+    }
     if (cardId === 'ai-chat') {
       onNavigate('ai-assistant');
       return;
