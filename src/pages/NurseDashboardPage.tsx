@@ -5,13 +5,22 @@ import { NurseTopbar } from '../components/nurse-portal/NurseTopbar';
 import { NurseHero } from '../components/nurse-portal/NurseHero';
 import { NurseStatCards } from '../components/nurse-portal/NurseStatCards';
 import { NursePriorityDispatch } from '../components/nurse-portal/NursePriorityDispatch';
-import { NurseCareQueue } from '../components/nurse-portal/NurseCareQueue';
-import { NursePerformanceChart } from '../components/nurse-portal/NursePerformanceChart';
-import { NurseBedsideWorkflows } from '../components/nurse-portal/NurseBedsideWorkflows';
-import { NurseEmergencySync } from '../components/nurse-portal/NurseEmergencySync';
-import { NurseKitStock } from '../components/nurse-portal/NurseKitStock';
-import { NurseHandoffNotes } from '../components/nurse-portal/NurseHandoffNotes';
+import { NurseTodayShift } from '../components/nurse-portal/NurseTodayShift';
+import { NurseNextVisit } from '../components/nurse-portal/NurseNextVisit';
+import { NurseNeedsAttention } from '../components/nurse-portal/NurseNeedsAttention';
+import { NurseTodayWorkload } from '../components/nurse-portal/NurseTodayWorkload';
+import { NursePatientAlerts } from '../components/nurse-portal/NursePatientAlerts';
+import { NurseUpcomingVisits } from '../components/nurse-portal/NurseUpcomingVisits';
+import { NurseRecentActivity } from '../components/nurse-portal/NurseRecentActivity';
 import { NurseFloatingActions } from '../components/nurse-portal/NurseFloatingActions';
+import { CareRequestsView } from '../components/nurse-dashboard/views/CareRequestsView';
+import { PatientCareView } from '../components/nurse-dashboard/views/PatientCareView';
+import { NurseScheduleView } from '../components/nurse-dashboard/views/NurseScheduleView';
+import { NurseInventoryView } from '../components/nurse-dashboard/views/NurseInventoryView';
+import { NurseHistoryView } from '../components/nurse-dashboard/views/NurseHistoryView';
+import { NurseAlertsView } from '../components/nurse-dashboard/views/NurseAlertsView';
+import { NurseProfileView } from '../components/nurse-dashboard/views/NurseProfileView';
+import { NurseSettingsView } from '../components/nurse-dashboard/views/NurseSettingsView';
 
 interface NurseDashboardPageProps {
   user?: { name: string; email: string };
@@ -19,7 +28,7 @@ interface NurseDashboardPageProps {
 }
 
 export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, onLogout }) => {
-  const [activeNav, setActiveNav] = useState('command-center');
+  const [activeNav, setActiveNav] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -27,7 +36,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, on
       
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block">
-        <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} />
+        <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} user={user} />
       </div>
 
       {/* MOBILE SIDEBAR (Drawer) */}
@@ -51,6 +60,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, on
               <NurseSidebar 
                 activeNav={activeNav} 
                 onNavigate={(id) => { setActiveNav(id); setIsMobileMenuOpen(false); }} 
+                user={user}
               />
             </motion.div>
           </>
@@ -68,43 +78,37 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, on
 
         {/* MAIN SCROLLABLE AREA */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
-          <div className="max-w-[1400px] mx-auto space-y-6">
+          <div className="max-w-[1000px] mx-auto space-y-8 pb-10">
             
-            {activeNav === 'command-center' ? (
-              <>
-                {/* 1. HERO BANNER */}
+            {activeNav === 'dashboard' && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col gap-10"
+              >
                 <NurseHero onNavigate={setActiveNav} />
+                <NurseTodayShift />
+                <NurseStatCards onNavigate={setActiveNav} />
+                <NursePriorityDispatch />
+                <NurseNextVisit onNavigate={setActiveNav} />
+                <NurseNeedsAttention />
+                <NurseUpcomingVisits />
+                <NurseTodayWorkload />
+                <NursePatientAlerts />
+                <NurseRecentActivity onNavigate={setActiveNav} />
+              </motion.div>
+            )}
 
-                {/* 2. STAT CARDS */}
-                <NurseStatCards />
+            {activeNav === 'requests' && <CareRequestsView />}
+            {activeNav === 'patients' && <PatientCareView />}
+            {activeNav === 'schedule' && <NurseScheduleView />}
+            {activeNav === 'inventory' && <NurseInventoryView />}
+            {activeNav === 'history' && <NurseHistoryView />}
+            {activeNav === 'alerts' && <NurseAlertsView />}
+            {activeNav === 'profile' && <NurseProfileView />}
+            {activeNav === 'settings' && <NurseSettingsView />}
 
-                {/* 3. TWO-COLUMN LAYOUT */}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                  
-                  {/* LEFT COLUMN */}
-                  <div className="xl:col-span-7 flex flex-col gap-6">
-                    <NursePriorityDispatch />
-                    <div className="h-[400px]">
-                      <NurseCareQueue />
-                    </div>
-                    <NursePerformanceChart />
-                  </div>
-
-                  {/* RIGHT COLUMN */}
-                  <div className="xl:col-span-5 flex flex-col gap-6">
-                    <NurseBedsideWorkflows />
-                    <NurseEmergencySync />
-                    <div className="h-[300px]">
-                      <NurseKitStock />
-                    </div>
-                    <div className="h-[350px]">
-                      <NurseHandoffNotes />
-                    </div>
-                  </div>
-
-                </div>
-              </>
-            ) : (
+            {!['dashboard', 'requests', 'patients', 'schedule', 'inventory', 'history', 'alerts', 'profile', 'settings'].includes(activeNav) && (
               <div className="flex flex-col items-center justify-center h-[60vh] text-center border-2 border-dashed border-[#eceef1] dark:border-slate-800 rounded-2xl">
                 <div className="w-16 h-16 bg-teal-50 dark:bg-teal-900/20 text-[#0d9488] rounded-2xl flex items-center justify-center mb-4">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
