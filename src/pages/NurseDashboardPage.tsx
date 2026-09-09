@@ -100,7 +100,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, on
             )}
 
             {activeNav === 'requests' && <CareRequestsView />}
-            {activeNav === 'patients' && <PatientCareView />}
+            {activeNav === 'patients' && <PatientCareView onNavigate={setActiveNav} />}
             {activeNav === 'schedule' && <NurseScheduleView />}
             {activeNav === 'inventory' && <NurseInventoryView />}
             {activeNav === 'history' && <NurseHistoryView />}
