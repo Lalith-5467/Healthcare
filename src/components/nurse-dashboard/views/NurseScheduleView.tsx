@@ -49,19 +49,19 @@ export const NurseScheduleView: React.FC<NurseScheduleViewProps> = ({ onNavigate
                 className="relative group"
               >
                 <div className={`absolute -left-[27px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 shadow-sm ${
-                  isDone ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-rose-500 border-rose-500 text-white animate-pulse' : 'bg-slate-200 border-slate-300 text-slate-500'
+                  isDone ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-blue-500 border-blue-500 text-white animate-pulse' : booking.status === 'Rejected' ? 'bg-rose-500 border-rose-500 text-white' : 'bg-slate-200 border-slate-300 text-slate-500'
                 }`}>
                   {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
                 </div>
 
-                <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 hover:border-slate-300 dark:border-slate-700/80 dark:hover:border-slate-600 hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono font-black text-blue-600 dark:text-cyan-400">
                         {booking.time}
                       </span>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        isDone ? 'bg-emerald-100 text-emerald-700' : isActive ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full transition-colors cursor-default ${
+                        isDone ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : isActive ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : booking.status === 'Rejected' ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                       }`}>
                         {booking.status}
                       </span>
@@ -93,7 +93,7 @@ export const NurseScheduleView: React.FC<NurseScheduleViewProps> = ({ onNavigate
                     {onNavigate && isActive && (
                       <button
                         onClick={() => onNavigate('patients')}
-                        className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl shadow-sm transition-all"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-sm transition-all"
                       >
                         Start Visit →
                       </button>
