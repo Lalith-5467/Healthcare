@@ -6,7 +6,9 @@ import {
   X, 
   Bell, 
   LogOut, 
-  ChevronDown 
+  ChevronDown,
+  Globe,
+  Search
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
@@ -84,6 +86,17 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Dummy Search Bar */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/50 text-slate-400 border border-slate-200 dark:border-slate-700 pointer-events-none">
+            <Search className="w-4 h-4" />
+            <span className="text-xs font-medium pr-12">Search...</span>
+          </div>
+
+          {/* Language Icon (Non-interactive) */}
+          <div className="p-2 text-slate-400 pointer-events-none">
+            <Globe className="w-5 h-5" />
+          </div>
+
           {/* Notifications */}
           <button 
             onClick={() => setActiveNav('alerts')}
