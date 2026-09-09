@@ -71,6 +71,15 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
 
       if (res && res.data && res.data.token) {
         const { user, token } = res.data;
+
+        // Validate the authenticated user actually has admin privileges
+        const upperRole = (user.role || '').toUpperCase();
+        if (upperRole !== 'ADMIN' && upperRole !== 'SUPER_ADMIN') {
+          throw new Error(
+            `This account (${user.email}) is registered as "${user.role}". Only ADMIN or SUPER_ADMIN accounts can access the Admin Console.`
+          );
+        }
+
         setAuthToken(token);
         safeLocalStorageSet('token', token);
         safeLocalStorageSet('auth_token', token);

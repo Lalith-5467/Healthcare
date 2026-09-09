@@ -115,7 +115,11 @@ export const AdminUserManagementView: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Failed to load users:', err);
-      showToast(err.message || 'Failed to sync users with database.', 'error');
+      // Silently handle permission errors – don't show a toast for access-denied
+      const msg = (err.message || '').toLowerCase();
+      if (!msg.includes('access denied') && !msg.includes('permission')) {
+        showToast(err.message || 'Failed to sync users with database.', 'error');
+      }
     } finally {
       setLoading(false);
     }
