@@ -1,13 +1,14 @@
 /**
  * DHR Patient Pharmacy Order API Service
- * Handles fetching, status mapping, and live polling for patient pharmacy orders
+ * Centralized API integration for Pharmacy Orders, Live Status Transitions, and Realtime Tracking.
+ * Single source of truth: Backend MySQL Database via apiClient.
  */
 
-const API_BASE_URL = 'http://localhost:5000/api';
+import { apiClient, getAuthToken, setAuthToken, clearAuthToken } from './apiClient';
 
 export interface BackendOrderItem {
-  id: string;
-  orderId: string;
+  id?: string;
+  orderId?: string;
   medicineId?: string | null;
   medicineName: string;
   dosage: string;
@@ -60,17 +61,19 @@ export interface BackendPharmacyOrder {
     diagnosis?: string | null;
     issuedAt?: string;
   } | null;
+  statusTimeline?: Record<string, string | null>;
+  timeline?: Record<string, string | null>;
 }
 
 export const DHR_STATUS_DISPLAY: Record<string, string> = {
   PENDING: 'Waiting for Pharmacy',
   ACCEPTED: 'Order Accepted',
-  PREPARING: 'Preparing Your Medicines',
-  READY: 'Ready',
+  PREPARING: 'Preparing Medicines',
+  READY: 'Ready for Pickup / Transit',
   READY_FOR_PICKUP: 'Ready for Pickup',
   OUT_FOR_DELIVERY: 'Out for Delivery',
-  COMPLETED: 'Completed',
   DELIVERED: 'Delivered',
+  COMPLETED: 'Completed',
   DECLINED: 'Order Declined',
   CANCELLED: 'Order Cancelled',
 };
@@ -82,154 +85,33 @@ export const DHR_STATUS_PERCENT: Record<string, number> = {
   READY: 80,
   READY_FOR_PICKUP: 80,
   OUT_FOR_DELIVERY: 90,
-  COMPLETED: 100,
   DELIVERED: 100,
+  COMPLETED: 100,
   DECLINED: 100,
   CANCELLED: 100,
 };
 
-export const DEMO_PHARMACIST_FALLBACK_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtdGpxMHlvZTAwMDZpMHJneXdoN2ZhdTAiLCJlbWFpbCI6ImRlbW8ucGhhcm1hY2lzdEBleGFtcGxlLnRlc3QiLCJyb2xlIjoiUEhBUk1BQ0lTVCIsImlhdCI6MTc4ODM0MTk3NiwiZXhwIjoxNzg4OTQ2Nzc2fQ.lMh2tb0HojJTMwPGT1qT_oD5lB6zVAaVQtZxIGj_oVk';
-
-export const DEMO_PATIENT_FALLBACK_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtdGpxMHlpYTAwMDBpMHJndWRrMjZhODgiLCJlbWFpbCI6ImRlbW8ucGF0aWVudEBleGFtcGxlLnRlc3QiLCJyb2xlIjoiUEFUSUVOVCIsImlhdCI6MTc4ODM0Mjg4NywiZXhwIjoxNzg4OTQ3Njg3fQ.mZJUu1ju29j1JpG7UqP4oA84PwGE8_XCJaZVXzhlaCk';
-
-function parseTokenRole(token: string): string | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const jsonStr = atob(base64);
-    const parsed = JSON.parse(jsonStr);
-    return parsed.role || null;
-  } catch {
-    return null;
-  }
-}
-
+/**
+ * Return current logged in auth token
+ */
 export function getStoredAuthToken(): string | null {
-  const isPharmacistRoute =
-    typeof window !== 'undefined' && window.location.pathname.includes('/pharmacist');
-
-  const candidateTokens = [
-    typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null,
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem(isPharmacistRoute ? 'pharmacist_token' : 'patient_token')
-      : null,
-    typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
-    typeof localStorage !== 'undefined' ? localStorage.getItem('dhr_token') : null,
-    typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('token') : null,
-  ].filter(Boolean) as string[];
-
-  const targetRole = isPharmacistRoute ? 'PHARMACIST' : 'PATIENT';
-
-  for (const token of candidateTokens) {
-    const role = parseTokenRole(token);
-    if (role === targetRole) {
-      return token;
-    }
-  }
-
-  // Role-appropriate fallback token
-  return isPharmacistRoute ? DEMO_PHARMACIST_FALLBACK_TOKEN : DEMO_PATIENT_FALLBACK_TOKEN;
-}
-
-import {
-  getPharmacyOrders,
-  updatePharmacyOrderStatus as updateStorageOrderStatus,
-  type ExtendedPharmacyOrder
-} from '../utils/healthWorkflowStorage';
-
-function mapStatusToBackendEnum(status: string): BackendPharmacyOrder['status'] {
-  if (!status) return 'PENDING';
-  const s = status.toUpperCase();
-  if (s.includes('ACCEPT')) return 'ACCEPTED';
-  if (s.includes('PREPAR')) return 'PREPARING';
-  if (s.includes('PICKUP') || s.includes('READY')) return 'READY_FOR_PICKUP';
-  if (s.includes('DELIVERY') || s.includes('OUT')) return 'OUT_FOR_DELIVERY';
-  if (s.includes('DELIVER') || s.includes('COMPLETE')) return 'DELIVERED';
-  if (s.includes('DECLINE')) return 'DECLINED';
-  if (s.includes('CANCEL')) return 'CANCELLED';
-  return 'PENDING';
-}
-
-function mapLocalToBackendOrder(order: ExtendedPharmacyOrder): BackendPharmacyOrder {
-  const statusEnum = mapStatusToBackendEnum(order.status);
-  return {
-    id: order.id,
-    patientId: 'pat-101',
-    prescriptionId: order.sourcePrescriptionId || `RX-${order.id}`,
-    pharmacyId: order.pharmacyId || 'PHARM-1',
-    status: statusEnum,
-    totalAmount: order.totalAmount || 350,
-    deliveryAddress: order.deliveryAddress || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
-    deliveryType: order.deliveryMethod || 'Home Delivery',
-    orderedAt: order.date || new Date().toISOString(),
-    updatedAt: order.verifiedAt || new Date().toISOString(),
-    items: (order.items || []).map((item, idx) => ({
-      id: `item-${order.id}-${idx}`,
-      orderId: order.id,
-      medicineName: item.name,
-      dosage: item.dosage,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      subtotal: item.quantity * item.unitPrice,
-    })),
-    pharmacy: {
-      id: order.pharmacyId || 'PHARM-1',
-      pharmacyId: order.pharmacyId || 'PHARM-1',
-      name: order.pharmacyName || 'Apollo Central Dispensary',
-      address: order.deliveryAddress || '12 Sardar Patel Road, Adyar, Chennai',
-      city: 'Chennai',
-      phone: '+91 98403 45678',
-      isVerified: true,
-    },
-    patient: {
-      id: 'pat-101',
-      fullName: order.patientName || 'Ragul Kumar',
-      gender: 'Male',
-      bloodGroup: 'B+',
-    },
-    prescription: {
-      id: order.sourcePrescriptionId || `RX-${order.id}`,
-      diagnosis: order.clinicName || 'Clinical Prescription Scan',
-      issuedAt: order.date || 'Today',
-    },
-  };
+  return getAuthToken();
 }
 
 /**
- * Fetch patient pharmacy orders list (with automatic offline / local storage fallback)
+ * Fetch patient pharmacy orders list from backend API
  */
-export async function fetchPatientPharmacyOrders(token?: string): Promise<BackendPharmacyOrder[]> {
-  const authToken = token || getStoredAuthToken();
-
+export async function fetchPatientPharmacyOrders(_token?: string): Promise<BackendPharmacyOrder[]> {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    const response = await fetch(`${API_BASE_URL}/pharmacy-orders`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const result = await response.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        return result.data;
-      }
+    const res = await apiClient.get<BackendPharmacyOrder[]>('/pharmacy-orders');
+    if (res && res.data && Array.isArray(res.data)) {
+      return res.data;
     }
-  } catch {
-    // Backend API unavailable — fall back gracefully to local workflow storage
+    return [];
+  } catch (err: any) {
+    console.error('Failed to fetch patient pharmacy orders:', err);
+    throw err;
   }
-
-  // Authoritative fallback: return rich local workflow orders
-  const localOrders = getPharmacyOrders();
-  return localOrders.map(mapLocalToBackendOrder);
 }
 
 /**
@@ -237,41 +119,31 @@ export async function fetchPatientPharmacyOrders(token?: string): Promise<Backen
  */
 export async function fetchPatientPharmacyOrderById(
   orderId: string,
-  token?: string
+  _token?: string
 ): Promise<BackendPharmacyOrder | null> {
-  const authToken = token || getStoredAuthToken();
-
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    const response = await fetch(`${API_BASE_URL}/pharmacy-orders/${orderId}`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const result = await response.json();
-      return result.data || null;
-    }
-  } catch {
-    // Fallback to local storage
+    const res = await apiClient.get<BackendPharmacyOrder>(`/pharmacy-orders/${orderId}`);
+    return res?.data || null;
+  } catch (err: any) {
+    console.error(`Failed to fetch pharmacy order ${orderId}:`, err);
+    return null;
   }
-
-  const localOrders = getPharmacyOrders();
-  const found = localOrders.find((o) => o.id === orderId);
-  return found ? mapLocalToBackendOrder(found) : null;
 }
 
 /**
  * Pharmacist: Fetch pharmacy orders assigned to authenticated pharmacist's pharmacy
  */
-export async function fetchPharmacistOrders(token?: string): Promise<BackendPharmacyOrder[]> {
-  return fetchPatientPharmacyOrders(token);
+export async function fetchPharmacistOrders(_token?: string): Promise<BackendPharmacyOrder[]> {
+  try {
+    const res = await apiClient.get<BackendPharmacyOrder[]>('/pharmacy-orders');
+    if (res && res.data && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return [];
+  } catch (err: any) {
+    console.error('Failed to fetch pharmacist orders:', err);
+    throw err;
+  }
 }
 
 /**
@@ -279,35 +151,13 @@ export async function fetchPharmacistOrders(token?: string): Promise<BackendPhar
  */
 export async function acceptPharmacyOrder(
   orderId: string,
-  token?: string
+  _token?: string
 ): Promise<BackendPharmacyOrder> {
-  const authToken = token || getStoredAuthToken();
-
-  // 1. Update local storage
-  updateStorageOrderStatus(orderId, 'Accepted by Pharmacist');
-
-  // 2. Sync with backend API if available
-  try {
-    const response = await fetch(`${API_BASE_URL}/pharmacy-orders/${orderId}/accept`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    if (response.ok) {
-      const result = await response.json();
-      return result.data;
-    }
-  } catch {
-    // Offline mode synced
+  const res = await apiClient.patch<BackendPharmacyOrder>(`/pharmacy-orders/${orderId}/accept`);
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Failed to accept pharmacy order');
   }
-
-  const localOrders = getPharmacyOrders();
-  const updated = localOrders.find((o) => o.id === orderId);
-  return updated
-    ? mapLocalToBackendOrder(updated)
-    : ({ id: orderId, status: 'ACCEPTED' } as any);
+  return res.data;
 }
 
 /**
@@ -316,36 +166,15 @@ export async function acceptPharmacyOrder(
 export async function declinePharmacyOrder(
   orderId: string,
   reason?: string,
-  token?: string
+  _token?: string
 ): Promise<BackendPharmacyOrder> {
-  const authToken = token || getStoredAuthToken();
-
-  // 1. Update local storage
-  updateStorageOrderStatus(orderId, 'Declined by Pharmacist', undefined, reason);
-
-  // 2. Sync with backend API if available
-  try {
-    const response = await fetch(`${API_BASE_URL}/pharmacy-orders/${orderId}/decline`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ reason }),
-    });
-    if (response.ok) {
-      const result = await response.json();
-      return result.data;
-    }
-  } catch {
-    // Offline mode synced
+  const res = await apiClient.patch<BackendPharmacyOrder>(`/pharmacy-orders/${orderId}/decline`, {
+    reason,
+  });
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Failed to decline pharmacy order');
   }
-
-  const localOrders = getPharmacyOrders();
-  const updated = localOrders.find((o) => o.id === orderId);
-  return updated
-    ? mapLocalToBackendOrder(updated)
-    : ({ id: orderId, status: 'DECLINED' } as any);
+  return res.data;
 }
 
 /**
@@ -354,34 +183,94 @@ export async function declinePharmacyOrder(
 export async function updatePharmacyOrderStatus(
   orderId: string,
   status: string,
-  token?: string
+  _token?: string
 ): Promise<BackendPharmacyOrder> {
-  const authToken = token || getStoredAuthToken();
+  const res = await apiClient.patch<BackendPharmacyOrder>(`/pharmacy-orders/${orderId}/status`, {
+    status,
+  });
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Failed to update pharmacy order status');
+  }
+  return res.data;
+}
 
-  // 1. Update local storage
-  updateStorageOrderStatus(orderId, status);
+export interface CreateOrderPayload {
+  prescriptionData: {
+    notes?: string;
+    doctorName?: string;
+    clinicName?: string;
+    patientName?: string;
+    medicines?: Array<{
+      id?: string;
+      name: string;
+      dosage?: string;
+      frequency?: string;
+      duration?: string | number;
+      instructions?: string;
+      foodInstruction?: string;
+      quantity?: number;
+    }>;
+  };
+  pharmacyId: string;
+  deliveryAddress?: string;
+  deliveryType?: string;
+}
 
-  // 2. Sync with backend API if available
-  try {
-    const response = await fetch(`${API_BASE_URL}/pharmacy-orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status }),
-    });
-    if (response.ok) {
-      const result = await response.json();
-      return result.data;
-    }
-  } catch {
-    // Offline mode synced
+/**
+ * End-to-end: Create prescription, confirm it, and place pharmacy order in MySQL
+ */
+export async function createPatientPharmacyOrder(
+  payload: CreateOrderPayload
+): Promise<BackendPharmacyOrder> {
+  const { prescriptionData, pharmacyId, deliveryAddress, deliveryType } = payload;
+
+  // 1. Get authenticated patient profile
+  const profileRes = await apiClient.get<any>('/profile/patient');
+  const patientId = profileRes?.data?.id;
+
+  if (!patientId) {
+    throw new Error('Patient profile not found. Please ensure you are logged in as a patient.');
   }
 
-  const localOrders = getPharmacyOrders();
-  const updated = localOrders.find((o) => o.id === orderId);
-  return updated
-    ? mapLocalToBackendOrder(updated)
-    : ({ id: orderId, status: status as any } as any);
+  // 2. Create prescription record
+  const rxPayload = {
+    patientId,
+    diagnosis: prescriptionData.notes || 'Clinical Prescription & Medicine Order',
+    notes: `Doctor: ${prescriptionData.doctorName || 'Attending Physician'} (${prescriptionData.clinicName || 'Clinic'}). Patient: ${prescriptionData.patientName || 'Patient'}.`,
+    items: (prescriptionData.medicines || []).map((m) => ({
+      medicineName: m.name,
+      dosage: m.dosage || 'Standard',
+      unit: 'mg',
+      frequency: m.frequency || 'Once daily',
+      durationDays: typeof m.duration === 'number' ? m.duration : parseInt(m.duration as string, 10) || 7,
+      instructions: m.instructions || 'Take as prescribed',
+      foodInstruction: m.foodInstruction || 'After food',
+    })),
+  };
+
+  const rxRes = await apiClient.post<any>('/prescriptions', rxPayload);
+  const rxId = rxRes?.data?.id;
+
+  if (!rxId) {
+    throw new Error(rxRes?.message || 'Failed to create prescription for order');
+  }
+
+  // 3. Confirm prescription
+  await apiClient.patch<any>(`/prescriptions/${rxId}/confirm`);
+
+  // 4. Create pharmacy order
+  const orderRes = await apiClient.post<BackendPharmacyOrder>('/pharmacy-orders', {
+    prescriptionId: rxId,
+    pharmacyId,
+    deliveryAddress: deliveryAddress || 'Standard Delivery Address',
+    deliveryType: deliveryType || 'Home Delivery',
+  });
+
+  if (!orderRes || !orderRes.data) {
+    throw new Error(orderRes?.message || 'Failed to route order to pharmacy');
+  }
+
+  return orderRes.data;
 }
+
+export { setAuthToken, clearAuthToken };

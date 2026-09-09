@@ -12,7 +12,8 @@ import {
   Check,
   Ban,
   Eye,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import {
   getPharmacyOrders,
@@ -22,6 +23,8 @@ import type { ExtendedPharmacyOrder } from '../../utils/healthWorkflowStorage';
 import { INITIAL_MEDICINE_STOCK } from '../pharmacy/pharmacyData';
 import { PharmacistPrescriptionModal } from './PharmacistPrescriptionModal';
 import { DeclineOrderModal } from './DeclineOrderModal';
+import { showGlobalToast } from '../common/GlobalToastManager';
+import { acceptPharmacyOrder, declinePharmacyOrder } from '../../services/pharmacyOrderApi';
 
 interface PharmacistOverviewTabProps {
   user?: {
@@ -45,17 +48,18 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedRxOrder, setSelectedRxOrder] = useState<any | null>(null);
   const [declineTargetOrder, setDeclineTargetOrder] = useState<any | null>(null);
+  const [acceptingOrderId, setAcceptingOrderId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       const { fetchPharmacistOrders } = await import('../../services/pharmacyOrderApi');
       const backendOrders = await fetchPharmacistOrders();
-      if (backendOrders && backendOrders.length > 0) {
+      if (backendOrders !== null && Array.isArray(backendOrders)) {
         setOrders(backendOrders.map((bo: any) => ({
           ...bo,
-          patientName: bo.patient?.fullName || bo.patientName || 'Patient information unavailable',
-          sourcePrescriptionId: bo.prescriptionId,
-          status: bo.status === 'PENDING' ? 'Pending Pharmacist Verification' : bo.status === 'ACCEPTED' || bo.status === 'PREPARING' ? 'Processing' : bo.status === 'COMPLETED' ? 'Delivered' : bo.status === 'DECLINED' ? 'Declined by Pharmacist' : bo.status,
+          patientName: bo.patient?.fullName || bo.patientName || 'Patient',
+          sourcePrescriptionId: bo.prescriptionId || `RX-${bo.id.slice(-6)}`,
+          status: bo.status === 'PENDING' ? 'Pending Pharmacist Verification' : bo.status === 'ACCEPTED' || bo.status === 'PREPARING' ? 'Processing' : bo.status === 'COMPLETED' || bo.status === 'DELIVERED' ? 'Delivered' : bo.status === 'DECLINED' ? 'Declined by Pharmacist' : bo.status,
           date: bo.orderedAt ? new Date(bo.orderedAt).toLocaleDateString() : 'Today',
           deliveryMethod: bo.deliveryType || 'Home Delivery',
           items: (bo.items || []).map((it: any) => ({
@@ -69,9 +73,9 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
         return;
       }
     } catch {
-      // Fall back to local workflow storage if backend unavailable
+      // API error fallback
     }
-    setOrders(getPharmacyOrders());
+    setOrders([]);
   };
 
   useEffect(() => {
@@ -115,44 +119,76 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
   const pharmacyStore = user?.hospitalAffiliation || 'Apollo Central Pharmacy';
 
   const handleAcceptOrder = async (orderId: string) => {
+    setAcceptingOrderId(orderId);
     try {
-      const { acceptPharmacyOrder } = await import('../../services/pharmacyOrderApi');
       await acceptPharmacyOrder(orderId);
-      loadData();
-      onToast(`✓ Order #${orderId.slice(-6)} Accepted!`);
-    } catch {
-      const res = updatePharmacyOrderStatus(
-        orderId,
-        'Processing',
-        'Prescription reviewed and verified. Medicines dispensed and undergoing packaging.',
-        undefined,
-        `${pharmacistName} (Reg. Pharmacist)`
-      );
-      if (res.success) {
-        loadData();
-        onToast(`✓ Order #${orderId} Accepted!`);
+      await loadData();
+      window.dispatchEvent(new Event('health_workflow_updated'));
+      onToast(`✓ Order #${orderId.slice(-6)} Accepted and moved to Dispensing!`);
+      showGlobalToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+      if (selectedRxOrder && selectedRxOrder.id === orderId) {
+        setSelectedRxOrder(null);
       }
+    } catch (err: any) {
+      console.error('Accept order error:', err);
+      try {
+        const res = updatePharmacyOrderStatus(
+          orderId,
+          'Processing',
+          'Prescription reviewed and verified. Medicines dispensed and undergoing packaging.',
+          undefined,
+          `${pharmacistName} (Reg. Pharmacist)`
+        );
+        if (res.success) {
+          await loadData();
+          window.dispatchEvent(new Event('health_workflow_updated'));
+          onToast(`✓ Order #${orderId.slice(-6)} Accepted!`);
+          showGlobalToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+          if (selectedRxOrder && selectedRxOrder.id === orderId) {
+            setSelectedRxOrder(null);
+          }
+          return;
+        }
+      } catch {}
+      onToast(err?.message || 'Failed to accept order.');
+      showGlobalToast(err?.message || 'Failed to accept order.', 'error');
+    } finally {
+      setAcceptingOrderId(null);
     }
   };
 
   const handleConfirmDecline = async (orderId: string, reason: string, notes: string) => {
     try {
-      const { declinePharmacyOrder } = await import('../../services/pharmacyOrderApi');
       await declinePharmacyOrder(orderId, notes ? `${reason} - ${notes}` : reason);
-      loadData();
+      await loadData();
+      window.dispatchEvent(new Event('health_workflow_updated'));
       onToast(`✕ Order #${orderId.slice(-6)} Declined`);
-    } catch {
-      const res = updatePharmacyOrderStatus(
-        orderId,
-        'Declined by Pharmacist',
-        notes,
-        reason,
-        `${pharmacistName} (Reg. Pharmacist)`
-      );
-      if (res.success) {
-        loadData();
-        onToast(`✕ Order #${orderId} Declined`);
+      showGlobalToast(`✕ Order #${orderId.slice(-6)} Declined`, 'info');
+      setDeclineTargetOrder(null);
+      if (selectedRxOrder && selectedRxOrder.id === orderId) {
+        setSelectedRxOrder(null);
       }
+    } catch (err: any) {
+      console.error('Decline order error:', err);
+      try {
+        const res = updatePharmacyOrderStatus(
+          orderId,
+          'Declined by Pharmacist',
+          notes,
+          reason,
+          `${pharmacistName} (Reg. Pharmacist)`
+        );
+        if (res.success) {
+          await loadData();
+          window.dispatchEvent(new Event('health_workflow_updated'));
+          onToast(`✕ Order #${orderId.slice(-6)} Declined`);
+          showGlobalToast(`✕ Order #${orderId.slice(-6)} Declined`, 'info');
+          setDeclineTargetOrder(null);
+          return;
+        }
+      } catch {}
+      onToast(err?.message || 'Failed to decline order.');
+      showGlobalToast(err?.message || 'Failed to decline order.', 'error');
     }
   };
 
@@ -415,11 +451,24 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => handleAcceptOrder(order.id)}
-                      className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-black shadow-md shadow-teal-500/20 hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 border border-teal-400/30"
+                      disabled={acceptingOrderId === order.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAcceptOrder(order.id);
+                      }}
+                      className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-60 text-white text-xs font-black shadow-md shadow-teal-500/20 hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5 border border-teal-400/30"
                     >
-                      <Check className="w-4 h-4 stroke-[2.5]" />
-                      <span>Accept Order</span>
+                      {acceptingOrderId === order.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Accepting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 stroke-[2.5]" />
+                          <span>Accept Order</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma';
 import { Role } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { NotificationService } from './notification.service';
 
 export class ClinicalService {
   /**
@@ -122,7 +123,7 @@ export class ClinicalService {
 
   private static formatCareRequest(c: any) {
     let patientAge = '30 Years';
-    if (c.patient.dateOfBirth) {
+    if (c.patient?.dateOfBirth) {
       const birth = new Date(c.patient.dateOfBirth);
       const now = new Date();
       let age = now.getFullYear() - birth.getFullYear();
@@ -142,9 +143,10 @@ export class ClinicalService {
       }
     }
 
-    const patientPhone = c.patient.user?.phoneNumber || c.patient.emergencyContactPhone || parsedNotes.patientPhone || 'Not provided';
-    const emergencyContactName = parsedNotes.emergencyContactName || c.patient.emergencyContactName || 'Primary Emergency Contact';
-    const emergencyContactPhone = parsedNotes.emergencyContactPhone || c.patient.emergencyContactPhone || patientPhone;
+    const patientName = c.patient?.fullName || c.patient?.user?.fullName || 'Patient information unavailable';
+    const patientPhone = c.patient?.user?.phoneNumber || c.patient?.emergencyContactPhone || parsedNotes.patientPhone || 'Not provided';
+    const emergencyContactName = parsedNotes.emergencyContactName || c.patient?.emergencyContactName || 'Primary Emergency Contact';
+    const emergencyContactPhone = parsedNotes.emergencyContactPhone || c.patient?.emergencyContactPhone || patientPhone;
     const careCategory = parsedNotes.careCategory || c.serviceType;
     const duration = parsedNotes.duration || '4 Hours';
     const bookingType = parsedNotes.bookingType || 'One-time';
@@ -166,14 +168,14 @@ export class ClinicalService {
     return {
       id: c.id,
       patientId: c.patientId,
-      patientUserId: c.patient.userId,
-      patientName: c.patient.fullName,
+      patientUserId: c.patient?.userId,
+      patientName,
       patientAge,
-      patientGender: c.patient.gender || parsedNotes.patientGender || 'Not Specified',
-      patientBloodGroup: c.patient.bloodGroup || 'Not Recorded',
+      patientGender: c.patient?.gender || parsedNotes.patientGender || 'Not Specified',
+      patientBloodGroup: c.patient?.bloodGroup || 'Not Recorded',
       patientPhone,
-      patientEmail: c.patient.user?.email || '',
-      patientAbhaId: c.patient.user?.abhaId || '',
+      patientEmail: c.patient?.user?.email || '',
+      patientAbhaId: c.patient?.user?.abhaId || '',
       serviceType: c.serviceType,
       careCategory,
       prefDate: new Date(c.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -206,15 +208,15 @@ export class ClinicalService {
       status: c.status,
       createdAt: c.createdAt.getTime(),
       nurseId: c.nurseId,
-      nurseName: c.nurse?.fullName || (c.status === 'Accepted' || c.status === 'Scheduled' || c.status === 'On the Way' || c.status === 'Arrived' || c.status === 'Care in Progress' || c.status === 'Completed' ? 'Nurse Sarah, Senior RN' : 'Pending Nurse Assignment'),
+      nurseName: c.nurse?.fullName || (c.status === 'Accepted' || c.status === 'Scheduled' || c.status === 'On the Way' || c.status === 'Arrived' || c.status === 'Care in Progress' || c.status === 'Completed' ? (c.nurse?.fullName || 'Assigned RN') : 'Pending Nurse Assignment'),
       otpPin: c.otpPin || '5928',
       etaMinutes: c.etaMinutes || 15,
       vitals: {
-        bp: c.patient.vitals?.[0] ? `${c.patient.vitals[0].systolicBp}/${c.patient.vitals[0].diastolicBp} mmHg` : '120/80 mmHg',
-        hr: c.patient.vitals?.[0]?.heartRate ? `${c.patient.vitals[0].heartRate} bpm` : '74 bpm',
-        temp: c.patient.vitals?.[0]?.temperature ? `${c.patient.vitals[0].temperature} °F` : '98.6 °F',
-        spo2: c.patient.vitals?.[0]?.oxygenSaturation ? `${c.patient.vitals[0].oxygenSaturation}%` : '99%',
-        bs: c.patient.vitals?.[0]?.bloodSugar ? `${c.patient.vitals[0].bloodSugar} mg/dL` : '105 mg/dL',
+        bp: c.patient?.vitals?.[0] ? `${c.patient.vitals[0].systolicBp}/${c.patient.vitals[0].diastolicBp} mmHg` : '120/80 mmHg',
+        hr: c.patient?.vitals?.[0]?.heartRate ? `${c.patient.vitals[0].heartRate} bpm` : '74 bpm',
+        temp: c.patient?.vitals?.[0]?.temperature ? `${c.patient.vitals[0].temperature} °F` : '98.6 °F',
+        spo2: c.patient?.vitals?.[0]?.oxygenSaturation ? `${c.patient.vitals[0].oxygenSaturation}%` : '99%',
+        bs: c.patient?.vitals?.[0]?.bloodSugar ? `${c.patient.vitals[0].bloodSugar} mg/dL` : '105 mg/dL',
       },
       checklist: [
         { id: 'c1', label: 'Sterile surgical field & PPE setup', done: c.status === 'Care in Progress' || c.status === 'Completed' },
@@ -265,24 +267,34 @@ export class ClinicalService {
     let patient = await prisma.patient.findUnique({
       where: { userId },
       include: {
-        user: { select: { email: true, phoneNumber: true, abhaId: true } },
+        user: { select: { email: true, phoneNumber: true, abhaId: true, role: true } },
         vitals: { orderBy: { recordedAt: 'desc' }, take: 1 },
       },
     });
 
     if (!patient) {
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        await prisma.patient.create({
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          patient: {
+            include: {
+              user: { select: { email: true, phoneNumber: true, abhaId: true, role: true } },
+              vitals: { orderBy: { recordedAt: 'desc' }, take: 1 },
+            },
+          },
+        },
+      });
+
+      if (user?.patient) {
+        patient = user.patient;
+      } else if (user) {
+        patient = await prisma.patient.create({
           data: {
             userId: user.id,
             fullName: user.email.split('@')[0],
           },
-        });
-        patient = await prisma.patient.findUnique({
-          where: { userId },
           include: {
-            user: { select: { email: true, phoneNumber: true, abhaId: true } },
+            user: { select: { email: true, phoneNumber: true, abhaId: true, role: true } },
             vitals: { orderBy: { recordedAt: 'desc' }, take: 1 },
           },
         });
@@ -356,6 +368,37 @@ export class ClinicalService {
         nurse: true,
       },
     });
+
+    // Notify patient
+    try {
+      await NotificationService.createNotification({
+        userId: patient.userId,
+        title: 'Home Care Request Submitted',
+        message: `Your ${careRequest.serviceType} request has been submitted successfully.`,
+        type: 'CLINICAL',
+        category: 'Nurse Booking',
+        relatedModule: 'nurse-care-requests',
+      });
+    } catch {}
+
+    // Notify active on-duty nurses only (scoped to active user accounts)
+    try {
+      const nurses = await prisma.nurse.findMany({
+        where: { user: { isActive: true } },
+        select: { userId: true },
+        take: 10, // Cap broadcast to prevent notification flooding
+      });
+      for (const n of nurses) {
+        await NotificationService.createNotification({
+          userId: n.userId,
+          title: 'New Care Request',
+          message: `New In-Home care request from ${patient.fullName} for ${careRequest.serviceType}.`,
+          type: 'CLINICAL',
+          category: 'Nurse Booking',
+          relatedModule: 'nurse-care-requests',
+        });
+      }
+    } catch {}
 
     return ClinicalService.formatCareRequest(careRequest);
   }
@@ -440,6 +483,47 @@ export class ClinicalService {
         nurse: true,
       },
     });
+
+    // Notify patient of status change
+    try {
+      if (updated.patient?.userId) {
+        const nurseDisplayName = updated.nurse?.fullName || 'Assigned Nurse';
+        let msg = `Your care request status has been updated to ${updated.status}.`;
+        
+        switch(data.status) {
+          case 'Accepted':
+            msg = `Your care request for ${updated.serviceType} has been accepted by ${nurseDisplayName}.`;
+            break;
+          case 'Scheduled':
+            msg = `Your care request for ${updated.serviceType} has been scheduled.`;
+            break;
+          case 'On the Way':
+            msg = `${nurseDisplayName} is on the way for your ${updated.serviceType} visit.`;
+            break;
+          case 'Arrived':
+            msg = `${nurseDisplayName} has arrived for your ${updated.serviceType} visit.`;
+            break;
+          case 'Care in Progress':
+            msg = `Care is actively in progress for your ${updated.serviceType} visit.`;
+            break;
+          case 'Completed':
+            msg = `Your ${updated.serviceType} visit has been successfully completed.`;
+            break;
+          case 'Rejected':
+            msg = `Your care request for ${updated.serviceType} could not be confirmed at this time.`;
+            break;
+        }
+
+        await NotificationService.createNotification({
+          userId: updated.patient.userId,
+          title: `Care Request ${updated.status}`,
+          message: msg,
+          type: 'CLINICAL',
+          category: 'Nurse Booking',
+          relatedModule: 'nurse-care-requests',
+        });
+      }
+    } catch {}
 
     return ClinicalService.formatCareRequest(updated);
   }

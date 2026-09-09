@@ -211,10 +211,12 @@ const INITIAL_MOCK_DATA: DoctorPatientRecord[] = [
   }
 ];
 
+import { safeLocalStorageSet } from './safeStorage';
+
 const getDoctorRecords = (): DoctorPatientRecord[] => {
   const data = localStorage.getItem(STORAGE_KEY_DOCTOR);
   if (!data) {
-    localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(INITIAL_MOCK_DATA));
+    safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(INITIAL_MOCK_DATA));
     return INITIAL_MOCK_DATA;
   }
   try {
@@ -235,7 +237,7 @@ export const useDoctorWorkflow = () => {
       .then((res) => {
         if (res && res.data && res.data.length > 0) {
           setRecords(res.data);
-          localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(res.data));
+          safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(res.data));
         }
       })
       .catch(() => {});
@@ -277,7 +279,7 @@ export const useDoctorWorkflow = () => {
       return p;
     });
     
-    localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
     setRecords(updated);
     triggerSync();
   };
@@ -301,7 +303,7 @@ export const useDoctorWorkflow = () => {
       return p;
     });
     
-    localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
     setRecords(updated);
     
     addTimelineEvent(patientId, {
@@ -319,7 +321,7 @@ export const useDoctorWorkflow = () => {
   const saveClinicalNotes = (patientId: string, notes: string) => {
     const current = getDoctorRecords();
     const updated = current.map(p => p.id === patientId ? { ...p, clinicalNotes: notes } : p);
-    localStorage.setItem(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(updated));
     setRecords(updated);
     triggerSync();
   };

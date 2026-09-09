@@ -28,6 +28,8 @@ import { EmergencyQRModal } from './components/modals/EmergencyQRModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { authApi } from './services/dhrApis';
 import { clearAuthToken } from './services/apiClient';
+import { socketService } from './services/socketService';
+import { showGlobalToast } from './components/common/GlobalToastManager';
 
 const NAV_MAP: Record<string, string> = {
   'family-connect': 'family',
@@ -359,9 +361,49 @@ export const App: React.FC = () => {
           console.warn('Session verification failed, resetting session:', err?.message);
           handleLogout();
         });
+
+      // Connect Socket.IO for global authenticated features (like real-time notifications)
+      socketService.connect(token);
     } else if (isLoggedIn) {
       handleLogout();
     }
+  }, []);
+
+  // Subscribe to Global Real-Time Notifications
+  React.useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const unsubscribe = socketService.subscribeToNotifications((notification: any) => {
+      // 1. Show professional toast popup
+      if (notification.title && notification.message) {
+        showGlobalToast(`${notification.title}\n${notification.message}`, 'info');
+      }
+      
+      // 2. Dispatch event to update the NotificationPopover badge immediately
+      window.dispatchEvent(new Event('notifications_updated'));
+    });
+
+    return () => unsubscribe();
+  }, [isLoggedIn]);
+
+  // Listen for local profile/user updates
+  React.useEffect(() => {
+    const handleUserUpdated = () => {
+      const savedUser = localStorage.getItem('app_user');
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          if (parsed && parsed.name) {
+            setUser((prev: any) => ({
+              ...(prev || {}),
+              ...parsed
+            }));
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('app_user_updated', handleUserUpdated);
+    return () => window.removeEventListener('app_user_updated', handleUserUpdated);
   }, []);
 
   // Sync state to localStorage & URL path on change

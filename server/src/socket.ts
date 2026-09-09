@@ -13,6 +13,8 @@ export interface OrderStatusUpdatePayload {
   previousStatus: string;
   updatedAt: string;
   message: string;
+  statusTimeline?: Record<string, string | null>;
+  totalAmount?: number | string;
 }
 
 let io: SocketIOServer | null = null;
@@ -118,6 +120,8 @@ export function emitOrderStatusUpdate(payload: OrderStatusUpdatePayload) {
 
   // Emit to admin monitoring room
   io.to('admin:room').emit('pharmacy:order-status-updated', payload);
+
+  // NOTE: No global broadcast — only targeted rooms above receive pharmacy order events
 }
 
 export interface HealthShareEventPayload {
@@ -153,8 +157,7 @@ export function emitHealthShareEvent(payload: HealthShareEventPayload) {
     if (payload.userId) {
       io!.to(`user:${payload.userId}`).emit(ev, payload);
     }
-    // Also broadcast to general room for local dev session synchronization
-    io!.emit(ev, payload);
+    // NOTE: No global broadcast — only targeted patient/doctor/user rooms receive these events
   });
 }
 

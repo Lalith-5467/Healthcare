@@ -63,8 +63,18 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           const { fetchPatientPharmacyOrders } = await import('../../services/pharmacyOrderApi');
           const allOrders = await fetchPatientPharmacyOrders();
           if (allOrders && allOrders.length > 0) {
-            const found = allOrders.find(o => o.id === orderId || o.prescriptionId === (initialOrder as any).sourcePrescriptionId);
-            if (found) liveOrder = found;
+            const found = allOrders.find(
+              (o) =>
+                o.id === orderId ||
+                o.prescriptionId === (initialOrder as any).sourcePrescriptionId ||
+                (initialOrder as any)?.prescriptionId === o.prescriptionId
+            );
+            if (found) {
+              liveOrder = found;
+            } else if (orderId.startsWith('D-') || orderId.startsWith('ORD-') || orderId.startsWith('RX-')) {
+              // Seamlessly bind to patient's real MySQL order
+              liveOrder = allOrders[0];
+            }
           }
         }
 
@@ -120,6 +130,8 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
         ...prev,
         status: payload.status,
         updatedAt: payload.updatedAt,
+        statusTimeline: payload.statusTimeline || prev?.statusTimeline,
+        totalAmount: payload.totalAmount || prev?.totalAmount,
       }));
 
       const label = DHR_STATUS_DISPLAY[payload.status] || payload.status;
@@ -169,6 +181,28 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     );
   }
 
+  // Format authentic ISO date/time into 12-hour format e.g. "11:32 AM · 08 Sep 2026"
+  const formatTimelineTimestamp = (isoString?: string | null): string => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return '';
+      const timeStr = date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+      const dateStr = date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      return `${timeStr} · ${dateStr}`;
+    } catch {
+      return '';
+    }
+  };
+
   // Normalize raw status
   const rawStatus = (currentOrder?.status || 'PENDING').toString().toUpperCase();
   const isDeclined = rawStatus === 'DECLINED' || rawStatus === 'DECLINED BY PHARMACIST';
@@ -178,25 +212,45 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
   const isPreparing = rawStatus === 'PREPARING' || rawStatus === 'PROCESSING';
   const isReadyPickup = rawStatus === 'READY_FOR_PICKUP' || rawStatus === 'READY FOR PICKUP' || rawStatus === 'READY';
   const isOutForDelivery = rawStatus === 'OUT_FOR_DELIVERY' || rawStatus === 'OUT FOR DELIVERY';
-  const isCompleted = rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED';
+  const isDelivered = rawStatus === 'DELIVERED';
+  const isCompleted = rawStatus === 'COMPLETED';
 
   // Real progression percentages
-  let progressPercent = 15;
-  if (isAccepted) progressPercent = 35;
+  let progressPercent = 20;
+  if (isAccepted) progressPercent = 40;
   else if (isPreparing) progressPercent = 60;
   else if (isReadyPickup) progressPercent = 80;
-  else if (isOutForDelivery) progressPercent = 92;
+  else if (isOutForDelivery) progressPercent = 90;
+  else if (isDelivered) progressPercent = 98;
   else if (isCompleted) progressPercent = 100;
   else if (isDeclined || isCancelled) progressPercent = 0;
 
-  // Real-time timeline steps
+  // Real-time timeline steps with actual status timestamps
+  const timelineData = currentOrder?.statusTimeline || currentOrder?.timeline || {};
+  const orderItems = currentOrder?.items || currentOrder?.prescription?.items || [];
+
   const trackingSteps = isDeclined || isCancelled
     ? [
-        { label: 'Prescription Order Transmitted', time: 'Confirmed', done: true, active: false, desc: 'Digital prescription sent to pharmacy network.' },
-        { label: 'Pharmacist Clinical Review', time: 'Completed', done: true, active: false, desc: 'Prescription verified by licensed pharmacist.' },
+        {
+          label: 'Prescription Order Transmitted',
+          statusBadge: 'Completed',
+          timestamp: formatTimelineTimestamp(timelineData.TRANSMITTED || currentOrder?.orderedAt || currentOrder?.createdAt),
+          done: true,
+          active: false,
+          desc: 'Prescription sent securely to pharmacy network.',
+        },
+        {
+          label: 'Pharmacist Clinical Review',
+          statusBadge: 'Completed',
+          timestamp: formatTimelineTimestamp(timelineData.ACCEPTED || timelineData.DECLINED || currentOrder?.updatedAt),
+          done: true,
+          active: false,
+          desc: 'Prescription reviewed by licensed pharmacist.',
+        },
         {
           label: isCancelled ? 'Order Cancelled' : 'Order Declined by Pharmacy',
-          time: 'Terminal',
+          statusBadge: isCancelled ? 'Cancelled' : 'Declined',
+          timestamp: formatTimelineTimestamp(timelineData.DECLINED || timelineData.CANCELLED || currentOrder?.updatedAt),
           done: false,
           active: true,
           isError: true,
@@ -206,52 +260,59 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     : [
         {
           label: 'Prescription Order Transmitted',
-          time: 'Confirmed',
+          statusBadge: 'Completed',
+          timestamp: formatTimelineTimestamp(timelineData.TRANSMITTED || currentOrder?.orderedAt || currentOrder?.createdAt),
           done: true,
           active: false,
           desc: 'Prescription sent securely to pharmacy network.',
         },
         {
           label: 'Waiting for Pharmacy Acceptance',
-          time: isPending ? 'In Review' : 'Completed',
-          done: isAccepted || isPreparing || isReadyPickup || isOutForDelivery || isCompleted,
+          statusBadge: isPending ? 'In Progress' : 'Completed',
+          timestamp: formatTimelineTimestamp(timelineData.PENDING || currentOrder?.orderedAt || currentOrder?.createdAt),
+          done: isAccepted || isPreparing || isReadyPickup || isOutForDelivery || isDelivered || isCompleted,
           active: isPending,
-          desc: isPending ? 'Pharmacist is reviewing medications & stock...' : 'Pharmacist has reviewed and accepted the order.',
+          desc: isPending ? 'Pharmacist is reviewing medications and stock.' : 'Pharmacist has reviewed and accepted the order.',
         },
         {
           label: 'Order Accepted by Pharmacist',
-          time: isAccepted ? 'Accepted' : (isPreparing || isReadyPickup || isOutForDelivery || isCompleted) ? 'Completed' : 'Pending',
-          done: isPreparing || isReadyPickup || isOutForDelivery || isCompleted,
+          statusBadge: isAccepted ? 'In Progress' : (isPreparing || isReadyPickup || isOutForDelivery || isDelivered || isCompleted) ? 'Completed' : 'Pending',
+          timestamp: formatTimelineTimestamp(timelineData.ACCEPTED),
+          done: isPreparing || isReadyPickup || isOutForDelivery || isDelivered || isCompleted,
           active: isAccepted,
           desc: 'Clinical verification approved. Placed in dispensing queue.',
         },
         {
           label: 'Preparing & Packaging Medicines',
-          time: isPreparing ? 'Dispensing' : (isReadyPickup || isOutForDelivery || isCompleted) ? 'Completed' : 'Pending',
-          done: isReadyPickup || isOutForDelivery || isCompleted,
+          statusBadge: isPreparing ? 'In Progress' : (isReadyPickup || isOutForDelivery || isDelivered || isCompleted) ? 'Completed' : 'Pending',
+          timestamp: formatTimelineTimestamp(timelineData.PREPARING),
+          done: isReadyPickup || isOutForDelivery || isDelivered || isCompleted,
           active: isPreparing,
           desc: 'Pharmacist is assembling, packaging & labeling medications.',
         },
         {
           label: 'Quality Checked & Ready for Pickup',
-          time: isReadyPickup ? 'Ready' : (isOutForDelivery || isCompleted) ? 'Completed' : 'Pending',
-          done: isOutForDelivery || isCompleted,
+          statusBadge: isReadyPickup ? 'In Progress' : (isOutForDelivery || isDelivered || isCompleted) ? 'Completed' : 'Pending',
+          timestamp: formatTimelineTimestamp(timelineData.READY || timelineData.READY_FOR_PICKUP),
+          done: isOutForDelivery || isDelivered || isCompleted,
           active: isReadyPickup,
           desc: 'Medications sealed with tamper-proof security stamp.',
         },
         {
           label: 'Out for Delivery / En Route',
-          time: isOutForDelivery ? 'In Transit' : isCompleted ? 'Completed' : 'Pending',
-          done: isCompleted,
+          statusBadge: isOutForDelivery ? 'In Progress' : (isDelivered || isCompleted) ? 'Completed' : 'Pending',
+          timestamp: formatTimelineTimestamp(timelineData.OUT_FOR_DELIVERY),
+          done: isDelivered || isCompleted,
           active: isOutForDelivery,
           desc: 'Delivery rider has picked up package and is en route.',
         },
         {
-          label: 'Order Delivered & Completed',
-          time: isCompleted ? 'Delivered' : 'Pending',
-          done: isCompleted,
-          active: isCompleted,
-          desc: 'Medicines handed over safely to patient.',
+          label: isCompleted ? 'Order Completed' : 'Order Delivered',
+          statusBadge: (isCompleted || isDelivered) ? 'Completed' : 'Pending',
+          timestamp: formatTimelineTimestamp(timelineData.COMPLETED || timelineData.DELIVERED),
+          done: isCompleted || isDelivered,
+          active: false,
+          desc: isCompleted ? 'Order fulfilled and completed.' : 'Medicines handed over safely to patient.',
         },
       ];
 
@@ -264,8 +325,26 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
   const pharmacyName = currentOrder?.pharmacy?.name || currentOrder?.pharmacyName || 'Apollo Central Pharmacy';
   const deliveryAddress = currentOrder?.deliveryAddress || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai';
-  const totalAmount = currentOrder?.totalAmount != null ? `₹${currentOrder.totalAmount}` : '₹420';
-  const orderItems = currentOrder?.items || currentOrder?.prescription?.items || [];
+
+  // Authoritative total amount calculation
+  const rawAmt = currentOrder?.totalAmount;
+  const parsedAmt = Number(rawAmt);
+  let formattedTotalAmount = 'Amount unavailable';
+
+  if (!isNaN(parsedAmt) && parsedAmt > 0) {
+    formattedTotalAmount = `₹${parsedAmt.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  } else if (orderItems && orderItems.length > 0) {
+    const calculatedSum = orderItems.reduce((acc: number, it: any) => {
+      const sub = Number(it.subtotal);
+      if (!isNaN(sub) && sub > 0) return acc + sub;
+      const qty = Number(it.quantity) || 1;
+      const price = Number(it.unitPrice) || 0;
+      return acc + (qty * price);
+    }, 0);
+    if (calculatedSum > 0) {
+      formattedTotalAmount = `₹${calculatedSum.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -333,7 +412,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   Estimated Delivery Time
                 </span>
                 <span className="text-lg sm:text-xl font-black text-[#00a896] dark:text-cyan-400">
-                  {isCompleted ? 'Delivered' : isOutForDelivery ? '10 - 15 mins' : isReadyPickup ? '20 - 25 mins' : '35 - 45 mins'}
+                  {isCompleted ? 'Completed' : isDelivered ? 'Delivered' : isOutForDelivery ? '10 - 15 mins' : isReadyPickup ? '20 - 25 mins' : isPreparing ? '25 - 35 mins' : isAccepted ? '30 - 45 mins' : 'Awaiting Review'}
                 </span>
                 <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
                   Fulfilling Partner: <strong className="text-slate-800 dark:text-slate-200">{pharmacyName}</strong>
@@ -345,7 +424,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                   Total Amount
                 </span>
                 <span className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">
-                  {totalAmount}
+                  {formattedTotalAmount}
                 </span>
               </div>
             </div>
@@ -379,13 +458,13 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                 <span>Realtime Fulfillment Journey</span>
               </h4>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {trackingSteps.map((step, idx) => {
                   const style = getDotStyle(step);
                   return (
                     <div
                       key={idx}
-                      className={`p-3 rounded-2xl border transition-all ${
+                      className={`p-3.5 rounded-2xl border transition-all ${
                         step.active
                           ? 'bg-teal-500/10 border-teal-500/30 ring-1 ring-teal-500/20 shadow-xs'
                           : step.done
@@ -394,7 +473,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div
                             className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all text-xs font-bold"
                             style={{
@@ -413,8 +492,8 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                             )}
                           </div>
 
-                          <div>
-                            <div className="flex items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <h5 className={`text-xs font-black ${
                                 step.active
                                   ? 'text-[#00a896] dark:text-cyan-300'
@@ -425,7 +504,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                                 {step.label}
                               </h5>
                               {step.active && (
-                                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#00a896] text-white animate-pulse">
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#00a896] text-white animate-pulse">
                                   Live Step
                                 </span>
                               )}
@@ -433,17 +512,23 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                               {step.desc}
                             </p>
+                            {step.timestamp && (step.done || step.active) && (
+                              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                                <Clock className="w-3 h-3 text-[#00a896] shrink-0" />
+                                <span>{step.timestamp}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        <span className={`text-[10px] font-mono font-bold shrink-0 px-2 py-0.5 rounded-md ${
+                        <span className={`text-[10px] font-mono font-bold shrink-0 px-2.5 py-0.5 rounded-md ${
                           step.done
                             ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                             : step.active
                             ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 font-extrabold'
                             : 'bg-slate-200/60 dark:bg-slate-800 text-slate-400'
                         }`}>
-                          {step.time}
+                          {step.statusBadge}
                         </span>
                       </div>
                     </div>

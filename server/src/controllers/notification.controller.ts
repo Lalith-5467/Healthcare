@@ -40,3 +40,17 @@ export const markAllNotificationsReadController = async (
     next(error);
   }
 };
+
+export const deleteNotificationController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await NotificationService.deleteNotification(id, req.user!.id);
+    res.status(200).json({ success: true, message: 'Notification deleted', data });
+  } catch (error) {
+    next(error);
+  }
+};

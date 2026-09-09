@@ -44,6 +44,7 @@ import {
 import { Logo } from '../components/ui/Logo';
 import { authApi } from '../services/dhrApis';
 import { setAuthToken, clearAuthToken } from '../services/apiClient';
+import { safeLocalStorageSet, safeLocalStorageRemove, pruneLocalStorageQuota } from '../utils/safeStorage';
 import { showGlobalToast } from '../components/common/GlobalToastManager';
 import { AUTH_CONFIG } from '../config/authConfig';
 
@@ -174,6 +175,22 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
   const [captchaCode, setCaptchaCode] = useState(() => generateCaptcha());
+  const errorTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-dismiss error after 5 seconds
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = setTimeout(() => setErrorMsg(''), 5000);
+  };
+
+  // Clear error on any user input
+  const clearError = () => {
+    if (errorMsg) {
+      setErrorMsg('');
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    }
+  };
 
   const refreshCaptcha = () => {
     setCaptchaCode(generateCaptcha());
@@ -354,20 +371,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
 
     if (mode === 'register') {
       if (password !== confirmPassword) {
-        setErrorMsg('Passwords do not match. Please check again.');
+        showError('Passwords do not match. Please check again.');
         return;
       }
       if (!agreedTerms) {
-        setErrorMsg('Please accept the Terms of Service & ABDM Privacy Policy.');
+        showError('Please accept the Terms of Service & ABDM Privacy Policy.');
         return;
       }
     } else {
       // Validate Verification Code / Captcha for Login
       if (captchaInput.trim().toUpperCase() !== captchaCode.toUpperCase()) {
-        setErrorMsg('Invalid verification code / CAPTCHA. Please enter the code shown.');
+        showError('Invalid verification code / CAPTCHA. Please enter the code shown.');
         refreshCaptcha();
         return;
       }
@@ -434,8 +452,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         const authResponse = await authApi.register(registerPayload);
         if (authResponse && authResponse.success) {
           clearAuthToken();
-          localStorage.removeItem('app_user');
-          localStorage.setItem('app_is_logged_in', 'false');
+          safeLocalStorageRemove('app_user');
+          safeLocalStorageSet('app_is_logged_in', 'false');
           setPassword('');
           setConfirmPassword('');
           setLoading(false);
@@ -458,8 +476,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         if (authResponse && authResponse.data && authResponse.data.token) {
           const { user, token } = authResponse.data;
           setAuthToken(token);
-          localStorage.setItem('token', token);
-          localStorage.setItem('auth_token', token);
+          safeLocalStorageSet('token', token);
+          safeLocalStorageSet('auth_token', token);
 
           const profile: any = user.profile || {};
           const authoritativeRole = userRoleDisplayMap[user.role] || userRoleDisplayMap[user.role?.toLowerCase?.()] || user.role || 'Patient';
@@ -482,8 +500,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             hospitalAffiliation: profile.hospital,
           };
 
-          localStorage.setItem('app_user', JSON.stringify(resolvedUserData));
-          localStorage.setItem('app_is_logged_in', 'true');
+          safeLocalStorageSet('app_user', JSON.stringify(resolvedUserData));
+          safeLocalStorageSet('app_is_logged_in', 'true');
 
           setSubmitted(true);
           setTimeout(() => {
@@ -520,7 +538,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         displayMsg = rawMsg || 'Authentication failed. Please check your credentials.';
       }
 
-      setErrorMsg(displayMsg);
+      showError(displayMsg);
     }
   };
 
@@ -2098,7 +2116,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 : 'e.g. user@medicare.health'
                             }
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => { setEmail(e.target.value); clearError(); }}
                             className={inputWithIconClass}
                           />
                         </div>
@@ -2116,7 +2134,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 required
                                 placeholder="••••••••••••"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => { setPassword(e.target.value); clearError(); }}
                                 className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
                               />
                               <button

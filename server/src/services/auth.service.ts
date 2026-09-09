@@ -318,11 +318,30 @@ export class AuthService {
             data: { userId: user.id, fullName: name },
           });
           break;
-        case Role.PHARMACIST:
+        case Role.PHARMACIST: {
+          const targetPharmacy = (data.hospital
+            ? await tx.pharmacy.findFirst({
+                where: {
+                  OR: [
+                    { name: { contains: data.hospital } },
+                    { pharmacyId: data.hospital },
+                    { id: data.hospital },
+                  ],
+                },
+              })
+            : null) || (await tx.pharmacy.findFirst({ where: { isActive: true } }));
+
           profileData = await tx.pharmacist.create({
-            data: { userId: user.id, fullName: name },
+            data: {
+              userId: user.id,
+              fullName: name,
+              pharmacyName: data.hospital || targetPharmacy?.name || 'Apollo Central Pharmacy',
+              pharmacyId: targetPharmacy?.id || null,
+              licenseNumber: `PCI-${Date.now()}`,
+            },
           });
           break;
+        }
         case Role.CAREGIVER:
           profileData = await tx.caregiver.create({
             data: { userId: user.id, fullName: name },

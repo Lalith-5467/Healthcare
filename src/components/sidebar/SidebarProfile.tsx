@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LogOut, ChevronDown } from 'lucide-react';
 import type { UserProfile } from './types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SidebarProfileProps {
   user?: UserProfile;
@@ -15,6 +16,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
   onLogout,
   onNavigate
 }) => {
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
             className="w-full px-3 py-2 rounded-xl text-left text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors cursor-pointer font-bold"
           >
             <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-            <span>Logout</span>
+            <span>{t('nav.logout', 'Sign Out')}</span>
           </button>
         </div>
       )}

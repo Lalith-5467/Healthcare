@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { getSocketServer } from '../socket';
 
 export interface CreateNotificationDTO {
   userId: string;
@@ -50,10 +51,23 @@ export class NotificationService {
   }
 
   /**
+   * Delete a notification permanently
+   */
+  static async deleteNotification(id: string, userId: string) {
+    const existing = await prisma.notification.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) {
+      throw new AppError('Notification not found or unauthorized', 404);
+    }
+
+    await prisma.notification.delete({ where: { id } });
+    return { success: true };
+  }
+
+  /**
    * Create notification
    */
   static async createNotification(data: CreateNotificationDTO) {
-    return prisma.notification.create({
+    const notification = await prisma.notification.create({
       data: {
         userId: data.userId,
         title: data.title,
@@ -63,5 +77,13 @@ export class NotificationService {
         relatedModule: data.relatedModule || null,
       },
     });
+
+    // Real-time delivery
+    const io = getSocketServer();
+    if (io) {
+      io.to(`user:${data.userId}`).emit('notification:new', notification);
+    }
+
+    return notification;
   }
 }

@@ -1,26 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Upload, QrCode, Pill, Building2, Activity } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface QuickActionsGridProps {
   onNavigate: (id: string) => void;
 }
 
 export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   const actions = [
-    { id: 'appointments', label: 'Book Appointment', icon: Calendar, color: 'text-blue-400 bg-blue-500/10 border-blue-500/30' },
-    { id: 'scan', label: 'Upload Record', icon: Upload, color: 'text-teal-400 bg-teal-500/10 border-teal-500/30' },
-    { id: 'scan', label: 'Scan Document', icon: QrCode, color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
-    { id: 'medicines', label: 'Add Medicine', icon: Pill, color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
-    { id: 'hospitals', label: 'Find Hospital', icon: Building2, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' },
-    { id: 'checkup', label: 'Health Check-up', icon: Activity, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' }
+    { id: 'appointments', labelKey: 'overview.book_appointment', fallback: 'Book Appointment', icon: Calendar, color: 'text-blue-400 bg-blue-500/10 border-blue-500/30' },
+    { id: 'scan', labelKey: 'overview.upload_record', fallback: 'Upload Record', icon: Upload, color: 'text-teal-400 bg-teal-500/10 border-teal-500/30' },
+    { id: 'scan', labelKey: 'nav.scan', fallback: 'Scan Document', icon: QrCode, color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
+    { id: 'medicines', labelKey: 'overview.add_medicine', fallback: 'Add Medicine', icon: Pill, color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
+    { id: 'hospitals', labelKey: 'nav.hospitals', fallback: 'Find Hospital', icon: Building2, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' },
+    { id: 'checkup', labelKey: 'nav.checkup', fallback: 'Health Check-up', icon: Activity, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' }
   ];
 
   return (
     <section className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Quick Actions
+          {t('overview.quick_actions', 'Quick Actions')}
         </h2>
       </div>
 
@@ -42,7 +44,7 @@ export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({ onNavigate }
                 <Icon className="w-5 h-5" />
               </div>
               <span className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight font-sans">
-                {act.label}
+                {t(act.labelKey, act.fallback)}
               </span>
             </motion.button>
           );

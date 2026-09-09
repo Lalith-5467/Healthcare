@@ -7,13 +7,11 @@ import {
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
   INITIAL_REMINDERS,
-  INITIAL_NOTIFICATIONS,
   DEFAULT_NOTIFICATION_SETTINGS
 } from './remindersData';
 import {
   updateReminderFollowUpStatus,
   getReminders as getStoredReminders,
-  getNotifications as getStoredNotifications
 } from '../../utils/healthWorkflowStorage';
 import { CreateReminderModal } from './CreateReminderModal';
 import { RemindersFilterDrawer } from './RemindersFilterDrawer';
@@ -23,6 +21,7 @@ import { SnoozeModal } from './SnoozeModal';
 import { NotificationSettingsDrawer } from './NotificationSettingsDrawer';
 import { ConfirmClearHistoryModal } from './ConfirmClearHistoryModal';
 import { reminderApi, notificationApi } from '../../services/dhrApis';
+import { safeLocalStorageSet } from '../../utils/safeStorage';
 
 interface UserProfile {
   name: string;
@@ -125,7 +124,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
   // STATE & LOCALSTORAGE PERSISTENCE (Live from MySQL)
   const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const [notifications, setNotifications] = useState<NotificationLog[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [settings, setSettings] = useState<NotificationSettingsState>(DEFAULT_NOTIFICATION_SETTINGS);
 
   // VIEW SWITCHER
@@ -183,7 +182,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           sourcePrescriptionId: r.sourcePrescriptionId,
         }));
         setReminders(mappedReminders);
-        localStorage.setItem('user_reminders', JSON.stringify(mappedReminders));
+        safeLocalStorageSet('user_reminders', JSON.stringify(mappedReminders));
       } else {
         const loadedReminders = getStoredReminders();
         setReminders(loadedReminders);
@@ -201,10 +200,9 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           relatedModule: n.relatedModule || 'dashboard',
         }));
         setNotifications(mappedNotifs);
-        localStorage.setItem('user_notifications', JSON.stringify(mappedNotifs));
+        safeLocalStorageSet('user_notifications', JSON.stringify(mappedNotifs));
       } else {
-        const loadedNotifs = getStoredNotifications();
-        setNotifications(loadedNotifs);
+        setNotifications([]);
       }
 
       const savedSetts = localStorage.getItem('user_notification_settings');
@@ -240,20 +238,20 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
   const saveRemindersState = (newReminders: ReminderItem[]) => {
     setReminders(newReminders);
-    localStorage.setItem('user_reminders', JSON.stringify(newReminders));
+    safeLocalStorageSet('user_reminders', JSON.stringify(newReminders));
     window.dispatchEvent(new Event('notifications_updated'));
     window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   const saveNotificationsState = (newNotifs: NotificationLog[]) => {
     setNotifications(newNotifs);
-    localStorage.setItem('user_notifications', JSON.stringify(newNotifs));
+    safeLocalStorageSet('user_notifications', JSON.stringify(newNotifs));
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const saveSettingsState = (newSetts: NotificationSettingsState) => {
     setSettings(newSetts);
-    localStorage.setItem('user_notification_settings', JSON.stringify(newSetts));
+    safeLocalStorageSet('user_notification_settings', JSON.stringify(newSetts));
   };
 
 

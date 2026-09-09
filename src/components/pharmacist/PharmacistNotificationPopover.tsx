@@ -28,62 +28,10 @@ export interface PharmacistNotificationItem {
   isUrgent?: boolean;
   actionNav?: string;
   actionLabel?: string;
+  orderId?: string;
 }
 
-const INITIAL_PHARMACIST_NOTIFICATIONS: PharmacistNotificationItem[] = [
-  {
-    id: 'pnotif-1',
-    title: 'New E-Prescription Uploaded',
-    message: 'Dr. Akshara issued a new Rx with 4 medicines awaiting clinical verification.',
-    category: 'prescription',
-    time: '2 mins ago',
-    isRead: false,
-    isUrgent: true,
-    actionNav: 'orders',
-    actionLabel: 'Verify & Dispense'
-  },
-  {
-    id: 'pnotif-2',
-    title: 'Order Dispatched for Delivery',
-    message: 'Order #RX-2026-00482 (Ragul Kumar) is out for home delivery to Guindy.',
-    category: 'delivery',
-    time: '18 mins ago',
-    isRead: false,
-    actionNav: 'orders',
-    actionLabel: 'Track Delivery'
-  },
-  {
-    id: 'pnotif-3',
-    title: 'Low Inventory Alert: Amoxicillin 500mg',
-    message: 'Current stock below minimum threshold (4 strips remaining in Central Dispensary).',
-    category: 'stock',
-    time: '45 mins ago',
-    isRead: false,
-    isUrgent: true,
-    actionNav: 'medicines',
-    actionLabel: 'Restock PO'
-  },
-  {
-    id: 'pnotif-4',
-    title: 'AI Drug Interaction Verified',
-    message: 'Interaction check completed for Patient #9104: No lethal contraindications detected.',
-    category: 'safety',
-    time: '2 hours ago',
-    isRead: true,
-    actionNav: 'drug-interaction',
-    actionLabel: 'View Radar'
-  },
-  {
-    id: 'pnotif-5',
-    title: 'Monthly Schedule H Drug Log Synced',
-    message: 'Prescription register compliance audit logged with ABDM portal.',
-    category: 'safety',
-    time: 'Yesterday',
-    isRead: true,
-    actionNav: 'schedule-audit',
-    actionLabel: 'View Register'
-  }
-];
+
 
 const formatTimeAgo = (dateStr?: string) => {
   if (!dateStr) return 'Just now';
@@ -100,7 +48,7 @@ const formatTimeAgo = (dateStr?: string) => {
 interface PharmacistNotificationPopoverProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate: (navId: string) => void;
+  onNavigate: (navId: string, orderId?: string) => void;
 }
 
 export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopoverProps> = ({
@@ -115,17 +63,32 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
     try {
       const res = await notificationApi.getNotifications();
       if (res && res.data) {
-        const mapped: PharmacistNotificationItem[] = res.data.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          message: n.message,
-          category: (n.category?.toLowerCase() || 'order') as any,
-          time: formatTimeAgo(n.createdAt),
-          isRead: n.isRead,
-          isUrgent: n.type === 'ALERT' || n.title.toLowerCase().includes('urgent'),
-          actionNav: n.relatedModule || 'orders',
-          actionLabel: 'View Details'
-        }));
+        const mapped: PharmacistNotificationItem[] = res.data.map((n: any) => {
+          let orderId: string | undefined = undefined;
+          if (n.relatedModule && n.relatedModule.startsWith('orders:')) {
+            orderId = n.relatedModule.replace('orders:', '');
+          } else {
+            const match = n.message?.match(/Order #([a-zA-Z0-9_-]+)/i);
+            if (match && match[1]) {
+              orderId = match[1];
+            }
+          }
+
+          const isOrders = n.relatedModule?.startsWith('orders') || n.title?.toLowerCase().includes('order') || n.category?.toLowerCase() === 'pharmacy';
+
+          return {
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            category: (n.category?.toLowerCase() || 'order') as any,
+            time: formatTimeAgo(n.createdAt),
+            isRead: n.isRead,
+            isUrgent: n.type === 'ALERT' || n.title.toLowerCase().includes('urgent'),
+            actionNav: isOrders ? 'orders' : n.relatedModule || 'orders',
+            actionLabel: 'View Details',
+            orderId,
+          };
+        });
         setNotifications(mapped);
         return;
       }
@@ -160,9 +123,13 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleRemoveSingle = (id: string, e: React.MouseEvent) => {
+  const handleRemoveSingle = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    notificationApi.markAsRead(id).catch(() => {});
+    try {
+      await notificationApi.deleteNotification(id);
+    } catch {
+      notificationApi.markAsRead(id).catch(() => {});
+    }
     const updated = notifications.filter((n) => n.id !== id);
     setNotifications(updated);
     window.dispatchEvent(new Event('notifications_updated'));
@@ -171,8 +138,8 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
   const handleActionClick = (notif: PharmacistNotificationItem) => {
     handleMarkRead(notif.id);
     onClose();
-    if (notif.actionNav) {
-      onNavigate(notif.actionNav);
+    if (onNavigate) {
+      onNavigate(notif.actionNav || 'orders', notif.orderId);
     }
   };
 

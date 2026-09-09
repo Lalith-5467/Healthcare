@@ -53,6 +53,7 @@ import { ReportInsightsView } from '../components/more-features/views/ReportInsi
 import { NurseBookingView } from '../components/more-features/views/NurseBookingView';
 import { JanitorBookingView } from '../components/more-features/views/JanitorBookingView';
 import { SecurityPrivacyView } from '../components/more-features/views/SecurityPrivacyView';
+import { LanguageProvider } from '../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -72,7 +73,7 @@ interface DashboardPageProps {
   onOpenAbhaModal: () => void;
 }
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({
+const DashboardPageInner: React.FC<DashboardPageProps> = ({
   user = {
     name: 'Patient',
     email: '',
@@ -100,8 +101,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [accessRequestsModalOpen, setAccessRequestsModalOpen] = useState(false);
   const [dismissedRequestIds, setDismissedRequestIds] = useState<Set<string>>(new Set());
-
   const mainScrollRef = useRef<HTMLDivElement>(null);
+
+  const effectiveUser: UserProfile = React.useMemo(() => {
+    let resolvedName = user?.name || '';
+    if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+      try {
+        const custom = localStorage.getItem('patient_user_name');
+        if (custom && custom.trim() && !custom.includes('Pharmacist') && !custom.includes('R.Ph') && !custom.includes('Suresh Nair')) {
+          resolvedName = custom.trim();
+        } else {
+          const prof = localStorage.getItem('user_profile_data');
+          if (prof) {
+            const parsed = JSON.parse(prof);
+            if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+              resolvedName = parsed.name.trim();
+            }
+          }
+          if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+            const appUser = localStorage.getItem('app_user');
+            if (appUser) {
+              const parsed = JSON.parse(appUser);
+              if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+                resolvedName = parsed.name.trim();
+              }
+            }
+          }
+        }
+      } catch {}
+    }
+    if (!resolvedName || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+      resolvedName = user?.name || user?.email?.split('@')[0] || 'Patient User';
+    }
+    return {
+      ...(user || {}),
+      name: resolvedName,
+      email: user?.email || '',
+      role: user?.role || 'Patient',
+      abhaId: user?.abhaId || '91-8472-9104-5821@abdm',
+      bloodGroup: user?.bloodGroup || 'O+',
+      age: user?.age || 30,
+    };
+  }, [user]);
 
   // Simulated short initial dashboard loading
   useEffect(() => {
@@ -252,7 +293,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <Sidebar 
           activeId={activeNavId} 
           onSelectNav={handleSelectNav} 
-          user={user} 
+          user={effectiveUser} 
           onLogout={onLogout} 
         />
       </div>
@@ -263,7 +304,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         onClose={() => setMobileSidebarOpen(false)} 
         activeId={activeNavId} 
         onSelectNav={handleSelectNav} 
-        user={user} 
+        user={effectiveUser} 
         onLogout={onLogout} 
       />
 
@@ -300,89 +341,89 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <DashboardSkeleton />
         ) : activeNavId === 'profile' ? (
           <ProfileView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
             onOpenEmergencyModal={onOpenEmergencyModal}
           />
         ) : activeNavId === 'records' ? (
           <RecordsView
-            user={user}
+            user={effectiveUser}
             onNavigateScan={() => handleSelectNav('scan')}
           />
         ) : activeNavId === 'scan' ? (
           <ScanView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'appointments' || activeNavId === 'appointment') ? (
           <AppointmentsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'medicines' || activeNavId === 'medicine') ? (
           <MedicinesView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'pharmacy' ? (
           <PharmacyView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'consultation' || activeNavId === 'video-consultation') ? (
           <ConsultationView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'reminders' || activeNavId === 'notifications') ? (
           <RemindersView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
             initialViewMode={activeNavId === 'notifications' ? 'timeline' : 'list'}
           />
         ) : (activeNavId === 'analytics' || activeNavId === 'health-analytics') ? (
           <AnalyticsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'family' || activeNavId === 'family-connect') ? (
           <FamilyConnectView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'checkup' || activeNavId === 'health-checkup') ? (
           <CheckupView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'hospitals' || activeNavId === 'nearby-hospitals') ? (
           <HospitalsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'insurance' ? (
           <InsuranceView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'more-features' || activeNavId === 'features') ? (
           <MoreFeaturesView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'emergency' || activeNavId === 'sos') ? (
           <EmergencyView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'settings' ? (
           <SettingsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'ai-assistant' || activeNavId === 'assistant') ? (
           <AIAssistantView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'lab-test' ? (
@@ -392,7 +433,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         ) : activeNavId === 'report-insights' ? (
           <ReportInsightsView />
         ) : activeNavId === 'nurse-booking' ? (
-          <NurseBookingView user={user} />
+          <NurseBookingView user={effectiveUser} />
         ) : activeNavId === 'janitor-booking' ? (
           <JanitorBookingView />
         ) : activeNavId === 'security-privacy' ? (
@@ -406,7 +447,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           >
             {/* STICKY TOP APP HEADER BAR - DISPLAYED ONLY ON DASHBOARD OVERVIEW */}
             <DashboardHeader
-              userName={user.name.split(' ')[0]}
+              userName={effectiveUser.name.split(' ')[0]}
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
               onNavigateHome={() => handleSelectNav('home')}
@@ -427,8 +468,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <HealthScoreCard />
               <HealthAccessCard
-                abhaId={user.abhaId}
-                userName={user.name}
+                abhaId={effectiveUser.abhaId}
+                userName={effectiveUser.name}
                 onToast={showToast}
               />
             </section>
@@ -517,3 +558,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     </div>
   );
 };
+
+export const DashboardPage: React.FC<DashboardPageProps> = (props) => (
+  <LanguageProvider>
+    <DashboardPageInner {...props} />
+  </LanguageProvider>
+);

@@ -34,12 +34,16 @@ interface PharmacistOrdersViewProps {
     abhaId?: string;
   };
   initialFilter?: string;
-  onToast: (msg: string) => void;
+  targetOrderId?: string | null;
+  onClearTargetOrder?: () => void;
+  onToast: (msg: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
 }
 
 export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
   user: _user,
   initialFilter = 'All',
+  targetOrderId,
+  onClearTargetOrder,
   onToast,
 }) => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -122,6 +126,35 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
     };
   }, []);
 
+  // AUTO-SELECT & OPEN ORDER WHEN TARGET ORDER ID IS PASSED (FROM NOTIFICATIONS)
+  useEffect(() => {
+    if (targetOrderId && orders.length > 0) {
+      const cleanTarget = targetOrderId.trim().toLowerCase();
+      const matched = orders.find(
+        (o) =>
+          o.id.toLowerCase() === cleanTarget ||
+          o.id.toLowerCase().endsWith(cleanTarget) ||
+          cleanTarget.endsWith(o.id.toLowerCase()) ||
+          o.id.slice(-6).toLowerCase() === cleanTarget
+      );
+
+      if (matched) {
+        setActiveFilter('All');
+        setSelectedRxOrder(matched);
+        onToast(`Viewing Order #${matched.id.slice(-6)} (${matched.patient?.fullName || 'Patient'})`);
+        setTimeout(() => {
+          const el = document.getElementById(`order-card-${matched.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 150);
+        if (onClearTargetOrder) {
+          onClearTargetOrder();
+        }
+      }
+    }
+  }, [targetOrderId, orders]);
+
   // Helper status normalizers
   const normalize = (status?: string) => (status || 'PENDING').toUpperCase();
 
@@ -141,9 +174,13 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       setActionLoadingId(orderId);
       const updated = await acceptPharmacyOrder(orderId);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: 'ACCEPTED' } : o)));
-      onToast(`✓ Order #${orderId.slice(-6)} Accepted!`);
+      onToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+      window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
-      onToast(`Unable to update this order. Please try again.`);
+      console.error('Accept order failed:', err);
+      const errorMsg = err?.message || 'Unable to update this order. Please try again.';
+      onToast(errorMsg, 'error');
+      loadOrders();
     } finally {
       setActionLoadingId(null);
     }
@@ -156,9 +193,13 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       const fullReason = notes ? `${reason} - ${notes}` : reason;
       const updated = await declinePharmacyOrder(orderId, fullReason);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: 'DECLINED' } : o)));
-      onToast(`✕ Order #${orderId.slice(-6)} Declined.`);
+      onToast(`✕ Order #${orderId.slice(-6)} Declined.`, 'info');
+      window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
-      onToast(`Unable to update this order. Please try again.`);
+      console.error('Decline order failed:', err);
+      const errorMsg = err?.message || 'Unable to decline this order. Please try again.';
+      onToast(errorMsg, 'error');
+      loadOrders();
     } finally {
       setActionLoadingId(null);
     }
@@ -170,9 +211,13 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       setActionLoadingId(orderId);
       const updated = await updatePharmacyOrderStatus(orderId, nextStatus);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: nextStatus } : o)));
-      onToast(`✓ Order #${orderId.slice(-6)} moved to ${nextStatus}!`);
+      onToast(`✓ Order #${orderId.slice(-6)} moved to ${nextStatus}!`, 'success');
+      window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
-      onToast(`Unable to update this order. Please try again.`);
+      console.error('Advance status failed:', err);
+      const errorMsg = err?.message || 'Unable to update this order status. Please try again.';
+      onToast(errorMsg, 'error');
+      loadOrders();
     } finally {
       setActionLoadingId(null);
     }
@@ -431,8 +476,8 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             const isCompleted = rawStatus === 'COMPLETED' || rawStatus === 'DELIVERED';
             const isDeclined = rawStatus === 'DECLINED' || rawStatus === 'CANCELLED';
 
-            const patientDisplayName = order.patient?.fullName || order.patientName || 'Ragul Kumar';
-            const rxReference = order.prescriptionId || order.prescription?.id || order.sourcePrescriptionId || 'RX-2024-001';
+            const patientDisplayName = order.patient?.fullName || order.patientName || 'Patient';
+            const rxReference = order.prescriptionId || order.prescription?.id || order.sourcePrescriptionId || `RX-${order.id.slice(-6)}`;
             const itemsList = order.items || [];
             const createdTime = order.orderedAt || order.createdAt ? new Date(order.orderedAt || order.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Today';
             const updatedTime = order.updatedAt ? new Date(order.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Recently';
@@ -440,10 +485,13 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             return (
               <motion.div
                 key={order.id}
+                id={`order-card-${order.id}`}
                 layout
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`bg-white dark:bg-[#070c18] rounded-2xl p-5 sm:p-6 border transition-all shadow-sm space-y-5 hover:shadow-md relative overflow-hidden ${
+                  selectedRxOrder?.id === order.id ? 'ring-2 ring-[#00a896]' : ''
+                } ${
                   isPending
                     ? 'border-amber-500/40 dark:border-amber-500/30'
                     : isDeclined

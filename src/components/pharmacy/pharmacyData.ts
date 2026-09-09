@@ -43,7 +43,16 @@ export type PharmacyOrderStatus =
   | 'Out for Delivery'
   | 'Delivered'
   | 'Declined by Pharmacist'
-  | 'Cancelled';
+  | 'Cancelled'
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'PREPARING'
+  | 'READY'
+  | 'READY_FOR_PICKUP'
+  | 'OUT_FOR_DELIVERY'
+  | 'COMPLETED'
+  | 'DECLINED'
+  | string;
 
 export interface PharmacyOrder {
   id: string; // e.g. "RX-2026-00482"
@@ -70,56 +79,30 @@ export interface LinkedPrescription {
 
 export const INITIAL_PHARMACIES: Pharmacy[] = [
   {
-    id: 'PHARM-1',
-    name: 'HealthPlus Pharmacy',
-    rating: 4.8,
-    reviewCount: 342,
+    id: 'DHR-PH-00124',
+    name: 'Apollo Central Pharmacy',
+    rating: 4.9,
+    reviewCount: 512,
     distanceKm: 2.4,
-    hours: 'Open until 10:00 PM',
+    hours: 'Open until 11:00 PM',
     deliveryTime: '30–45 min',
     deliveryAvailable: true,
     pickupAvailable: true,
     address: 'Plot 42, Anna Salai, Guindy, Chennai, TN',
-    phone: '+91 98401 23456',
+    phone: '+91 98400 55667',
     isPreferred: true
   },
   {
-    id: 'PHARM-2',
-    name: 'MediCare Express Pharmacy',
-    rating: 4.7,
-    reviewCount: 219,
+    id: 'DHR-PH-00125',
+    name: 'MedPlus Pharmacy',
+    rating: 4.8,
+    reviewCount: 342,
     distanceKm: 3.1,
-    hours: 'Open 24 Hours',
-    deliveryTime: '25–35 min',
+    hours: 'Open until 10:00 PM',
+    deliveryTime: '30–45 min',
     deliveryAvailable: true,
     pickupAvailable: true,
     address: 'No. 18, Race Course Road, Guindy, Chennai, TN',
-    phone: '+91 98402 34567'
-  },
-  {
-    id: 'PHARM-3',
-    name: 'Apollo Pharmacy',
-    rating: 4.9,
-    reviewCount: 512,
-    distanceKm: 4.2,
-    hours: 'Open until 11:00 PM',
-    deliveryTime: '40–50 min',
-    deliveryAvailable: true,
-    pickupAvailable: true,
-    address: '12 Sardar Patel Road, Adyar, Chennai, TN',
-    phone: '+91 98403 45678'
-  },
-  {
-    id: 'PHARM-4',
-    name: 'City Health Pharmacy',
-    rating: 4.5,
-    reviewCount: 128,
-    distanceKm: 1.8,
-    hours: 'Open until 09:30 PM',
-    deliveryTime: '20–30 min',
-    deliveryAvailable: false,
-    pickupAvailable: true,
-    address: '5 West Cott Road, Royapettah, Chennai, TN',
     phone: '+91 98404 56789'
   }
 ];

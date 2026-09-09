@@ -36,8 +36,47 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
   onSelectNav,
   user
 }) => {
-  const orders = getPharmacyOrders();
-  const pendingCount = orders.filter((o) => (o.status as string) === 'Pending Pharmacist Verification' || (o.status as string) === 'PENDING' || (o.status as string) === 'Order Received').length;
+  const [realOrders, setRealOrders] = React.useState<any[]>([]);
+
+  const loadSidebarData = async () => {
+    try {
+      const { fetchPharmacistOrders } = await import('../../services/pharmacyOrderApi');
+      const data = await fetchPharmacistOrders();
+      if (Array.isArray(data)) {
+        setRealOrders(data);
+      }
+    } catch {
+      setRealOrders([]);
+    }
+  };
+
+  React.useEffect(() => {
+    loadSidebarData();
+    const handleUpdate = () => loadSidebarData();
+    window.addEventListener('health_workflow_updated', handleUpdate);
+
+    let unsub: any;
+    import('../../services/socketService').then(({ socketService }) => {
+      socketService.connect();
+      unsub = socketService.subscribeToOrderUpdates(() => {
+        loadSidebarData();
+      });
+    });
+
+    return () => {
+      window.removeEventListener('health_workflow_updated', handleUpdate);
+      if (unsub) unsub();
+    };
+  }, []);
+
+  const pendingCount = realOrders.filter(
+    (o) => (o.status || '').toUpperCase() === 'PENDING'
+  ).length;
+
+  const urgentRxCount = realOrders.filter(
+    (o) => (o.status || '').toUpperCase() === 'PENDING' || (o.status || '').toUpperCase() === 'ACCEPTED'
+  ).length;
+
   const pharmacistName = React.useMemo(() => {
     if (user?.name && user.name !== 'Suresh Nair' && user.name !== 'Registered Pharmacist') {
       return user.name;
@@ -64,22 +103,22 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
           id: 'orders', 
           label: 'Dispensary Orders', 
           icon: ShoppingBag, 
-          badge: pendingCount > 0 ? `${pendingCount} New` : '4 New', 
+          badge: pendingCount > 0 ? `${pendingCount} New` : undefined, 
           badgeStyle: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' 
         },
         { 
           id: 'prescriptions', 
           label: 'Prescriptions Queue', 
           icon: FileText, 
-          badge: '2 Urgent', 
-          badgeStyle: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' 
+          badge: urgentRxCount > 0 ? `${urgentRxCount} Active` : undefined, 
+          badgeStyle: 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30' 
         },
         { 
           id: 'medicines', 
           label: 'Stock & Inventory', 
           icon: Pill, 
-          badge: '3 Low', 
-          badgeStyle: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' 
+          badge: 'Verified', 
+          badgeStyle: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700' 
         },
         { id: 'patients', label: 'Patient Directory', icon: Users }
       ]
@@ -91,7 +130,7 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
           id: 'drug-interaction', 
           label: 'Drug Safety Radar', 
           icon: ShieldAlert, 
-          badge: 'AI Radar', 
+          badge: 'AI Active', 
           badgeStyle: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' 
         },
         { id: 'supplier-orders', label: 'Wholesale Restock POs', icon: Truck },

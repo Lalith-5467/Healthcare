@@ -139,17 +139,13 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
 
   const handleDemoScan = async () => {
     setIsScanning(true);
+    setErrorMessage(null);
     try {
-      const token = 'MED-QR-DEMO-TEST-PATIENT';
-      await handleValidateToken(token);
-    } catch {
-      try {
-        const genRes = await healthShareApi.generateQRToken(30);
-        await handleValidateToken(genRes.token);
-      } catch (e: any) {
-        setErrorMessage(e.message || 'Could not validate test patient QR token');
-        setIsScanning(false);
-      }
+      const genRes = await healthShareApi.generateQRToken(30);
+      await handleValidateToken(genRes.token);
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Could not validate test patient QR token');
+      setIsScanning(false);
     }
   };
 

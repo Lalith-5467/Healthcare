@@ -29,19 +29,21 @@ export const getAuthToken = (): string | null => {
   );
 };
 
+import { safeLocalStorageSet, safeLocalStorageRemove } from '../utils/safeStorage';
+
 export const setAuthToken = (token: string): void => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('token', token);
+    safeLocalStorageSet('auth_token', token);
+    safeLocalStorageSet('token', token);
   }
 };
 
 export const clearAuthToken = (): void => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('user');
+    safeLocalStorageRemove('auth_token');
+    safeLocalStorageRemove('token');
+    safeLocalStorageRemove('jwt');
+    safeLocalStorageRemove('user');
   }
 };
 

@@ -15,7 +15,6 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import type { NotificationLog } from '../reminders/remindersData';
-import { INITIAL_NOTIFICATIONS } from '../reminders/remindersData';
 import { notificationApi } from '../../services/dhrApis';
 import { PatientAccessRequestsModal } from './PatientAccessRequestsModal';
 
@@ -96,12 +95,16 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleRemoveSingle = (id: string, e: React.MouseEvent) => {
+  const handleRemoveSingle = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    notificationApi.markAsRead(id).catch(() => {});
-    const updated = notifications.filter((n) => n.id !== id);
-    setNotifications(updated);
-    window.dispatchEvent(new Event('notifications_updated'));
+    try {
+      await notificationApi.deleteNotification(id);
+      const updated = notifications.filter((n) => n.id !== id);
+      setNotifications(updated);
+      window.dispatchEvent(new Event('notifications_updated'));
+    } catch (err) {
+      console.error('Failed to delete notification', err);
+    }
   };
 
   const filteredNotifs = notifications.filter((n) => (filter === 'unread' ? !n.isRead : true));

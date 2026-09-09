@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Calendar, Pill, FileText, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const activities = [
   {
@@ -44,9 +45,9 @@ const activities = [
   },
   {
     id: 4,
-    title: 'CarePlus Family Floater policy verified',
+    title: 'Dr. Anita Sharma requested access to Health Profile',
     time: 'Yesterday',
-    category: 'Insurance',
+    category: 'Consent',
     icon: ShieldCheck,
     accent: '#06b6d4',
     accentBg: 'rgba(6,182,212,.12)',
@@ -58,6 +59,7 @@ const activities = [
 ];
 
 export const RecentActivityTimeline: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -77,7 +79,7 @@ export const RecentActivityTimeline: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Recent Patient Activity
+              {t('card.recent_activity', 'Recent Patient Activity')}
             </h3>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Real-time Portal Audit Feed</span>
           </div>

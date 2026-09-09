@@ -7,8 +7,11 @@ export type AllowedRole = Role | 'INSURANCE' | 'SUPER_ADMIN' | string;
  * Normalizes role aliases to the Prisma Role enum
  */
 export function normalizeRole(role: string): Role {
-  const upper = role.toUpperCase();
-  if (upper === 'INSURANCE') return Role.INSURANCE_PROVIDER;
+  if (!role) return Role.PATIENT;
+  const upper = role.toUpperCase().trim();
+  if (upper === 'INSURANCE' || upper === 'INSURANCE_PROVIDER') return Role.INSURANCE_PROVIDER;
+  if (upper === 'USER' || upper === 'PATIENT') return Role.PATIENT;
+  if (upper === 'SUPER_ADMIN' || upper === 'SUPER ADMIN') return Role.SUPER_ADMIN;
   return upper as Role;
 }
 

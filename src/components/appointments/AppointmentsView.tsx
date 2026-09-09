@@ -38,6 +38,7 @@ import {
   updateReminderFollowUpStatus
 } from '../../utils/healthWorkflowStorage';
 import { appointmentApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -57,6 +58,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -369,7 +371,6 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     return true;
   });
 
-  // FEATURED NEXT APPOINTMENT (First upcoming appointment)
   const nextAppointment = appointments.find(
     (a) => a.status === 'Confirmed' || a.status === 'Starting Soon' || a.status === 'Ready to Join'
   );
@@ -393,8 +394,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Appointments"
-        subtitle="Manage doctor consultations, tele-health sessions & clinic visits."
+        title={t('apt.title', 'Appointments')}
+        subtitle={t('apt.subtitle', 'Manage doctor consultations, tele-health sessions & clinic visits.')}
         badgeText="Live Care"
         badgeIcon={<Calendar className="w-3.5 h-3.5" />}
         rightElement={
@@ -404,7 +405,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Calendar className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>View Calendar</span>
+              <span>{t('apt.view_calendar', 'View Calendar')}</span>
             </button>
 
             <button
@@ -415,7 +416,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Book Appointment</span>
+              <span>{t('apt.book_new', 'Book Appointment')}</span>
             </button>
           </div>
         }

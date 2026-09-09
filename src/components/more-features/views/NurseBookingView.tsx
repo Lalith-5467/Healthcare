@@ -67,7 +67,7 @@ export const ALL_HOME_CARE_SERVICES = [
 ];
 
 export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
-  const { bookings, createBooking, updateBookingStatus, addNotification, refreshBookings } = useNurseWorkflow();
+  const { bookings, createBooking, updateBookingStatus, refreshBookings } = useNurseWorkflow();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [myBookings, setMyBookings] = useState<CareRequest[]>([]);
@@ -143,13 +143,17 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
         setMyBookings(res.data);
       } else {
         // Filter local bookings for this patient
-        const currentPatientName = user?.name || 'Lalith Velarasi';
-        const filtered = bookings.filter(b => b.patientName.toLowerCase().includes(currentPatientName.toLowerCase()) || b.patientUserId === user?.id);
-        setMyBookings(filtered.length > 0 ? filtered : bookings.slice(0, 2));
+        const currentPatientName = user?.name || '';
+        const filtered = currentPatientName 
+          ? bookings.filter(b => b.patientName.toLowerCase().includes(currentPatientName.toLowerCase()) || b.patientUserId === user?.id)
+          : (user?.id ? bookings.filter(b => b.patientUserId === user.id) : bookings);
+        setMyBookings(filtered);
       }
     } catch {
-      const currentPatientName = user?.name || 'Lalith Velarasi';
-      const filtered = bookings.filter(b => b.patientName.toLowerCase().includes(currentPatientName.toLowerCase()) || b.patientUserId === user?.id);
+      const currentPatientName = user?.name || '';
+      const filtered = currentPatientName 
+        ? bookings.filter(b => b.patientName.toLowerCase().includes(currentPatientName.toLowerCase()) || b.patientUserId === user?.id)
+        : (user?.id ? bookings.filter(b => b.patientUserId === user.id) : bookings);
       setMyBookings(filtered);
     }
   };
@@ -255,47 +259,26 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
       const res = await clinicalApi.createNurseCareRequest(requestPayload);
 
       if (res && res.data) {
-        addNotification(`New care request from ${res.data.patientName} for ${res.data.serviceType}.`, 'info');
+
         const current = JSON.parse(localStorage.getItem('medicare_nurse_bookings_v2') || '[]');
         const updated = [res.data, ...current.filter((b: any) => b.id !== res.data.id)];
         localStorage.setItem('medicare_nurse_bookings_v2', JSON.stringify(updated));
         window.dispatchEvent(new Event('medicare_sync_nurse'));
+        await loadMyBookings();
+        setIsBookingModalOpen(false);
+        showToast('✓ Home care request submitted successfully! A certified nurse will review your request.');
+        
+        // Reset non-demographic fields
+        setConditionReason('');
+        setSpecialInstructions('');
+        setAdditionalNotes('');
+        setStartDate('');
       } else {
-        createBooking({
-          patientName: user?.name || 'Lalith Velarasi',
-          patientAge: `${calculatedAge} Years`,
-          patientPhone: patientPhone.trim() || user?.phone || '+91 98765 43210',
-          serviceType: serviceType,
-          prefDate: startDate || 'Today',
-          time: startTime || '10:00 AM',
-          location: `${address.trim()}${city ? `, ${city}` : ''}`,
-          instructions: `${conditionReason.trim()}${specialInstructions.trim() ? `. ${specialInstructions.trim()}` : ''}`
-        });
+        throw new Error(res?.message || 'Failed to submit home care request');
       }
-
-      await loadMyBookings();
-      setIsBookingModalOpen(false);
-      showToast('✓ Home care request submitted successfully! A certified nurse will review your request.');
-      
-      // Reset non-demographic fields
-      setConditionReason('');
-      setSpecialInstructions('');
-      setAdditionalNotes('');
-      setStartDate('');
-    } catch {
-      createBooking({
-        patientName: user?.name || 'Lalith Velarasi',
-        patientAge: `${calculatedAge} Years`,
-        patientPhone: patientPhone.trim() || user?.phone || '+91 98765 43210',
-        serviceType: serviceType,
-        prefDate: startDate || 'Today',
-        time: startTime || '10:00 AM',
-        location: `${address.trim()}${city ? `, ${city}` : ''}`,
-        instructions: `${conditionReason.trim()}${specialInstructions.trim() ? `. ${specialInstructions.trim()}` : ''}`
-      });
-      await loadMyBookings();
-      setIsBookingModalOpen(false);
-      showToast('✓ Home care request recorded!');
+    } catch (err: any) {
+      console.error('Home care request creation error:', err);
+      showToast(`⚠️ Failed to submit request: ${err?.message || 'Server connection error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -404,7 +387,7 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
                 CLINICAL HOME CARE
               </span>
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                Active Patient: {user?.name || 'Lalith Velarasi'}
+                Active Patient: {user?.name || 'Patient'}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
@@ -499,7 +482,7 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
                           </span>
                         </div>
                         <h3 className="font-black text-slate-900 dark:text-white text-sm">
-                          {booking.nurseName || 'Awaiting Nurse Review'}
+                          {booking.status === 'Pending' ? 'Awaiting Nurse Assignment' : `Assigned Nurse: ${booking.nurseName || 'Certified RN'}`}
                         </h3>
                         <p className="text-[11px] text-slate-500 font-mono">
                           Req ID: {booking.id}
@@ -538,15 +521,17 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
                     </div>
                     
                     <div className="pl-2 pt-1 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] text-slate-400">
-                        Patient: <strong>{booking.patientName}</strong>
+                      <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                        Patient: <strong className="text-slate-900 dark:text-white font-bold">{booking.patientName}</strong>
                       </span>
-                      <button 
-                        onClick={() => handleCancelBooking(booking.id)}
-                        className="text-rose-600 hover:text-rose-700 dark:text-rose-400 text-[10px] font-bold uppercase transition-colors"
-                      >
-                        Cancel Request
-                      </button>
+                      {booking.status === 'Pending' && (
+                        <button 
+                          onClick={() => handleCancelBooking(booking.id)}
+                          className="text-rose-600 hover:text-rose-700 dark:text-rose-400 text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                        >
+                          Cancel Request
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 ))
@@ -626,7 +611,7 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
                       Request In-Home Nursing Care
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Fill out the clinical request. Authenticated Patient: <strong className="text-slate-700 dark:text-slate-200">{user?.name || 'Lalith Velarasi'}</strong>
+                      Fill out the clinical request. Authenticated Patient: <strong className="text-slate-700 dark:text-slate-200">{user?.name || 'Patient'}</strong>
                     </p>
                   </div>
                 </div>
@@ -703,7 +688,7 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
                       <label className="font-bold text-slate-600 dark:text-slate-400">Patient Full Name</label>
                       <input 
                         type="text" 
-                        value={user?.name || 'Lalith Velarasi'} 
+                        value={user?.name || 'Patient'} 
                         readOnly 
                         className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-bold text-slate-800 dark:text-slate-200 cursor-not-allowed" 
                       />

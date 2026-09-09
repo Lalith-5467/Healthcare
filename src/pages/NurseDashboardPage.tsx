@@ -22,7 +22,7 @@ import { NurseAlertsView } from '../components/nurse-dashboard/views/NurseAlerts
 import { NurseProfileView } from '../components/nurse-dashboard/views/NurseProfileView';
 import { NurseSettingsView } from '../components/nurse-dashboard/views/NurseSettingsView';
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
-import { notificationApi } from '../services/dhrApis';
+import { notificationApi, authApi } from '../services/dhrApis';
 
 interface NurseDashboardPageProps {
   onLogout: () => void;
@@ -59,12 +59,38 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
-  const nurseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Sarah Jenkins, RN';
+  // Fetch authenticated nurse identity from backend (authoritative source)
+  const [authenticatedNurse, setAuthenticatedNurse] = React.useState<{ name: string; email: string } | null>(null);
+
+  React.useEffect(() => {
+    authApi.getCurrentUser()
+      .then((res) => {
+        if (res && res.data) {
+          const u = res.data;
+          const profile: any = u.profile || {};
+          // Only accept the result if the authenticated user is actually a nurse
+          const role = (u.role || '').toUpperCase();
+          if (role === 'NURSE') {
+            const name = profile.fullName || profile.name || u.email.split('@')[0];
+            setAuthenticatedNurse({ name, email: u.email });
+          }
+        }
+      })
+      .catch(() => {
+        // Backend call failed — fall back to the user prop silently
+      });
+  }, []);
+
+  // Use backend-verified nurse identity; fall back to user prop if not yet resolved
+  const resolvedNurse = authenticatedNurse || user;
+  const nurseName = resolvedNurse?.name
+    ? (resolvedNurse.name.startsWith('Nurse') ? resolvedNurse.name : `Nurse ${resolvedNurse.name}`)
+    : 'Nurse';
 
   const renderActiveView = () => {
     switch (activeNav) {
       case 'dashboard':
-        return <NurseOverviewView onNavigate={setActiveNav} user={user} />;
+        return <NurseOverviewView onNavigate={setActiveNav} user={resolvedNurse} />;
       case 'requests':
         return <CareRequestsView />;
       case 'patients':
@@ -79,11 +105,11 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
       case 'alerts':
         return <NurseAlertsView />;
       case 'profile':
-        return <NurseProfileView />;
+        return <NurseProfileView user={resolvedNurse} />;
       case 'settings':
         return <NurseSettingsView />;
       default:
-        return <NurseOverviewView onNavigate={setActiveNav} user={user} />;
+        return <NurseOverviewView onNavigate={setActiveNav} user={resolvedNurse} />;
     }
   };
 
@@ -185,7 +211,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
       <div className="flex flex-1 overflow-hidden">
         {/* DESKTOP SIDEBAR */}
         <div className="hidden lg:block shrink-0">
-          <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} user={user} />
+          <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} user={resolvedNurse} />
         </div>
 
         {/* MOBILE SIDEBAR MODAL */}
@@ -216,7 +242,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
                       setActiveNav(id);
                       setIsSidebarOpen(false);
                     }} 
-                    user={user} 
+                    user={resolvedNurse} 
                   />
                 </div>
               </motion.div>

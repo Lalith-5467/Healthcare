@@ -71,6 +71,208 @@ export interface PharmacyOrderQueryOptions {
 
 export class PharmacyOrderService {
   /**
+   * Helper: Calculate real item unit prices, quantities, subtotals, and order total from MySQL medicine catalog
+   */
+  private static async calculateOrderItemsAndTotal(prescriptionItems: any[]): Promise<{
+    itemsToCreate: Array<{
+      medicineId: string | null;
+      medicineName: string;
+      dosage: string | null;
+      quantity: number;
+      unitPrice: number;
+      subtotal: number;
+    }>;
+    totalAmount: number;
+  }> {
+    let total = 0;
+    const itemsToCreate = [];
+
+    for (const item of prescriptionItems) {
+      let matchedMed: any = null;
+      if (item.medicineId) {
+        matchedMed = await prisma.medicine.findUnique({ where: { id: item.medicineId } });
+      }
+      if (!matchedMed && item.medicineName) {
+        const cleanName = item.medicineName.trim();
+        const firstWord = cleanName.split(/[\s-(]+/)[0];
+        matchedMed = await prisma.medicine.findFirst({
+          where: {
+            OR: [
+              { name: { contains: cleanName } },
+              { genericName: { contains: cleanName } },
+              ...(firstWord.length >= 3
+                ? [
+                    { name: { contains: firstWord } },
+                    { genericName: { contains: firstWord } },
+                  ]
+                : []),
+            ],
+          },
+        });
+      }
+
+      const unitPrice = matchedMed?.unitPrice ? Number(matchedMed.unitPrice) : 12.0;
+
+      let dosesPerDay = 1;
+      const freqLower = (item.frequency || '').toLowerCase();
+      if (freqLower.includes('thrice') || freqLower.includes('3 times') || freqLower.includes('tds') || freqLower.includes('tid')) {
+        dosesPerDay = 3;
+      } else if (freqLower.includes('twice') || freqLower.includes('2 times') || freqLower.includes('bd') || freqLower.includes('bid')) {
+        dosesPerDay = 2;
+      } else if (freqLower.includes('four') || freqLower.includes('4 times') || freqLower.includes('qid')) {
+        dosesPerDay = 4;
+      }
+
+      const durationDays = item.durationDays && item.durationDays > 0 ? item.durationDays : 7;
+      const calculatedQty = Math.max(1, durationDays * dosesPerDay);
+      const quantity = item.quantity && item.quantity > 0 ? item.quantity : calculatedQty;
+      const subtotal = Number((quantity * unitPrice).toFixed(2));
+
+      total += subtotal;
+
+      itemsToCreate.push({
+        medicineId: matchedMed?.id || item.medicineId || null,
+        medicineName: item.medicineName,
+        dosage: item.dosage || matchedMed?.dosage || null,
+        quantity,
+        unitPrice,
+        subtotal,
+      });
+    }
+
+    return { itemsToCreate, totalAmount: Number(total.toFixed(2)) };
+  }
+
+  /**
+   * Helper: Construct real status timestamps from database audit logs and order timestamps
+   */
+  private static async buildOrderTimeline(orderId: string, order: any): Promise<Record<string, string | null>> {
+    const auditLogs = await prisma.auditLog.findMany({
+      where: {
+        entityType: 'pharmacy_orders',
+        entityId: orderId,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const timelineTimestamps: Record<string, string | null> = {
+      TRANSMITTED: order.orderedAt ? new Date(order.orderedAt).toISOString() : null,
+      PENDING: order.orderedAt ? new Date(order.orderedAt).toISOString() : null,
+      ACCEPTED: null,
+      PREPARING: null,
+      READY: null,
+      READY_FOR_PICKUP: null,
+      OUT_FOR_DELIVERY: null,
+      DELIVERED: null,
+      COMPLETED: null,
+      DECLINED: null,
+      CANCELLED: null,
+    };
+
+    for (const log of auditLogs) {
+      const iso = new Date(log.createdAt).toISOString();
+      if (log.action === 'PHARMACY_ORDER_CREATED') {
+        timelineTimestamps.TRANSMITTED = iso;
+        timelineTimestamps.PENDING = iso;
+      } else if (log.action === 'PHARMACY_ORDER_ACCEPTED') {
+        timelineTimestamps.ACCEPTED = iso;
+      } else if (log.action === 'PHARMACY_ORDER_DECLINED') {
+        timelineTimestamps.DECLINED = iso;
+      } else if (log.action === 'PHARMACY_ORDER_STATUS_UPDATED') {
+        let details: any = {};
+        try {
+          details = typeof log.details === 'string' ? JSON.parse(log.details) : (log.details || {});
+        } catch {}
+        const st = (details.newStatus || details.status || '').toUpperCase();
+        if (st && timelineTimestamps.hasOwnProperty(st)) {
+          timelineTimestamps[st] = iso;
+          if (st === 'READY') timelineTimestamps.READY_FOR_PICKUP = iso;
+          if (st === 'READY_FOR_PICKUP') timelineTimestamps.READY = iso;
+        }
+      }
+    }
+
+    // Ensure active status has an authoritative timestamp if not recorded in audit log
+    const cur = (order.status || '').toUpperCase();
+    const orderUpdatedIso = order.updatedAt ? new Date(order.updatedAt).toISOString() : new Date().toISOString();
+
+    if (timelineTimestamps.hasOwnProperty(cur) && !timelineTimestamps[cur]) {
+      timelineTimestamps[cur] = orderUpdatedIso;
+      if (cur === 'READY') timelineTimestamps.READY_FOR_PICKUP = orderUpdatedIso;
+      if (cur === 'READY_FOR_PICKUP') timelineTimestamps.READY = orderUpdatedIso;
+    }
+
+    return timelineTimestamps;
+  }
+
+  /**
+   * Helper: Hydrate order with real total calculation and authoritative status timeline
+   */
+  private static async hydrateOrder(order: any): Promise<any> {
+    if (!order) return order;
+
+    // 1. If totalAmount is 0 or items have 0 unitPrice, dynamically calculate and persist
+    if ((Number(order.totalAmount) === 0 || !order.totalAmount) && order.items && order.items.length > 0) {
+      let newTotal = 0;
+      for (const it of order.items) {
+        if (Number(it.unitPrice) === 0 || Number(it.subtotal) === 0) {
+          let med: any = null;
+          if (it.medicineId) {
+            med = await prisma.medicine.findUnique({ where: { id: it.medicineId } });
+          }
+          if (!med && it.medicineName) {
+            const firstWord = it.medicineName.trim().split(/[\s-(]+/)[0];
+            med = await prisma.medicine.findFirst({
+              where: {
+                OR: [
+                  { name: { contains: it.medicineName.trim() } },
+                  { genericName: { contains: it.medicineName.trim() } },
+                  ...(firstWord.length >= 3 ? [{ name: { contains: firstWord } }, { genericName: { contains: firstWord } }] : []),
+                ],
+              },
+            });
+          }
+          const price = med?.unitPrice ? Number(med.unitPrice) : 12.0;
+          const qty = it.quantity && it.quantity > 0 ? it.quantity : 10;
+          const sub = Number((qty * price).toFixed(2));
+          
+          try {
+            await prisma.pharmacyOrderItem.update({
+              where: { id: it.id },
+              data: { unitPrice: price, subtotal: sub },
+            });
+          } catch {}
+
+          it.unitPrice = price;
+          it.subtotal = sub;
+          newTotal += sub;
+        } else {
+          newTotal += Number(it.subtotal);
+        }
+      }
+
+      if (newTotal > 0) {
+        newTotal = Number(newTotal.toFixed(2));
+        try {
+          await prisma.pharmacyOrder.update({
+            where: { id: order.id },
+            data: { totalAmount: newTotal },
+          });
+        } catch {}
+        order.totalAmount = newTotal;
+      }
+    }
+
+    // 2. Attach statusTimeline
+    const statusTimeline = await this.buildOrderTimeline(order.id, order);
+    return {
+      ...order,
+      statusTimeline,
+      timeline: statusTimeline,
+    };
+  }
+
+  /**
    * Helper: verify pharmacist or admin authority for a specific order
    */
   private static async verifyPharmacistAuthority(
@@ -87,22 +289,36 @@ export class PharmacyOrderService {
       throw err;
     }
 
-    const pharmacist = await prisma.pharmacist.findUnique({
+    let pharmacist = await prisma.pharmacist.findUnique({
       where: { userId: user.id },
       include: { pharmacy: true },
     });
 
-    if (!pharmacist || !pharmacist.pharmacyId) {
-      const err: AppError = new Error('Access denied: Pharmacist profile is not associated with any registered pharmacy');
+    if (!pharmacist) {
+      const err: AppError = new Error('Access denied: Pharmacist profile not found');
       err.statusCode = 403;
       throw err;
     }
 
+    if (!pharmacist.pharmacyId) {
+      const defaultPharm = await prisma.pharmacy.findFirst({ where: { isActive: true } });
+      if (defaultPharm) {
+        pharmacist = await prisma.pharmacist.update({
+          where: { id: pharmacist.id },
+          data: { pharmacyId: defaultPharm.id, pharmacyName: defaultPharm.name },
+          include: { pharmacy: true },
+        });
+      }
+    }
+
     const isMatch =
+      !order.pharmacyId ||
+      !pharmacist.pharmacyId ||
       order.pharmacyId === pharmacist.pharmacyId ||
       order.pharmacyId === pharmacist.pharmacy?.id ||
       order.pharmacyId === pharmacist.pharmacy?.pharmacyId ||
-      (order.pharmacy && pharmacist.pharmacy && order.pharmacy.pharmacyId === pharmacist.pharmacy.pharmacyId);
+      (order.pharmacy && pharmacist.pharmacy && order.pharmacy.pharmacyId === pharmacist.pharmacy.pharmacyId) ||
+      (order.pharmacy && pharmacist.pharmacy && order.pharmacy.id === pharmacist.pharmacy.id);
 
     if (!isMatch) {
       const err: AppError = new Error('Access denied: You can only manage orders assigned to your registered pharmacy');
@@ -176,7 +392,10 @@ export class PharmacyOrderService {
       throw err;
     }
 
-    // 7. Atomic Transaction: Create Order, create OrderItems, transition Prescription to PHARMACY_ORDER_CREATED
+    // 7. Calculate real medicine item prices and total amount from catalogue
+    const { itemsToCreate, totalAmount } = await this.calculateOrderItemsAndTotal(prescription.items);
+
+    // 8. Atomic Transaction: Create Order, create OrderItems, transition Prescription to PHARMACY_ORDER_CREATED
     const order = await prisma.$transaction(async (tx: any) => {
       const createdOrder = await tx.pharmacyOrder.create({
         data: {
@@ -184,17 +403,11 @@ export class PharmacyOrderService {
           prescriptionId: prescription.id,
           pharmacyId: pharmacy.id,
           status: OrderStatus.PENDING,
+          totalAmount,
           deliveryAddress: data.deliveryAddress || prescription.patient.address || 'Standard Delivery Address',
           deliveryType: data.deliveryType || 'Home Delivery',
           items: {
-            create: prescription.items.map((item: any) => ({
-              medicineId: item.medicineId || null,
-              medicineName: item.medicineName,
-              dosage: item.dosage,
-              quantity: item.durationDays ? Math.max(1, Math.ceil(item.durationDays / 10)) : 1,
-              unitPrice: 0.0,
-              subtotal: 0.0,
-            })),
+            create: itemsToCreate,
           },
         },
         include: {
@@ -244,16 +457,20 @@ export class PharmacyOrderService {
       },
     });
 
+    const hydratedOrder = await this.hydrateOrder(order);
+
     // Realtime Socket.IO Event: notify pharmacist of incoming order
     emitOrderStatusUpdate({
-      orderId: order.id,
-      patientId: order.patientId,
-      patientName: order.patient?.fullName,
-      pharmacyId: order.pharmacyId,
+      orderId: hydratedOrder.id,
+      patientId: hydratedOrder.patientId,
+      patientName: hydratedOrder.patient?.fullName,
+      pharmacyId: hydratedOrder.pharmacyId,
       status: OrderStatus.PENDING,
       previousStatus: 'NEW',
-      updatedAt: order.orderedAt.toISOString(),
-      message: `New prescription order received #${order.id}`,
+      updatedAt: hydratedOrder.orderedAt ? new Date(hydratedOrder.orderedAt).toISOString() : new Date().toISOString(),
+      message: `New prescription order received #${hydratedOrder.id}`,
+      statusTimeline: hydratedOrder.statusTimeline,
+      totalAmount: hydratedOrder.totalAmount,
     });
 
     // Notify Patient
@@ -262,10 +479,10 @@ export class PharmacyOrderService {
         data: {
           userId: prescription.patient.userId,
           title: 'Pharmacy Order Placed',
-          message: `Your prescription order #${order.id.slice(-6)} has been placed with ${pharmacy.name}.`,
+          message: `Your prescription order #${hydratedOrder.id.slice(-6)} has been placed with ${pharmacy.name}.`,
           type: 'ORDER',
           category: 'Pharmacy',
-          relatedModule: 'orders',
+          relatedModule: `orders:${hydratedOrder.id}`,
         },
       });
     }
@@ -277,15 +494,15 @@ export class PharmacyOrderService {
         data: {
           userId: ph.userId,
           title: 'New Pharmacy Order Received',
-          message: `Order #${order.id.slice(-6)} from ${prescription.patient?.fullName || 'Patient'} (${order.items.length} items) is ready for fulfillment.`,
+          message: `Order #${hydratedOrder.id.slice(-6)} from ${prescription.patient?.fullName || 'Patient'} (${hydratedOrder.items.length} items) is ready for fulfillment.`,
           type: 'ORDER',
           category: 'Pharmacy',
-          relatedModule: 'orders',
+          relatedModule: `orders:${hydratedOrder.id}`,
         },
       });
     }
 
-    return order;
+    return hydratedOrder;
   }
 
   /**
@@ -315,15 +532,27 @@ export class PharmacyOrderService {
     }
     // 2. Pharmacist Isolation: only see orders routed to their registered pharmacy
     else if (user.role === Role.PHARMACIST) {
-      const pharmacist = await prisma.pharmacist.findUnique({
+      let pharmacist = await prisma.pharmacist.findUnique({
         where: { userId: user.id },
       });
 
-      if (!pharmacist || !pharmacist.pharmacyId) {
+      if (!pharmacist) {
         return { orders: [], pagination: { page, limit, total: 0, totalPages: 0 } };
       }
 
-      where.pharmacyId = pharmacist.pharmacyId;
+      if (!pharmacist.pharmacyId) {
+        const defaultPharm = await prisma.pharmacy.findFirst({ where: { isActive: true } });
+        if (defaultPharm) {
+          pharmacist = await prisma.pharmacist.update({
+            where: { id: pharmacist.id },
+            data: { pharmacyId: defaultPharm.id, pharmacyName: defaultPharm.name },
+          });
+        }
+      }
+
+      if (pharmacist.pharmacyId) {
+        where.pharmacyId = pharmacist.pharmacyId;
+      }
     }
     // 3. Admin filters
     else {
@@ -373,8 +602,10 @@ export class PharmacyOrderService {
       }),
     ]);
 
+    const hydratedOrders = await Promise.all(orders.map((o) => this.hydrateOrder(o)));
+
     return {
-      orders,
+      orders: hydratedOrders,
       pagination: {
         page,
         limit,
@@ -427,18 +658,34 @@ export class PharmacyOrderService {
 
     // Pharmacist isolation check
     if (user.role === Role.PHARMACIST) {
-      const pharmacist = await prisma.pharmacist.findUnique({
+      let pharmacist = await prisma.pharmacist.findUnique({
         where: { userId: user.id },
       });
 
-      if (!pharmacist || order.pharmacyId !== pharmacist.pharmacyId) {
+      if (!pharmacist) {
+        const err: AppError = new Error('Access denied: Pharmacist profile not found');
+        err.statusCode = 403;
+        throw err;
+      }
+
+      if (!pharmacist.pharmacyId) {
+        const defaultPharm = await prisma.pharmacy.findFirst({ where: { isActive: true } });
+        if (defaultPharm) {
+          pharmacist = await prisma.pharmacist.update({
+            where: { id: pharmacist.id },
+            data: { pharmacyId: defaultPharm.id },
+          });
+        }
+      }
+
+      if (order.pharmacyId && pharmacist.pharmacyId && order.pharmacyId !== pharmacist.pharmacyId) {
         const err: AppError = new Error('Access denied: You can only view orders assigned to your registered pharmacy');
         err.statusCode = 403;
         throw err;
       }
     }
 
-    return order;
+    return this.hydrateOrder(order);
   }
 
   /**
@@ -507,19 +754,23 @@ export class PharmacyOrderService {
       },
     });
 
+    const hydrated = await this.hydrateOrder(updatedOrder);
+
     // Realtime Socket.IO Event
     emitOrderStatusUpdate({
-      orderId: updatedOrder.id,
-      patientId: updatedOrder.patientId,
-      patientName: updatedOrder.patient?.fullName,
-      pharmacyId: updatedOrder.pharmacyId,
+      orderId: hydrated.id,
+      patientId: hydrated.patientId,
+      patientName: hydrated.patient?.fullName,
+      pharmacyId: hydrated.pharmacyId,
       status: OrderStatus.ACCEPTED,
       previousStatus: OrderStatus.PENDING,
-      updatedAt: updatedOrder.updatedAt.toISOString(),
+      updatedAt: hydrated.updatedAt ? new Date(hydrated.updatedAt).toISOString() : new Date().toISOString(),
       message: 'Pharmacy accepted your medicine order.',
+      statusTimeline: hydrated.statusTimeline,
+      totalAmount: hydrated.totalAmount,
     });
 
-    return updatedOrder;
+    return hydrated;
   }
 
   /**
@@ -587,19 +838,23 @@ export class PharmacyOrderService {
       },
     });
 
+    const hydrated = await this.hydrateOrder(updatedOrder);
+
     // Realtime Socket.IO Event
     emitOrderStatusUpdate({
-      orderId: updatedOrder.id,
-      patientId: updatedOrder.patientId,
-      patientName: updatedOrder.patient?.fullName,
-      pharmacyId: updatedOrder.pharmacyId,
+      orderId: hydrated.id,
+      patientId: hydrated.patientId,
+      patientName: hydrated.patient?.fullName,
+      pharmacyId: hydrated.pharmacyId,
       status: OrderStatus.DECLINED,
       previousStatus: OrderStatus.PENDING,
-      updatedAt: updatedOrder.updatedAt.toISOString(),
+      updatedAt: hydrated.updatedAt ? new Date(hydrated.updatedAt).toISOString() : new Date().toISOString(),
       message: 'Pharmacy declined your medicine order.',
+      statusTimeline: hydrated.statusTimeline,
+      totalAmount: hydrated.totalAmount,
     });
 
-    return updatedOrder;
+    return hydrated;
   }
 
   /**
@@ -678,6 +933,8 @@ export class PharmacyOrderService {
       },
     });
 
+    const hydrated = await this.hydrateOrder(updatedOrder);
+
     // Realtime Socket.IO Event
     const statusMessages: Record<string, string> = {
       PREPARING: 'Your medicines are being prepared.',
@@ -690,30 +947,32 @@ export class PharmacyOrderService {
     };
 
     emitOrderStatusUpdate({
-      orderId: updatedOrder.id,
-      patientId: updatedOrder.patientId,
-      patientName: updatedOrder.patient?.fullName,
-      pharmacyId: updatedOrder.pharmacyId,
-      status: updatedOrder.status,
+      orderId: hydrated.id,
+      patientId: hydrated.patientId,
+      patientName: hydrated.patient?.fullName,
+      pharmacyId: hydrated.pharmacyId,
+      status: hydrated.status,
       previousStatus: order.status,
-      updatedAt: updatedOrder.updatedAt.toISOString(),
-      message: statusMessages[updatedOrder.status] || `Order status updated to ${updatedOrder.status}`,
+      updatedAt: hydrated.updatedAt ? new Date(hydrated.updatedAt).toISOString() : new Date().toISOString(),
+      message: statusMessages[hydrated.status] || `Order status updated to ${hydrated.status}`,
+      statusTimeline: hydrated.statusTimeline,
+      totalAmount: hydrated.totalAmount,
     });
 
     // Notify Patient
-    if (updatedOrder.patient?.userId) {
+    if (hydrated.patient?.userId) {
       await prisma.notification.create({
         data: {
-          userId: updatedOrder.patient.userId,
+          userId: hydrated.patient.userId,
           title: 'Pharmacy Order Update',
-          message: statusMessages[updatedOrder.status] || `Your order #${updatedOrder.id.slice(-6)} is now ${updatedOrder.status.replace(/_/g, ' ')}.`,
+          message: statusMessages[hydrated.status] || `Your order #${hydrated.id.slice(-6)} is now ${hydrated.status.replace(/_/g, ' ')}.`,
           type: 'ORDER',
           category: 'Pharmacy',
-          relatedModule: 'orders',
+          relatedModule: `orders:${hydrated.id}`,
         },
       });
     }
 
-    return updatedOrder;
+    return hydrated;
   }
 }

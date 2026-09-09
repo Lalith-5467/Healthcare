@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pill, Check } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface MedicationListCardProps {
   onNavigate: (id: string) => void;
@@ -8,6 +9,7 @@ interface MedicationListCardProps {
 }
 
 export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNavigate, onToast }) => {
+  const { t } = useLanguage();
   const [meds, setMeds] = useState([
     { id: 1, name: 'Amoxicillin 500mg', dosage: '1 Capsule after lunch', time: '12:00 PM', taken: true, takenTime: '11:58 AM' },
     { id: 2, name: 'Metformin 10mg', dosage: '1 Tablet after dinner', time: '06:00 PM', taken: false, takenTime: null },
@@ -39,7 +41,7 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Today's Medicines
+              {t('overview.today_reminders', "Today's Medicines")}
             </h3>
             <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">Pill Tracker & Daily Reminders</span>
           </div>

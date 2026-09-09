@@ -1,6 +1,6 @@
 import type { StructuredPrescription } from './prescriptionExtractor';
-import type { ReminderItem, NotificationLog } from '../components/reminders/remindersData';
-import { INITIAL_REMINDERS, INITIAL_NOTIFICATIONS } from '../components/reminders/remindersData';
+import type { ReminderItem } from '../components/reminders/remindersData';
+import { INITIAL_REMINDERS } from '../components/reminders/remindersData';
 import type { PharmacyOrder, LinkedPrescription } from '../components/pharmacy/pharmacyData';
 import { INITIAL_ORDERS, INITIAL_PRESCRIPTIONS } from '../components/pharmacy/pharmacyData';
 import type { MedicineItem, DoseRecord } from '../components/medicines/medicinesData';
@@ -22,7 +22,6 @@ export const STORAGE_KEYS = {
   LINKED_PRESCRIPTIONS: 'user_linked_prescriptions',
   MEDICINES: 'user_medicines',
   TODAY_DOSES: 'user_today_doses',
-  NOTIFICATIONS: 'user_notifications',
   MEDICAL_RECORDS: 'user_medical_records',
   LATEST_WORKFLOW: 'latest_prescription_workflow',
 } as const;
@@ -39,10 +38,11 @@ function getStoredJSON<T>(key: string, fallback: T): T {
   }
 }
 
+import { safeLocalStorageSet } from './safeStorage';
+
 function setStoredJSON<T>(key: string, value: T): boolean {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
+    return safeLocalStorageSet(key, JSON.stringify(value));
   } catch (err) {
     console.error(`Error saving key "${key}" to localStorage:`, err);
     return false;
@@ -150,20 +150,7 @@ export const updateReminderFollowUpStatus = (
   reminderApi.updateFollowUpStatus(reminderId, newStatus).catch(() => {});
 
   if (ok) {
-    // Add Notification Log
-    addNotification({
-      id: `NOTIF-FLW-${Date.now().toString().slice(-5)}`,
-      title: newStatus === 'Accepted' ? 'Follow-up Appointment Confirmed' : 'Follow-up Appointment Declined',
-      description: `${updatedItem.title} - Status updated to ${newStatus}.`,
-      category: 'Appointment',
-      timeAgo: 'Just now',
-      date: 'Today',
-      isRead: false,
-      relatedModule: 'appointments'
-    });
-
     dispatchWorkflowEvent('health_workflow_updated');
-    dispatchWorkflowEvent('notifications_updated');
   }
 
   return { success: ok, reminder: updatedItem };
@@ -254,20 +241,7 @@ export const updatePharmacyOrderStatus = (
   }
 
   if (ok) {
-    addNotification({
-      id: `NOTIF-PHARM-STATUS-${Date.now().toString().slice(-5)}`,
-      title: isDeclined ? 'Pharmacy Order Declined' : 'Pharmacy Order Verified & Processing',
-      description: isDeclined
-        ? `Your pharmacy order ${updatedOrder.id} was declined. Reason: ${declineReason || 'Medicine unavailable'}.`
-        : `Your pharmacy order ${updatedOrder.id} has been verified by Pharmacist ${pharmacistName} and is now being processed.`,
-      category: 'Pharmacy',
-      timeAgo: 'Just now',
-      date: 'Today',
-      isRead: false,
-      relatedModule: 'pharmacy'
-    });
 
-    // Update latest_prescription_workflow if matching
     const latestWf = getLatestWorkflowResult();
     if (latestWf && latestWf.pharmacyOrder?.id === orderId) {
       setLatestWorkflowResult({
@@ -277,7 +251,6 @@ export const updatePharmacyOrderStatus = (
     }
 
     dispatchWorkflowEvent('health_workflow_updated');
-    dispatchWorkflowEvent('notifications_updated');
   }
 
   return { success: ok, order: updatedOrder };
@@ -324,20 +297,7 @@ export const saveTodayDoses = (doses: DoseRecord[]): boolean => {
   return ok;
 };
 
-// ==========================================
-// 5. NOTIFICATIONS & MEDICAL RECORDS
-// ==========================================
-export const getNotifications = (): NotificationLog[] => {
-  return getStoredJSON<NotificationLog[]>(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
-};
 
-export const addNotification = (notif: NotificationLog): boolean => {
-  const current = getNotifications();
-  const updated = [notif, ...current];
-  const ok = setStoredJSON(STORAGE_KEYS.NOTIFICATIONS, updated);
-  if (ok) dispatchWorkflowEvent('notifications_updated');
-  return ok;
-};
 
 export const getMedicalRecords = (): MedicalRecordItem[] => {
   return getStoredJSON<MedicalRecordItem[]>(STORAGE_KEYS.MEDICAL_RECORDS, INITIAL_RECORDS);
@@ -446,17 +406,7 @@ export const processPrescriptionConfirmation = (
       saveReminder(reminderItem);
       reminderCreated = true;
 
-      // Notification
-      addNotification({
-        id: `NOTIF-${Date.now().toString().slice(-5)}`,
-        title: 'New Doctor Follow-up Detected',
-        description: `Follow-up on ${followUpDateDisplay} with ${prescription.doctorName} was added to your reminders.`,
-        category: 'Appointment',
-        timeAgo: 'Just now',
-        date: 'Today',
-        isRead: false,
-        relatedModule: 'appointments'
-      });
+
     } else {
       reminderItem = existingReminder;
       reminderCreated = true;
@@ -512,17 +462,7 @@ export const processPrescriptionConfirmation = (
       associatedMedicines: prescription.medicines.map((m) => m.name)
     });
 
-    // Pharmacy Notification
-    addNotification({
-      id: `NOTIF-PHARM-${Date.now().toString().slice(-5)}`,
-      title: 'Prescription Verified & Sent to Pharmacy',
-      description: `Order ${pharmacyOrder.id} has been created and sent to Apollo Central Pharmacy. Status: Pending Pharmacist Verification.`,
-      category: 'Pharmacy',
-      timeAgo: 'Just now',
-      date: 'Today',
-      isRead: false,
-      relatedModule: 'pharmacy'
-    });
+
   } else if (existingOrder) {
     pharmacyOrder = existingOrder;
     pharmacyOrderCreated = true;
@@ -600,7 +540,6 @@ export const processPrescriptionConfirmation = (
 
   // 6. Broadcast reactive event across app
   dispatchWorkflowEvent('health_workflow_updated');
-  dispatchWorkflowEvent('notifications_updated');
 
   const result: WorkflowConfirmationResult = {
     prescription: verifiedPrescription,

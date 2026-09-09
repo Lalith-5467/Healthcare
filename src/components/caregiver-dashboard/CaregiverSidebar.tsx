@@ -22,10 +22,10 @@ interface CaregiverSidebarProps {
 }
 
 export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, onNavigate, user }) => {
-  const { wards, activeWardId, setActiveWardId, alerts, tasks, notifications } = useCaregiverWorkflow();
+  const { wards, activeWardId, setActiveWardId, alerts, tasks } = useCaregiverWorkflow();
   const unreadAlerts = alerts.filter(a => a.status === 'Active').length;
   const pendingTasks = tasks.filter(t => !t.completed).length;
-  const unreadNotifs = notifications.filter(n => !n.read).length;
+
 
   const NAV_ITEMS = [
     { id: 'dashboard', label: 'Command Center', icon: Home },
@@ -44,7 +44,7 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
     
     { category: 'Account' },
     { id: 'profile', label: 'Caregiver Profile', icon: UserCheck },
-    { id: 'settings', label: 'Preferences & Alerts', icon: Settings, badge: unreadNotifs > 0 ? unreadNotifs : undefined }
+    { id: 'settings', label: 'Preferences & Alerts', icon: Settings }
   ];
 
   return (

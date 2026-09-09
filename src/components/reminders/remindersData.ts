@@ -171,57 +171,7 @@ export const INITIAL_REMINDERS: ReminderItem[] = [
   }
 ];
 
-export const INITIAL_NOTIFICATIONS: NotificationLog[] = [
-  {
-    id: 'NOTIF-201',
-    title: 'Medicine marked as taken',
-    description: 'Vitamin D3 (1000 IU) marked as taken at 08:02 AM.',
-    category: 'Medication',
-    timeAgo: '2 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'medicines'
-  },
-  {
-    id: 'NOTIF-202',
-    title: 'Appointment Reminder',
-    description: 'Your Cardiology appointment with Dr. Rajesh Kumar is today at 05:00 PM.',
-    category: 'Appointment',
-    timeAgo: '3 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'appointments'
-  },
-  {
-    id: 'NOTIF-203',
-    title: 'Pharmacy Refill Dispatched',
-    description: 'Refill Order RX-2026-00482 is out for delivery with HealthPlus Pharmacy.',
-    category: 'Pharmacy',
-    timeAgo: '5 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'pharmacy'
-  },
-  {
-    id: 'NOTIF-204',
-    title: 'Consultation Summary Available',
-    description: 'Dr. Rajesh Kumar published your video consultation summary notes.',
-    category: 'Consultation',
-    timeAgo: 'Yesterday',
-    date: '23 Aug',
-    isRead: true,
-    relatedModule: 'consultation'
-  },
-  {
-    id: 'NOTIF-205',
-    title: 'System Backup Complete',
-    description: 'Longitudinal medical records encrypted & synced to ABDM storage.',
-    category: 'System',
-    timeAgo: '2 days ago',
-    date: '22 Aug',
-    isRead: true
-  }
-];
+
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettingsState = {
   medicationReminders: true,

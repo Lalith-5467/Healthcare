@@ -9,6 +9,8 @@ export interface OrderStatusUpdatePayload {
   previousStatus: string;
   updatedAt: string;
   message: string;
+  statusTimeline?: Record<string, string | null>;
+  totalAmount?: number | string;
 }
 
 export interface HealthShareEventPayload {
@@ -28,6 +30,7 @@ class SocketService {
   private isConnected = false;
   private listeners: Set<(payload: OrderStatusUpdatePayload) => void> = new Set();
   private healthShareListeners: Set<(payload: HealthShareEventPayload) => void> = new Set();
+  private notificationListeners: Set<(payload: any) => void> = new Set();
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
 
   /**
@@ -105,6 +108,17 @@ class SocketService {
       });
     });
 
+    // Listen for real-time notifications
+    this.socket.on('notification:new', (payload: any) => {
+      this.notificationListeners.forEach((callback) => {
+        try {
+          callback(payload);
+        } catch (err) {
+          console.error('Error handling socket notification event:', err);
+        }
+      });
+    });
+
     return this.socket;
   }
 
@@ -125,6 +139,16 @@ class SocketService {
     this.healthShareListeners.add(callback);
     return () => {
       this.healthShareListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to new real-time notifications
+   */
+  public subscribeToNotifications(callback: (payload: any) => void): () => void {
+    this.notificationListeners.add(callback);
+    return () => {
+      this.notificationListeners.delete(callback);
     };
   }
 

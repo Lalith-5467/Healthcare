@@ -17,6 +17,7 @@ import {
 import { Logo } from '../components/ui/Logo';
 import { authApi } from '../services/dhrApis';
 import { setAuthToken } from '../services/apiClient';
+import { safeLocalStorageSet } from '../utils/safeStorage';
 
 interface AdminLoginPageProps {
   onNavigateHome: () => void;
@@ -71,8 +72,8 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
       if (res && res.data && res.data.token) {
         const { user, token } = res.data;
         setAuthToken(token);
-        localStorage.setItem('token', token);
-        localStorage.setItem('auth_token', token);
+        safeLocalStorageSet('token', token);
+        safeLocalStorageSet('auth_token', token);
 
         const profile: any = user.profile || {};
         const resolvedRole: 'Admin' | 'Super Admin' = user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin';
@@ -84,9 +85,9 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
           department: resolvedRole === 'Super Admin' ? 'National Health Directorate' : 'Hospital Executive Admin',
         };
 
-        localStorage.setItem('app_user', JSON.stringify(userPayload));
-        localStorage.setItem('app_is_logged_in', 'true');
-        localStorage.setItem('admin_active_nav_id', 'dashboard');
+        safeLocalStorageSet('app_user', JSON.stringify(userPayload));
+        safeLocalStorageSet('app_is_logged_in', 'true');
+        safeLocalStorageSet('admin_active_nav_id', 'dashboard');
 
         if (onSuccessLogin) {
           onSuccessLogin(userPayload);

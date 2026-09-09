@@ -94,16 +94,21 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     }
   }, [initialNavId]);
 
+  const [targetOrderId, setTargetOrderId] = useState<string | null>(null);
+
   const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     setToastMessage(msg);
     showGlobalToast(msg, type);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleSelectNav = (id: string, filterSubtab?: string) => {
+  const handleSelectNav = (id: string, filterSubtab?: string, targetOrder?: string) => {
     setActiveNavId(id);
     if (filterSubtab) {
       setOrderFilterSubtab(filterSubtab);
+    }
+    if (targetOrder) {
+      setTargetOrderId(targetOrder);
     }
     localStorage.setItem('pharmacist_active_nav_id', id);
 
@@ -407,8 +412,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             <PharmacistNotificationPopover
               isOpen={notificationPopoverOpen}
               onClose={() => setNotificationPopoverOpen(false)}
-              onNavigate={(navId) => {
-                handleSelectNav(navId);
+              onNavigate={(navId, orderId) => {
+                handleSelectNav(navId, undefined, orderId);
               }}
             />
           </div>
@@ -548,6 +553,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                 <PharmacistOrdersView
                   user={effectiveUser}
                   initialFilter={orderFilterSubtab}
+                  targetOrderId={targetOrderId}
+                  onClearTargetOrder={() => setTargetOrderId(null)}
                   onToast={showToast}
                 />
               ) : activeNavId === 'medicines' ? (

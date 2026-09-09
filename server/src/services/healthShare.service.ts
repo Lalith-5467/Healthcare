@@ -96,9 +96,9 @@ export class HealthShareService {
       },
     });
 
-    // Fallback: If scanned token is not yet in healthShareToken table (or is demo/custom/ABHA)
+    // Fallback: If scanned token is not yet in healthShareToken table (e.g. ABHA ID or direct patient identifier)
     if (!shareToken) {
-      let patientMatch = await prisma.patient.findFirst({
+      const patientMatch = await prisma.patient.findFirst({
         where: {
           OR: [
             { user: { abhaId: cleanToken } },
@@ -106,8 +106,6 @@ export class HealthShareService {
             { id: cleanToken },
             { user: { phoneNumber: cleanToken } },
             { user: { email: cleanToken } },
-            { user: { email: 'lalith@health.com' } },
-            { user: { email: 'patient@health.com' } },
           ],
         },
         include: {
@@ -117,22 +115,12 @@ export class HealthShareService {
         },
       });
 
-      if (!patientMatch) {
-        patientMatch = await prisma.patient.findFirst({
-          include: {
-            user: {
-              select: { abhaId: true, phoneNumber: true },
-            },
-          },
-        });
-      }
-
       if (patientMatch) {
         // Persist valid active token in database for this patient
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
         shareToken = await prisma.healthShareToken.create({
           data: {
-            token: cleanToken || `MED-QR-${crypto.randomBytes(4).toString('hex').toUpperCase()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
+            token: cleanToken,
             patientId: patientMatch.id,
             durationMinutes: 60,
             expiresAt,
@@ -152,27 +140,11 @@ export class HealthShareService {
     }
 
     if (!shareToken) {
-      throw new AppError('Invalid QR Token. Please ask the patient to generate a new QR.', 404);
+      throw new AppError('Invalid or expired QR token. Please ask the patient to generate a new QR.', 404);
     }
 
-    // Reactivate if token was previously revoked/expired for seamless UX
     if (shareToken.isRevoked || new Date() > shareToken.expiresAt) {
-      shareToken = await prisma.healthShareToken.update({
-        where: { id: shareToken.id },
-        data: {
-          isRevoked: false,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-        },
-        include: {
-          patient: {
-            include: {
-              user: {
-                select: { abhaId: true, phoneNumber: true },
-              },
-            },
-          },
-        },
-      });
+      throw new AppError('Invalid or expired QR token. Please ask the patient to generate a new QR.', 400);
     }
 
     const patient = shareToken.patient;
@@ -264,7 +236,7 @@ export class HealthShareService {
     });
 
     if (!shareToken) {
-      let patientMatch = await prisma.patient.findFirst({
+      const patientMatch = await prisma.patient.findFirst({
         where: {
           OR: [
             { user: { abhaId: cleanToken } },
@@ -272,24 +244,16 @@ export class HealthShareService {
             { id: cleanToken },
             { user: { phoneNumber: cleanToken } },
             { user: { email: cleanToken } },
-            { user: { email: 'lalith@health.com' } },
-            { user: { email: 'patient@health.com' } },
           ],
         },
         include: { user: true },
       });
 
-      if (!patientMatch) {
-        patientMatch = await prisma.patient.findFirst({
-          include: { user: true },
-        });
-      }
-
       if (patientMatch) {
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
         shareToken = await prisma.healthShareToken.create({
           data: {
-            token: cleanToken || `MED-QR-${crypto.randomBytes(4).toString('hex').toUpperCase()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
+            token: cleanToken,
             patientId: patientMatch.id,
             durationMinutes: 60,
             expiresAt,
@@ -300,7 +264,7 @@ export class HealthShareService {
       }
     }
 
-    if (!shareToken) {
+    if (!shareToken || shareToken.isRevoked || new Date() > shareToken.expiresAt) {
       throw new AppError('Invalid or expired QR token', 400);
     }
 
@@ -412,29 +376,16 @@ export class HealthShareService {
    * 4. PATIENT: Get list of access requests
    */
   static async getPatientAccessRequests(patientUserId: string) {
-    let patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findUnique({
       where: { userId: patientUserId },
     });
 
     if (!patient) {
-      patient = await prisma.patient.findFirst({
-        where: {
-          OR: [
-            { user: { email: 'lalith@health.com' } },
-            { user: { email: 'patient@health.com' } },
-          ],
-        },
-      });
+      return [];
     }
-
-    if (!patient) {
-      patient = await prisma.patient.findFirst();
-    }
-
-    const whereCondition: any = patient ? { patientId: patient.id } : {};
 
     const requests = await prisma.patientAccessRequest.findMany({
-      where: whereCondition,
+      where: { patientId: patient.id },
       include: {
         doctor: true,
       },
@@ -561,16 +512,10 @@ export class HealthShareService {
     durationMinutes = 60,
     ipAddress?: string
   ) {
-    let patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findUnique({
       where: { userId: patientUserId },
       include: { user: true },
     });
-
-    if (!patient) {
-      patient = await prisma.patient.findFirst({
-        include: { user: true },
-      });
-    }
 
     if (!patient) {
       throw new AppError('Patient profile not found', 404);
@@ -685,16 +630,10 @@ export class HealthShareService {
    * 7. PATIENT: Reject Access Request
    */
   static async rejectAccessRequest(patientUserId: string, requestId: string, ipAddress?: string) {
-    let patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findUnique({
       where: { userId: patientUserId },
       include: { user: true },
     });
-
-    if (!patient) {
-      patient = await prisma.patient.findFirst({
-        include: { user: true },
-      });
-    }
 
     if (!patient) {
       throw new AppError('Patient profile not found', 404);
@@ -763,13 +702,9 @@ export class HealthShareService {
    * 8. PATIENT: Revoke Active Access Session
    */
   static async revokeAccess(patientUserId: string, requestId: string, ipAddress?: string) {
-    let patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findUnique({
       where: { userId: patientUserId },
     });
-
-    if (!patient) {
-      patient = await prisma.patient.findFirst();
-    }
 
     if (!patient) {
       throw new AppError('Patient profile not found', 404);

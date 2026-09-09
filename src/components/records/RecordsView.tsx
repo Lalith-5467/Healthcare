@@ -19,6 +19,7 @@ import { ShareRecordModal } from './ShareRecordModal';
 import { DeleteRecordModal } from './DeleteRecordModal';
 import { RecordsSkeleton } from './RecordsSkeleton';
 import { recordApi } from '../../services/dhrApis';
+import { safeLocalStorageSet } from '../../utils/safeStorage';
 
 interface UserProfile {
   name: string;
@@ -89,7 +90,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
           notes: r.notes || '',
         }));
         setRecords(mapped);
-        localStorage.setItem('user_medical_records', JSON.stringify(mapped));
+        safeLocalStorageSet('user_medical_records', JSON.stringify(mapped));
       }
     } catch (err) {
       console.log('Using cached records:', err);
@@ -113,7 +114,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   // Persist records to localStorage when changed
   const saveRecordsToStorage = (newRecords: MedicalRecordItem[]) => {
     setRecords(newRecords);
-    localStorage.setItem('user_medical_records', JSON.stringify(newRecords));
+    safeLocalStorageSet('user_medical_records', JSON.stringify(newRecords));
   };
 
   const showToast = (msg: string) => {
