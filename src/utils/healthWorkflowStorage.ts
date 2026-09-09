@@ -339,7 +339,8 @@ export interface WorkflowConfirmationResult {
  * 6. Dispatches reactive cross-module synchronization events.
  */
 export const processPrescriptionConfirmation = (
-  prescription: StructuredPrescription
+  prescription: StructuredPrescription,
+  selectedPharmacy?: { id: string; name: string; address?: string }
 ): WorkflowConfirmationResult => {
   // 1. Mark prescription verified & save
   const verifiedPrescription: StructuredPrescription = {
@@ -425,14 +426,18 @@ export const processPrescriptionConfirmation = (
 
   if (!existingOrder && prescription.medicines.length > 0) {
     const totalAmount = prescription.medicines.reduce((acc, m) => acc + (m.quantity || 10) * 12, 50);
+    const chosenName = selectedPharmacy?.name || 'Apollo Central Pharmacy';
+    const chosenId = selectedPharmacy?.id || 'PHARM-1';
+    const chosenAddress = selectedPharmacy?.address || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai';
+
     pharmacyOrder = {
       id: `RX-ORD-${prescription.id.replace('RX-DOC-', '')}`,
       date: formatDateDisplay(new Date().toISOString()),
-      pharmacyName: 'Apollo Central Pharmacy',
-      pharmacyId: 'PHARM-1',
+      pharmacyName: chosenName,
+      pharmacyId: chosenId,
       sourcePrescriptionId: prescription.id,
       doctorName: prescription.doctorName,
-      patientName: prescription.patientName || 'Ragul Kumar',
+      patientName: prescription.patientName || 'Patient',
       clinicName: prescription.clinicName,
       items: prescription.medicines.map((m) => ({
         name: m.name,
@@ -441,7 +446,7 @@ export const processPrescriptionConfirmation = (
         unitPrice: 12
       })),
       deliveryMethod: 'Home Delivery',
-      deliveryAddress: 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
+      deliveryAddress: chosenAddress,
       totalAmount,
       status: 'Pending Pharmacist Verification' as any,
       estimatedDelivery: 'Tomorrow, 10:30 AM – 12:00 PM',

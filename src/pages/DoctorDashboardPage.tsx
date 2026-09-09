@@ -1,74 +1,113 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Stethoscope, 
+  Menu, 
+  X, 
+  Bell, 
+  ShieldCheck, 
+  LogOut, 
+  ExternalLink,
+  Search 
+} from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
-import { LogOut, Stethoscope, Menu, X, Bell, ShieldCheck } from 'lucide-react';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { DoctorSidebar } from '../components/doctor-dashboard/DoctorSidebar';
-
-// Views
 import { DoctorOverviewView } from '../components/doctor-dashboard/views/DoctorOverviewView';
-import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
 import { Patient360View } from '../components/doctor-dashboard/views/Patient360View';
 import { ConsultationView } from '../components/doctor-dashboard/views/ConsultationView';
 import { MyPatientsDirectoryView } from '../components/doctor-dashboard/views/MyPatientsDirectoryView';
+import { ConsultationDetailsView } from '../components/doctor-dashboard/views/ConsultationDetailsView';
+import { ConsultationWorkspaceView } from '../components/doctor-dashboard/views/ConsultationWorkspaceView';
 import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/views/DoctorAppointmentsScheduleView';
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
+import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
 
 interface DoctorDashboardPageProps {
-  user?: { name: string; email: string };
   onLogout: () => void;
+  user?: { name: string; email: string };
 }
 
-export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, onLogout }) => {
-  const [activeNav, setActiveNav] = useState('dashboard');
+export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user }) => {
+  const [activeNav, setActiveNav] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
+  const [scannedPatientName, setScannedPatientName] = useState<string | undefined>(undefined);
+  const [patient360Tab, setPatient360Tab] = useState('summary');
+  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
 
-  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma';
+  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
 
   const handleScanSuccess = (patientId: string) => {
     setScannedPatientId(patientId);
+    setPatient360Tab('summary');
     setActiveNav('patient-360');
   };
 
   const handleSelectPatient = (patientId: string) => {
     setScannedPatientId(patientId);
+    setPatient360Tab('summary');
+    setActiveNav('patient-360');
+  };
+
+  const handleViewProfile = (patientId: string, tab: string = 'summary', name?: string) => {
+    setScannedPatientId(patientId);
+    setScannedPatientName(name);
+    setPatient360Tab(tab);
     setActiveNav('patient-360');
   };
 
   const handleStartConsultation = (patientId: string) => {
     setScannedPatientId(patientId);
-    setActiveNav('consultations');
+    setActiveNav('consultation-workspace');
   };
 
-  const renderContent = () => {
+  const handleViewConsultation = (patientId: string) => {
+    setScannedPatientId(patientId);
+    setActiveNav('consultation-details');
+  };
+
+  const renderActiveView = () => {
     switch (activeNav) {
-      case 'dashboard':
+      case 'overview':
         return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
-      case 'scan':
-        return <QRScannerView onScanSuccess={handleScanSuccess} />;
-      case 'patients':
-      case 'patient-directory':
-        return <MyPatientsDirectoryView onSelectPatient={handleSelectPatient} />;
       case 'appointments':
       case 'schedule':
-        return <DoctorAppointmentsScheduleView onStartConsultation={handleStartConsultation} />;
+      case 'queue':
+        return (
+          <DoctorAppointmentsScheduleView 
+            onStartConsultation={handleStartConsultation} 
+            onViewProfile={handleViewProfile}
+            onViewConsultation={handleViewConsultation}
+          />
+        );
+      case 'patients':
+      case 'directory':
+        return (
+          <MyPatientsDirectoryView 
+            onSelectPatient={handleSelectPatient}
+          />
+        );
+      case 'scan':
+        return <QRScannerView onScanSuccess={handleScanSuccess} />;
       case 'patient-360':
-      case 'ai-summary':
-      case 'medications':
       case 'vitals':
       case 'labs':
       case 'documents':
       case 'nurse-updates':
-        return <Patient360View patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+        return <Patient360View patientId={scannedPatientId || '1'} patientName={scannedPatientName} onNavigate={setActiveNav} initialTab={patient360Tab} />;
+      case 'consultation-details':
+        return <ConsultationDetailsView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+      case 'consultation-workspace':
       case 'consultations':
-        return <ConsultationView patientId={scannedPatientId || '1'} />;
+        return <ConsultationWorkspaceView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
       case 'prescriptions':
       case 'clinical-notes':
         return <ClinicalNotesPrescriptionsView />;
       case 'settings':
       case 'profile':
-        return <DoctorProfileSettingsView />;
+        return <DoctorProfileSettingsView user={user} />;
       default:
         return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
     }
@@ -101,6 +140,35 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
         </div>
         
         <div className="flex items-center gap-4">
+          {/* SEARCH BAR */}
+          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-teal-500 dark:focus-within:border-cyan-500">
+            <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search patients, meds..." 
+              className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
+              onClick={() => setActiveNav('patients')}
+            />
+          </div>
+
+          {/* LANGUAGE TOGGLE */}
+          <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+            <button
+              onClick={() => setLanguage('EN')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLanguage('TA')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+            >
+              தமிழ்
+            </button>
+          </div>
+
+          <ThemeToggle />
+
           {/* Quick QR Scanner Shortcut */}
           <button
             onClick={() => setActiveNav('scan')}
@@ -155,39 +223,39 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ user, 
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl"
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl flex flex-col z-10"
               >
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                  <span className="font-black text-teal-600 dark:text-cyan-400 uppercase text-xs">CLINICAL MENU</span>
-                  <button onClick={() => setIsSidebarOpen(false)} className="p-1 cursor-pointer"><X className="w-5 h-5" /></button>
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <span className="font-black text-slate-900 dark:text-white">Doctor Console</span>
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <DoctorSidebar 
-                  activeNav={activeNav} 
-                  onNavigate={(id) => { setActiveNav(id); setIsSidebarOpen(false); }} 
-                  user={user}
-                />
+                <div className="flex-1 overflow-y-auto">
+                  <DoctorSidebar 
+                    activeNav={activeNav} 
+                    onNavigate={(id) => {
+                      setActiveNav(id);
+                      setIsSidebarOpen(false);
+                    }} 
+                    user={user} 
+                  />
+                </div>
               </motion.div>
             </div>
           )}
         </AnimatePresence>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070c18] p-4 sm:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeNav}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-7xl mx-auto h-full"
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+        {/* MAIN WORKBENCH VIEWPORT */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {renderActiveView()}
         </main>
       </div>
     </div>
   );
 };
+

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from './components/theme/ThemeProvider';
+import { GlobalToastManager } from './components/common/GlobalToastManager';
 import { Header } from './components/landing/Header';
 import { Hero } from './components/landing/Hero';
 import { AboutHospital } from './components/landing/AboutHospital';
@@ -518,9 +519,12 @@ export const App: React.FC = () => {
   const isUserPath = window.location.pathname.toLowerCase().startsWith('/user');
   const isPharmacist = !isUserPath && ((user?.role === 'Pharmacist') || window.location.pathname.toLowerCase().startsWith('/pharmacist'));
   const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
+  
+  const themeKey = currentPage === 'dashboard' ? 'theme-dashboard' : (currentPage === 'login' || currentPage === 'register') ? 'theme-auth' : 'theme-landing';
 
   return (
-    <ThemeProvider>
+    <ThemeProvider key={themeKey} storageKey={themeKey}>
+      <GlobalToastManager />
       <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
         
         {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}

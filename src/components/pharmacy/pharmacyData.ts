@@ -201,29 +201,80 @@ export const INITIAL_MEDICINE_STOCK: StockItem[] = [
 
 export const INITIAL_ORDERS: PharmacyOrder[] = [
   {
-    id: 'RX-2026-00482',
-    date: '23 Aug 2026',
-    pharmacyName: 'HealthPlus Pharmacy',
+    id: 'RX-ORD-9104',
+    date: 'Today, 11:20 AM',
+    pharmacyName: 'Apollo Central Dispensary',
     pharmacyId: 'PHARM-1',
     items: [
-      { name: 'Metformin', dosage: '500 mg', quantity: 30, unitPrice: 8 },
-      { name: 'Atorvastatin', dosage: '10 mg', quantity: 30, unitPrice: 7 }
+      { name: 'Telmisartan 40mg', dosage: '40 mg', quantity: 30, unitPrice: 12 },
+      { name: 'Metoprolol 25mg', dosage: '25 mg', quantity: 30, unitPrice: 9 },
+      { name: 'Rosuvastatin 10mg', dosage: '10 mg', quantity: 30, unitPrice: 15 }
+    ],
+    deliveryMethod: 'Home Delivery',
+    deliveryAddress: 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
+    totalAmount: 1080,
+    status: 'Pending Pharmacist Verification',
+    estimatedDelivery: 'Today, 02:30 PM – 03:30 PM',
+    progressPercent: 20
+  },
+  {
+    id: 'RX-ORD-8821',
+    date: 'Today, 09:45 AM',
+    pharmacyName: 'Apollo Central Dispensary',
+    pharmacyId: 'PHARM-1',
+    items: [
+      { name: 'Glimepiride 2mg', dosage: '2 mg', quantity: 30, unitPrice: 8 },
+      { name: 'Metformin 500mg', dosage: '500 mg', quantity: 60, unitPrice: 6 },
+      { name: 'Methylcobalamin 1500mcg', dosage: '1500 mcg', quantity: 30, unitPrice: 14 }
+    ],
+    deliveryMethod: 'Home Delivery',
+    deliveryAddress: 'Plot 12, 4th Seaward Road, Valmiki Nagar, Thiruvanmiyur, Chennai',
+    totalAmount: 1020,
+    status: 'Preparing',
+    estimatedDelivery: 'Today, 01:00 PM – 01:45 PM',
+    progressPercent: 60
+  },
+  {
+    id: 'RX-ORD-7740',
+    date: 'Today, 08:30 AM',
+    pharmacyName: 'Apollo Central Dispensary',
+    pharmacyId: 'PHARM-1',
+    items: [
+      { name: 'Amoxicillin-Clavulanate 625mg', dosage: '625 mg', quantity: 10, unitPrice: 22 },
+      { name: 'Montelukast-Levocetirizine 10mg', dosage: '10 mg', quantity: 10, unitPrice: 16 },
+      { name: 'Paracetamol 650mg', dosage: '650 mg', quantity: 15, unitPrice: 4 }
+    ],
+    deliveryMethod: 'Pickup',
+    deliveryAddress: 'Apollo Pharmacy Branch, Adyar Counter #2',
+    totalAmount: 440,
+    status: 'Ready for Pickup',
+    estimatedDelivery: 'Ready now for express pickup',
+    progressPercent: 80
+  },
+  {
+    id: 'RX-2026-00482',
+    date: 'Yesterday, 04:15 PM',
+    pharmacyName: 'Apollo Central Dispensary',
+    pharmacyId: 'PHARM-1',
+    items: [
+      { name: 'Metformin 500mg', dosage: '500 mg', quantity: 30, unitPrice: 8 },
+      { name: 'Atorvastatin 10mg', dosage: '10 mg', quantity: 30, unitPrice: 7 }
     ],
     deliveryMethod: 'Home Delivery',
     deliveryAddress: 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
     totalAmount: 450,
     status: 'Out for Delivery',
-    estimatedDelivery: 'Today, 10:45 AM – 11:15 AM',
-    progressPercent: 70
+    estimatedDelivery: 'Today, 11:30 AM',
+    progressPercent: 90
   },
   {
     id: 'RX-2026-00321',
     date: '18 Aug 2026',
-    pharmacyName: 'MediCare Express Pharmacy',
-    pharmacyId: 'PHARM-2',
+    pharmacyName: 'Apollo Central Dispensary',
+    pharmacyId: 'PHARM-1',
     items: [
-      { name: 'Omeprazole', dosage: '20 mg', quantity: 30, unitPrice: 6 },
-      { name: 'Paracetamol', dosage: '500 mg', quantity: 20, unitPrice: 4 }
+      { name: 'Omeprazole 20mg', dosage: '20 mg', quantity: 30, unitPrice: 6 },
+      { name: 'Paracetamol 500mg', dosage: '500 mg', quantity: 20, unitPrice: 4 }
     ],
     deliveryMethod: 'Home Delivery',
     deliveryAddress: 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
@@ -235,10 +286,10 @@ export const INITIAL_ORDERS: PharmacyOrder[] = [
   {
     id: 'RX-2026-00210',
     date: '01 Aug 2026',
-    pharmacyName: 'Apollo Pharmacy',
-    pharmacyId: 'PHARM-3',
+    pharmacyName: 'Apollo Central Dispensary',
+    pharmacyId: 'PHARM-1',
     items: [
-      { name: 'Amlodipine', dosage: '5 mg', quantity: 30, unitPrice: 9 }
+      { name: 'Amlodipine 5mg', dosage: '5 mg', quantity: 30, unitPrice: 9 }
     ],
     deliveryMethod: 'Pickup',
     deliveryAddress: 'Apollo Pharmacy Branch, Adyar',

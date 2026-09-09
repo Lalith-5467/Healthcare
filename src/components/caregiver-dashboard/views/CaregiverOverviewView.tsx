@@ -112,19 +112,20 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
       </AnimatePresence>
 
       {/* TOP HERO BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0b1b36] via-[#092b49] to-[#041a2e] p-6 sm:p-8 text-white shadow-xl border border-slate-700/50">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-50/80 via-white to-cyan-50/80 dark:from-[#0b1b36] dark:via-[#092b49] dark:to-[#041a2e] p-6 sm:p-8 text-slate-900 dark:text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-xl border border-transparent dark:border-slate-700/50">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-500/20 via-cyan-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-tr from-fuchsia-100/40 to-cyan-100/40 dark:from-transparent dark:to-transparent rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-black uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-400/30 text-teal-700 dark:text-teal-300 text-xs font-black uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" /> Caregiver Command Center
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Family Health & Guardian Portal
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium leading-relaxed">
-              Monitoring <span className="font-bold text-white">{wards.length} dependents</span> across medication adherence, live vitals telemetry, geofence safety rings, and emergency doctor dispatch.
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl font-medium leading-relaxed">
+              Monitoring <span className="font-bold text-slate-900 dark:text-white">{wards.length} dependents</span> across medication adherence, live vitals telemetry, geofence safety rings, and emergency doctor dispatch.
             </p>
           </div>
 
@@ -139,9 +140,9 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
             </button>
             <button
               onClick={() => onNavigate('medications')}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 text-slate-700 dark:text-white font-bold text-xs border border-slate-200 dark:border-white/20 transition-all flex items-center gap-2"
             >
-              <Pill className="w-4 h-4 text-cyan-300" />
+              <Pill className="w-4 h-4 text-cyan-600 dark:text-cyan-300" />
               <span>Manage Pills</span>
             </button>
             <button
@@ -155,22 +156,22 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         </div>
 
         {/* METRIC PILLS */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-700/60">
-          <div className="bg-slate-900/40 rounded-2xl p-3 border border-slate-700/40">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dependents</p>
-            <p className="text-xl font-black text-white mt-1">{wards.length} Active</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/60">
+          <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dependents</p>
+            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{wards.length} Active</p>
           </div>
-          <div className="bg-slate-900/40 rounded-2xl p-3 border border-slate-700/40">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Meds Adherence</p>
-            <p className="text-xl font-black text-teal-400 mt-1">{adherenceRate}%</p>
+          <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Meds Adherence</p>
+            <p className="text-xl font-black text-teal-600 dark:text-teal-400 mt-1">{adherenceRate}%</p>
           </div>
-          <div className="bg-slate-900/40 rounded-2xl p-3 border border-slate-700/40">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pending Care Tasks</p>
-            <p className="text-xl font-black text-amber-400 mt-1">{pendingTasksCount} Tasks</p>
+          <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Care Tasks</p>
+            <p className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{pendingTasksCount} Tasks</p>
           </div>
-          <div className="bg-slate-900/40 rounded-2xl p-3 border border-slate-700/40">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Alerts</p>
-            <p className={`text-xl font-black mt-1 ${activeAlertsCount > 0 ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`}>
+          <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Alerts</p>
+            <p className={`text-xl font-black mt-1 ${activeAlertsCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {activeAlertsCount > 0 ? `${activeAlertsCount} Active Alert` : 'All Safe'}
             </p>
           </div>
@@ -272,7 +273,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         <div className="lg:col-span-8 space-y-6">
           
           {/* VITALS TELEMETRY DECK */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -294,7 +295,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* BP */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+              <div className="p-3.5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
                   <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-rose-500" /> BP</span>
                   <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Normal</span>
@@ -306,7 +307,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               </div>
 
               {/* Blood Sugar */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+              <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
                   <span className="flex items-center gap-1"><Droplets className="w-3.5 h-3.5 text-cyan-500" /> Sugar</span>
                   <span className="text-[10px] font-black uppercase text-teal-600 dark:text-cyan-400">Fasting</span>
@@ -318,7 +319,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               </div>
 
               {/* SpO2 */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+              <div className="p-3.5 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-100/50 dark:border-sky-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
                   <span className="flex items-center gap-1"><Wind className="w-3.5 h-3.5 text-sky-500" /> SpO2</span>
                   <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Optimal</span>
@@ -330,7 +331,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               </div>
 
               {/* Heart Rate */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+              <div className="p-3.5 rounded-2xl bg-violet-50/50 dark:bg-violet-950/20 border border-violet-100/50 dark:border-violet-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
                   <span className="flex items-center gap-1"><Activity className="w-3.5 h-3.5 text-violet-500" /> Pulse</span>
                   <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Resting</span>
@@ -344,7 +345,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           </div>
 
           {/* TODAY'S MEDICINE SCHEDULE & PILL ASSIST */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -372,8 +373,8 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     key={med.id}
                     className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                       med.takenToday
-                        ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/40'
-                        : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200/90 dark:border-slate-800'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-800/40'
+                        : 'bg-slate-50 dark:bg-slate-900/60 border-transparent dark:border-slate-800'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -430,7 +431,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           </div>
 
           {/* DAILY CARE TASKS */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -457,8 +458,8 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                   onClick={() => toggleTask(task.id)}
                   className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-3 ${
                     task.completed
-                      ? 'bg-slate-50 dark:bg-slate-900/30 border-slate-200/60 dark:border-slate-800/60 opacity-70'
-                      : 'bg-white dark:bg-slate-900/70 border-slate-200 dark:border-slate-800 hover:border-teal-500/50'
+                      ? 'bg-slate-50 dark:bg-slate-900/30 border-transparent dark:border-slate-800/60 opacity-70'
+                      : 'bg-white dark:bg-slate-900/70 border-slate-100 dark:border-slate-800 hover:border-teal-500/50 shadow-sm'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -495,7 +496,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         <div className="lg:col-span-4 space-y-6">
           
           {/* GEOFENCE & SAFETY STATUS CARD */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-rose-500" />
@@ -507,21 +508,21 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
             </div>
 
             {/* RADAR MAP SIMULATOR */}
-            <div className="relative h-36 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 overflow-hidden p-3 flex flex-col justify-between text-white border border-slate-700/60">
-              <div className="absolute inset-0 bg-[radial-gradient(#00a896_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-teal-500/40 animate-ping pointer-events-none" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-teal-500/20 border-2 border-teal-400 flex items-center justify-center shadow-lg shadow-teal-500/50">
-                <MapPin className="w-4 h-4 text-white" />
+            <div className="relative h-36 rounded-2xl bg-slate-50 dark:bg-gradient-to-tr dark:from-slate-900 dark:to-slate-800 overflow-hidden p-3 flex flex-col justify-between border border-slate-200 dark:border-slate-700/60 shadow-inner">
+              <div className="absolute inset-0 bg-[radial-gradient(#00a896_1px,transparent_1px)] dark:bg-[radial-gradient(#00a896_1px,transparent_1px)] [background-size:16px_16px] opacity-10 dark:opacity-25" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-teal-500/30 dark:border-teal-500/40 animate-ping pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-teal-500/10 border-2 border-teal-500 flex items-center justify-center shadow-[0_0_15px_rgba(20,184,166,0.3)] dark:shadow-teal-500/50">
+                <MapPin className="w-4 h-4 text-teal-600 dark:text-white" />
               </div>
 
               <div className="relative z-10 flex justify-between items-center text-[10px] font-bold">
-                <span className="bg-slate-900/80 px-2 py-0.5 rounded-md backdrop-blur-xs">GPS Active</span>
-                <span className="bg-slate-900/80 px-2 py-0.5 rounded-md backdrop-blur-xs text-emerald-400">98% Battery</span>
+                <span className="bg-white/80 dark:bg-slate-900/80 text-slate-800 dark:text-white px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">GPS Active</span>
+                <span className="bg-white/80 dark:bg-slate-900/80 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">98% Battery</span>
               </div>
 
-              <div className="relative z-10 bg-slate-900/90 rounded-xl p-2 text-xs backdrop-blur-md">
-                <p className="font-black text-white truncate">{activeWard.currentLocation}</p>
-                <p className="text-[10px] text-slate-400">Updated: {activeWard.lastLocationUpdate}</p>
+              <div className="relative z-10 bg-white/90 dark:bg-slate-900/90 rounded-xl p-2 text-xs backdrop-blur-md shadow-sm border border-slate-100 dark:border-transparent text-slate-900 dark:text-white">
+                <p className="font-black truncate">{activeWard.currentLocation}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Updated: {activeWard.lastLocationUpdate}</p>
               </div>
             </div>
 
@@ -535,7 +536,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           </div>
 
           {/* PRIMARY DOCTOR CONNECT */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Stethoscope className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
               <span>Primary Doctor</span>
@@ -578,16 +579,17 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           </div>
 
           {/* AI CAREGIVER SUMMARY & ADVICE */}
-          <div className="rounded-3xl p-6 bg-gradient-to-br from-teal-900/20 via-cyan-900/10 to-slate-900/40 border border-teal-500/30 text-slate-900 dark:text-white space-y-3">
-            <div className="flex items-center gap-2 text-teal-600 dark:text-cyan-400 text-xs font-black uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" /> AI Care Assistant Summary
+          <div className="rounded-3xl p-6 bg-gradient-to-br from-indigo-50/80 via-fuchsia-50/50 to-cyan-50/80 dark:from-indigo-950/40 dark:via-fuchsia-950/20 dark:to-cyan-950/40 border border-indigo-100/50 dark:border-indigo-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm text-slate-800 dark:text-slate-200 space-y-3 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-fuchsia-200/20 dark:bg-fuchsia-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-wider relative z-10">
+              <Sparkles className="w-4 h-4 animate-pulse text-fuchsia-500" /> AI Care Assistant Summary
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium relative z-10">
               "{activeWard.name}'s blood pressure trend is stable (126/82 mmHg). Morning medications are complete. Remember to assist with 20 minutes of gentle walking before sunset."
             </p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400 font-bold">
+            <div className="pt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold relative z-10">
               <span>ABDM Health ID Linked</span>
-              <span className="text-teal-600 dark:text-cyan-400">Consent Verified</span>
+              <span className="text-indigo-600 dark:text-indigo-400">Consent Verified</span>
             </div>
           </div>
 

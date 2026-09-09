@@ -204,7 +204,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   };
 
   // HANDLERS
-  const handleConfirmNewBooking = (newApt: Partial<Appointment>) => {
+  const handleConfirmNewBooking = async (newApt: Partial<Appointment>) => {
     const created: Appointment = {
       id: newApt.id || `APT-2026-${Math.floor(10000 + Math.random() * 90000)}`,
       doctorId: newApt.doctorId || 'DOC-101',
@@ -221,9 +221,34 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       reason: newApt.reason
     };
 
-    const updated = [created, ...appointments];
-    saveAppointments(updated);
-    showToast(`✓ Appointment booked with ${created.doctorName}`);
+    try {
+      const response = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctorId: created.doctorId,
+          date: created.date,
+          time: created.time,
+          type: created.type,
+          reason: created.reason,
+          patientName: _user?.name
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Server returned an error');
+      }
+      
+      // Only proceed with local save if backend succeeded
+      const updated = [created, ...appointments];
+      saveAppointments(updated);
+      showToast(`✓ Appointment booked with ${created.doctorName}`);
+      
+    } catch (e: any) {
+      console.error('Failed to sync appointment with backend', e);
+      showToast(`❌ Booking Failed: ${e.message}`);
+    }
   };
 
   const handleConfirmReschedule = (aptId: string, newDate: string, newTime: string) => {
@@ -358,7 +383,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       {/* 2. NEXT APPOINTMENT HIGHLIGHT HERO CARD */}
       {nextAppointment && (
         <div
-          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-slate-900 dark:text-white"
+          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-white"
           style={{
             background: 'linear-gradient(135deg, #092038 0%, #005c53 50%, #00423a 100%)',
             border: '1.5px solid rgba(20,184,166,.35)'
@@ -392,14 +417,14 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   {nextAppointment.type} Consultation
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">{nextAppointment.doctorName}</h3>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">{nextAppointment.doctorName}</h3>
               <p className="text-xs font-bold text-teal-200 flex items-center gap-1.5">
                 <span>{nextAppointment.speciality}</span>
                 <span>•</span>
                 <span className="text-teal-300/80 font-normal">{nextAppointment.hospital}</span>
               </p>
 
-              <div className="flex items-center gap-3 text-xs text-slate-900 dark:text-white/90 pt-1.5 font-medium">
+              <div className="flex items-center gap-3 text-xs text-white/90 pt-1.5 font-medium">
                 <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg">
                   <Calendar className="w-3.5 h-3.5 text-teal-300" />
                   {nextAppointment.date}
@@ -437,7 +462,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               )}
               <button
                 onClick={() => setDetailDrawerTarget(nextAppointment)}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-900 dark:text-white text-xs font-bold transition-colors cursor-pointer border border-white/20"
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer border border-white/20"
               >
                 View Details
               </button>
@@ -490,25 +515,15 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       </div>
 
       {/* PENDING APPOINTMENT REQUESTS */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2.5">
-          <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Appointment Requests</h3>
-          {pendingRequests.length > 0 && (
+      {pendingRequests.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Appointment Requests</h3>
             <span className="bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm">
               {pendingRequests.length}
             </span>
-          )}
-        </div>
-
-        {pendingRequests.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl flex flex-col items-center justify-center text-center shadow-xs">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-8 h-8 text-slate-600 dark:text-slate-300 dark:text-slate-600" />
-            </div>
-            <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No pending appointment requests</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-450">You're all caught up. New appointment requests will appear here.</p>
           </div>
-        ) : (
+
           <div className="grid grid-cols-1 gap-3">
             {pendingRequests.map((req) => (
               <motion.div
@@ -565,8 +580,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               </motion.div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 4. APPOINTMENT TABS, TYPE FILTER & SEARCH */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
@@ -674,7 +689,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           filteredAppointments.map((apt) => (
             <div
               key={apt.id}
-              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-[#00a896]/40 p-5 rounded-3xl transition-all shadow-xs hover:shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group"
+              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-[#00a896]/40 p-5 rounded-3xl transition-all shadow-xs hover:shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group"
             >
               <div className="flex items-center gap-4">
                 <img

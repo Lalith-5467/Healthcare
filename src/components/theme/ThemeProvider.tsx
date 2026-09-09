@@ -16,29 +16,23 @@ const ThemeProviderContext = createContext<ThemeProviderContextType>({
   isDark: false,
 });
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode, storageKey?: string }> = ({ children, storageKey = 'medicare-theme' }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('medicare-theme');
+    const saved = localStorage.getItem(storageKey);
     if (saved === 'dark' || saved === 'light') return saved;
     return 'light';
   });
 
-  const [isDark, setIsDark] = useState<boolean>(false);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.remove('light');
-      root.classList.add('dark');
-      setIsDark(true);
-    } else {
-      root.classList.remove('dark');
-      root.classList.add('light');
-      setIsDark(false);
-    }
-    localStorage.setItem('medicare-theme', theme);
-    localStorage.setItem('pulsehealth-theme', theme);
-  }, [theme]);
+    // Clean up any stale global classes from previous implementations
+    document.documentElement.classList.remove('dark', 'light');
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, theme);
+  }, [theme, storageKey]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -50,7 +44,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <ThemeProviderContext.Provider value={{ theme, setTheme, toggleTheme, isDark }}>
-      {children}
+      <div className={isDark ? 'dark' : 'light'} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </ThemeProviderContext.Provider>
   );
 };

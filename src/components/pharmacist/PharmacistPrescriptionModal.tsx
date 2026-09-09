@@ -39,10 +39,13 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
     (p) => p.id === order.sourcePrescriptionId || p.id === order.id.replace('RX-ORD-', 'RX-DOC-')
   );
 
-  const patientName = order.patientName || matchedPrescription?.patientName || 'Ragul Kumar';
-  const doctorName = order.doctorName || matchedPrescription?.doctorName || 'Dr. Arun Kumar, MD';
-  const clinicName = order.clinicName || matchedPrescription?.clinicName || 'Apollo Medical Centre';
-  const rxDate = order.date || (matchedPrescription ? matchedPrescription.prescriptionDate : '27 Aug 2026');
+  const patientName =
+    (order as any).patient?.fullName ||
+    order.patientName ||
+    'Patient information unavailable';
+  const doctorName = order.doctorName || matchedPrescription?.doctorName || 'Attending Physician';
+  const clinicName = order.clinicName || matchedPrescription?.clinicName || 'Medical Centre';
+  const rxDate = order.date || (matchedPrescription ? matchedPrescription.prescriptionDate : 'Today');
 
   const isPending = order.status === 'Pending Pharmacist Verification';
 
@@ -97,9 +100,11 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
                 <span>Patient Information</span>
               </span>
               <div className="text-xs font-extrabold text-slate-900 dark:text-white">{patientName}</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                ABHA ID: 91-8472-9104-5821@abdm • 34 Yrs • O+
-              </div>
+              {((order as any).patient?.gender || (order as any).patient?.bloodGroup) && (
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                  {[(order as any).patient?.gender, (order as any).patient?.bloodGroup ? `Blood Group: ${(order as any).patient.bloodGroup}` : null].filter(Boolean).join(' • ')}
+                </div>
+              )}
             </div>
 
             {/* DOCTOR CARD */}

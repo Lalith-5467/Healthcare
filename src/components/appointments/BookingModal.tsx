@@ -28,6 +28,30 @@ import { MOCK_SPECIALITIES, MOCK_DOCTORS } from './appointmentsData';
 import { DoctorFilterDrawer } from './DoctorFilterDrawer';
 import type { DoctorFilterState } from './DoctorFilterDrawer';
 
+const generateAvailableDates = () => {
+  const dates = [];
+  const today = new Date();
+  
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    
+    const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
+    const formattedDate = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const displayDayMonth = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+    const pseudoRandom = (d.getDate() * (d.getMonth() + 1) * 17) % 10;
+    const slots = 8 + pseudoRandom; 
+    
+    dates.push({
+      day: dayName,
+      date: formattedDate,
+      displayDayMonth,
+      slots
+    });
+  }
+  return dates;
+};
+
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,7 +73,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     initialDoctor ? initialDoctor.speciality : 'General Physician'
   );
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(initialDoctor || MOCK_DOCTORS[0]);
-  const [selectedDate, setSelectedDate] = useState<string>('23 Aug 2026');
+  const availableDates = React.useMemo(() => generateAvailableDates(), []);
+  const [selectedDate, setSelectedDate] = useState<string>(availableDates[0].date);
   const [selectedTime, setSelectedTime] = useState<string>('10:30 AM');
   const [consultationType, setConsultationType] = useState<'Video' | 'In-Person'>('Video');
   const [reason, setReason] = useState<string>('');
@@ -198,7 +223,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                       isSelected
                         ? 'bg-teal-500/10 border-teal-500 text-teal-900 dark:text-white shadow-xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'
+                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -246,7 +271,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
               <button
                 onClick={() => setFilterDrawerOpen(true)}
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700"
+                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700"
               >
                 <Filter className="w-4 h-4 text-[#00a896]" />
                 <span className="hidden sm:inline">Filter</span>
@@ -264,7 +289,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                       isSelected
                         ? 'bg-teal-500/10 border-teal-500 shadow-xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -315,7 +340,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(1)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -353,15 +378,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </label>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                {[
-                  { day: 'Today', date: '23 Aug 2026', slots: 12 },
-                  { day: 'Tomorrow', date: '24 Aug 2026', slots: 16 },
-                  { day: 'Wed', date: '25 Aug 2026', slots: 14 },
-                  { day: 'Thu', date: '26 Aug 2026', slots: 10 },
-                  { day: 'Fri', date: '27 Aug 2026', slots: 18 },
-                  { day: 'Sat', date: '28 Aug 2026', slots: 8 },
-                  { day: 'Mon', date: '30 Aug 2026', slots: 15 },
-                ].map((item) => {
+                {availableDates.map((item) => {
                   const isSel = selectedDate === item.date;
                   return (
                     <button
@@ -371,11 +388,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       className={`p-3 rounded-2xl border transition-all text-center cursor-pointer ${
                         isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-md scale-105'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       <div className={`text-[10px] uppercase font-bold ${isSel ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>{item.day}</div>
-                      <div className="text-xs font-black mt-0.5">{item.date.split(' ')[0]} Aug</div>
+                      <div className="text-xs font-black mt-0.5">{item.displayDayMonth}</div>
                       <div className={`text-[9px] font-mono mt-1 ${isSel ? 'text-teal-100' : 'text-[#00a896]'}`}>{item.slots} slots</div>
                     </button>
                   );
@@ -386,7 +403,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(2)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -427,7 +444,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           ? 'opacity-40 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                           : isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       {slot}
@@ -451,7 +468,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       className={`py-2 rounded-xl font-mono text-xs font-bold border transition-colors cursor-pointer text-center ${
                         isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       {slot}
@@ -464,7 +481,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(3)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -491,7 +508,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                   consultationType === 'Video'
                     ? 'bg-teal-500/10 border-teal-500 text-slate-900 dark:text-white shadow-xs'
-                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                 }`}
               >
                 <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-[#00a896] flex items-center justify-center">
@@ -509,7 +526,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                   consultationType === 'In-Person'
                     ? 'bg-teal-500/10 border-teal-500 text-slate-900 dark:text-white shadow-xs'
-                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                 }`}
               >
                 <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-600 flex items-center justify-center">
@@ -525,7 +542,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(4)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -583,7 +600,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(5)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>

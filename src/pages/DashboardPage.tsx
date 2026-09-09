@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Menu, Home } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
+import { showGlobalToast } from '../components/common/GlobalToastManager';
 import {
   DashboardHeader,
   DashboardStatsGrid,
@@ -93,7 +94,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
 
   const mainScrollRef = useRef<HTMLDivElement>(null);
@@ -104,9 +105,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+  const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
+    showGlobalToast(msg, type);
   };
 
   const handleSelectNav = (id: string) => {
@@ -160,44 +160,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       onOpenEmergencyModal();
     } else if (targetId === 'abha') {
       onOpenAbhaModal();
-    } else if (targetId === 'profile') {
-      showToast('Switched to My Health Profile');
-    } else if (targetId === 'records') {
-      showToast('Switched to Medical Records');
-    } else if (targetId === 'scan') {
-      showToast('Switched to Scan & Upload');
-    } else if (targetId === 'appointments') {
-      showToast('Switched to Appointments');
-    } else if (targetId === 'medicines') {
-      showToast('Switched to Medicines');
-    } else if (targetId === 'pharmacy') {
-      showToast('Switched to Pharmacy Tracking');
-    } else if (targetId === 'consultation') {
-      showToast('Switched to Video Consultation');
-    } else if (targetId === 'reminders' || targetId === 'notifications') {
-      showToast('Switched to Reminders & Notifications');
-    } else if (targetId === 'analytics' || targetId === 'health-analytics') {
-      showToast('Switched to Health Analytics');
-    } else if (targetId === 'family' || targetId === 'family-connect') {
-      showToast('Switched to Family Connect');
-    } else if (targetId === 'checkup' || targetId === 'health-checkup') {
-      showToast('Switched to Health Check-Up');
-    } else if (targetId === 'dashboard') {
-      showToast('Switched to Dashboard Overview');
-    } else if (targetId === 'lab-test') {
-      showToast('Switched to Lab Test & Diagnostics');
-    } else if (targetId === 'diet-plan') {
-      showToast('Switched to Diet & Nutrient Plans');
-    } else if (targetId === 'report-insights') {
-      showToast('Switched to Report Insights & AI');
-    } else if (targetId === 'nurse-booking') {
-      showToast('Switched to In-Home Nurse Booking');
-    } else if (targetId === 'janitor-booking') {
-      showToast('Switched to Janitor Booking');
-    } else if (targetId === 'security-privacy') {
-      showToast('Switched to Security & Privacy');
-    } else {
-      showToast(`Selected ${targetId} module`);
     }
   };
 
@@ -231,20 +193,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       >
         <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         
-        {/* TOAST FEEDBACK NOTIFICATION */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{toastMessage}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* MOBILE SIDEBAR MENU TRIGGER */}
         <div className="lg:hidden mb-4 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-md">
@@ -382,6 +330,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
               onNavigateHome={() => handleSelectNav('home')}
+              onNavigate={handleSelectNav}
               onLogout={onLogout}
             />
 

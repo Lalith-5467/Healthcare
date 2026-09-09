@@ -99,14 +99,19 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        className="absolute right-0 top-14 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden font-sans text-xs"
-      >
+    <>
+      <div 
+        className="fixed inset-0 z-40 cursor-default" 
+        onClick={onClose} 
+      />
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="absolute right-0 top-14 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 overflow-hidden font-sans text-xs"
+        >
         {/* POPOVER HEADER */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center gap-2">
@@ -245,5 +250,6 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
         </div>
       </motion.div>
     </AnimatePresence>
+    </>
   );
 };

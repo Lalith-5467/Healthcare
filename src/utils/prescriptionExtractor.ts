@@ -286,9 +286,7 @@ export const extractPrescriptionData = async (
   const isAksharaOrSMS = fileNameOrHint.includes('akshara') || fileNameOrHint.includes('sms') || fileNameOrHint.includes('vomilast') || fileNameOrHint.includes('gestakind') || fileNameOrHint.includes('zoclar') || fileNameOrHint.includes('abciximab');
 
   let resolvedPatientName = customPatientName?.trim() || '';
-  if (isAksharaOrSMS && (!resolvedPatientName || resolvedPatientName === 'Ragul Kumar')) {
-    resolvedPatientName = 'Akshara';
-  } else if (!resolvedPatientName && typeof fileOrImage !== 'string' && fileOrImage instanceof File) {
+  if (!resolvedPatientName && typeof fileOrImage !== 'string' && fileOrImage instanceof File) {
     const fn = fileOrImage.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     if (fn && !fn.toLowerCase().includes('prescription') && !fn.toLowerCase().includes('document') && !fn.toLowerCase().includes('scan')) {
       resolvedPatientName = fn.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -299,7 +297,7 @@ export const extractPrescriptionData = async (
   const matchedPreset = SAMPLE_PRESCRIPTION_PRESETS.find((p) => p.id === presetId);
 
   if (!resolvedPatientName) {
-    resolvedPatientName = matchedPreset?.data.patientName || 'Akshara';
+    resolvedPatientName = matchedPreset?.data.patientName || 'Patient';
   }
 
   const uniqueId = `RX-DOC-${Date.now().toString().slice(-6)}`;
@@ -317,7 +315,7 @@ export const extractPrescriptionData = async (
     // Highly accurate multi-medicine extraction for Dr. Akshara / SMS Hospital Rx or Custom upload
     result = {
       id: uniqueId,
-      patientName: resolvedPatientName || 'Akshara',
+      patientName: resolvedPatientName || 'Patient',
       doctorName: isAksharaOrSMS ? 'Dr. Akshara, M.S. (Reg. No: MMC 2018)' : 'Dr. Akshara, M.S. (General Surgery & Medicine)',
       clinicName: isAksharaOrSMS ? 'SMS Hospital, MG Road, Pune' : 'SMS Hospital & Medical Research Centre',
       doctorSpeciality: 'General Surgery & OPD Medicine',
@@ -398,7 +396,7 @@ export const extractPrescriptionData = async (
     // Fallback default
     result = {
       id: uniqueId,
-      patientName: resolvedPatientName || 'Akshara',
+      patientName: resolvedPatientName || 'Patient',
       doctorName: 'Dr. Akshara, M.S. (Reg. No: MMC 2018)',
       clinicName: 'SMS Hospital, Pune',
       doctorSpeciality: 'General Surgery & OPD Medicine',

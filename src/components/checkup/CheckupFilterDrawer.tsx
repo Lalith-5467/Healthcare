@@ -43,12 +43,11 @@ export const CheckupFilterDrawer: React.FC<CheckupFilterDrawerProps> = ({
       setLocalFilters(resetState);
       onApplyFilters(resetState);
     }
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200 font-sans">
-      <div className="bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 w-full max-w-md h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto text-slate-900 dark:text-white">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md flex flex-col shadow-2xl p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
@@ -69,7 +68,7 @@ export const CheckupFilterDrawer: React.FC<CheckupFilterDrawerProps> = ({
         </div>
 
         {/* BODY */}
-        <div className="space-y-6 py-6 flex-1 overflow-y-auto text-xs font-medium">
+        <div className="space-y-6 py-6 text-xs font-medium">
           {/* TYPE */}
           <div>
             <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2 font-mono">
