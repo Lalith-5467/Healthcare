@@ -20,17 +20,45 @@ import { NetworkHospitalsView } from '../components/insurance-dashboard/views/Ne
 import { SettlementsView } from '../components/insurance-dashboard/views/SettlementsView';
 import { InsuranceSettingsView } from '../components/insurance-dashboard/views/InsuranceSettingsView';
 import { CashlessPreAuthView } from '../components/insurance-dashboard/views/CashlessPreAuthView';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 
 interface InsuranceDashboardPageProps {
   onLogout: () => void;
   user?: { name: string; email: string };
+  initialNavId?: string;
+  onNavigate?: (navId: string) => void;
 }
 
-export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ onLogout, user }) => {
-  const [activeNav, setActiveNav] = useState('overview');
+export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const [activeNav, setActiveNav] = useState(initialNavId === 'dashboard' ? 'overview' : (initialNavId || 'overview'));
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedInsuranceId, setSelectedInsuranceId] = useState<string | null>('INS-MC-2026-10245');
   const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNav(initialNavId === 'dashboard' ? 'overview' : initialNavId);
+    }
+  }, [initialNavId]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   const officerName = user?.name || 'Vikas Verma, TPA Head';
 
@@ -134,12 +162,16 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           {/* Notifications */}
           <button 
             type="button"
-            onClick={() => setActiveNav('claims')}
+            onClick={() => setNotificationPopoverOpen(true)}
             className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
-            title="Active Claims Notifications"
+            title="Notifications"
           >
             <Bell className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+              </span>
+            )}
           </button>
 
           {/* Quick Search Shortcut */}
@@ -222,6 +254,15 @@ export const InsuranceDashboardPage: React.FC<InsuranceDashboardPageProps> = ({ 
           {renderActiveView()}
         </main>
       </div>
+
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          setActiveNav('claims');
+        }}
+      />
     </div>
   );
 };

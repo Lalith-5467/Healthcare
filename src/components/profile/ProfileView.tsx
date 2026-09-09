@@ -44,62 +44,166 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 
-  // Profile Form Data state initialized with user prop or defaults
+  const resolvePatientName = (u?: any, dbName?: string): string => {
+    if (dbName && dbName.trim() && !dbName.includes('Pharmacist') && !dbName.includes('R.Ph') && !dbName.includes('Suresh Nair')) {
+      return dbName.trim();
+    }
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim() && !custom.includes('Pharmacist') && !custom.includes('R.Ph') && !custom.includes('Suresh Nair')) {
+        return custom.trim();
+      }
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+          return parsed.name.trim();
+        }
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+          return parsed.name.trim();
+        }
+      }
+    } catch {}
+
+    if (u?.name && u.name !== 'Patient' && !u.name.includes('Pharmacist') && !u.name.includes('R.Ph') && !u.name.includes('Suresh Nair')) {
+      return u.name.trim();
+    }
+
+    return 'Lalith Velarasi';
+  };
+
+  // Profile Form Data state initialized with user prop or session data
   const [profileData, setProfileData] = useState({
-    name: user?.name || 'Samson L.',
-    dob: '15 March 1994',
-    age: user?.age || 32,
-    gender: 'Male',
-    phone: '+91 98765 43210',
-    email: user?.email || 'samson.l@abdm.in',
-    location: 'Chennai, India',
+    name: resolvePatientName(user),
+    dob: (user as any)?.dateOfBirth ? new Date((user as any).dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '15 March 1994',
+    age: user?.age || 30,
+    gender: (user as any)?.gender || 'Male',
+    phone: (user as any)?.phone || '+91 98765 43210',
+    email: user?.email || '',
+    location: (user as any)?.address || 'Chennai, India',
     bloodGroup: user?.bloodGroup || 'O+',
-    height: '174 cm',
+    height: (user as any)?.heightCm ? `${(user as any).heightCm} cm` : '174 cm',
     weight: '72 kg',
     patientId: user?.abhaId || 'HR-2026-00124'
   });
 
-  // Sync profileData with user prop if user prop changes
+  // Fetch real patient profile from backend and sync with current user
   useEffect(() => {
-    if (user) {
+    let isMounted = true;
+
+    const loadProfileData = async () => {
+      try {
+        const { apiClient } = await import('../../services/apiClient');
+        const res = await apiClient.get<any>('/profile/patient');
+        if (res && res.data && isMounted) {
+          const p = res.data;
+          const formattedDob = p.dateOfBirth
+            ? new Date(p.dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+            : '15 March 1994';
+          const calculatedAge = p.dateOfBirth
+            ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear())
+            : (user?.age || 30);
+
+          setProfileData(prev => ({
+            ...prev,
+            name: resolvePatientName(user, p.fullName),
+            dob: formattedDob,
+            age: calculatedAge,
+            gender: p.gender || prev.gender,
+            phone: p.emergencyContactPhone || p.familyPhone || (user as any)?.phone || prev.phone,
+            email: user?.email || prev.email,
+            location: p.address || prev.location,
+            bloodGroup: p.bloodGroup || user?.bloodGroup || prev.bloodGroup,
+            height: p.heightCm ? `${p.heightCm} cm` : prev.height,
+            patientId: user?.abhaId || p.id || prev.patientId
+          }));
+        }
+      } catch {
+        // Fallback to local user prop
+        if (user && isMounted) {
+          setProfileData(prev => ({
+            ...prev,
+            name: resolvePatientName(user),
+            email: user.email || prev.email,
+            bloodGroup: user.bloodGroup || prev.bloodGroup,
+            age: user.age || prev.age,
+            patientId: user.abhaId || prev.patientId
+          }));
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProfileData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  // Sync profileData when user prop updates
+  useEffect(() => {
+    if (user?.name) {
       setProfileData(prev => ({
         ...prev,
-        name: user.name || prev.name,
+        name: user.name,
         email: user.email || prev.email,
         bloodGroup: user.bloodGroup || prev.bloodGroup,
         age: user.age || prev.age,
         patientId: user.abhaId || prev.patientId
       }));
     }
-  }, [user]);
-
-  // Load state from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('user_profile_data');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setProfileData(prev => ({
-          ...prev,
-          ...parsed,
-          name: parsed.name || user?.name || prev.name
-        }));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const timer = setTimeout(() => setLoading(false), 350);
-    return () => clearTimeout(timer);
-  }, [user]);
+  }, [user?.name, user?.email, user?.bloodGroup, user?.age, user?.abhaId]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleSaveProfile = (newData: ProfileFormData) => {
+  const handleSaveProfile = async (newData: ProfileFormData) => {
     setProfileData(newData);
-    localStorage.setItem('user_profile_data', JSON.stringify(newData));
+    
+    // Save locally
+    try {
+      localStorage.setItem('user_profile_data', JSON.stringify(newData));
+      if (user?.email) {
+        localStorage.setItem(`user_profile_data_${user.email}`, JSON.stringify(newData));
+      }
+
+      // Update app_user in localStorage
+      const appUserStr = localStorage.getItem('app_user');
+      if (appUserStr) {
+        const appUser = JSON.parse(appUserStr);
+        appUser.name = newData.name;
+        appUser.bloodGroup = newData.bloodGroup;
+        localStorage.setItem('app_user', JSON.stringify(appUser));
+        window.dispatchEvent(new Event('app_user_updated'));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Persist to backend database
+    try {
+      const { apiClient } = await import('../../services/apiClient');
+      await apiClient.put('/profile/patient', {
+        fullName: newData.name,
+        gender: newData.gender,
+        bloodGroup: newData.bloodGroup,
+        address: newData.location,
+        emergencyContactPhone: newData.phone,
+      });
+    } catch (backendErr) {
+      console.warn('Backend profile update note:', backendErr);
+    }
+
     showToast('✓ Profile updated successfully.');
   };
 

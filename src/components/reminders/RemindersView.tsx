@@ -7,13 +7,11 @@ import {
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
   INITIAL_REMINDERS,
-  INITIAL_NOTIFICATIONS,
   DEFAULT_NOTIFICATION_SETTINGS
 } from './remindersData';
 import {
   updateReminderFollowUpStatus,
   getReminders as getStoredReminders,
-  getNotifications as getStoredNotifications
 } from '../../utils/healthWorkflowStorage';
 import { CreateReminderModal } from './CreateReminderModal';
 import { RemindersFilterDrawer } from './RemindersFilterDrawer';
@@ -22,6 +20,8 @@ import { ReminderDetailsDrawer } from './ReminderDetailsDrawer';
 import { SnoozeModal } from './SnoozeModal';
 import { NotificationSettingsDrawer } from './NotificationSettingsDrawer';
 import { ConfirmClearHistoryModal } from './ConfirmClearHistoryModal';
+import { reminderApi, notificationApi } from '../../services/dhrApis';
+import { safeLocalStorageSet } from '../../utils/safeStorage';
 
 interface UserProfile {
   name: string;
@@ -102,34 +102,29 @@ const getTomorrowDateStr = (dateStr: string): string => {
       const day = parseInt(parts[0], 10);
       const monthIdx = months.indexOf(parts[1]);
       const year = parseInt(parts[2], 10);
-      if (day > 0 && monthIdx >= 0 && year > 0) {
+      if (!isNaN(day) && monthIdx !== -1 && !isNaN(year)) {
         const d = new Date(year, monthIdx, day);
         d.setDate(d.getDate() + 1);
-        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        return `${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
       }
     }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      d.setDate(d.getDate() + 1);
-      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-    }
     return dateStr;
-  } catch (e) {
+  } catch {
     return dateStr;
   }
 };
 
 export const RemindersView: React.FC<RemindersViewProps> = ({
   user: _user,
-  onNavigate: _onNavigate,
+  onNavigate,
   initialViewMode = 'list'
 }) => {
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // STATE & LOCALSTORAGE PERSISTENCE
+  // STATE & LOCALSTORAGE PERSISTENCE (Live from MySQL)
   const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const [notifications, setNotifications] = useState<NotificationLog[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [settings, setSettings] = useState<NotificationSettingsState>(DEFAULT_NOTIFICATION_SETTINGS);
 
   // VIEW SWITCHER
@@ -161,20 +156,67 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [declineConfirmTarget, setDeclineConfirmTarget] = useState<ReminderItem | null>(null);
 
-  const loadAllData = () => {
-    const loadedReminders = getStoredReminders();
-    setReminders(loadedReminders);
+  const loadAllData = async () => {
+    try {
+      const [remindersRes, notifsRes] = await Promise.all([
+        reminderApi.getReminders().catch(() => null),
+        notificationApi.getNotifications().catch(() => null),
+      ]);
 
-    const loadedNotifs = getStoredNotifications();
-    setNotifications(loadedNotifs);
-
-    const savedSetts = localStorage.getItem('user_notification_settings');
-    if (savedSetts) {
-      try {
-        setSettings(JSON.parse(savedSetts));
-      } catch (e) {
-        console.error(e);
+      if (remindersRes && remindersRes.data && remindersRes.data.length > 0) {
+        const mappedReminders: ReminderItem[] = remindersRes.data.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          category: r.type === 'MEDICATION' ? 'Medication' : r.type === 'APPOINTMENT' ? 'Appointment' : 'General Checkup',
+          description: r.notes || `${r.frequency || 'Daily'} at ${r.scheduledTime}`,
+          date: r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+          time: r.scheduledTime,
+          repeat: r.frequency || 'Daily',
+          timing: '15 minutes before',
+          status: r.isCompletedToday ? 'Completed' : r.status === 'ACTIVE' ? 'Active' : 'Upcoming',
+          priority: (r.priority as any) || 'Normal',
+          relatedModule: (r.type === 'MEDICATION' ? 'medicines' : 'appointments') as any,
+          doctorName: r.doctorName,
+          clinicName: r.clinicName,
+          followUpStatus: r.followUpStatus,
+          sourcePrescriptionId: r.sourcePrescriptionId,
+        }));
+        setReminders(mappedReminders);
+        safeLocalStorageSet('user_reminders', JSON.stringify(mappedReminders));
+      } else {
+        const loadedReminders = getStoredReminders();
+        setReminders(loadedReminders);
       }
+
+      if (notifsRes && notifsRes.data && notifsRes.data.length > 0) {
+        const mappedNotifs: NotificationLog[] = notifsRes.data.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          description: n.message,
+          category: n.category || 'General',
+          timeAgo: 'Just now',
+          date: new Date(n.createdAt).toLocaleDateString(),
+          isRead: n.isRead,
+          relatedModule: n.relatedModule || 'dashboard',
+        }));
+        setNotifications(mappedNotifs);
+        safeLocalStorageSet('user_notifications', JSON.stringify(mappedNotifs));
+      } else {
+        setNotifications([]);
+      }
+
+      const savedSetts = localStorage.getItem('user_notification_settings');
+      if (savedSetts) {
+        try {
+          setSettings(JSON.parse(savedSetts));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } catch (err) {
+      console.log('Error loading reminders:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,11 +225,9 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     const handleUpdate = () => loadAllData();
     window.addEventListener('notifications_updated', handleUpdate);
     window.addEventListener('health_workflow_updated', handleUpdate);
-    const timer = setTimeout(() => setLoading(false), 300);
     return () => {
       window.removeEventListener('notifications_updated', handleUpdate);
       window.removeEventListener('health_workflow_updated', handleUpdate);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -198,20 +238,20 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
 
   const saveRemindersState = (newReminders: ReminderItem[]) => {
     setReminders(newReminders);
-    localStorage.setItem('user_reminders', JSON.stringify(newReminders));
+    safeLocalStorageSet('user_reminders', JSON.stringify(newReminders));
     window.dispatchEvent(new Event('notifications_updated'));
     window.dispatchEvent(new Event('health_workflow_updated'));
   };
 
   const saveNotificationsState = (newNotifs: NotificationLog[]) => {
     setNotifications(newNotifs);
-    localStorage.setItem('user_notifications', JSON.stringify(newNotifs));
+    safeLocalStorageSet('user_notifications', JSON.stringify(newNotifs));
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const saveSettingsState = (newSetts: NotificationSettingsState) => {
     setSettings(newSetts);
-    localStorage.setItem('user_notification_settings', JSON.stringify(newSetts));
+    safeLocalStorageSet('user_notification_settings', JSON.stringify(newSetts));
   };
 
 
@@ -994,7 +1034,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         item={detailTarget}
         isOpen={!!detailTarget}
         onClose={() => setDetailTarget(null)}
-        onNavigateModule={(mod) => _onNavigate(mod)}
+        onNavigateModule={(mod) => onNavigate(mod)}
         onDismiss={handleDismissReminder}
         onAcceptFollowUp={handleAcceptFollowUp}
         onDeclineFollowUp={handleDeclineFollowUp}

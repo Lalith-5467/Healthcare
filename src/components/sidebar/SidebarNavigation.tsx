@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { NavItemConfig } from './types';
 import { SidebarNavItem } from './SidebarNavItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SidebarNavigationProps {
   items: NavItemConfig[];
@@ -15,6 +16,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   isCollapsed,
   onSelectNav
 }) => {
+  const { t } = useLanguage();
   // Track expanded sections
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
@@ -46,7 +48,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           <div key={sectionKey} className="space-y-1">
             {!isCollapsed && sectionKey !== 'OTHER' && (
               <h4 className="px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider mb-2 mt-1">
-                {sectionKey}
+                {t('section.' + sectionKey, sectionKey)}
               </h4>
             )}
             {sectionItems.map((item) => (

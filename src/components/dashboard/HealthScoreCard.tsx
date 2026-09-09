@@ -13,8 +13,10 @@ import {
   X,
   CheckCircle2
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const HealthScoreCard: React.FC = () => {
+  const { t } = useLanguage();
   const [score, setScore] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -79,7 +81,7 @@ export const HealthScoreCard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  Your Health Score
+                  {t('card.your_health_score', 'Your Health Score')}
                 </h3>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -97,7 +99,7 @@ export const HealthScoreCard: React.FC = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Optimal Vitals • Live</span>
+                <span>{t('card.optimal_vitals', 'Optimal Vitals • Live')}</span>
               </span>
             </div>
           </div>
@@ -113,7 +115,7 @@ export const HealthScoreCard: React.FC = () => {
 
             <span className="px-3 py-1 text-[11px] font-extrabold rounded-full text-[#00897b] dark:text-cyan-300 border font-mono shadow-xs flex items-center gap-1" style={{ background: 'rgba(20,184,166,.12)', borderColor: 'rgba(20,184,166,.25)' }}>
               <Sparkles className="w-3 h-3 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />
-              <span>Weekly Sync</span>
+              <span>{t('card.weekly_sync', 'Weekly Sync')}</span>
             </span>
           </div>
         </div>
@@ -177,7 +179,7 @@ export const HealthScoreCard: React.FC = () => {
                   {score}
                 </motion.span>
                 <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 mt-1 font-mono uppercase tracking-wider">
-                  Out of 100
+                  / 100
                 </span>
               </div>
             </div>
@@ -195,7 +197,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Heart className="w-3.5 h-3.5 text-slate-900 dark:text-white animate-bounce" style={{ animationDuration: '2s' }} />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Heart Rate</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">{t('card.heart_rate', 'Heart Rate')}</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">72 BPM</span>
               </div>
             </motion.div>
@@ -209,7 +211,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Zap className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood SpO2</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">{t('card.blood_spo2', 'Blood SpO2')}</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">98%</span>
               </div>
             </motion.div>
@@ -223,7 +225,7 @@ export const HealthScoreCard: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Blood Press.</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">{t('card.blood_pressure', 'Blood Pressure')}</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">120/80</span>
               </div>
             </motion.div>
@@ -237,7 +239,7 @@ export const HealthScoreCard: React.FC = () => {
                 <Moon className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">Sleep Avg.</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block">{t('card.sleep_avg', 'Sleep Avg.')}</span>
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">7.8 hrs</span>
               </div>
             </motion.div>

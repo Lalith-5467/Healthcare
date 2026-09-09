@@ -5,7 +5,7 @@ import { AuthUser } from '../@types/express';
 import { AuditService } from './audit.service';
 
 export interface CreateMedicalRecordInput {
-  patientId: string;
+  patientId?: string;
   title: string;
   type?: RecordType;
   hospital?: string;
@@ -50,13 +50,26 @@ export class MedicalRecordService {
     user: AuthUser,
     ipAddress?: string
   ) {
+    let targetPatientId = data.patientId;
+    if (user.role === Role.PATIENT) {
+      const patient = await prisma.patient.findUnique({
+        where: { userId: user.id },
+      });
+      if (!patient) throw new AppError('Patient profile not found', 404);
+      targetPatientId = patient.id;
+    }
+
+    if (!targetPatientId) {
+      throw new AppError('Patient ID is required', 400);
+    }
+
     // 1. Verify target patient exists
     const patient = await prisma.patient.findUnique({
-      where: { id: data.patientId },
+      where: { id: targetPatientId },
     });
 
     if (!patient) {
-      const err: AppError = new Error(`Patient with ID ${data.patientId} not found`);
+      const err: AppError = new Error(`Patient with ID ${targetPatientId} not found`);
       err.statusCode = 404;
       throw err;
     }
@@ -73,11 +86,11 @@ export class MedicalRecordService {
     // 3. Create medical record
     const record = await prisma.medicalRecord.create({
       data: {
-        patientId: data.patientId,
+        patientId: targetPatientId,
         doctorId: doctorId || undefined,
         title: data.title,
         type: data.type || RecordType.OTHER,
-        hospital: data.hospital || (user.role === Role.DOCTOR ? 'Medical Practice' : null),
+        hospital: data.hospital || (user.role === Role.DOCTOR ? 'Medical Practice' : 'Digital Health Vault'),
         status: data.status || 'Normal',
         isImportant: data.isImportant || false,
         notes: data.notes || null,
@@ -120,6 +133,20 @@ export class MedicalRecordService {
         patientId: record.patientId,
       },
     });
+
+    // 5. Notify Patient
+    if (patient.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: patient.userId,
+          title: 'New Medical Record Added',
+          message: `${record.title} (${record.type}) has been added to your digital health records.`,
+          type: 'RECORD',
+          category: 'Medical Records',
+          relatedModule: 'records',
+        },
+      });
+    }
 
     return record;
   }
@@ -279,7 +306,7 @@ export class MedicalRecordService {
   }
 
   /**
-   * Update clinical medical record (Doctor, Nurse, Admin, Super Admin)
+   * Update clinical medical record (Patient, Doctor, Nurse, Admin, Super Admin)
    */
   static async updateMedicalRecord(
     id: string,
@@ -287,17 +314,19 @@ export class MedicalRecordService {
     user: AuthUser,
     ipAddress?: string
   ) {
-    // Patients cannot modify clinical records
-    if (user.role === Role.PATIENT) {
-      const err: AppError = new Error('Access denied: Patients cannot modify clinical medical records');
-      err.statusCode = 403;
-      throw err;
-    }
-
-    const existing = await prisma.medicalRecord.findUnique({ where: { id } });
+    const existing = await prisma.medicalRecord.findUnique({ 
+      where: { id },
+      include: { patient: true }
+    });
     if (!existing) {
       const err: AppError = new Error(`Medical record with ID ${id} not found`);
       err.statusCode = 404;
+      throw err;
+    }
+
+    if (user.role === Role.PATIENT && existing.patient.userId !== user.id) {
+      const err: AppError = new Error('Access denied: You can only modify your own medical records');
+      err.statusCode = 403;
       throw err;
     }
 
@@ -340,20 +369,22 @@ export class MedicalRecordService {
   }
 
   /**
-   * Delete a medical record (Admin, Super Admin only)
+   * Delete a medical record (Patient, Admin, Super Admin)
    */
   static async deleteMedicalRecord(id: string, user: AuthUser, ipAddress?: string) {
-    // Only Admin or Super Admin can delete records
-    if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN) {
-      const err: AppError = new Error('Access denied: Only administrators can permanently delete medical records');
-      err.statusCode = 403;
-      throw err;
-    }
-
-    const existing = await prisma.medicalRecord.findUnique({ where: { id } });
+    const existing = await prisma.medicalRecord.findUnique({ 
+      where: { id },
+      include: { patient: true }
+    });
     if (!existing) {
       const err: AppError = new Error(`Medical record with ID ${id} not found`);
       err.statusCode = 404;
+      throw err;
+    }
+
+    if (user.role === Role.PATIENT && existing.patient.userId !== user.id) {
+      const err: AppError = new Error('Access denied: You can only delete your own medical records');
+      err.statusCode = 403;
       throw err;
     }
 

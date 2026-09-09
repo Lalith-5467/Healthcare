@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
   Lock, 
@@ -11,9 +11,13 @@ import {
   CheckCircle2, 
   ChevronLeft,
   LockKeyhole,
-  Building2
+  Building2,
+  AlertCircle
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
+import { authApi } from '../services/dhrApis';
+import { setAuthToken } from '../services/apiClient';
+import { safeLocalStorageSet } from '../utils/safeStorage';
 
 interface AdminLoginPageProps {
   onNavigateHome: () => void;
@@ -33,49 +37,86 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
 }) => {
   const [selectedRole, setSelectedRole] = useState<'Admin' | 'Super Admin'>('Super Admin');
   const [email, setEmail] = useState('superadmin@dhr-medicare.in');
-  const [password, setPassword] = useState('Directorate@2026');
+  const [password, setPassword] = useState('Admin@123');
   const [securityKey, setSecurityKey] = useState('SUPER-ROOT-001');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Role preset credentials helper
   const handleSelectRole = (role: 'Admin' | 'Super Admin') => {
     setSelectedRole(role);
+    setErrorMsg(null);
     if (role === 'Super Admin') {
       setEmail('superadmin@dhr-medicare.in');
-      setPassword('Directorate@2026');
+      setPassword('Admin@123');
       setSecurityKey('SUPER-ROOT-001');
     } else {
       setEmail('admin.kavita@dhr-medicare.in');
-      setPassword('HospitalAdmin@2026');
+      setPassword('Admin@123');
       setSecurityKey('ADM-EXEC-442');
     }
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg(null);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      const name = selectedRole === 'Super Admin' ? 'Vikramaditya Rao' : 'Kavita Sundaram';
-      const userPayload = {
-        name,
-        email,
-        role: selectedRole,
-        department: selectedRole === 'Super Admin' ? 'National Health Directorate' : 'Hospital Executive Admin'
-      };
+    try {
+      const res = await authApi.login({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-      localStorage.setItem('app_user', JSON.stringify(userPayload));
-      localStorage.setItem('app_is_logged_in', 'true');
-      localStorage.setItem('admin_active_nav_id', 'dashboard');
+      if (res && res.data && res.data.token) {
+        const { user, token } = res.data;
+        setAuthToken(token);
+        safeLocalStorageSet('token', token);
+        safeLocalStorageSet('auth_token', token);
 
-      if (onSuccessLogin) {
-        onSuccessLogin(userPayload);
+        const profile: any = user.profile || {};
+        const resolvedRole: 'Admin' | 'Super Admin' = user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin';
+        const userPayload = {
+          id: user.id,
+          name: profile.fullName || (resolvedRole === 'Super Admin' ? 'Vikramaditya Rao' : 'Kavita Sundaram'),
+          email: user.email,
+          role: resolvedRole,
+          department: resolvedRole === 'Super Admin' ? 'National Health Directorate' : 'Hospital Executive Admin',
+        };
+
+        safeLocalStorageSet('app_user', JSON.stringify(userPayload));
+        safeLocalStorageSet('app_is_logged_in', 'true');
+        safeLocalStorageSet('admin_active_nav_id', 'dashboard');
+
+        if (onSuccessLogin) {
+          onSuccessLogin(userPayload);
+        } else {
+          window.location.href = '/admin/dashboard';
+        }
       } else {
-        window.location.href = '/admin/dashboard';
+        throw new Error(res?.message || 'Failed to authenticate administrator account.');
       }
-    }, 500);
+    } catch (err: any) {
+      console.error('Admin Login Error:', err);
+      const rawMsg: string = err?.message || '';
+      let displayMsg: string;
+      if (
+        rawMsg === 'Failed to fetch' ||
+        rawMsg.includes('NetworkError') ||
+        rawMsg.includes('ERR_CONNECTION_REFUSED') ||
+        rawMsg.includes('Unable to connect') ||
+        err instanceof TypeError
+      ) {
+        displayMsg =
+          'Authentication server is unavailable. Please verify the backend service is running on port 5000.';
+      } else {
+        displayMsg = rawMsg || 'Authentication failed. Please verify administrator credentials.';
+      }
+      setErrorMsg(displayMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -114,6 +155,21 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
               {selectedRole === 'Super Admin' ? 'Root master clearance & security overrides' : 'Authorized login for Hospital Admins'}
             </p>
           </div>
+
+          {/* ERROR ALERT */}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ROLE BASED ACCESS DROPDOWN SELECTOR */}
           <div className="space-y-1.5">

@@ -23,6 +23,7 @@ import { INITIAL_RECORDS } from '../records/recordsData';
 import { ScannerModal } from './ScannerModal';
 import { DocumentEditorModal } from './DocumentEditorModal';
 import { DocumentInfoForm } from './DocumentInfoForm';
+import { safeLocalStorageSet } from '../../utils/safeStorage';
 import { MultiScanModal } from './MultiScanModal';
 import { CancelConfirmModal } from './CancelConfirmModal';
 import { RecentUploadsSection } from './RecentUploadsSection';
@@ -95,7 +96,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
   // Helper to persist records
   const updateRecords = (newRecords: MedicalRecordItem[]) => {
     setRecords(newRecords);
-    localStorage.setItem('user_medical_records', JSON.stringify(newRecords));
+    safeLocalStorageSet('user_medical_records', JSON.stringify(newRecords));
   };
 
   // FILE VALIDATION HANDLER

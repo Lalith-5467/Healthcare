@@ -23,19 +23,51 @@ import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/v
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
 import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 
 interface DoctorDashboardPageProps {
   onLogout: () => void;
   user?: { name: string; email: string };
+  initialNavId?: string;
+  onNavigate?: (navId: string) => void;
 }
 
-export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user }) => {
-  const [activeNav, setActiveNav] = useState('overview');
+export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const getInitialDoctorNav = () => {
+    if (!initialNavId || initialNavId === 'dashboard') return 'overview';
+    return initialNavId;
+  };
+  const [activeNav, setActiveNav] = useState(getInitialDoctorNav());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
   const [scannedPatientName, setScannedPatientName] = useState<string | undefined>(undefined);
   const [patient360Tab, setPatient360Tab] = useState('summary');
   const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNav(initialNavId === 'dashboard' ? 'overview' : initialNavId);
+    }
+  }, [initialNavId]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
 
@@ -71,7 +103,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   const renderActiveView = () => {
     switch (activeNav) {
       case 'overview':
-        return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
+        return <DoctorOverviewView onNavigate={setActiveNav} onSelectPatient={handleSelectPatient} user={user} />;
       case 'appointments':
       case 'schedule':
       case 'queue':
@@ -90,7 +122,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           />
         );
       case 'scan':
-        return <QRScannerView onScanSuccess={handleScanSuccess} />;
+        return <QRScannerView onScanSuccess={handleScanSuccess} onNavigateToDashboard={() => setActiveNav('overview')} />;
       case 'patient-360':
       case 'vitals':
       case 'labs':
@@ -177,12 +209,16 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           {/* Notifications */}
           <button 
             type="button"
-            onClick={() => setActiveNav('appointments')}
+            onClick={() => setNotificationPopoverOpen(true)}
             className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
-            title="OPD Appointments & Queue"
+            title="Doctor Notifications"
           >
             <Bell className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
+                {unreadNotificationsCount}
+              </span>
+            )}
           </button>
 
           {/* Quick QR Scanner Shortcut */}
@@ -265,6 +301,16 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           {renderActiveView()}
         </main>
       </div>
+
+      {/* NOTIFICATIONS POPOVER */}
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          setActiveNav('appointments');
+        }}
+      />
     </div>
   );
 };

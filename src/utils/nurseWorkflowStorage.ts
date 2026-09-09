@@ -8,19 +8,49 @@ export type BookingStatus =
   | 'Arrived' // Nurse at location
   | 'Care in Progress' // Visit active
   | 'Completed' // Visit done
-  | 'Rejected'; // Nurse rejected
+  | 'Rejected' // Nurse rejected
+  | 'Cancelled';
 
 export interface CareRequest {
   id: string;
+  patientId?: string;
+  patientUserId?: string;
   patientName: string;
   patientAge: string;
+  patientGender?: string;
+  patientBloodGroup?: string;
   patientPhone?: string;
+  patientEmail?: string;
+  patientAbhaId?: string;
   serviceType: string;
+  careCategory?: string;
   prefDate: string;
+  scheduledDate?: string | Date;
   time: string;
+  duration?: string;
+  bookingType?: string;
+  repeatFrequency?: string | null;
+  endDate?: string | null;
   location: string;
+  landmark?: string;
+  city?: string;
+  pincode?: string;
+  locationType?: string;
   distanceKm?: string;
   instructions: string;
+  conditionReason?: string;
+  mobilityStatus?: string;
+  currentMedications?: string;
+  allergies?: string;
+  medicalEquipment?: string;
+  specialCareRequirements?: string;
+  nurseGenderPreference?: string;
+  preferredExperience?: string;
+  preferredLanguage?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyInstructions?: string;
+  relationshipToPatient?: string;
   status: BookingStatus;
   createdAt: number;
   nurseId?: string;
@@ -36,6 +66,7 @@ export interface CareRequest {
     bs: string;
   };
   notes?: string;
+  metadata?: any;
   checklist?: {
     id: string;
     label: string;
@@ -52,7 +83,6 @@ export interface NurseNotification {
 }
 
 const STORAGE_KEY_BOOKINGS = 'medicare_nurse_bookings_v2';
-const STORAGE_KEY_NOTIFICATIONS = 'medicare_nurse_notifications_v2';
 
 const INITIAL_BOOKINGS: CareRequest[] = [
   {
@@ -136,81 +166,67 @@ const INITIAL_BOOKINGS: CareRequest[] = [
   }
 ];
 
-const INITIAL_NOTIFICATIONS: NurseNotification[] = [
-  {
-    id: 'notif-1',
-    message: 'New care request from Mrs. Meenakshi Sundaram for Elderly ICU Vitals.',
-    time: Date.now() - 1800000,
-    read: false,
-    type: 'info'
-  },
-  {
-    id: 'notif-2',
-    message: 'Care request for Ragul Kumar confirmed and assigned to your shift.',
-    time: Date.now() - 3600000,
-    read: true,
-    type: 'success'
-  }
-];
+
+
+import { safeLocalStorageSet } from './safeStorage';
 
 // Helper to get from local storage
 const getBookings = (): CareRequest[] => {
   const data = localStorage.getItem(STORAGE_KEY_BOOKINGS);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(INITIAL_BOOKINGS));
-    return INITIAL_BOOKINGS;
-  }
+  if (!data) return [];
   try {
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_BOOKINGS;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return INITIAL_BOOKINGS;
+    return [];
   }
 };
 
-const getNotifications = (): NurseNotification[] => {
-  const data = localStorage.getItem(STORAGE_KEY_NOTIFICATIONS);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(INITIAL_NOTIFICATIONS));
-    return INITIAL_NOTIFICATIONS;
-  }
-  try {
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_NOTIFICATIONS;
-  } catch {
-    return INITIAL_NOTIFICATIONS;
-  }
-};
+
+
+import { clinicalApi } from '../services/dhrApis';
 
 export const useNurseWorkflow = () => {
   const [bookings, setBookings] = useState<CareRequest[]>(() => getBookings());
-  const [notifications, setNotifications] = useState<NurseNotification[]>(() => getNotifications());
 
-  // Load initial data and set up storage event listener
+  const refreshBookings = async () => {
+    try {
+      const res = await clinicalApi.getNurseCareRequests();
+      if (res && res.data && Array.isArray(res.data)) {
+        setBookings(res.data);
+        safeLocalStorageSet(STORAGE_KEY_BOOKINGS, JSON.stringify(res.data));
+      }
+    } catch (err) {
+      console.error('Failed to load nurse care requests from server:', err);
+    }
+  };
+
+  // Load initial data and set up storage & window focus listeners
   useEffect(() => {
-    setBookings(getBookings());
-    setNotifications(getNotifications());
+    refreshBookings();
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY_BOOKINGS) {
         setBookings(getBookings());
       }
-      if (e.key === STORAGE_KEY_NOTIFICATIONS) {
-        setNotifications(getNotifications());
-      }
     };
 
     const handleCustomEvent = () => {
-      setBookings(getBookings());
-      setNotifications(getNotifications());
+      refreshBookings();
+    };
+
+    const handleWindowFocus = () => {
+      refreshBookings();
     };
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('medicare_sync_nurse', handleCustomEvent);
+    window.addEventListener('focus', handleWindowFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('medicare_sync_nurse', handleCustomEvent);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, []);
 
@@ -234,36 +250,44 @@ export const useNurseWorkflow = () => {
     };
     const current = getBookings();
     const updated = [newBooking, ...current];
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
     setBookings(updated);
     
-    addNotification(`New care request from ${request.patientName} for ${request.serviceType}.`, 'info');
     triggerSync();
     return newBooking;
   };
 
-  const updateBookingStatus = (id: string, status: BookingStatus, extra?: Partial<CareRequest>) => {
-    const current = getBookings();
-    const updated = current.map(b => {
-      if (b.id === id) {
-        return {
-          ...b,
-          status,
-          ...(status === 'Accepted' ? { nurseName: 'Nurse Sarah, Senior RN', nurseId: 'RN-7701' } : {}),
-          ...extra
-        };
-      }
-      return b;
-    });
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
-    setBookings(updated);
+  const updateBookingStatus = async (id: string, status: BookingStatus, extra?: Partial<CareRequest>) => {
+    try {
+      await clinicalApi.updateCareRequest(id, { 
+        status, 
+        ...(extra?.notes ? { notes: extra.notes } : {}), 
+        ...(extra?.etaMinutes ? { etaMinutes: extra.etaMinutes } : {}) 
+      });
+      await refreshBookings();
+    } catch (err) {
+      console.error('Failed to update care request status on server:', err);
+      const current = getBookings();
+      const updated = current.map(b => {
+        if (b.id === id) {
+          return {
+            ...b,
+            status,
+            ...extra
+          };
+        }
+        return b;
+      });
+      safeLocalStorageSet(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+      setBookings(updated);
+    }
     triggerSync();
   };
   
   const updateBookingData = (id: string, updates: Partial<CareRequest>) => {
     const current = getBookings();
     const updated = current.map(b => b.id === id ? { ...b, ...updates } : b);
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
     setBookings(updated);
     triggerSync();
   };
@@ -277,33 +301,12 @@ export const useNurseWorkflow = () => {
       }
       return b;
     });
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+    safeLocalStorageSet(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
     setBookings(updated);
     triggerSync();
   };
 
-  const addNotification = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-    const newNotif: NurseNotification = {
-      id: Date.now().toString(),
-      message,
-      time: Date.now(),
-      read: false,
-      type
-    };
-    const current = getNotifications();
-    const updated = [newNotif, ...current];
-    localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
-    setNotifications(updated);
-    triggerSync();
-  };
 
-  const markNotificationRead = (id: string) => {
-    const current = getNotifications();
-    const updated = current.map(n => n.id === id ? { ...n, read: true } : n);
-    localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
-    setNotifications(updated);
-    triggerSync();
-  };
 
   const clearBookings = () => {
     localStorage.removeItem(STORAGE_KEY_BOOKINGS);
@@ -313,13 +316,12 @@ export const useNurseWorkflow = () => {
 
   return {
     bookings,
-    notifications,
+    refreshBookings,
     createBooking,
     updateBookingStatus,
     updateBookingData,
     toggleChecklistItem,
-    addNotification,
-    markNotificationRead,
+    addNotification: (_title?: string, _message?: string) => {},
     clearBookings
   };
 };

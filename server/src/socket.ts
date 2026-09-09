@@ -13,6 +13,8 @@ export interface OrderStatusUpdatePayload {
   previousStatus: string;
   updatedAt: string;
   message: string;
+  statusTimeline?: Record<string, string | null>;
+  totalAmount?: number | string;
 }
 
 let io: SocketIOServer | null = null;
@@ -67,6 +69,13 @@ export function initSocketServer(httpServer: http.Server): SocketIOServer {
         if (patient) {
           socket.join(`patient:${patient.id}`);
         }
+      } else if (user.role === 'DOCTOR') {
+        const doctor = await prisma.doctor.findUnique({
+          where: { userId: user.id },
+        });
+        if (doctor) {
+          socket.join(`doctor:${doctor.id}`);
+        }
       } else if (user.role === 'PHARMACIST') {
         const pharmacist = await prisma.pharmacist.findUnique({
           where: { userId: user.id },
@@ -111,4 +120,44 @@ export function emitOrderStatusUpdate(payload: OrderStatusUpdatePayload) {
 
   // Emit to admin monitoring room
   io.to('admin:room').emit('pharmacy:order-status-updated', payload);
+
+  // NOTE: No global broadcast — only targeted rooms above receive pharmacy order events
 }
+
+export interface HealthShareEventPayload {
+  patientId?: string;
+  doctorId?: string;
+  userId?: string;
+  event: string;
+  requestId?: string;
+  status?: string;
+  data?: any;
+}
+
+/**
+ * Emit Health Share and QR Access workflow events to relevant patient and doctor rooms
+ */
+export function emitHealthShareEvent(payload: HealthShareEventPayload) {
+  if (!io) return;
+
+  const eventNames = [payload.event];
+  if (payload.event.includes('-')) {
+    eventNames.push(payload.event.replace(/-/g, '_'));
+  } else if (payload.event.includes('_')) {
+    eventNames.push(payload.event.replace(/_/g, '-'));
+  }
+
+  eventNames.forEach((ev) => {
+    if (payload.patientId) {
+      io!.to(`patient:${payload.patientId}`).emit(ev, payload);
+    }
+    if (payload.doctorId) {
+      io!.to(`doctor:${payload.doctorId}`).emit(ev, payload);
+    }
+    if (payload.userId) {
+      io!.to(`user:${payload.userId}`).emit(ev, payload);
+    }
+    // NOTE: No global broadcast — only targeted patient/doctor/user rooms receive these events
+  });
+}
+

@@ -11,7 +11,9 @@ import {
   Building2,
   FileText,
   RotateCcw,
-  Compass
+  Compass,
+  Check,
+  Package
 } from 'lucide-react';
 import type { Pharmacy, StockItem, PharmacyOrder, LinkedPrescription } from './pharmacyData';
 import {
@@ -31,8 +33,9 @@ import { PharmacyDetailsDrawer } from './PharmacyDetailsDrawer';
 import { OrderTrackingModal } from './OrderTrackingModal';
 import { PharmacyFilterDrawer } from './PharmacyFilterDrawer';
 import { CancelOrderModal } from './CancelOrderModal';
-import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT } from '../../services/pharmacyOrderApi';
+import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT, DHR_STATUS_DISPLAY } from '../../services/pharmacyOrderApi';
 import { socketService } from '../../services/socketService';
+import { pharmacyApi } from '../../services/dhrApis';
 
 interface UserProfile {
   name: string;
@@ -55,8 +58,8 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // STATE & LOCALSTORAGE PERSISTENCE
-  const [pharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
+  // STATE & LOCALSTORAGE PERSISTENCE (Live from MySQL)
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
   const [stockItems] = useState<StockItem[]>(INITIAL_MEDICINE_STOCK);
   const [orders, setOrders] = useState<ExtendedPharmacyOrder[]>(INITIAL_ORDERS as ExtendedPharmacyOrder[]);
   const [prescriptions, setPrescriptions] = useState<LinkedPrescription[]>(INITIAL_PRESCRIPTIONS);
@@ -66,7 +69,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [stockFilter, setStockFilter] = useState<'All' | 'Low Stock' | 'Good Stock'>('All');
 
   // PREFERENCES
-  const [preferredPharmacy, setPreferredPharmacy] = useState<string>('HealthPlus Pharmacy');
+  const [preferredPharmacy, setPreferredPharmacy] = useState<string>('Apollo Central Pharmacy');
   const [preferredDelivery, setPreferredDelivery] = useState<'Home Delivery' | 'Pickup'>('Home Delivery');
 
   // MODALS & DRAWERS
@@ -78,8 +81,30 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
   const loadAllData = async () => {
     try {
-      const liveOrders = await fetchPatientPharmacyOrders();
-      if (liveOrders && liveOrders.length > 0) {
+      const [liveOrders, livePharmaciesRes] = await Promise.all([
+        fetchPatientPharmacyOrders().catch(() => null),
+        pharmacyApi.getPharmacies().catch(() => null),
+      ]);
+
+      if (livePharmaciesRes && livePharmaciesRes.data && livePharmaciesRes.data.length > 0) {
+        const mappedPharms: Pharmacy[] = livePharmaciesRes.data.map((p: any) => ({
+          id: p.pharmacyId || p.id,
+          name: p.name,
+          rating: 4.8,
+          reviewCount: 142,
+          distanceKm: 1.2,
+          deliveryTime: '30–45 mins',
+          deliveryAvailable: true,
+          pickupAvailable: true,
+          address: p.address || 'Chennai, Tamil Nadu',
+          phone: p.phone || '+91 98400 12345',
+          hours: '24/7 Delivery Available',
+          isPreferred: p.tieUpStatus === 'ACTIVE',
+        }));
+        setPharmacies(mappedPharms);
+      }
+
+      if (liveOrders !== null && Array.isArray(liveOrders)) {
         const mappedLive: ExtendedPharmacyOrder[] = liveOrders.map((bo) => ({
           id: bo.id,
           date: bo.orderedAt ? new Date(bo.orderedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
@@ -128,20 +153,21 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
     window.addEventListener('health_workflow_updated', handleUpdate);
     const timer = setTimeout(() => {
       setLoading(false);
-      // If user came after verifying a prescription, auto-open the tracking modal for that order
+      // Auto-open tracking ONLY if there is a recently initiated active workflow order
       const latestWf = getLatestWorkflow();
-      if (latestWf && latestWf.pharmacyOrder) {
+      if (latestWf && latestWf.pharmacyOrder?.id) {
         fetchPatientPharmacyOrders()
           .then((live) => {
             if (live && live.length > 0) {
-              setTrackingOrder(live[0] as any);
-            } else {
-              const loaded = getStoredPharmacyOrders();
-              const found = loaded.find(
-                (o) => o.id === latestWf.pharmacyOrder?.id || o.sourcePrescriptionId === latestWf.prescription?.id
+              const targetId = latestWf.pharmacyOrder?.id;
+              const targetRxId = latestWf.prescription?.id;
+              const matching = live.find(
+                (o) => (o.id === targetId || o.prescriptionId === targetRxId) &&
+                       o.status !== 'COMPLETED' && o.status !== 'DELIVERED' &&
+                       o.status !== 'DECLINED' && o.status !== 'CANCELLED'
               );
-              if (found) {
-                setTrackingOrder(found);
+              if (matching) {
+                setTrackingOrder(matching as any);
               }
             }
           })
@@ -191,14 +217,23 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
     showToast(`Reordering items from ${order.id}`);
   };
 
-  // METRICS
+  // Helper status inspector
+  const isTerminalStatus = (status?: string) => {
+    const s = (status || '').toUpperCase();
+    return s === 'COMPLETED' || s === 'DELIVERED' || s === 'CANCELLED' || s === 'DECLINED' || s === 'DECLINED BY PHARMACIST';
+  };
+
+  // METRICS (Strict database-backed)
   const activeStockCount = stockItems.length;
   const lowStockCount = stockItems.filter((s) => s.stockLevel === 'Low Stock' || s.currentQuantity < 10).length;
-  const pendingOrdersCount = orders.filter((o) => o.status !== 'Delivered' && o.status !== 'Cancelled').length;
-  const completedOrdersCount = orders.filter((o) => o.status === 'Delivered').length;
+  const pendingOrdersCount = orders.filter((o) => !isTerminalStatus(o.status)).length;
+  const completedOrdersCount = orders.filter((o) => {
+    const s = (o.status || '').toUpperCase();
+    return s === 'COMPLETED' || s === 'DELIVERED';
+  }).length;
 
   const lowStockItem = stockItems.find((s) => s.stockLevel === 'Low Stock') || stockItems[0];
-  const activePendingOrder = orders.find((o) => o.status !== 'Delivered' && o.status !== 'Cancelled') || orders[0];
+  const activePendingOrder = orders.find((o) => !isTerminalStatus(o.status));
 
   // FILTERED STOCK ITEMS
   const filteredStock = stockItems.filter((s) => {
@@ -376,15 +411,21 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
                   <span>Live Refill Order</span>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                  activePendingOrder.status === 'Pending Pharmacist Verification'
+                  activePendingOrder.status === 'PENDING'
                     ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                    : activePendingOrder.status === 'Declined by Pharmacist' || activePendingOrder.status === 'Cancelled'
+                    : activePendingOrder.status === 'ACCEPTED'
+                    ? 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border-teal-500/30'
+                    : activePendingOrder.status === 'PREPARING'
+                    ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                    : activePendingOrder.status === 'READY' || activePendingOrder.status === 'READY_FOR_PICKUP'
+                    ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                    : activePendingOrder.status === 'OUT_FOR_DELIVERY'
+                    ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
+                    : activePendingOrder.status === 'DECLINED' || activePendingOrder.status === 'CANCELLED'
                     ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
-                    : activePendingOrder.status === 'Processing'
-                    ? 'bg-blue-500/15 text-blue-700 dark:text-cyan-300 border-blue-500/30'
                     : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
                 }`}>
-                  {activePendingOrder.status}
+                  {DHR_STATUS_DISPLAY[activePendingOrder.status] || activePendingOrder.status}
                 </span>
               </div>
 
@@ -393,17 +434,32 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
                   Order #{activePendingOrder.id} • {activePendingOrder.pharmacyName}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-                  {activePendingOrder.status === 'Pending Pharmacist Verification' ? (
+                  {activePendingOrder.status === 'PENDING' ? (
                     <span className="text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1 mt-1">
                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block shrink-0" />
                       <span>Prescription received • Awaiting Pharmacist review & dispensing approval</span>
                     </span>
-                  ) : activePendingOrder.status === 'Processing' ? (
-                    <span className="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1 mt-1">
+                  ) : activePendingOrder.status === 'ACCEPTED' ? (
+                    <span className="text-teal-700 dark:text-teal-300 font-bold flex items-center gap-1 mt-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Verified by {activePendingOrder.pharmacistName || 'Pharmacist'} • Dispensing in progress</span>
+                      <span>Order accepted by {activePendingOrder.pharmacyName || 'Pharmacist'} • Placed in queue</span>
                     </span>
-                  ) : activePendingOrder.status === 'Declined by Pharmacist' ? (
+                  ) : activePendingOrder.status === 'PREPARING' ? (
+                    <span className="text-blue-700 dark:text-blue-300 font-bold flex items-center gap-1 mt-1">
+                      <Package className="w-3.5 h-3.5" />
+                      <span>Pharmacist is preparing & packaging medicines</span>
+                    </span>
+                  ) : activePendingOrder.status === 'READY' || activePendingOrder.status === 'READY_FOR_PICKUP' ? (
+                    <span className="text-purple-700 dark:text-purple-300 font-bold flex items-center gap-1 mt-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Medicines packaged & ready for pickup/dispatch</span>
+                    </span>
+                  ) : activePendingOrder.status === 'OUT_FOR_DELIVERY' ? (
+                    <span className="text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1 mt-1">
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>Delivery rider is en route to your address</span>
+                    </span>
+                  ) : activePendingOrder.status === 'DECLINED' ? (
                     <span className="text-rose-700 dark:text-rose-400 font-bold block mt-1">
                       ✕ Declined by Pharmacist: {activePendingOrder.declineReason || 'Item unavailable'}
                     </span>
@@ -417,16 +473,16 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 font-mono">
                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 dark:text-slate-400">
                   <span>Prescription Placed</span>
-                  <span className="text-[#00a896] dark:text-cyan-400 font-extrabold">{activePendingOrder.status}</span>
+                  <span className="text-[#00a896] dark:text-cyan-400 font-extrabold">{DHR_STATUS_DISPLAY[activePendingOrder.status] || activePendingOrder.status}</span>
                   <span>Delivered</span>
                 </div>
                 <div className="relative w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: '0%' }}
-                    animate={{ width: `${activePendingOrder.progressPercent || 20}%` }}
+                    animate={{ width: `${DHR_STATUS_PERCENT[activePendingOrder.status] ?? 20}%` }}
                     transition={{ duration: 1 }}
                     className={`h-full rounded-full ${
-                      activePendingOrder.status === 'Declined by Pharmacist'
+                      activePendingOrder.status === 'DECLINED' || activePendingOrder.status === 'CANCELLED'
                         ? 'bg-rose-500'
                         : 'bg-gradient-to-r from-[#00a896] to-cyan-500'
                     }`}

@@ -19,7 +19,12 @@ interface RegisterPageProps {
   }) => void;
 }
 
-export const RegisterPage: React.FC<RegisterPageProps> = ({ initialRole = 'patient', onNavigateHome, onNavigate, onSuccessLogin }) => {
+export const RegisterPage: React.FC<RegisterPageProps> = ({ 
+  initialRole = 'patient', 
+  onNavigateHome, 
+  onNavigate, 
+  onSuccessLogin 
+}) => {
   return (
     <AuthPage 
       initialMode="register" 

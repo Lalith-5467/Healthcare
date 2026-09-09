@@ -24,10 +24,6 @@ import {
   MOCK_HISTORY_LOGS,
   MOCK_WEEKLY_ADHERENCE
 } from './medicinesData';
-import {
-  getMedications as getStoredMedications,
-  getTodayDoses as getStoredTodayDoses,
-} from '../../utils/healthWorkflowStorage';
 import type { ExtendedMedicineItem } from '../../utils/healthWorkflowStorage';
 import { AddMedicineModal } from './AddMedicineModal';
 import { MedicineDetailsDrawer } from './MedicineDetailsDrawer';
@@ -36,6 +32,7 @@ import { MedicineFilterDrawer } from './MedicineFilterDrawer';
 import type { MedicineFilterState } from './MedicineFilterDrawer';
 import { SkipDoseModal } from './SkipDoseModal';
 import { MedicationHistoryModal } from './MedicationHistoryModal';
+import { medicineApi } from '../../services/dhrApis';
 
 interface UserProfile {
   name: string;
@@ -58,7 +55,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // MEDICINES & TODAY'S DOSES STATE (Persisted in localStorage)
+  // MEDICINES & TODAY'S DOSES STATE (Live from MySQL)
   const [medicines, setMedicines] = useState<ExtendedMedicineItem[]>(INITIAL_MEDICINES as ExtendedMedicineItem[]);
   const [todayDoses, setTodayDoses] = useState<DoseRecord[]>(INITIAL_TODAY_DOSES);
   const [historyLogs, setHistoryLogs] = useState<DoseRecord[]>(MOCK_HISTORY_LOGS);
@@ -81,26 +78,31 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     sortBy: 'Newest'
   });
 
-  const loadAllData = () => {
-    const loadedMeds = getStoredMedications();
-    if (loadedMeds && loadedMeds.length > 0) {
-      setMedicines(loadedMeds);
-    }
-    const loadedDoses = getStoredTodayDoses();
-    if (loadedDoses && loadedDoses.length > 0) {
-      setTodayDoses(loadedDoses);
+  const loadAllData = async () => {
+    try {
+      const res = await medicineApi.getActiveMedications();
+      if (res && res.data) {
+        if (res.data.medications) {
+          setMedicines(res.data.medications);
+        }
+        if (res.data.todayDoses) {
+          setTodayDoses(res.data.todayDoses);
+        }
+      }
+    } catch (err: any) {
+      console.error('Failed to load active medications from database:', err?.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Load from localStorage on mount & listen to workflow updates
+  // Load from MySQL Backend on mount & listen to updates
   useEffect(() => {
     loadAllData();
     const handleUpdate = () => loadAllData();
     window.addEventListener('health_workflow_updated', handleUpdate);
-    const timer = setTimeout(() => setLoading(false), 300);
     return () => {
       window.removeEventListener('health_workflow_updated', handleUpdate);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -109,37 +111,27 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const saveMedicinesState = (updatedMeds: ExtendedMedicineItem[]) => {
-    setMedicines(updatedMeds);
-    localStorage.setItem('user_medicines', JSON.stringify(updatedMeds));
-    window.dispatchEvent(new Event('health_workflow_updated'));
-  };
-
-  const saveTodayDosesState = (updatedDoses: DoseRecord[]) => {
-    setTodayDoses(updatedDoses);
-    localStorage.setItem('user_today_doses', JSON.stringify(updatedDoses));
-    window.dispatchEvent(new Event('health_workflow_updated'));
-  };
-
   // MARK DOSE AS TAKEN
-  const handleMarkDoseTaken = (doseId: string, medicineName: string) => {
+  const handleMarkDoseTaken = async (doseId: string, medicineName: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const updatedDoses = todayDoses.map((d) => {
-      if (d.id === doseId) {
-        return { ...d, status: 'Taken' as const, actualTime: nowTimeStr };
-      }
-      return d;
-    });
-    saveTodayDosesState(updatedDoses);
+    const dose = todayDoses.find((d) => d.id === doseId);
+    const medId = dose?.medicineId || medicineName;
 
-    // Deduct stock for active medicine
-    const updatedMeds = medicines.map((m) => {
-      if (m.name.toLowerCase() === medicineName.toLowerCase() && m.stockRemaining > 0) {
-        return { ...m, stockRemaining: m.stockRemaining - 1 };
-      }
-      return m;
-    });
-    saveMedicinesState(updatedMeds);
+    // Optimistic UI update
+    setTodayDoses((prev) =>
+      prev.map((d) => (d.id === doseId ? { ...d, status: 'Taken' as const, actualTime: nowTimeStr } : d))
+    );
+
+    try {
+      await medicineApi.recordDoseLog({
+        doseId,
+        medicineId: medId,
+        status: 'taken',
+      });
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to record dose in database:', err?.message);
+    }
 
     // Add to history log
     const newLog: DoseRecord = {
@@ -158,27 +150,24 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   };
 
   // UNDO / RESET DOSE STATUS TO UNTAKEN / UPCOMING
-  const handleUndoDoseStatus = (doseId: string, medicineName: string) => {
-    const prevDose = todayDoses.find((d) => d.id === doseId);
-    const wasTaken = prevDose?.status === 'Taken';
+  const handleUndoDoseStatus = async (doseId: string, medicineName: string) => {
+    const dose = todayDoses.find((d) => d.id === doseId);
+    const medId = dose?.medicineId || medicineName;
 
-    const updatedDoses = todayDoses.map((d) => {
-      if (d.id === doseId) {
-        return { ...d, status: 'Upcoming' as const, actualTime: null };
-      }
-      return d;
-    });
-    saveTodayDosesState(updatedDoses);
+    setTodayDoses((prev) =>
+      prev.map((d) => (d.id === doseId ? { ...d, status: 'Upcoming' as const, actualTime: null } : d))
+    );
 
-    // If it was taken previously, restore the medicine stock count
-    if (wasTaken) {
-      const updatedMeds = medicines.map((m) => {
-        if (m.name.toLowerCase() === medicineName.toLowerCase()) {
-          return { ...m, stockRemaining: m.stockRemaining + 1 };
-        }
-        return m;
+    try {
+      await medicineApi.recordDoseLog({
+        doseId,
+        medicineId: medId,
+        status: 'skipped',
+        skipReason: 'Reset to upcoming',
       });
-      saveMedicinesState(updatedMeds);
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to reset dose status:', err?.message);
     }
 
     // Clean up corresponding today history log
@@ -190,16 +179,26 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   };
 
   // SKIP DOSE HANDLER
-  const handleConfirmSkipDose = (doseId: string, reason?: string) => {
-    const updatedDoses = todayDoses.map((d) => {
-      if (d.id === doseId) {
-        return { ...d, status: 'Skipped' as const, actualTime: null };
-      }
-      return d;
-    });
-    saveTodayDosesState(updatedDoses);
-
+  const handleConfirmSkipDose = async (doseId: string, reason?: string) => {
     const doseItem = todayDoses.find((d) => d.id === doseId);
+    const medId = doseItem?.medicineId || doseId;
+
+    setTodayDoses((prev) =>
+      prev.map((d) => (d.id === doseId ? { ...d, status: 'Skipped' as const, actualTime: null } : d))
+    );
+
+    try {
+      await medicineApi.recordDoseLog({
+        doseId,
+        medicineId: medId,
+        status: 'skipped',
+        skipReason: reason,
+      });
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to record skip dose:', err?.message);
+    }
+
     if (doseItem) {
       const newLog: DoseRecord = {
         id: `LOG-${Date.now().toString().slice(-4)}`,
@@ -219,7 +218,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   };
 
   // ADD NEW MEDICINE HANDLER
-  const handleSaveAddMedicine = (newMed: Partial<MedicineItem>) => {
+  const handleSaveAddMedicine = async (newMed: Partial<MedicineItem>) => {
     const created: MedicineItem = {
       id: newMed.id || `MED-${Date.now().toString().slice(-4)}`,
       name: newMed.name || 'Prescribed Medicine',
@@ -241,61 +240,67 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
       reminderEnabled: true,
       ...newMed
     };
-    const updatedMeds = [created, ...medicines];
-    saveMedicinesState(updatedMeds);
 
-    // Add today dose item if scheduled today
-    const newDose: DoseRecord = {
-      id: `DOSE-${Date.now().toString().slice(-4)}`,
-      medicineId: created.id,
-      medicineName: created.name,
-      dosage: `${created.dosage} ${created.unit}`,
-      scheduledTime: created.times[0] || '08:00 AM',
-      actualTime: null,
-      date: 'Today',
-      status: 'Upcoming'
-    };
-    saveTodayDosesState([...todayDoses, newDose]);
+    // Optimistic UI addition
+    setMedicines((prev) => [created as ExtendedMedicineItem, ...prev]);
+
+    try {
+      await medicineApi.createPatientMedication(created);
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to persist medication to MySQL:', err?.message);
+    }
 
     showToast(`✓ Added ${created.name} to medicines schedule`);
   };
 
   // EDIT MEDICINE
-  const handleSaveEditMedicine = (medId: string, updatedFields: Partial<MedicineItem>) => {
-    const updated = medicines.map((m) => {
-      if (m.id === medId) {
-        return { ...m, ...updatedFields };
-      }
-      return m;
-    });
-    saveMedicinesState(updated);
+  const handleSaveEditMedicine = async (medId: string, updatedFields: Partial<MedicineItem>) => {
+    setMedicines((prev) =>
+      prev.map((m) => (m.id === medId ? { ...m, ...updatedFields } : m))
+    );
+
+    try {
+      await medicineApi.updatePatientMedication(medId, updatedFields);
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to update medication:', err?.message);
+    }
+
     showToast('✓ Medication updated successfully');
   };
 
   // TOGGLE PAUSE
-  const handleTogglePauseMedicine = (medId: string) => {
-    const updated = medicines.map((m) => {
-      if (m.id === medId) {
-        const newStatus = m.status === 'Paused' ? 'Active' : 'Paused';
-        showToast(`Medicine status changed to ${newStatus}`);
-        return { ...m, status: newStatus as MedicineItem['status'] };
-      }
-      return m;
-    });
-    saveMedicinesState(updated);
+  const handleTogglePauseMedicine = async (medId: string) => {
+    const target = medicines.find((m) => m.id === medId);
+    const newStatus = target?.status === 'Paused' ? 'Active' : 'Paused';
+
+    setMedicines((prev) =>
+      prev.map((m) => (m.id === medId ? { ...m, status: newStatus as MedicineItem['status'] } : m))
+    );
+
+    try {
+      await medicineApi.updatePatientMedication(medId, { status: newStatus });
+      loadAllData();
+    } catch (err: any) {
+      console.error('Failed to toggle pause status:', err?.message);
+    }
+
+    showToast(`Medicine status changed to ${newStatus}`);
   };
 
   // TOGGLE REMINDER
   const handleToggleReminder = (medId: string) => {
-    const updated = medicines.map((m) => {
-      if (m.id === medId) {
-        const newRem = !m.reminderEnabled;
-        showToast(newRem ? 'Medication reminder enabled' : 'Medication reminder disabled');
-        return { ...m, reminderEnabled: newRem };
-      }
-      return m;
-    });
-    saveMedicinesState(updated);
+    setMedicines((prev) =>
+      prev.map((m) => {
+        if (m.id === medId) {
+          const newRem = !m.reminderEnabled;
+          showToast(newRem ? 'Medication reminder enabled' : 'Medication reminder disabled');
+          return { ...m, reminderEnabled: newRem };
+        }
+        return m;
+      })
+    );
   };
 
   // CALCULATE TODAY'S ADHERENCE

@@ -25,7 +25,10 @@ import {
   RecentActivityTimeline,
   DashboardSkeleton
 } from '../components/dashboard';
+import { PatientAccessRequestsModal } from '../components/dashboard/PatientAccessRequestsModal';
 import { RecentPrescriptionTrackCard } from '../components/dashboard/RecentPrescriptionTrackCard';
+import { socketService } from '../services/socketService';
+import { healthShareApi } from '../services/healthShareApi';
 
 import { ProfileView } from '../components/profile';
 import { RecordsView } from '../components/records';
@@ -50,6 +53,7 @@ import { ReportInsightsView } from '../components/more-features/views/ReportInsi
 import { NurseBookingView } from '../components/more-features/views/NurseBookingView';
 import { JanitorBookingView } from '../components/more-features/views/JanitorBookingView';
 import { SecurityPrivacyView } from '../components/more-features/views/SecurityPrivacyView';
+import { LanguageProvider } from '../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -69,14 +73,14 @@ interface DashboardPageProps {
   onOpenAbhaModal: () => void;
 }
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({
+const DashboardPageInner: React.FC<DashboardPageProps> = ({
   user = {
-    name: 'Samson L.',
-    email: 'samson.l@abdm.in',
+    name: 'Patient',
+    email: '',
     role: 'Patient',
-    abhaId: '91-8472-9104-5821@abdm',
+    abhaId: '',
     bloodGroup: 'O+',
-    age: 32
+    age: 30
   },
   initialNavId = 'dashboard',
   onLogout,
@@ -94,10 +98,51 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
-
+  const [accessRequestsModalOpen, setAccessRequestsModalOpen] = useState(false);
+  const [dismissedRequestIds, setDismissedRequestIds] = useState<Set<string>>(new Set());
   const mainScrollRef = useRef<HTMLDivElement>(null);
+
+  const effectiveUser: UserProfile = React.useMemo(() => {
+    let resolvedName = user?.name || '';
+    if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+      try {
+        const custom = localStorage.getItem('patient_user_name');
+        if (custom && custom.trim() && !custom.includes('Pharmacist') && !custom.includes('R.Ph') && !custom.includes('Suresh Nair')) {
+          resolvedName = custom.trim();
+        } else {
+          const prof = localStorage.getItem('user_profile_data');
+          if (prof) {
+            const parsed = JSON.parse(prof);
+            if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+              resolvedName = parsed.name.trim();
+            }
+          }
+          if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+            const appUser = localStorage.getItem('app_user');
+            if (appUser) {
+              const parsed = JSON.parse(appUser);
+              if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+                resolvedName = parsed.name.trim();
+              }
+            }
+          }
+        }
+      } catch {}
+    }
+    if (!resolvedName || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+      resolvedName = user?.name || user?.email?.split('@')[0] || 'Patient User';
+    }
+    return {
+      ...(user || {}),
+      name: resolvedName,
+      email: user?.email || '',
+      role: user?.role || 'Patient',
+      abhaId: user?.abhaId || '91-8472-9104-5821@abdm',
+      bloodGroup: user?.bloodGroup || 'O+',
+      age: user?.age || 30,
+    };
+  }, [user]);
 
   // Simulated short initial dashboard loading
   useEffect(() => {
@@ -105,10 +150,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
+  // Real-time Socket.IO and Fallback Polling for Incoming Doctor Access Requests
+  useEffect(() => {
+    socketService.connect();
+
+    const unsubHealth = socketService.subscribeToHealthShareEvents((payload) => {
+      if (
+        payload.status === 'PENDING' ||
+        payload.event?.includes('request-created') ||
+        payload.event?.includes('request_created')
+      ) {
+        setAccessRequestsModalOpen(true);
+        showToast('🚨 Doctor Access Request received! Please review consent.', 'info');
+      }
+    });
+
+    const checkPendingRequests = async () => {
+      try {
+        const reqs = await healthShareApi.getPatientRequests();
+        const pending = reqs.filter((r) => r.status === 'PENDING');
+        if (pending.length > 0) {
+          const hasNewPending = pending.some((p) => !dismissedRequestIds.has(p.id));
+          if (hasNewPending) {
+            setAccessRequestsModalOpen(true);
+          }
+        }
+      } catch {
+        // Silently handle
+      }
+    };
+
+    checkPendingRequests();
+    const interval = setInterval(checkPendingRequests, 3500);
+
+    return () => {
+      unsubHealth();
+      clearInterval(interval);
+    };
+  }, [dismissedRequestIds]);
+
   const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
-    setToastMessage(msg);
     showGlobalToast(msg, type);
-    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const handleSelectNav = (id: string) => {
@@ -211,7 +293,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <Sidebar 
           activeId={activeNavId} 
           onSelectNav={handleSelectNav} 
-          user={user} 
+          user={effectiveUser} 
           onLogout={onLogout} 
         />
       </div>
@@ -222,7 +304,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         onClose={() => setMobileSidebarOpen(false)} 
         activeId={activeNavId} 
         onSelectNav={handleSelectNav} 
-        user={user} 
+        user={effectiveUser} 
         onLogout={onLogout} 
       />
 
@@ -232,21 +314,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800"
       >
         <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
-        
-        {/* TOAST FEEDBACK NOTIFICATION */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{toastMessage}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* MOBILE SIDEBAR MENU TRIGGER */}
         <div className="lg:hidden mb-4 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-md">
@@ -274,89 +341,89 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <DashboardSkeleton />
         ) : activeNavId === 'profile' ? (
           <ProfileView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
             onOpenEmergencyModal={onOpenEmergencyModal}
           />
         ) : activeNavId === 'records' ? (
           <RecordsView
-            user={user}
+            user={effectiveUser}
             onNavigateScan={() => handleSelectNav('scan')}
           />
         ) : activeNavId === 'scan' ? (
           <ScanView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'appointments' || activeNavId === 'appointment') ? (
           <AppointmentsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'medicines' || activeNavId === 'medicine') ? (
           <MedicinesView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'pharmacy' ? (
           <PharmacyView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'consultation' || activeNavId === 'video-consultation') ? (
           <ConsultationView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'reminders' || activeNavId === 'notifications') ? (
           <RemindersView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
             initialViewMode={activeNavId === 'notifications' ? 'timeline' : 'list'}
           />
         ) : (activeNavId === 'analytics' || activeNavId === 'health-analytics') ? (
           <AnalyticsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'family' || activeNavId === 'family-connect') ? (
           <FamilyConnectView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'checkup' || activeNavId === 'health-checkup') ? (
           <CheckupView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'hospitals' || activeNavId === 'nearby-hospitals') ? (
           <HospitalsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'insurance' ? (
           <InsuranceView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'more-features' || activeNavId === 'features') ? (
           <MoreFeaturesView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'emergency' || activeNavId === 'sos') ? (
           <EmergencyView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'settings' ? (
           <SettingsView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : (activeNavId === 'ai-assistant' || activeNavId === 'assistant') ? (
           <AIAssistantView
-            user={user}
+            user={effectiveUser}
             onNavigate={handleSelectNav}
           />
         ) : activeNavId === 'lab-test' ? (
@@ -366,7 +433,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         ) : activeNavId === 'report-insights' ? (
           <ReportInsightsView />
         ) : activeNavId === 'nurse-booking' ? (
-          <NurseBookingView />
+          <NurseBookingView user={effectiveUser} />
         ) : activeNavId === 'janitor-booking' ? (
           <JanitorBookingView />
         ) : activeNavId === 'security-privacy' ? (
@@ -380,7 +447,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           >
             {/* STICKY TOP APP HEADER BAR - DISPLAYED ONLY ON DASHBOARD OVERVIEW */}
             <DashboardHeader
-              userName={user.name.split(' ')[0]}
+              userName={effectiveUser.name.split(' ')[0]}
               onOpenNotifications={() => handleSelectNav('notifications')}
               onOpenProfile={() => handleSelectNav('profile')}
               onNavigateHome={() => handleSelectNav('home')}
@@ -401,8 +468,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <HealthScoreCard />
               <HealthAccessCard
-                abhaId={user.abhaId}
-                userName={user.name}
+                abhaId={effectiveUser.abhaId}
+                userName={effectiveUser.name}
                 onToast={showToast}
               />
             </section>
@@ -474,6 +541,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         isOpen={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
       />
+
+      {/* PATIENT DOCTOR ACCESS REQUESTS & CONSENT MODAL */}
+      <PatientAccessRequestsModal
+        isOpen={accessRequestsModalOpen}
+        onClose={() => {
+          setAccessRequestsModalOpen(false);
+          // Query pending requests and mark current IDs as dismissed for the session
+          healthShareApi.getPatientRequests().then((reqs) => {
+            const pendingIds = reqs.filter((r) => r.status === 'PENDING').map((r) => r.id);
+            setDismissedRequestIds(new Set(pendingIds));
+          }).catch(() => {});
+        }}
+        onToast={showToast}
+      />
     </div>
   );
 };
+
+export const DashboardPage: React.FC<DashboardPageProps> = (props) => (
+  <LanguageProvider>
+    <DashboardPageInner {...props} />
+  </LanguageProvider>
+);

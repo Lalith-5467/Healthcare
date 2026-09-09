@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LogOut, ChevronDown } from 'lucide-react';
 import type { UserProfile } from './types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SidebarProfileProps {
   user?: UserProfile;
@@ -10,11 +11,12 @@ interface SidebarProfileProps {
 }
 
 export const SidebarProfile: React.FC<SidebarProfileProps> = ({
-  user = { name: 'Ragul Kumar', email: 'ragul@example.com', bloodGroup: 'O+', age: 34 },
+  user,
   isCollapsed,
   onLogout,
   onNavigate
 }) => {
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
             className="w-full px-3 py-2 rounded-xl text-left text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors cursor-pointer font-bold"
           >
             <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-            <span>Logout</span>
+            <span>{t('nav.logout', 'Sign Out')}</span>
           </button>
         </div>
       )}
@@ -66,15 +68,17 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <img
-            src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80'}
-            alt={user.name}
+            src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80'}
+            alt={user?.name || 'User'}
             className="w-9 h-9 rounded-xl object-cover ring-2 ring-[#00a896]/30 shrink-0"
           />
 
           {!isCollapsed && (
             <div className="flex flex-col text-left min-w-0">
-              <span className="text-xs font-black text-slate-900 dark:text-white truncate">{user.name}</span>
-              <span className="text-[10px] text-slate-600 dark:text-slate-400 truncate">{user.age} Years • {user.bloodGroup}</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white truncate">{user?.name || 'Patient'}</span>
+              <span className="text-[10px] text-slate-600 dark:text-slate-400 truncate">
+                {user?.age ? `${user.age} Years` : ''}{user?.age && user?.bloodGroup ? ' • ' : ''}{user?.bloodGroup || ''}
+              </span>
             </div>
           )}
         </div>

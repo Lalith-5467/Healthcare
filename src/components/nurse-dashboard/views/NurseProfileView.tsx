@@ -18,15 +18,19 @@ import {
   FileBadge
 } from 'lucide-react';
 
-export const NurseProfileView: React.FC = () => {
+interface NurseProfileViewProps {
+  user?: { name?: string; email?: string; [key: string]: any };
+}
+
+export const NurseProfileView: React.FC<NurseProfileViewProps> = ({ user }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    name: 'Nurse Sarah Jenkins',
+    name: user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Sarah Jenkins',
     designation: 'Senior Registered Nurse (RN) • Critical Care Specialist',
     licenseNo: 'RN-TN-2024-88492',
     hospital: 'Apollo Central Health City, Chennai',
     department: 'Home Healthcare & Emergency Telemetry Unit',
-    email: 'sarah.jenkins@medicare.health',
+    email: user?.email || 'sarah.jenkins@medicare.health',
     phone: '+91 98402 77011',
     experience: '8+ Years',
     specialties: [
@@ -65,7 +69,7 @@ export const NurseProfileView: React.FC = () => {
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 text-white border border-slate-700/60 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-500 to-pink-600 text-white flex items-center justify-center font-black text-3xl shadow-lg border-2 border-white/20 shrink-0">
-            SJ
+            {profile.name.replace('Nurse ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">

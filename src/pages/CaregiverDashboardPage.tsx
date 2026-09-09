@@ -30,6 +30,9 @@ import { CaregiverCareCircleConsentView } from '../components/caregiver-dashboar
 import { CaregiverProfileView } from '../components/caregiver-dashboard/views/CaregiverProfileView';
 import { CaregiverPreferencesAlertsView } from '../components/caregiver-dashboard/views/CaregiverPreferencesAlertsView';
 
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
+
 interface CaregiverDashboardPageProps {
   user?: { 
     name: string; 
@@ -54,9 +57,25 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
   const [isGlobalSOSOpen, setIsGlobalSOSOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
-  const { wards, activeWard, setActiveWardId, notifications, markNotifRead, alerts, triggerSOS } = useCaregiverWorkflow();
-  const unreadNotifs = notifications.filter(n => !n.read).length;
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
+
+  const { wards, activeWard, setActiveWardId, alerts, triggerSOS } = useCaregiverWorkflow();
   const activeAlerts = alerts.filter(a => a.status === 'Active').length;
 
   const renderContent = () => {
@@ -182,61 +201,21 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
             <span className="hidden md:inline font-black">SOS</span>
           </button>
 
-          {/* NOTIFICATION BELL WITH DROPDOWN */}
+          {/* NOTIFICATION BELL */}
           <div className="relative flex items-center">
             <button 
               type="button"
-              onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)}
+              onClick={() => setIsNotifDropdownOpen(true)}
               className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+              title="Caregiver Notifications"
             >
               <Bell className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-              {unreadNotifs > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
+                  {unreadNotificationsCount}
+                </span>
               )}
             </button>
-
-            <AnimatePresence>
-              {isNotifDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-[#0b1120] rounded-3xl p-4 shadow-2xl border border-slate-200 dark:border-slate-800 z-50 space-y-3"
-                >
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                      Caregiver Alerts ({unreadNotifs} unread)
-                    </span>
-                    <button 
-                      onClick={() => setIsNotifDropdownOpen(false)}
-                      className="text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 max-h-72 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => markNotifRead(n.id)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer text-xs ${
-                          n.read 
-                            ? 'bg-slate-50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800/60 opacity-60'
-                            : 'bg-teal-50/40 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/40'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <p className="font-black text-slate-900 dark:text-white leading-tight">{n.title}</p>
-                          <span className="text-[10px] text-slate-400">{n.time}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">{n.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
           
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
@@ -394,6 +373,16 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* NOTIFICATIONS POPOVER */}
+      <NotificationPopover
+        isOpen={isNotifDropdownOpen}
+        onClose={() => setIsNotifDropdownOpen(false)}
+        onNavigateToNotifications={() => {
+          setIsNotifDropdownOpen(false);
+          setActiveNav('dashboard');
+        }}
+      />
 
     </div>
   );

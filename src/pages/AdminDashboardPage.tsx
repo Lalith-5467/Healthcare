@@ -19,6 +19,8 @@ import { AdminOperationsView } from '../components/admin-dashboard/views/AdminOp
 import { AdminSecurityAuditView } from '../components/admin-dashboard/views/AdminSecurityAuditView';
 import { AdminSystemSettingsView } from '../components/admin-dashboard/views/AdminSystemSettingsView';
 import { AdminReportsAnalyticsView } from '../components/admin-dashboard/views/AdminReportsAnalyticsView';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 
 interface AdminDashboardPageProps {
   user?: {
@@ -43,6 +45,24 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   const adminName = currentRole === 'Super Admin' ? 'Vikramaditya Rao' : 'Kavita Sundaram';
   const adminEmail = currentRole === 'Super Admin' ? 'superadmin@dhr-medicare.in' : 'admin.kavita@dhr-medicare.in';
@@ -183,12 +203,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
 
           <button 
-            onClick={() => handleSelectNav('security-audit')}
-            className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-            title="System Security Alerts"
+            type="button"
+            onClick={() => setNotificationPopoverOpen(true)}
+            className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse" />
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+              </span>
+            )}
           </button>
 
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
@@ -322,6 +347,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         </main>
       </div>
 
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          handleSelectNav('activity-logs');
+        }}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, ArrowRight, Moon, Heart, Droplets, Brain, FileText, BookOpen, Pill } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface AIAssistantDashboardCardProps {
   onNavigate: (id: string) => void;
@@ -19,6 +20,7 @@ const promptActions = [
 ];
 
 export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   return (
     <div
       className="p-5 sm:p-6 rounded-3xl flex flex-col justify-between font-sans space-y-4 relative overflow-hidden text-slate-900 dark:text-white"
@@ -56,7 +58,7 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <span>AI Health Assistant</span>
+              <span>{t('nav.assistant', 'AI Health Assistant')}</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
             </h3>
             <p className="text-xs text-purple-200 font-medium">"How can I help your health today?"</p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pill, Calendar, FileText, Sparkles, Check } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface TodaysFocusGridProps {
   onNavigate: (id: string) => void;
@@ -8,6 +9,7 @@ interface TodaysFocusGridProps {
 }
 
 export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, onToast }) => {
+  const { t } = useLanguage();
   const [medTaken, setMedTaken] = useState(false);
 
   const handleTakeMed = () => {
@@ -20,7 +22,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Today's Focus
+            {t('card.todays_focus', "Today's Focus")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Your high-priority health tasks & scheduled activities for today.

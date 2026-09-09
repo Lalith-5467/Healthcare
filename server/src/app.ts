@@ -32,11 +32,33 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root Gateway Route Handler
+app.get('/', (req: Request, res: Response) => {
+  const acceptsHtml = req.accepts(['html', 'json']) === 'html';
+  if (acceptsHtml) {
+    return res.redirect(config.clientUrl || 'http://localhost:3000');
+  }
+  return res.status(200).json({
+    success: true,
+    name: 'MediCare Digital Health Record (DHR) API Backend',
+    version: '1.0.0',
+    status: 'online',
+    frontendUrl: config.clientUrl || 'http://localhost:3000',
+    healthCheck: '/api/health',
+  });
+});
+
 // API Routes
 app.use('/api', apiRouter);
 
-// 404 Handler
-app.use((_req: Request, res: Response) => {
+// 404 Handler (Redirect browser navigation to frontend app, return JSON for API requests)
+app.use((req: Request, res: Response) => {
+  const acceptsHtml = req.accepts(['html', 'json']) === 'html';
+  if (acceptsHtml && !req.path.startsWith('/api')) {
+    const frontendBase = config.clientUrl || 'http://localhost:3000';
+    return res.redirect(`${frontendBase}${req.originalUrl}`);
+  }
+
   res.status(404).json({
     success: false,
     message: 'Endpoint not found',

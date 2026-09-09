@@ -37,6 +37,8 @@ import {
   getReminders as getStoredReminders,
   updateReminderFollowUpStatus
 } from '../../utils/healthWorkflowStorage';
+import { appointmentApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -56,10 +58,11 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // APPOINTMENTS STATE (Persisted in localStorage)
+  // APPOINTMENTS STATE (Live from MySQL)
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
 
   // TAB & SEARCH STATES
@@ -88,6 +91,45 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     setPendingRequests(pending);
   };
 
+  const fetchLiveAppointments = async () => {
+    try {
+      const res = await appointmentApi.getAppointments();
+      if (res && res.data && res.data.length > 0) {
+        const mapped: Appointment[] = res.data.map((item: any) => {
+          const docPhoto =
+            item.doctor?.photoUrl ||
+            MOCK_DOCTORS.find((d) => d.id === item.doctorId || d.name === item.doctor?.fullName)?.photoUrl ||
+            MOCK_DOCTORS[0]?.photoUrl;
+          const dObj = new Date(item.appointmentDate);
+          return {
+            id: item.id,
+            doctorId: item.doctorId,
+            doctorName: item.doctor?.fullName || 'Dr. Rajesh Varma',
+            doctorPhoto: docPhoto,
+            speciality: item.doctor?.speciality || 'Cardiologist & General Physician',
+            date: isNaN(dObj.getTime())
+              ? '08 Sep 2026'
+              : dObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            time: item.slotTime || '10:30 AM',
+            timestamp: !isNaN(dObj.getTime()) ? dObj.getTime() : Date.now(),
+            type: item.type === 'VIDEO' ? 'Video' : 'In-Person',
+            status: item.status === 'CANCELLED' ? 'Cancelled' : item.status === 'COMPLETED' ? 'Completed' : 'Confirmed',
+            hospital: item.doctor?.hospital || 'Apollo Multispeciality Hospitals',
+            fee: Number(item.fee) || 750,
+            meetingLink: item.meetingLink,
+            notes: item.notes,
+          };
+        });
+        setAppointments(mapped);
+        localStorage.setItem('user_appointments', JSON.stringify(mapped));
+      }
+    } catch (err) {
+      console.log('Using cached/local appointments:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // COUNTDOWN TIMER STATE
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
     hours: 1,
@@ -95,32 +137,19 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     seconds: 18
   });
 
-  // Load from localStorage on mount & initial skeleton simulation
+  // Load from MySQL Backend API on mount
   useEffect(() => {
     loadRequests();
-    const handleUpdate = () => loadRequests();
+    fetchLiveAppointments();
+
+    const handleUpdate = () => {
+      loadRequests();
+      fetchLiveAppointments();
+    };
     window.addEventListener('health_workflow_updated', handleUpdate);
 
-    const saved = localStorage.getItem('user_appointments');
-    if (saved) {
-      try {
-        const parsed: Appointment[] = JSON.parse(saved);
-        const synced = parsed.map((apt) => {
-          const matchedDoc = MOCK_DOCTORS.find((d) => d.id === apt.doctorId || d.name === apt.doctorName);
-          if (matchedDoc) {
-            return { ...apt, doctorPhoto: matchedDoc.photoUrl };
-          }
-          return apt;
-        });
-        setAppointments(synced);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const timer = setTimeout(() => setLoading(false), 200);
     return () => {
       window.removeEventListener('health_workflow_updated', handleUpdate);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -153,7 +182,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     localStorage.setItem('user_appointments', JSON.stringify(newApts));
   };
 
-  const handleAcceptFollowUp = (id: string) => {
+  const handleAcceptFollowUp = async (id: string) => {
     const remindersList = getStoredReminders();
     const target = remindersList.find(r => r.id === id);
     if (!target) return;
@@ -163,37 +192,45 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     // 1. Update status in workflow storage (updates followUpStatus and active reminder)
     updateReminderFollowUpStatus(id, 'Accepted');
 
-    // 2. Create actual confirmed Appointment in Appointments list
-    const newApt: Appointment = {
-      id: `APT-FLW-${Date.now().toString().slice(-4)}`,
-      doctorId: target.id || 'DOC-FLW',
-      doctorName: docName,
-      doctorPhoto: MOCK_DOCTORS[0]?.photoUrl || '',
-      speciality: target.clinicName || 'General Medicine',
-      date: target.date,
-      time: target.time,
-      timestamp: Date.now() + 86400000,
-      type: 'In-Person',
-      status: 'Confirmed',
-      hospital: target.clinicName || 'General Medicine Clinic',
-      fee: 0
-    };
+    try {
+      await appointmentApi.createAppointment({
+        doctorId: target.id || 'DOC-FLW',
+        appointmentDate: new Date().toISOString(),
+        slotTime: target.time || '10:30 AM',
+        type: 'IN_PERSON',
+        reason: target.title || 'Follow-up Consultation',
+      });
+      await fetchLiveAppointments();
+    } catch {
+      // Create local fallback appointment if needed
+      const newApt: Appointment = {
+        id: `APT-FLW-${Date.now().toString().slice(-4)}`,
+        doctorId: target.id || 'DOC-FLW',
+        doctorName: docName,
+        doctorPhoto: MOCK_DOCTORS[0]?.photoUrl || '',
+        speciality: target.clinicName || 'General Medicine',
+        date: target.date,
+        time: target.time,
+        timestamp: Date.now() + 86400000,
+        type: 'In-Person',
+        status: 'Confirmed',
+        hospital: target.clinicName || 'General Medicine Clinic',
+        fee: 0
+      };
 
-    const saved = localStorage.getItem('user_appointments');
-    let currentApts: Appointment[] = INITIAL_APPOINTMENTS;
-    if (saved) {
-      try { currentApts = JSON.parse(saved); } catch (e) { console.error(e); }
+      const saved = localStorage.getItem('user_appointments');
+      let currentApts: Appointment[] = INITIAL_APPOINTMENTS;
+      if (saved) {
+        try { currentApts = JSON.parse(saved); } catch (e) { console.error(e); }
+      }
+      const updated = [newApt, ...currentApts];
+      saveAppointments(updated);
     }
-    const updated = [newApt, ...currentApts];
-    saveAppointments(updated);
 
     // Reload local requests state
     loadRequests();
-
-    // 3. Dispatch events to notify other tabs
     window.dispatchEvent(new Event('health_workflow_updated'));
-
-    showToast(`✓ Appointment confirmed\nYour appointment with ${docName} has been confirmed and a reminder has been added.`);
+    showToast(`✓ Appointment confirmed\nYour appointment with ${docName} has been confirmed.`);
   };
 
   const handleDeclineFollowUpConfirm = (id: string) => {
@@ -203,8 +240,24 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     showToast(`Appointment declined\nThe appointment request has been declined.`);
   };
 
-  // HANDLERS
   const handleConfirmNewBooking = async (newApt: Partial<Appointment>) => {
+    try {
+      const res = await appointmentApi.createAppointment({
+        doctorId: newApt.doctorId || 'DOC-101',
+        appointmentDate: new Date().toISOString(),
+        slotTime: newApt.time || '10:30 AM',
+        type: newApt.type === 'Video' ? 'VIDEO' : 'IN_PERSON',
+        reason: newApt.reason || 'General Consultation',
+      });
+
+      if (res && res.data) {
+        await fetchLiveAppointments();
+        showToast(`✓ Appointment booked with ${newApt.doctorName || 'doctor'}`);
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend appointment creation error, persisting locally:', err);
+    }
     const created: Appointment = {
       id: newApt.id || `APT-2026-${Math.floor(10000 + Math.random() * 90000)}`,
       doctorId: newApt.doctorId || 'DOC-101',
@@ -251,35 +304,48 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     }
   };
 
-  const handleConfirmReschedule = (aptId: string, newDate: string, newTime: string) => {
-    const updated = appointments.map((apt) => {
-      if (apt.id === aptId) {
-        return {
-          ...apt,
-          date: newDate,
-          time: newTime,
-          status: 'Confirmed' as const
-        };
-      }
-      return apt;
-    });
-    saveAppointments(updated);
+  const handleConfirmReschedule = async (aptId: string, newDate: string, newTime: string) => {
+    try {
+      await appointmentApi.updateAppointment(aptId, {
+        appointmentDate: new Date(newDate).toISOString(),
+        slotTime: newTime,
+      });
+      await fetchLiveAppointments();
+    } catch {
+      const updated = appointments.map((apt) => {
+        if (apt.id === aptId) {
+          return {
+            ...apt,
+            date: newDate,
+            time: newTime,
+            status: 'Confirmed' as const
+          };
+        }
+        return apt;
+      });
+      saveAppointments(updated);
+    }
     showToast('✓ Appointment rescheduled successfully');
   };
 
-  const handleConfirmCancel = (aptId: string, reason: string) => {
-    const updated = appointments.map((apt) => {
-      if (apt.id === aptId) {
-        return {
-          ...apt,
-          status: 'Cancelled' as const,
-          cancellationDate: '24 Aug 2026',
-          cancellationReason: reason
-        };
-      }
-      return apt;
-    });
-    saveAppointments(updated);
+  const handleConfirmCancel = async (aptId: string, reason: string) => {
+    try {
+      await appointmentApi.cancelAppointment(aptId, reason);
+      await fetchLiveAppointments();
+    } catch {
+      const updated = appointments.map((apt) => {
+        if (apt.id === aptId) {
+          return {
+            ...apt,
+            status: 'Cancelled' as const,
+            cancellationDate: '24 Aug 2026',
+            cancellationReason: reason
+          };
+        }
+        return apt;
+      });
+      saveAppointments(updated);
+    }
     showToast('✓ Appointment cancelled');
   };
 
@@ -328,7 +394,6 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     return true;
   });
 
-  // FEATURED NEXT APPOINTMENT (First upcoming appointment)
   const nextAppointment = appointments.find(
     (a) => a.status === 'Confirmed' || a.status === 'Starting Soon' || a.status === 'Ready to Join'
   );
@@ -352,8 +417,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Appointments"
-        subtitle="Manage doctor consultations, tele-health sessions & clinic visits."
+        title={t('apt.title', 'Appointments')}
+        subtitle={t('apt.subtitle', 'Manage doctor consultations, tele-health sessions & clinic visits.')}
         badgeText="Live Care"
         badgeIcon={<Calendar className="w-3.5 h-3.5" />}
         rightElement={
@@ -363,7 +428,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Calendar className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>View Calendar</span>
+              <span>{t('apt.view_calendar', 'View Calendar')}</span>
             </button>
 
             <button
@@ -374,7 +439,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Book Appointment</span>
+              <span>{t('apt.book_new', 'Book Appointment')}</span>
             </button>
           </div>
         }
