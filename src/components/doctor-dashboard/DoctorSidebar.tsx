@@ -19,7 +19,7 @@ interface DoctorSidebarProps {
 }
 
 export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavigate, user }) => {
-  const doctorName = user?.name ? (user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma, MD';
+  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma, MD';
 
   const NAV_ITEMS = [
     { id: 'dashboard', label: 'Command Center', icon: Home },

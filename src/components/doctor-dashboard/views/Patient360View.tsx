@@ -10,10 +10,12 @@ import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
 
 interface Patient360ViewProps {
   patientId: string | null;
+  patientName?: string;
   onNavigate: (id: string) => void;
+  initialTab?: string;
 }
 
-export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, onNavigate }) => {
+export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patientName: _patientName, onNavigate, initialTab }) => {
   const { records } = useDoctorWorkflow();
   const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'records' | 'reports'>('summary');
   

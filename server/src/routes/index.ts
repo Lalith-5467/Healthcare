@@ -17,6 +17,8 @@ import clinicalRoutes from './clinical.routes';
 import healthShareRoutes from './healthShare.routes';
 import insuranceRoutes from './insurance.routes';
 import caregiverRoutes from './caregiver.routes';
+import consultationRoutes from './consultation.routes';
+import doctorDashboardRoutes from './doctorDashboard.routes';
 
 const router = Router();
 
@@ -85,5 +87,10 @@ router.use('/insurance', insuranceRoutes);
 // Caregiver Wards, Tasks & Telemetry APIs
 router.use('/caregiver', caregiverRoutes);
 
-export default router;
+// Consultation APIs
+router.use('/consultations', consultationRoutes);
 
+// Doctor Dashboard APIs
+router.use('/doctor/dashboard', doctorDashboardRoutes);
+
+export default router;
