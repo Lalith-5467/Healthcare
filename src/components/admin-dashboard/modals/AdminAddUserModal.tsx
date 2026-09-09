@@ -356,7 +356,12 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
       onClose();
       onUserCreated();
     } catch (err: any) {
-      setErrorBanner(err.message || 'Failed to create user. Please check your inputs.');
+      const errMsg = (err.message || '').toLowerCase();
+      if (errMsg.includes('access denied') || errMsg.includes('permission')) {
+        setErrorBanner('Admin session expired or invalid. Please logout and re-login through the Admin Login page.');
+      } else {
+        setErrorBanner(err.message || 'Failed to create user. Please check your inputs.');
+      }
     } finally {
       setIsSubmitting(false);
     }

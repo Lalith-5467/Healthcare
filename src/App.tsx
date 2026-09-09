@@ -258,9 +258,20 @@ const getInitialAppState = () => {
     page = 'register';
   } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target])) {
     if (loggedIn && userData) {
-      page = 'dashboard';
-      if (target && NAV_MAP[target]) {
-        nav = NAV_MAP[target];
+      // For admin paths, verify the logged-in user actually has admin role
+      if (isAdminPath) {
+        const userRole = (userData.role || '').toLowerCase();
+        if (userRole !== 'admin' && userRole !== 'super admin' && userRole !== 'super_admin') {
+          // Non-admin user trying to access admin panel — force admin login
+          page = 'login';
+        } else {
+          page = 'dashboard';
+        }
+      } else {
+        page = 'dashboard';
+        if (target && NAV_MAP[target]) {
+          nav = NAV_MAP[target];
+        }
       }
     } else {
       page = 'login';
