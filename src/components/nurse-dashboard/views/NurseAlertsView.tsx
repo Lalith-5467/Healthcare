@@ -100,12 +100,11 @@ export const NurseAlertsView: React.FC = () => {
             </button>
           ))}
         </div>
-        <button className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors self-start sm:self-auto">
-          Newest first <ChevronDown className="w-3.5 h-3.5" />
-        </button>
+
       </div>
 
       {/* 4-7. CRITICAL ALERT */}
+      {['All', 'Critical'].includes(activeFilter) && (
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -238,8 +237,10 @@ export const NurseAlertsView: React.FC = () => {
 
         </div>
       </motion.div>
+      )}
 
       {/* 8. MODERATE ALERT */}
+      {['All', 'Moderate', 'Unacknowledged'].includes(activeFilter) && (
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -292,6 +293,7 @@ export const NurseAlertsView: React.FC = () => {
 
         </div>
       </motion.div>
+      )}
 
       {/* 9. ACTIVE RESPONSES */}
       <div className="pt-4">
@@ -341,37 +343,7 @@ export const NurseAlertsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 10. RESOLVED TODAY */}
-      <div className="pt-2">
-        <div className="mb-4">
-          <h3 className="text-lg font-black text-slate-900 dark:text-white">Resolved today</h3>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">Alerts successfully handled</p>
-        </div>
-        
-        <div className="bg-white dark:bg-[#1b1e27] rounded-xl border border-slate-200/60 dark:border-slate-800/60 overflow-hidden shadow-sm">
-          <div className="flex flex-col">
-            {[
-              { title: 'Low BP alert', time: '10:42 AM' },
-              { title: 'Medication missed', time: '09:18 AM' },
-              { title: 'Fall-risk alert', time: '08:51 AM' },
-              { title: 'Oxygen level normalized', time: '08:12 AM' },
-            ].map((item, i, arr) => (
-              <div key={i} className={`flex items-center justify-between p-3.5 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${i !== arr.length - 1 ? 'border-b border-slate-100 dark:border-slate-800/50' : ''}`}>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{item.title}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-bold text-slate-400">{item.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <button className="mt-3 text-teal-600 dark:text-teal-400 text-sm font-bold flex items-center gap-1 hover:text-teal-700 dark:hover:text-teal-300 transition-colors">
-          View all <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
+
 
       {/* 11. QUICK EMERGENCY ACTIONS */}
       <div className="pt-6">
@@ -381,28 +353,28 @@ export const NurseAlertsView: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <button className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => window.location.href = 'tel:108'} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <Phone className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Call Hospital ER</span>
           </button>
           
-          <button className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => alert('Opening patient vitals history panel...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <HeartPulse className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">View Patient Vitals</span>
           </button>
           
-          <button className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => alert('Opening new care request form...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <Activity className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Open Care Request</span>
           </button>
           
-          <button className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => alert('Connecting to Clinical IT Support...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <HelpCircle className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
