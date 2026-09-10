@@ -203,7 +203,7 @@ export const LabTestView: React.FC = () => {
     const yStepValues = Array.from({length: ySteps}).map((_, i) => min + (range / (ySteps - 1)) * i);
 
     return (
-      <div className="relative w-full h-[180px] mt-6 flex items-center justify-center">
+      <div className="relative w-full h-[200px] mt-6 flex items-center justify-center">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
           {/* Grid lines & Y-axis labels */}
           {yStepValues.map((yVal, i) => {
@@ -243,7 +243,7 @@ export const LabTestView: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="max-w-6xl mx-auto space-y-6 font-sans pb-16 relative"
+      className="w-full max-w-[1400px] mx-auto space-y-6 font-sans pb-16 relative px-2"
     >
       {/* Toast Notification */}
       <AnimatePresence>
@@ -260,12 +260,12 @@ export const LabTestView: React.FC = () => {
       </AnimatePresence>
 
       {/* 1. HEADER */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 dark:bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
         <div className="flex gap-4 relative z-10">
           <div>
             <span className="text-[10px] font-black tracking-widest text-blue-500 dark:text-blue-400 uppercase mb-1 block">LAB & DIAGNOSTICS</span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
               Lab Tests & Diagnostics
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -303,36 +303,36 @@ export const LabTestView: React.FC = () => {
               </button>
             </div>
             
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               <div 
                 onClick={() => { setStatusFilter('Normal'); document.getElementById('recent-reports-section')?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 p-4 rounded-2xl cursor-pointer hover:shadow-md transition-all group"
+                className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 p-5 rounded-2xl cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between min-h-[100px]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-xl font-black text-emerald-700 dark:text-emerald-400">12</span>
+                  <span className="text-2xl font-black text-emerald-700 dark:text-emerald-400">12</span>
                 </div>
                 <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider">Normal</p>
               </div>
               
               <div 
                 onClick={() => { setStatusFilter('Borderline'); document.getElementById('recent-reports-section')?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 p-4 rounded-2xl cursor-pointer hover:shadow-md transition-all group"
+                className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 p-5 rounded-2xl cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between min-h-[100px]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <AlertCircle className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-xl font-black text-amber-700 dark:text-amber-400">2</span>
+                  <span className="text-2xl font-black text-amber-700 dark:text-amber-400">2</span>
                 </div>
                 <p className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Borderline</p>
               </div>
 
               <div 
                 onClick={() => { setStatusFilter('Attention'); document.getElementById('recent-reports-section')?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800/30 p-4 rounded-2xl cursor-pointer hover:shadow-md transition-all group"
+                className="bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800/30 p-5 rounded-2xl cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between min-h-[100px]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <Zap className="w-5 h-5 text-rose-500 fill-rose-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-xl font-black text-rose-700 dark:text-rose-400">1</span>
+                  <span className="text-2xl font-black text-rose-700 dark:text-rose-400">1</span>
                 </div>
                 <p className="text-[10px] font-bold text-rose-600 dark:text-rose-500 uppercase tracking-wider">Attention</p>
               </div>
@@ -467,8 +467,8 @@ export const LabTestView: React.FC = () => {
       </div>
 
       {/* 3. SEARCH & FILTER */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-4 items-center z-20 relative">
-        <div className="relative flex-1 w-full">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-3 items-stretch z-20 relative">
+        <div className="relative flex-[2] w-full">
           <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
@@ -675,7 +675,7 @@ export const LabTestView: React.FC = () => {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {popularTests.map((pt, i) => (
             <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between group hover:border-blue-500/50 hover:shadow-md transition-all">
               <div className="mb-4">
@@ -709,7 +709,7 @@ export const LabTestView: React.FC = () => {
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed top-[5%] md:top-[10%] left-1/2 -translate-x-1/2 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 rounded-3xl shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 rounded-3xl shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
             >
               <div className="sticky top-0 z-20 flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
                 <div className="flex items-center gap-3">
@@ -1005,7 +1005,7 @@ export const LabTestView: React.FC = () => {
         {isFullTrendsModalOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsFullTrendsModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed top-[5%] md:top-[10%] left-1/2 -translate-x-1/2 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 rounded-3xl shadow-2xl z-50 overflow-hidden border border-slate-200 dark:border-slate-800">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 rounded-3xl shadow-2xl z-50 border border-slate-200 dark:border-slate-800">
               <div className="sticky top-0 z-20 flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-md">
                 <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Activity className="w-5 h-5 text-blue-500" /> Full {selectedTrendMetric} Trends
@@ -1066,7 +1066,7 @@ export const LabTestView: React.FC = () => {
         {isAllTestsModalOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAllTestsModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed top-[5%] md:top-[10%] left-1/2 -translate-x-1/2 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl z-50 overflow-hidden border border-slate-200 dark:border-slate-800">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl z-50 overflow-hidden border border-slate-200 dark:border-slate-800">
               <div className="sticky top-0 z-20 flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
                 <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Search className="w-5 h-5 text-blue-500" /> All Lab Tests

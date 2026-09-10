@@ -22,7 +22,7 @@ export const CheckupWizardModal: React.FC<CheckupWizardModalProps> = ({
   onSubmitCompleted,
   onNavigateToMedicines,
 }) => {
-  const totalSteps = isQuickMode ? 5 : 12;
+  const totalSteps = isQuickMode ? 3 : 12;
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [answers, setAnswers] = useState<CheckupAnswers>(DEFAULT_CHECKUP_ANSWERS);
   const [submitting, setSubmitting] = useState(false);
@@ -128,160 +128,250 @@ export const CheckupWizardModal: React.FC<CheckupWizardModalProps> = ({
 
         {/* STEP QUESTION CONTENT BODY */}
         <form onSubmit={handleSubmit} className="flex-1 space-y-6 py-2 overflow-y-auto">
-          {/* STEP 1: OVERALL WELLNESS */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How are you feeling overall today?</h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Rate your general state of health and comfort</p>
-              </div>
+          {/* ─────────────────────────────────────────────────────────
+              QUICK MODE WIZARD STEPS
+          ───────────────────────────────────────────────────────── */}
+          {isQuickMode && (
+            <>
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Quick Check: How are you feeling?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">A rapid assessment of your current wellness.</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {['Great', 'Good', 'Okay', 'Poor'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, wellness: opt })}
+                        className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
+                          answers.wellness === opt
+                            ? 'bg-[#00a896] text-white border-teal-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {['Great', 'Good', 'Okay', 'Poor'].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setAnswers({ ...answers, wellness: opt })}
-                    className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
-                      answers.wellness === opt
-                        ? 'bg-[#00a896] text-white border-teal-400 shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Quick Check: Sleep & Hydration</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Are you well-rested and hydrated today?</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Yes, completely', 'Mostly fine', 'Could be better', 'No, struggling'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          // Map quick response to multiple fields
+                          setAnswers({ ...answers, sleep: opt, hydration: opt });
+                        }}
+                        className={`p-4 rounded-2xl border text-left font-extrabold transition-all cursor-pointer ${
+                          answers.sleep === opt
+                            ? 'bg-[#00a896] text-white border-teal-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Quick Check: Any Symptoms?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select any discomfort you're facing right now.</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {['None', 'Headache', 'Fever', 'Cough / Cold', 'Body Ache', 'Chest Tightness', 'Shortness of Breath', 'Nausea / Stomach Upset', 'Skin Rash'].map((sym) => {
+                      const selected = answers.symptoms.includes(sym);
+                      return (
+                        <button
+                          key={sym}
+                          type="button"
+                          onClick={() => toggleSymptom(sym)}
+                          className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
+                            selected
+                              ? 'bg-[#00a896] text-white border-teal-300 shadow-md'
+                              : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {selected ? '✓ ' : ''}{sym}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {/* STEP 2: ENERGY & FATIGUE */}
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">What is your energy level right now?</h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select your current energy metric</p>
-              </div>
+          {/* ─────────────────────────────────────────────────────────
+              FULL WIZARD STEPS
+          ───────────────────────────────────────────────────────── */}
+          {!isQuickMode && (
+            <>
+              {/* STEP 1: OVERALL WELLNESS */}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How are you feeling overall today?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Rate your general state of health and comfort</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {['Great', 'Good', 'Okay', 'Poor'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, wellness: opt })}
+                        className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
+                          answers.wellness === opt
+                            ? 'bg-[#00a896] text-white border-teal-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <div className="grid grid-cols-3 gap-3">
-                {['High Energy', 'Moderate', 'Tired / Low'].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setAnswers({ ...answers, energy: opt })}
-                    className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
-                      answers.energy === opt
-                        ? 'bg-[#00a896] text-white border-cyan-400 shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* STEP 2: ENERGY & FATIGUE */}
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">What is your energy level right now?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select your current energy metric</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['High Energy', 'Moderate', 'Tired / Low'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, energy: opt })}
+                        className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
+                          answers.energy === opt
+                            ? 'bg-[#00a896] text-white border-cyan-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* STEP 3: SLEEP QUALITY */}
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How well did you sleep last night?</h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select your rest duration & quality</p>
-              </div>
+              {/* STEP 3: SLEEP QUALITY */}
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How well did you sleep last night?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select your rest duration & quality</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Restful (7-9 hrs)', 'Interrupted Sleep', 'Less than 6 hrs', 'Insomnia / Poor'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, sleep: opt })}
+                        className={`p-4 rounded-2xl border text-left font-extrabold transition-all cursor-pointer ${
+                          answers.sleep === opt
+                            ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-3">
-                {['Restful (7-9 hrs)', 'Interrupted Sleep', 'Less than 6 hrs', 'Insomnia / Poor'].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setAnswers({ ...answers, sleep: opt })}
-                    className={`p-4 rounded-2xl border text-left font-extrabold transition-all cursor-pointer ${
-                      answers.sleep === opt
-                        ? 'bg-purple-600 text-white border-purple-400 shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* STEP 4: HYDRATION */}
+              {currentStep === 4 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How much water have you had today?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Hydration check</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['8+ Glasses (Optimal)', '4–7 Glasses', '1–3 Glasses (Low)'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setAnswers({ ...answers, hydration: opt })}
+                        className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
+                          answers.hydration === opt
+                            ? 'bg-[#00a896] text-white border-blue-400 shadow-md'
+                            : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* STEP 4: HYDRATION */}
-          {currentStep === 4 && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">How much water have you had today?</h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Hydration check</p>
-              </div>
+              {/* STEP 5: SYMPTOMS SELECTION */}
+              {currentStep === 5 && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Are you experiencing any physical discomfort?</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select all symptoms that apply or choose "None"</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {['None', 'Headache', 'Fever', 'Cough / Cold', 'Body Ache', 'Chest Tightness', 'Shortness of Breath', 'Nausea / Stomach Upset', 'Skin Rash'].map((sym) => {
+                      const selected = answers.symptoms.includes(sym);
+                      return (
+                        <button
+                          key={sym}
+                          type="button"
+                          onClick={() => toggleSymptom(sym)}
+                          className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
+                            selected
+                              ? 'bg-[#00a896] text-white border-teal-300 shadow-md'
+                              : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {selected ? '✓ ' : ''}{sym}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-              <div className="grid grid-cols-3 gap-3">
-                {['8+ Glasses (Optimal)', '4–7 Glasses', '1–3 Glasses (Low)'].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setAnswers({ ...answers, hydration: opt })}
-                    className={`p-4 rounded-2xl border text-center font-extrabold transition-all cursor-pointer ${
-                      answers.hydration === opt
-                        ? 'bg-[#00a896] text-white border-blue-400 shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: SYMPTOMS SELECTION */}
-          {currentStep === 5 && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Are you experiencing any physical discomfort?</h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Select all symptoms that apply or choose "None"</p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {['None', 'Headache', 'Fever', 'Cough / Cold', 'Body Ache', 'Chest Tightness', 'Shortness of Breath', 'Nausea / Stomach Upset', 'Skin Rash'].map((sym) => {
-                  const selected = answers.symptoms.includes(sym);
-                  return (
-                    <button
-                      key={sym}
-                      type="button"
-                      onClick={() => toggleSymptom(sym)}
-                      className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
-                        selected
-                          ? 'bg-[#00a896] text-white border-teal-300 shadow-md'
-                          : 'bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {selected ? '✓ ' : ''}{sym}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ADDITIONAL STEPS IF NOT QUICK MODE */}
-          {!isQuickMode && currentStep > 5 && currentStep <= 12 && (
-            <div className="space-y-4">
-              <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                Step {currentStep}: Health Assessment Question
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                Information recorded in this step will be added to your personal wellness log.
-              </p>
-              <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3">
-                <Sparkles className="w-8 h-8 text-[#00a896] mx-auto" />
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Question parameter for Step {currentStep} registered.
-                </p>
-              </div>
-            </div>
+              {/* ADDITIONAL STEPS IF NOT QUICK MODE */}
+              {currentStep > 5 && currentStep <= 12 && (
+                <div className="space-y-4">
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Step {currentStep}: Health Assessment Question
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                    Information recorded in this step will be added to your personal wellness log.
+                  </p>
+                  <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3">
+                    <Sparkles className="w-8 h-8 text-[#00a896] mx-auto" />
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Question parameter for Step {currentStep} registered.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* FOOTER WIZARD CONTROLS */}
