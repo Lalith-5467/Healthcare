@@ -93,14 +93,13 @@ export async function apiRequest<T = any>(
 
   if (!response.ok) {
     const errorMsg =
-      data?.message ||
-      (response.status === 401
-        ? 'Invalid credentials. Please verify your email and password.'
+      response.status === 401
+        ? (data?.message || 'Invalid credentials. Please verify your email and password.')
         : response.status === 403
         ? 'Access denied. You do not have permission for this resource.'
         : response.status === 502 || response.status === 504
         ? 'Backend service is currently unreachable (Port 5000). Please start the backend server.'
-        : `Request failed (Status ${response.status})`);
+        : (data?.message || `Request failed (Status ${response.status})`);
     throw new Error(errorMsg);
   }
 

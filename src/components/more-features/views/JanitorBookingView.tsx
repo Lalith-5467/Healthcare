@@ -39,7 +39,7 @@ export const JanitorBookingView: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="max-w-6xl mx-auto space-y-6 font-sans pb-16 relative"
+      className="max-w-7xl w-full mx-auto space-y-6 font-sans pb-16 relative"
     >
       {/* Toast Notification */}
       <AnimatePresence>
@@ -59,7 +59,7 @@ export const JanitorBookingView: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden"
+        className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden ring-1 ring-inset ring-white/50 dark:ring-white/5"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 dark:bg-amber-500/10 blur-3xl rounded-full pointer-events-none"></div>
         
@@ -105,7 +105,7 @@ export const JanitorBookingView: React.FC = () => {
           { label: 'Certified Staff', value: '45+', icon: ShieldCheck, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/10' },
           { label: 'Service Types', value: '3', icon: Brush, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/10' }
         ].map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div key={i} className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm flex items-center gap-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ring-1 ring-inset ring-white/50 dark:ring-white/5 hover:bg-white dark:hover:bg-slate-800/60">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.bg} ${stat.color}`}>
               <stat.icon className="w-5 h-5" />
             </div>
@@ -131,8 +131,8 @@ export const JanitorBookingView: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between group transition-all"
+            whileHover={{ y: -8 }}
+            className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between group transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.1)] hover:border-cyan-500/50 dark:hover:border-cyan-500/50 ring-1 ring-inset ring-white/50 dark:ring-white/5"
           >
             <div>
               <div className="w-14 h-14 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -176,8 +176,8 @@ export const JanitorBookingView: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.04)' }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-3xl border-2 border-blue-500/50 shadow-lg flex flex-col justify-between group transition-all relative overflow-hidden"
+            whileHover={{ y: -8 }}
+            className="bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl border-2 border-blue-500/50 shadow-lg flex flex-col justify-between group transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] dark:hover:shadow-[0_0_40px_rgba(59,130,246,0.4)] relative overflow-hidden ring-1 ring-inset ring-white/50 dark:ring-white/10"
           >
             <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-500 text-slate-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm">
               Most Requested
@@ -224,8 +224,8 @@ export const JanitorBookingView: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between group transition-all"
+            whileHover={{ y: -8 }}
+            className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm flex flex-col justify-between group transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.1)] hover:border-cyan-500/50 dark:hover:border-cyan-500/50 ring-1 ring-inset ring-white/50 dark:ring-white/5"
           >
             <div>
               <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-600 dark:text-slate-400 mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -274,7 +274,7 @@ export const JanitorBookingView: React.FC = () => {
         transition={{ delay: 0.4 }}
         className="pt-4"
       >
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-3xl p-6 border border-amber-100/50 dark:border-amber-800/30 flex flex-col sm:flex-row gap-6 items-center">
+        <div className="bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-900/20 dark:to-orange-900/20 backdrop-blur-lg rounded-3xl p-6 border border-amber-200/50 dark:border-amber-500/20 shadow-lg flex flex-col sm:flex-row gap-6 items-center ring-1 ring-inset ring-white/50 dark:ring-white/5">
           <div className="w-12 h-12 shrink-0 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-amber-100 dark:border-amber-800/50">
             <Zap className="w-6 h-6 text-amber-500 fill-amber-500" />
           </div>

@@ -223,7 +223,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                       isSelected
                         ? 'bg-teal-500/10 border-teal-500 text-teal-900 dark:text-white shadow-xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'
+                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -271,7 +271,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
               <button
                 onClick={() => setFilterDrawerOpen(true)}
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700"
+                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700"
               >
                 <Filter className="w-4 h-4 text-[#00a896]" />
                 <span className="hidden sm:inline">Filter</span>
@@ -289,7 +289,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                       isSelected
                         ? 'bg-teal-500/10 border-teal-500 shadow-xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                        : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(1)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -388,7 +388,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       className={`p-3 rounded-2xl border transition-all text-center cursor-pointer ${
                         isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-md scale-105'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       <div className={`text-[10px] uppercase font-bold ${isSel ? 'text-teal-100' : 'text-slate-500 dark:text-slate-400'}`}>{item.day}</div>
@@ -403,7 +403,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(2)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -444,7 +444,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           ? 'opacity-40 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                           : isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       {slot}
@@ -468,7 +468,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       className={`py-2 rounded-xl font-mono text-xs font-bold border transition-colors cursor-pointer text-center ${
                         isSel
                           ? 'bg-[#00a896] text-white border-teal-500 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
                       {slot}
@@ -481,7 +481,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(3)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -508,7 +508,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                   consultationType === 'Video'
                     ? 'bg-teal-500/10 border-teal-500 text-slate-900 dark:text-white shadow-xs'
-                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                 }`}
               >
                 <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-[#00a896] flex items-center justify-center">
@@ -526,7 +526,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2.5 ${
                   consultationType === 'In-Person'
                     ? 'bg-teal-500/10 border-teal-500 text-slate-900 dark:text-white shadow-xs'
-                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+                    : 'bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/60'
                 }`}
               >
                 <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-600 flex items-center justify-center">
@@ -542,7 +542,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(4)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>
@@ -600,7 +600,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <button
                 onClick={() => setStep(5)}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
+                className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 Back
               </button>

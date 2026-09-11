@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell, Pill, Calendar as CalendarIcon, Video, Settings,
-  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, AlertCircle, X, RefreshCw
+  CheckCircle2, Clock, ChevronLeft, ChevronRight, Edit2, Trash2, CalendarDays, Activity, Briefcase, AlertCircle, X, RefreshCw, MoreVertical, User
 } from 'lucide-react';
 import type { ReminderItem, NotificationLog, NotificationSettingsState } from './remindersData';
 import {
@@ -482,20 +482,36 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const getCategoryBadge = (category: string) => {
     switch (category) {
       case 'Medication':
-        return { icon: Pill, bg: 'bg-amber-100/50', text: 'text-amber-600', border: 'border-amber-200' };
+        return { icon: Pill, bg: 'bg-cyan-400', cardBg: 'bg-gradient-to-br from-cyan-50 via-cyan-50/80 to-sky-50/60 dark:from-cyan-950/50 dark:via-cyan-950/30 dark:to-sky-950/20', text: 'text-cyan-600 dark:text-cyan-400', border: 'border-cyan-200/80 dark:border-cyan-800/50', glow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]', badgeBg: 'bg-cyan-400', iconBg: 'bg-cyan-100 dark:bg-cyan-900/60' };
       case 'Appointment':
-        return { icon: CalendarIcon, bg: 'bg-teal-100/50', text: 'text-teal-600', border: 'border-teal-200' };
+        return { icon: CalendarIcon, bg: 'bg-amber-400', cardBg: 'bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 dark:from-amber-950/50 dark:via-amber-950/30 dark:to-orange-950/20', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-200/80 dark:border-amber-800/50', glow: 'shadow-[0_0_20px_rgba(251,191,36,0.3)]', badgeBg: 'bg-amber-400', iconBg: 'bg-amber-100 dark:bg-amber-900/60' };
       case 'Pharmacy':
-        return { icon: Briefcase, bg: 'bg-blue-100/50', text: 'text-blue-600', border: 'border-blue-200' };
+      case 'Lab':
+        return { icon: Briefcase, bg: 'bg-rose-400', cardBg: 'bg-gradient-to-br from-rose-50 via-pink-50/80 to-red-50/60 dark:from-rose-950/50 dark:via-rose-950/30 dark:to-red-950/20', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-200/80 dark:border-rose-800/50', glow: 'shadow-[0_0_20px_rgba(251,113,133,0.3)]', badgeBg: 'bg-rose-400', iconBg: 'bg-rose-100 dark:bg-rose-900/60' };
       case 'Consultation':
-        return { icon: Video, bg: 'bg-purple-100/50', text: 'text-purple-600', border: 'border-purple-200' };
+      case 'Vaccination':
+        return { icon: Video, bg: 'bg-emerald-400', cardBg: 'bg-gradient-to-br from-emerald-50 via-green-50/80 to-teal-50/60 dark:from-emerald-950/50 dark:via-emerald-950/30 dark:to-teal-950/20', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200/80 dark:border-emerald-800/50', glow: 'shadow-[0_0_20px_rgba(52,211,153,0.3)]', badgeBg: 'bg-emerald-400', iconBg: 'bg-emerald-100 dark:bg-emerald-900/60' };
       default:
-        return { icon: Activity, bg: 'bg-slate-100', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200 dark:border-slate-800' };
+        return { icon: Activity, bg: 'bg-slate-400', cardBg: 'bg-gradient-to-br from-slate-50 via-slate-50/80 to-gray-50/60 dark:from-slate-900/50 dark:via-slate-900/30 dark:to-gray-950/20', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200/80 dark:border-slate-800/50', glow: 'shadow-[0_0_20px_rgba(148,163,184,0.3)]', badgeBg: 'bg-slate-400', iconBg: 'bg-slate-100 dark:bg-slate-800/60' };
+    }
+  };
+
+  const getPriorityBadge = (priority: string, status: string) => {
+    if (status === 'Snoozed') return { label: 'Snoozed', bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-200' };
+    if (status === 'Due Now') return { label: 'Active', bg: 'bg-teal-100', text: 'text-teal-700', border: 'border-teal-200' };
+    switch (priority) {
+      case 'High Priority':
+        return { label: 'High Priority', bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' };
+      case 'Important':
+        return { label: 'Important', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' };
+      default:
+        return { label: 'Scheduled', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' };
     }
   };
 
   // CALENDAR LOGIC
-  const [calendarDate, setCalendarDate] = useState(new Date(2026, 7, 1)); // Default: August 2026
+  const now = new Date();
+  const [calendarDate, setCalendarDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1)); // Default: current month
 
   const nextMonth = () => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1));
   const prevMonth = () => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1));
@@ -562,7 +578,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setSettingsDrawerOpen(true)}
-              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -574,10 +590,10 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       {/* 2. SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Total Reminders', value: totalRemindersCount, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-100 via-blue-50 to-white' },
-          { label: 'Today', value: todayRemindersCount, icon: Clock, color: 'text-teal-600', hoverBg: 'bg-gradient-to-br from-teal-100 via-teal-50 to-white' },
-          { label: 'Upcoming', value: upcomingRemindersCount, icon: Activity, color: 'text-purple-600', hoverBg: 'bg-gradient-to-br from-purple-100 via-purple-50 to-white' },
-          { label: 'Completed', value: completedRemindersCount, icon: CheckCircle2, color: 'text-emerald-600', hoverBg: 'bg-gradient-to-br from-emerald-100 via-emerald-50 to-white' },
+          { label: 'Total Reminders', value: totalRemindersCount, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/40 dark:to-slate-800/80' },
+          { label: 'Today', value: todayRemindersCount, icon: Clock, color: 'text-teal-600', hoverBg: 'bg-gradient-to-br from-teal-50/50 to-white dark:from-teal-900/40 dark:to-slate-800/80' },
+          { label: 'Upcoming', value: upcomingRemindersCount, icon: Activity, color: 'text-purple-600', hoverBg: 'bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-900/40 dark:to-slate-800/80' },
+          { label: 'Completed', value: completedRemindersCount, icon: CheckCircle2, color: 'text-emerald-600', hoverBg: 'bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-900/40 dark:to-slate-800/80' },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -585,17 +601,17 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: i * 0.1, ease: 'easeOut' }}
             whileHover={{ y: -6, scale: 1.02 }}
-            className="relative p-6 rounded-3xl bg-white dark:bg-slate-900 border border-white/80 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all duration-300 flex flex-col justify-between h-32 cursor-pointer group overflow-hidden"
+            className="relative p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 flex flex-col justify-between h-32 cursor-pointer group overflow-hidden"
           >
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${stat.hoverBg}`} />
             
             <div className="relative z-10 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{stat.label}</span>
-              <div className={`p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-sm border border-white/50 ${stat.color} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 uppercase tracking-wider transition-colors">{stat.label}</span>
+              <div className={`p-2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-sm border border-slate-100 dark:border-slate-800 ${stat.color} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
                 <stat.icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="relative z-10 text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-slate-800 transition-colors">{stat.value}</div>
+            <div className="relative z-10 text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-slate-800 dark:group-hover:text-white transition-colors">{stat.value}</div>
           </motion.div>
         ))}
       </div>
@@ -605,20 +621,21 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+          className="relative bg-gradient-to-br from-teal-50/80 to-white dark:from-teal-950/40 dark:to-slate-900 border border-teal-100/50 dark:border-teal-900/50 rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-40 -bottom-20 w-48 h-48 bg-purple-400/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex items-start gap-4">
-            <div className="p-4 rounded-2xl bg-teal-50 border border-teal-100 shrink-0">
-              <AlertCircle className="w-8 h-8 text-teal-600" />
+            <div className="relative p-4 rounded-2xl bg-teal-100/50 border border-teal-200 shrink-0">
+              <div className="absolute inset-0 bg-teal-400 blur-xl opacity-30 rounded-full"></div>
+              <AlertCircle className="relative z-10 w-8 h-8 text-teal-600" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1 block">Next Reminder</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 mb-1 block">Next Reminder</span>
               <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">{nextReminder.title}</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                Today · {nextReminder.time} <span className="mx-2 text-slate-600 dark:text-slate-300">•</span> <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Scheduled Time</span>
+                Today · {nextReminder.time} <span className="mx-2 text-slate-600 dark:text-slate-300">•</span> <span className="text-teal-700 dark:text-teal-400 bg-teal-100/50 dark:bg-teal-900/30 px-2 py-0.5 rounded-md border border-teal-200/50 dark:border-teal-800/50">Scheduled Time</span>
               </p>
             </div>
           </div>
@@ -626,13 +643,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="relative z-10 flex items-center gap-3 shrink-0 w-full sm:w-auto">
             <button 
               onClick={() => setDetailTarget(nextReminder)}
-              className="flex-1 sm:flex-none px-4 py-3 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-3 rounded-xl font-bold text-sm text-teal-700 dark:text-teal-300 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-teal-200/50 dark:border-teal-800/50 transition-colors shadow-sm cursor-pointer"
             >
               Details
             </button>
             <button 
               onClick={() => handleMarkComplete(nextReminder.id, nextReminder.title)}
-              className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-teal-500 hover:bg-teal-400 shadow-lg shadow-teal-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-teal-500 hover:bg-teal-400 shadow-[0_4px_14px_0_rgba(20,184,166,0.39)] transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Mark as Done</span>
@@ -642,38 +659,37 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       )}
 
       {/* 4. MAIN LAYOUT (2 COLUMNS) */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start relative">
         
         {/* LEFT COLUMN: TODAY'S SCHEDULE */}
         <div className="xl:col-span-8 space-y-6">
 
-          {/* APPOINTMENT REQUESTS SECTION */}
+          {/* APPOINTMENT REQUESTS SECTION — only shown when there are pending requests */}
+          {pendingRequests.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-slate-900">Appointment Requests</h3>
-                {pendingRequests.length > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-black bg-amber-500/10 text-amber-600 rounded-full border border-amber-500/20 font-mono">
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Appointment Requests</h3>
+                  <span className="px-2.5 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600 rounded-full border border-amber-500/20 font-mono">
                     {pendingRequests.length} Pending
                   </span>
-                )}
               </div>
             </div>
 
-            {pendingRequests.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pendingRequests.map((req) => (
                   <motion.div
                     key={req.id}
                     layoutId={`request-card-${req.id}`}
-                    className="p-5 rounded-3xl bg-amber-500/[0.03] border border-amber-500/20 shadow-md shadow-amber-500/5 flex flex-col justify-between gap-4"
+                    className="p-5 rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-white/50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between gap-4 relative overflow-hidden"
                   >
-                    <div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none"></div>
+                    <div className="relative z-10">
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-mono">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/50 font-mono">
                           Appointment Request
                         </span>
-                        <span className="text-slate-500 text-[10px] font-bold font-mono">
+                        <span className="text-slate-400 text-[10px] font-bold font-mono">
                           {req.id}
                         </span>
                       </div>
@@ -685,18 +701,18 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                         {req.clinicName || 'Apollo Multispeciality Hospital, Chennai'}
                       </p>
 
-                      <p className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/40 dark:border-slate-700/50 rounded-xl px-3 py-2 inline-flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <p className="mt-3 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 rounded-xl px-3 py-2 inline-flex items-center gap-1.5 shadow-sm">
+                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                         <span>{req.date} • {req.time}</span>
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-3 border-t border-dashed border-amber-500/10">
+                    <div className="flex items-center gap-2 pt-3 relative z-10">
                       <button
                         type="button"
                         disabled={confirmingId === req.id}
                         onClick={() => handleAcceptFollowUp(req.id)}
-                        className="flex-1 py-2 px-3 rounded-xl text-xs font-black text-white bg-teal-500 hover:bg-teal-400 disabled:bg-teal-500/50 shadow-sm disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-black text-white bg-[#00a896] hover:bg-teal-600 disabled:bg-teal-500/50 shadow-md disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         {confirmingId === req.id ? (
                           <>
@@ -711,34 +727,16 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDeclineFollowUp(req.id)}
-                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/20 transition-colors cursor-pointer"
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-100 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm"
                       >
                         Decline
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setDetailTarget(req)}
-                        className="py-2 px-3 rounded-xl text-xs font-extrabold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-                      >
-                        View
                       </button>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            ) : (
-              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800/60 text-center space-y-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 dark:text-slate-500 mx-auto">
-                  <CalendarIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">No pending appointment requests</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">New appointment requests from doctors will appear here.</p>
-                </div>
-              </div>
-            )}
           </div>
+          )}
 
           {/* TODAY'S SCHEDULE SECTION */}
           <div className="space-y-4">
@@ -750,8 +748,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
             </div>
 
             {todaysReminders.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 flex flex-col items-center justify-center text-center shadow-lg shadow-slate-200/30 dark:shadow-none">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4 text-slate-500 dark:text-slate-400 dark:text-slate-500">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/50 dark:border-slate-800 p-12 flex flex-col items-center justify-center text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-4 text-slate-400">
                   <CalendarDays className="w-10 h-10" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">No appointments scheduled for today</h4>
@@ -760,59 +758,86 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {todaysReminders.map((rem) => {
+              <div className="space-y-5 relative pl-6 sm:pl-8">
+                {/* Vertical Timeline Line */}
+                <div className="absolute left-[7px] sm:left-[11px] top-6 bottom-6 w-[3px] bg-gradient-to-b from-teal-300 via-slate-200 to-slate-100 dark:from-teal-700 dark:via-slate-800 dark:to-slate-900 rounded-full"></div>
+                
+                {todaysReminders.map((rem, remIdx) => {
                   const badge = getCategoryBadge(rem.category);
                   const Icon = badge.icon;
+                  const priorityBadge = getPriorityBadge(rem.priority, rem.status);
 
                   return (
                     <motion.div 
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, x: -15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: remIdx * 0.08 }}
                       key={rem.id} 
-                      className="group bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-350 hover:shadow-xl hover:shadow-slate-200/40 dark:shadow-none border border-slate-200 dark:border-slate-800 hover:-translate-y-0.5"
+                      className={`relative rounded-[22px] p-5 sm:p-6 transition-all duration-300 shadow-[0_4px_24px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border ${badge.cardBg} ${badge.border} hover:-translate-y-1`}
                     >
-                      <div className="flex items-center gap-4 w-full">
-                        <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border} shrink-0`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
+                      {/* Timeline Dot */}
+                      <div className={`absolute -left-[25px] sm:-left-[29px] top-7 w-4 h-4 rounded-full ${badge.bg} ${badge.glow} border-[3px] border-white dark:border-slate-900 z-10`}></div>
 
+                      {/* Row 1: Icon + Title + Description + 3-dot menu */}
+                      <div className="flex items-start gap-3.5 mb-4">
+                        <div className={`p-3 rounded-2xl ${badge.iconBg} shrink-0 ${badge.text}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">
-                              {getCardTitle(rem)}
-                            </h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono">
-                              Confirmed
-                            </span>
+                          <h4 className="text-[15px] sm:text-base font-black text-slate-900 dark:text-white leading-snug tracking-tight break-words">
+                            {getCardTitle(rem)}
+                          </h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 line-clamp-1">
+                            {rem.description}
+                          </p>
+                        </div>
+                        <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white/60 transition-colors cursor-pointer shrink-0">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Row 2: Person + Time/Date + Status Badge */}
+                      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-white dark:border-slate-600 shadow-sm">
+                            <User className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                           </div>
-                          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex-wrap font-sans">
-                            <span>Today • {rem.time}</span>
-                            <span>•</span>
-                            <span className="break-words">{rem.description}</span>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            {rem.doctorName || 'Patient'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <span className="text-sm font-extrabold text-slate-900 dark:text-white block leading-tight">{rem.time}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{rem.date}</span>
                           </div>
+                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold border whitespace-nowrap ${priorityBadge.bg} ${priorityBadge.text} ${priorityBadge.border}`}>
+                            {priorityBadge.label}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end pl-14 sm:pl-0 flex-wrap">
-                        <button
-                          onClick={() => setDetailTarget(rem)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-colors cursor-pointer"
-                        >
-                          View
-                        </button>
+                      {/* Row 3: Action Buttons */}
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         <button
                           onClick={() => setSnoozeTarget(rem)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-655 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+                          className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm hover:shadow-md"
                         >
                           Snooze
                         </button>
                         <button
                           onClick={() => handleMarkComplete(rem.id, rem.title)}
-                          className="p-2 rounded-xl text-teal-650 hover:bg-teal-50 transition-colors cursor-pointer"
+                          className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 border border-slate-900 dark:border-white transition-all cursor-pointer shadow-md hover:shadow-lg"
                           title="Complete Activity"
                         >
-                          <CheckCircle2 className="w-4 h-4" />
+                          Complete
+                        </button>
+                        <button
+                          onClick={() => setDetailTarget(rem)}
+                          className="px-5 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-transparent hover:bg-white/60 dark:hover:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 transition-all cursor-pointer"
+                        >
+                          View Details
                         </button>
                       </div>
                     </motion.div>
@@ -824,33 +849,34 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         </div>
 
         {/* RIGHT COLUMN: CALENDAR */}
-        <div className="xl:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6 xl:sticky xl:top-8">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Calendar</h3>
           </div>
           
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/30 dark:shadow-none">
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 border border-white/50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <div className="flex items-center justify-between mb-6">
               <span className="text-sm font-extrabold text-slate-900 dark:text-white">
                 {calendarDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
               </span>
               <div className="flex gap-1">
-                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-950 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={prevMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
 
             <div className="grid grid-cols-7 gap-1 text-center mb-2">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                <div key={i} className="text-[10px] font-bold text-slate-500 dark:text-slate-400 py-1">{day}</div>
+                <div key={i} className="text-[10px] font-bold text-slate-400 dark:text-slate-500 py-1 uppercase tracking-wider">{day}</div>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-y-2 gap-x-1">
+            <div className="grid grid-cols-7 gap-y-3 gap-x-1">
               {calendarDays.map((dayNum, idx) => {
-                if (!dayNum) return <div key={idx} className="h-8" />;
+                if (!dayNum) return <div key={idx} className="h-9" />;
                 
-                const isToday = dayNum === 24 && calendarDate.getMonth() === 7 && calendarDate.getFullYear() === 2026;
+                const today = new Date();
+                const isToday = dayNum === today.getDate() && calendarDate.getMonth() === today.getMonth() && calendarDate.getFullYear() === today.getFullYear();
                 const dayReminders = getDayReminders(dayNum);
                 const hasReminders = dayReminders.length > 0;
 
@@ -860,29 +886,29 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                     onClick={() => hasReminders && setDetailTarget(dayReminders[0])}
                     className="relative flex justify-center group cursor-pointer"
                   >
-                    <div className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
+                    <div className={`w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
                       isToday 
-                        ? 'bg-teal-500 text-white shadow-md shadow-teal-500/30 group-hover:bg-teal-400' 
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-110' 
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}>
                       {dayNum}
                     </div>
                     {hasReminders && !isToday && (
-                      <div className="absolute bottom-1 w-1 h-1 rounded-full bg-teal-400" />
+                      <div className="absolute bottom-0 w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_6px_#2dd4bf]" />
                     )}
                   </div>
                 );
               })}
             </div>
             
-            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/60">
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 mb-3">
-                 <div className="w-2 h-2 rounded-full bg-teal-400" />
+            <div className="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800">
+               <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 mb-4">
+                 <div className="w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_6px_#2dd4bf]" />
                  <span>Days with reminders</span>
                </div>
                <button 
                  onClick={() => setFilterDrawerOpen(true)}
-                 className="w-full py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+                 className="w-full py-3 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors shadow-sm cursor-pointer"
                >
                  Filter Calendar View
                </button>
@@ -896,8 +922,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Upcoming Reminders</h3>
         
         {futureReminders.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-500 dark:text-slate-400 dark:text-slate-500">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/50 dark:border-slate-800 p-8 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400">
               <CalendarIcon className="w-8 h-8" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No upcoming reminders</h4>
@@ -909,34 +935,35 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               const badge = getCategoryBadge(rem.category);
               const Icon = badge.icon;
               return (
-                <div key={rem.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform duration-300">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`p-2.5 rounded-xl border ${badge.bg} ${badge.text} ${badge.border} shrink-0`}>
-                      <Icon className="w-4 h-4" />
+                <div key={rem.id} className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-5 border border-white/50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className={`p-3 rounded-2xl border shadow-sm relative shrink-0 ${badge.border} ${badge.text}`}>
+                      <div className={`absolute inset-0 opacity-20 blur-md rounded-full ${badge.bg}`}></div>
+                      <Icon className="relative z-10 w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug break-words">{getCardTitle(rem)}</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono font-mono font-mono">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono tracking-wider uppercase">
                           Confirmed
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 font-sans">
-                        {formatFullDate(rem.date)} • {rem.time}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium font-sans">
+                        <span className="font-bold text-slate-600 dark:text-slate-300">{formatFullDate(rem.date)}</span> • {rem.time}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end pl-16 sm:pl-0">
                     <button 
                       onClick={() => setDetailTarget(rem)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors shadow-sm cursor-pointer"
                     >
                       View
                     </button>
                     <button 
                       onClick={() => setSnoozeTarget(rem)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors shadow-sm cursor-pointer"
                     >
                       Snooze
                     </button>
@@ -953,8 +980,8 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
         <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Completed & Past History</h3>
 
         {completedAndHistoryReminders.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-md">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-500 dark:text-slate-400 dark:text-slate-500">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/50 dark:border-slate-800 p-8 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h4 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">No completed appointments yet</h4>
@@ -970,40 +997,40 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               const isCancelled = rem.status === 'Cancelled';
 
               return (
-                <div key={rem.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/60 opacity-75 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 shrink-0">
-                      <Icon className="w-4 h-4" />
+                <div key={rem.id} className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm rounded-3xl p-4 sm:p-5 border border-white/40 dark:border-slate-800/60 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+                  <div className="flex items-center gap-4 flex-1 min-w-0 opacity-75">
+                    <div className="p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-400 shrink-0">
+                      <Icon className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-extrabold text-slate-700 leading-snug break-words">{getPastCardTitle(rem)}</h4>
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h4 className="text-sm font-extrabold text-slate-700 dark:text-slate-300 leading-snug break-words">{getPastCardTitle(rem)}</h4>
                         {isCompleted && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-mono font-mono">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 font-mono tracking-wider uppercase">
                             Completed
                           </span>
                         )}
                         {isDeclined && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20 font-mono font-mono">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/50 font-mono tracking-wider uppercase">
                             Declined
                           </span>
                         )}
                         {isCancelled && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 font-mono">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-mono tracking-wider uppercase">
                             Cancelled
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 truncate font-sans">
-                        {rem.date} • {rem.time}
+                      <p className="text-xs text-slate-400 font-medium font-sans">
+                        <span className="font-bold">{formatFullDate(rem.date)}</span> • {rem.time}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end pl-16 sm:pl-0">
                     <button 
                       onClick={() => setDetailTarget(rem)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 dark:text-slate-400 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/50 dark:border-slate-700 transition-colors cursor-pointer shadow-sm"
                     >
                       View
                     </button>

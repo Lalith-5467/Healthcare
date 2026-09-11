@@ -70,7 +70,10 @@ export const SuperAdminManagementView: React.FC<SuperAdminManagementViewProps> =
       }
     } catch (err: any) {
       console.error('Failed to load admin accounts:', err);
-      showToast(err.message || 'Failed to fetch admin accounts from database.', 'error');
+      const msg = (err.message || '').toLowerCase();
+      if (!msg.includes('access denied') && !msg.includes('permission')) {
+        showToast(err.message || 'Failed to fetch admin accounts from database.', 'error');
+      }
     } finally {
       setLoading(false);
     }
