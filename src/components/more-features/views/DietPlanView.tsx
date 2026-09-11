@@ -606,7 +606,7 @@ export function DietPlanView() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         
         {/* 1. HEADER */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -773,7 +773,7 @@ export function DietPlanView() {
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed bottom-0 left-0 right-0 md:left-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 p-4 z-40"
           >
-            <div className="max-w-[1500px] mx-auto px-2 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="max-w-7xl w-full mx-auto px-2 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="text-sm font-bold text-slate-500">
                 Last saved: <span className="text-slate-900 dark:text-white">Just now</span>
               </div>

@@ -593,7 +593,7 @@ export function ReportInsightsView() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f1c] text-slate-900 dark:text-slate-200 pb-32">
-      <div className="max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         
         {/* 1. HEADER */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -632,33 +632,6 @@ export function ReportInsightsView() {
           </div>
         </div>
 
-        {/* 2. PATIENT OVERVIEW (Compact) */}
-        <div className="bg-slate-900 dark:bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-md text-slate-300 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-cyan-500/10 to-transparent pointer-events-none"></div>
-          
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="w-14 h-14 bg-cyan-500/20 rounded-full flex items-center justify-center border border-cyan-500/30 text-xl font-black text-cyan-400">
-              {patientInfo.avatar}
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-white flex items-center gap-3">
-                {patientInfo.name}
-                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] uppercase tracking-widest rounded-md border border-slate-700">{patientInfo.id}</span>
-              </h2>
-              <div className="flex flex-wrap items-center gap-3 md:gap-5 text-sm font-medium mt-1">
-                <span className="flex items-center gap-1">Age: <strong className="text-white">{patientInfo.age}</strong></span>
-                <span className="flex items-center gap-1">Gender: <strong className="text-white">{patientInfo.gender}</strong></span>
-                <span className="flex items-center gap-1">Blood Group: <strong className="text-white">{patientInfo.bloodGroup}</strong></span>
-                <span className="flex items-center gap-1">Last Report: <strong className="text-white">{patientInfo.lastReport}</strong></span>
-                <span className="flex items-center gap-1 text-cyan-400"><FileBox className="w-3.5 h-3.5"/> {patientInfo.reportsAvailable} Available</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative z-10 shrink-0">
-            <button className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors border border-slate-700">View Patient Profile</button>
-          </div>
-        </div>
 
         {/* 3. MAIN NAVIGATION TABS */}
         <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto custom-scrollbar">

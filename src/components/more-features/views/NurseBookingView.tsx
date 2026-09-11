@@ -351,7 +351,7 @@ export const NurseBookingView: React.FC<NurseBookingViewProps> = ({ user }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto space-y-6 font-sans pb-16 relative"
+      className="max-w-7xl w-full mx-auto space-y-6 font-sans pb-16 relative"
     >
       {/* Toast Notification */}
       <AnimatePresence>

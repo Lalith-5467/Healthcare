@@ -243,7 +243,7 @@ export const LabTestView: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="w-full max-w-[1400px] mx-auto space-y-6 font-sans pb-16 relative px-2"
+      className="max-w-7xl w-full mx-auto space-y-6 font-sans pb-16 relative px-2"
     >
       {/* Toast Notification */}
       <AnimatePresence>

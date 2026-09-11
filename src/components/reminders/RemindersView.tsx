@@ -578,7 +578,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setSettingsDrawerOpen(true)}
-              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -590,10 +590,10 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
       {/* 2. SUMMARY CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Total Reminders', value: totalRemindersCount, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-50/50 to-white' },
-          { label: 'Today', value: todayRemindersCount, icon: Clock, color: 'text-teal-600', hoverBg: 'bg-gradient-to-br from-teal-50/50 to-white' },
-          { label: 'Upcoming', value: upcomingRemindersCount, icon: Activity, color: 'text-purple-600', hoverBg: 'bg-gradient-to-br from-purple-50/50 to-white' },
-          { label: 'Completed', value: completedRemindersCount, icon: CheckCircle2, color: 'text-emerald-600', hoverBg: 'bg-gradient-to-br from-emerald-50/50 to-white' },
+          { label: 'Total Reminders', value: totalRemindersCount, icon: CalendarDays, color: 'text-blue-600', hoverBg: 'bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/40 dark:to-slate-800/80' },
+          { label: 'Today', value: todayRemindersCount, icon: Clock, color: 'text-teal-600', hoverBg: 'bg-gradient-to-br from-teal-50/50 to-white dark:from-teal-900/40 dark:to-slate-800/80' },
+          { label: 'Upcoming', value: upcomingRemindersCount, icon: Activity, color: 'text-purple-600', hoverBg: 'bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-900/40 dark:to-slate-800/80' },
+          { label: 'Completed', value: completedRemindersCount, icon: CheckCircle2, color: 'text-emerald-600', hoverBg: 'bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-900/40 dark:to-slate-800/80' },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -606,12 +606,12 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${stat.hoverBg}`} />
             
             <div className="relative z-10 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{stat.label}</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 uppercase tracking-wider transition-colors">{stat.label}</span>
               <div className={`p-2 rounded-2xl bg-white/90 backdrop-blur-sm shadow-sm border border-slate-100 dark:border-slate-800 ${stat.color} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
                 <stat.icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="relative z-10 text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-slate-800 transition-colors">{stat.value}</div>
+            <div className="relative z-10 text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-slate-800 dark:group-hover:text-white transition-colors">{stat.value}</div>
           </motion.div>
         ))}
       </div>
@@ -632,10 +632,10 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
               <AlertCircle className="relative z-10 w-8 h-8 text-teal-600" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1 block">Next Reminder</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 mb-1 block">Next Reminder</span>
               <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">{nextReminder.title}</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                Today · {nextReminder.time} <span className="mx-2 text-slate-600 dark:text-slate-300">•</span> <span className="text-teal-700 bg-teal-100/50 px-2 py-0.5 rounded-md border border-teal-200/50">Scheduled Time</span>
+                Today · {nextReminder.time} <span className="mx-2 text-slate-600 dark:text-slate-300">•</span> <span className="text-teal-700 dark:text-teal-400 bg-teal-100/50 dark:bg-teal-900/30 px-2 py-0.5 rounded-md border border-teal-200/50 dark:border-teal-800/50">Scheduled Time</span>
               </p>
             </div>
           </div>
@@ -643,7 +643,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           <div className="relative z-10 flex items-center gap-3 shrink-0 w-full sm:w-auto">
             <button 
               onClick={() => setDetailTarget(nextReminder)}
-              className="flex-1 sm:flex-none px-5 py-3 rounded-xl font-bold text-sm text-teal-700 dark:text-teal-300 bg-white/80 dark:bg-slate-800/80 hover:bg-white border border-teal-200/50 dark:border-teal-800/50 transition-colors shadow-sm cursor-pointer"
+              className="flex-1 sm:flex-none px-5 py-3 rounded-xl font-bold text-sm text-teal-700 dark:text-teal-300 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-teal-200/50 dark:border-teal-800/50 transition-colors shadow-sm cursor-pointer"
             >
               Details
             </button>
@@ -686,7 +686,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 font-mono">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/50 font-mono">
                           Appointment Request
                         </span>
                         <span className="text-slate-400 text-[10px] font-bold font-mono">
@@ -727,7 +727,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDeclineFollowUp(req.id)}
-                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors cursor-pointer shadow-sm"
+                        className="flex-1 py-2 px-3 rounded-xl text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-100 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm"
                       >
                         Decline
                       </button>
@@ -957,13 +957,13 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                   <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end pl-16 sm:pl-0">
                     <button 
                       onClick={() => setDetailTarget(rem)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors shadow-sm cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors shadow-sm cursor-pointer"
                     >
                       View
                     </button>
                     <button 
                       onClick={() => setSnoozeTarget(rem)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors shadow-sm cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors shadow-sm cursor-pointer"
                     >
                       Snooze
                     </button>
@@ -1006,17 +1006,17 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h4 className="text-sm font-extrabold text-slate-700 dark:text-slate-300 leading-snug break-words">{getPastCardTitle(rem)}</h4>
                         {isCompleted && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 font-mono tracking-wider uppercase">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50 font-mono tracking-wider uppercase">
                             Completed
                           </span>
                         )}
                         {isDeclined && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-100 font-mono tracking-wider uppercase">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/50 font-mono tracking-wider uppercase">
                             Declined
                           </span>
                         )}
                         {isCancelled && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 font-mono tracking-wider uppercase">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-mono tracking-wider uppercase">
                             Cancelled
                           </span>
                         )}
@@ -1030,7 +1030,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
                   <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end pl-16 sm:pl-0">
                     <button 
                       onClick={() => setDetailTarget(rem)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 bg-slate-50/50 hover:bg-slate-100 border border-slate-200/50 transition-colors cursor-pointer shadow-sm"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/50 dark:border-slate-700 transition-colors cursor-pointer shadow-sm"
                     >
                       View
                     </button>
