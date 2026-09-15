@@ -23,6 +23,7 @@ import {
 export const NurseAlertsView: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedPatient, setSelectedPatient] = useState<{name: string, age: string, alert: string, location: string, detected: string} | null>(null);
+  const [activeActionModal, setActiveActionModal] = useState<{title: string, description: string} | null>(null);
   
   const filters = ['All', 'Critical', 'Moderate', 'Unacknowledged'];
 
@@ -353,28 +354,28 @@ export const NurseAlertsView: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <button onClick={() => window.location.href = 'tel:108'} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => setActiveActionModal({ title: 'Call Hospital ER', description: 'Initiating secure emergency line to the hospital ER (108). Please stand by...' })} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <Phone className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Call Hospital ER</span>
           </button>
           
-          <button onClick={() => alert('Opening patient vitals history panel...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => setActiveActionModal({ title: 'Patient Vitals', description: 'Fetching historical and real-time vitals data from the central monitoring server...' })} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <HeartPulse className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">View Patient Vitals</span>
           </button>
           
-          <button onClick={() => alert('Opening new care request form...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => setActiveActionModal({ title: 'New Care Request', description: 'Opening the standardized care request form for new clinical interventions.' })} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <Activity className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Open Care Request</span>
           </button>
           
-          <button onClick={() => alert('Connecting to Clinical IT Support...')} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
+          <button onClick={() => setActiveActionModal({ title: 'Clinical IT Support', description: 'Connecting to the 24/7 technical support desk for immediate assistance.' })} className="p-4 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:border-teal-200 dark:hover:border-teal-800 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all flex items-center gap-3 text-left group">
             <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/40 transition-colors">
               <HelpCircle className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             </div>
@@ -382,6 +383,53 @@ export const NurseAlertsView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* GENERIC ACTION MODAL */}
+      {activeActionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white dark:bg-[#1b1e27] rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-2xl w-full max-w-sm overflow-hidden"
+          >
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800/60 flex items-center justify-between bg-slate-50/50 dark:bg-[#12141a]/50">
+              <h3 className="font-black text-slate-900 dark:text-white">{activeActionModal.title}</h3>
+              <button 
+                onClick={() => setActiveActionModal(null)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-2">
+                <div className="w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 mt-1">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {activeActionModal.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 bg-slate-50 dark:bg-[#12141a]/80 border-t border-slate-100 dark:border-slate-800/60 flex gap-3">
+              <button 
+                onClick={() => setActiveActionModal(null)}
+                className="flex-1 py-2.5 rounded-xl bg-white dark:bg-[#1b1e27] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => setActiveActionModal(null)}
+                className="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-black shadow-lg shadow-teal-500/25 transition-all hover:-translate-y-0.5"
+              >
+                Proceed
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* PATIENT DETAILS MODAL */}
       {selectedPatient && (
