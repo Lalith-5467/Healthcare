@@ -4,6 +4,8 @@ import {
   registerController,
   loginController,
   getMeController,
+  sendOtpController,
+  verifyOtpController,
 } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
@@ -13,6 +15,8 @@ const router = Router();
 // Public routes
 router.post('/register', registerController);
 router.post('/login', loginController);
+router.post('/send-otp', sendOtpController);
+router.post('/verify-otp', verifyOtpController);
 
 // Protected routes (Requires valid JWT)
 router.get('/me', authenticate, getMeController);

@@ -47,7 +47,7 @@ export const PharmacistPrescriptionModal: React.FC<PharmacistPrescriptionModalPr
   const clinicName = order.clinicName || matchedPrescription?.clinicName || 'Medical Centre';
   const rxDate = order.date || (matchedPrescription ? matchedPrescription.prescriptionDate : 'Today');
 
-  const isPending = order.status === 'Pending Pharmacist Verification';
+  const isPending = (order.status as string) === 'Pending Pharmacist Verification' || (order.status as string) === 'PENDING';
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans">

@@ -23,7 +23,110 @@ interface DoctorAppointmentsScheduleViewProps {
   onViewConsultation?: (patientId: string) => void;
 }
 
+import { appointmentApi } from '../../../services/dhrApis';
+
+const mockSlots = [
+  {
+    id: 'apt-6',
+    recordId: '1',
+    patientId: 'PT-09882',
+    patientName: 'Arun Raj',
+    age: 41,
+    gender: 'Male',
+    time: '09:00 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'Completed',
+    completedAt: '09:25 AM',
+    reason: 'Thyroid Level Review',
+    isTele: true,
+    department: 'Endocrinology'
+  },
+  {
+    id: 'apt-1',
+    recordId: '1',
+    patientId: 'PT-10245',
+    patientName: 'Abinesh Kumar',
+    age: 28,
+    gender: 'Male',
+    time: '10:30 AM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'Scheduled',
+    reason: 'Post-Appendectomy Suture Review',
+    isTele: false,
+    department: 'General Surgery'
+  },
+  {
+    id: 'apt-2',
+    recordId: '2',
+    patientId: 'PT-10892',
+    patientName: 'Ragul Kumar',
+    age: 45,
+    gender: 'Male',
+    time: '10:45 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'Delayed',
+    delayDuration: '20 min',
+    reason: 'Hypertension Medication Check',
+    isTele: true,
+    department: 'Cardiology',
+    arrivedAt: '10:55 AM'
+  },
+  {
+    id: 'apt-3',
+    recordId: '3',
+    patientId: 'PT-10331',
+    patientName: 'Mrs. Meenakshi Sundaram',
+    age: 62,
+    gender: 'Female',
+    time: '11:15 AM',
+    date: 'Today',
+    type: 'Tele-Consultation',
+    status: 'In Consultation',
+    startedAt: '11:18 AM',
+    reason: 'Diabetes Vitals & Routine Adherence',
+    isTele: true,
+    department: 'Internal Medicine'
+  },
+  {
+    id: 'apt-4',
+    recordId: '1',
+    patientId: 'PT-11005',
+    patientName: 'Suresh Menon',
+    age: 55,
+    gender: 'Male',
+    time: '12:00 PM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'No-show',
+    reason: 'General Executive Health Checkup',
+    isTele: false,
+    department: 'General Medicine',
+    scheduled: '12:00 PM',
+    expectedArrival: '12:00 PM',
+    statusUpdated: '12:20 PM'
+  },
+  {
+    id: 'apt-5',
+    recordId: '2',
+    patientId: 'PT-10944',
+    patientName: 'Priya S',
+    age: 31,
+    gender: 'Female',
+    time: '01:30 PM',
+    date: 'Today',
+    type: 'OPD In-Clinic',
+    status: 'Cancelled',
+    cancelReason: 'Cancelled by Patient',
+    reason: 'Migraine Follow-up',
+    isTele: false,
+    department: 'Neurology'
+  }
+];
 export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation, onViewProfile, onViewConsultation }) => {
+  const [liveAppointments, setLiveAppointments] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('Today');
@@ -52,6 +155,44 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
 
 
   const statuses = ['All', 'Scheduled', 'In Consultation', 'Completed', 'Delayed', 'No-show', 'Cancelled'];
+
+  const loadAppointments = async () => {
+    try {
+      const res = await appointmentApi.getAppointments();
+      if (res && res.data && res.data.length > 0) {
+        const mapped = res.data.map((apt: any, idx: number) => {
+          const p = apt.patient || {};
+          const u = p.user || {};
+          const isToday = new Date(apt.appointmentDate).toDateString() === new Date().toDateString();
+          return {
+            id: apt.id,
+            recordId: `${idx + 1}`,
+            patientId: p.id ? p.id.slice(-6).toUpperCase() : `PT-${10200 + idx}`,
+            patientName: p.fullName || u.email?.split('@')[0] || 'Patient',
+            age: p.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 35,
+            gender: p.gender || 'Male',
+            time: apt.slotTime || '10:00 AM',
+            date: isToday ? 'Today' : new Date(apt.appointmentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+            type: apt.type === 'VIDEO' ? 'Tele-Consultation' : 'OPD In-Clinic',
+            status: apt.status === 'CONFIRMED' ? 'Scheduled' : apt.status === 'COMPLETED' ? 'Completed' : apt.status === 'CANCELLED' ? 'Cancelled' : 'Scheduled',
+            reason: apt.reason || 'Routine Consultation',
+            isTele: apt.type === 'VIDEO',
+            department: 'Cardiology',
+            meetingLink: apt.meetingLink,
+          };
+        });
+        setLiveAppointments(mapped);
+      }
+    } catch (err: any) {
+      console.error('Failed to load appointments from MySQL:', err?.message);
+    }
+  };
+
+  React.useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const allSlots = slots.length > 0 ? slots : (liveAppointments.length > 0 ? liveAppointments : mockSlots);
 
   const getInitials = (name: string) => {
     const parts = name.replace('Mrs. ', '').replace('Dr. ', '').split(' ');
@@ -86,7 +227,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
   };
 
   const filteredSlots = useMemo(() => {
-    return slots.filter(apt => {
+    return allSlots.filter(apt => {
       // Date filter
       if (dateFilter !== 'All Dates' && apt.date !== dateFilter) return false;
       
@@ -104,15 +245,15 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       return true;
     });
-  }, [slots, searchQuery, statusFilter, dateFilter]);
+  }, [allSlots, searchQuery, statusFilter, dateFilter]);
 
   // Summary stats
-  const totalToday = slots.filter(s => s.date === 'Today').length;
-  const totalCompleted = slots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
-  const totalWaiting = slots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
-  const totalDelayed = slots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
-  const totalNoShow = slots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
-  const totalCancelled = slots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
+  const totalToday = allSlots.filter(s => s.date === 'Today').length;
+  const totalCompleted = allSlots.filter(s => s.date === 'Today' && s.status === 'Completed').length;
+  const totalWaiting = allSlots.filter(s => s.date === 'Today' && (s.status === 'Scheduled' || s.status === 'Delayed')).length;
+  const totalDelayed = allSlots.filter(s => s.date === 'Today' && s.status === 'Delayed').length;
+  const totalNoShow = allSlots.filter(s => s.date === 'Today' && s.status === 'No-show').length;
+  const totalCancelled = allSlots.filter(s => s.date === 'Today' && s.status === 'Cancelled').length;
 
   return (
     <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto relative">

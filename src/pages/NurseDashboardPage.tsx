@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NurseSidebar } from '../components/nurse-portal/NurseSidebar';
-import { NurseTopbar } from '../components/nurse-portal/NurseTopbar';
-import { NurseHero } from '../components/nurse-portal/NurseHero';
-import { NurseStatCards } from '../components/nurse-portal/NurseStatCards';
-import { NursePriorityDispatch } from '../components/nurse-portal/NursePriorityDispatch';
-import { NurseTodayShift } from '../components/nurse-portal/NurseTodayShift';
-import { NurseNextVisit } from '../components/nurse-portal/NurseNextVisit';
-import { NurseNeedsAttention } from '../components/nurse-portal/NurseNeedsAttention';
-import { NurseTodayWorkload } from '../components/nurse-portal/NurseTodayWorkload';
-import { NursePatientAlerts } from '../components/nurse-portal/NursePatientAlerts';
-import { NurseUpcomingVisits } from '../components/nurse-portal/NurseUpcomingVisits';
-import { NurseRecentActivity } from '../components/nurse-portal/NurseRecentActivity';
-import { NurseFloatingActions } from '../components/nurse-portal/NurseFloatingActions';
+import { 
+  HeartPulse, 
+  Menu, 
+  X, 
+  Bell, 
+  LogOut, 
+  ChevronDown,
+  ShieldCheck 
+} from 'lucide-react';
+import { Logo } from '../components/ui/Logo';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { NurseSidebar } from '../components/nurse-dashboard/NurseSidebar';
+import { NurseOverviewView } from '../components/nurse-dashboard/views/NurseOverviewView';
 import { CareRequestsView } from '../components/nurse-dashboard/views/CareRequestsView';
 import { PatientCareView } from '../components/nurse-dashboard/views/PatientCareView';
 import { NurseScheduleView } from '../components/nurse-dashboard/views/NurseScheduleView';
@@ -21,116 +21,250 @@ import { NurseHistoryView } from '../components/nurse-dashboard/views/NurseHisto
 import { NurseAlertsView } from '../components/nurse-dashboard/views/NurseAlertsView';
 import { NurseProfileView } from '../components/nurse-dashboard/views/NurseProfileView';
 import { NurseSettingsView } from '../components/nurse-dashboard/views/NurseSettingsView';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi, authApi } from '../services/dhrApis';
 
 interface NurseDashboardPageProps {
-  user?: { name: string; email: string };
   onLogout: () => void;
+  user?: { name: string; email: string };
+  initialNavId?: string;
+  onNavigate?: (navId: string) => void;
 }
 
-export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ user, onLogout }) => {
-  const [activeNav, setActiveNav] = useState('dashboard');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const [activeNav, setActiveNav] = useState(initialNavId || 'dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNav(initialNavId);
+    }
+  }, [initialNavId]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
+
+  // Fetch authenticated nurse identity from backend (authoritative source)
+  const [authenticatedNurse, setAuthenticatedNurse] = React.useState<{ name: string; email: string } | null>(null);
+
+  React.useEffect(() => {
+    authApi.getCurrentUser()
+      .then((res) => {
+        if (res && res.data) {
+          const u = res.data;
+          const profile: any = u.profile || {};
+          // Only accept the result if the authenticated user is actually a nurse
+          const role = (u.role || '').toUpperCase();
+          if (role === 'NURSE') {
+            const name = profile.fullName || profile.name || u.email.split('@')[0];
+            setAuthenticatedNurse({ name, email: u.email });
+          }
+        }
+      })
+      .catch(() => {
+        // Backend call failed — fall back to the user prop silently
+      });
+  }, []);
+
+  // Use backend-verified nurse identity; fall back to user prop if not yet resolved
+  const resolvedNurse = authenticatedNurse || user;
+  const nurseName = resolvedNurse?.name
+    ? (resolvedNurse.name.startsWith('Nurse') ? resolvedNurse.name : `Nurse ${resolvedNurse.name}`)
+    : 'Nurse';
+
+  const renderActiveView = () => {
+    switch (activeNav) {
+      case 'dashboard':
+        return <NurseOverviewView onNavigate={setActiveNav} user={resolvedNurse} />;
+      case 'requests':
+        return <CareRequestsView />;
+      case 'patients':
+      case 'vitals':
+        return <PatientCareView onNavigate={setActiveNav} />;
+      case 'schedule':
+        return <NurseScheduleView />;
+      case 'inventory':
+        return <NurseInventoryView />;
+      case 'history':
+        return <NurseHistoryView />;
+      case 'alerts':
+        return <NurseAlertsView />;
+      case 'profile':
+        return <NurseProfileView user={resolvedNurse} />;
+      case 'settings':
+        return <NurseSettingsView />;
+      default:
+        return <NurseOverviewView onNavigate={setActiveNav} user={resolvedNurse} />;
+    }
+  };
 
   return (
-    <div className="h-screen w-full bg-[#f6f7f9] dark:bg-[#12141a] text-slate-900 dark:text-white font-sans flex overflow-hidden selection:bg-[#0d9488] selection:text-white">
-      
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden lg:block">
-        <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} user={user} />
-      </div>
-
-      {/* MOBILE SIDEBAR (Drawer) */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 lg:hidden"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-              className="fixed inset-y-0 left-0 z-50 lg:hidden"
-            >
-              <NurseSidebar 
-                activeNav={activeNav} 
-                onNavigate={(id) => { setActiveNav(id); setIsMobileMenuOpen(false); }} 
-                user={user}
-              />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* MAIN CONTENT WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
-        {/* TOP NAVBAR */}
-        <NurseTopbar 
-          onLogout={onLogout} 
-          onMobileMenuToggle={() => setIsMobileMenuOpen(true)} 
-        />
-
-        {/* MAIN SCROLLABLE AREA */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
-          <div className="max-w-[1000px] mx-auto space-y-8 pb-10">
-            
-            {activeNav === 'dashboard' && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col gap-10"
-              >
-                <NurseHero onNavigate={setActiveNav} />
-                <NurseTodayShift />
-                <NurseStatCards onNavigate={setActiveNav} />
-                <NursePriorityDispatch />
-                <NurseNextVisit onNavigate={setActiveNav} />
-                <NurseNeedsAttention />
-                <NurseUpcomingVisits />
-                <NurseTodayWorkload />
-                <NursePatientAlerts />
-                <NurseRecentActivity onNavigate={setActiveNav} />
-              </motion.div>
-            )}
-
-            {activeNav === 'requests' && <CareRequestsView />}
-            {activeNav === 'patients' && <PatientCareView onNavigate={setActiveNav} />}
-            {activeNav === 'schedule' && <NurseScheduleView />}
-            {activeNav === 'inventory' && <NurseInventoryView />}
-            {activeNav === 'history' && <NurseHistoryView />}
-            {activeNav === 'alerts' && <NurseAlertsView />}
-            {activeNav === 'profile' && <NurseProfileView />}
-            {activeNav === 'settings' && <NurseSettingsView />}
-
-            {!['dashboard', 'requests', 'patients', 'schedule', 'inventory', 'history', 'alerts', 'profile', 'settings'].includes(activeNav) && (
-              <div className="flex flex-col items-center justify-center h-[60vh] text-center border-2 border-dashed border-[#eceef1] dark:border-slate-800 rounded-2xl">
-                <div className="w-16 h-16 bg-teal-50 dark:bg-teal-900/20 text-[#0d9488] rounded-2xl flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2 capitalize">{activeNav.replace('-', ' ')}</h2>
-                <p className="text-slate-500 dark:text-slate-400 max-w-md">
-                  This module is currently under active development. Check back later for updates to the {activeNav.replace('-', ' ')} features.
-                </p>
-              </div>
-            )}
-
+    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
+        <div className="flex items-center gap-4">
+          <button 
+            type="button"
+            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <Logo />
+            <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
+              <span className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 px-2.5 py-1 rounded-md flex items-center gap-1 border border-rose-500/20">
+                <HeartPulse className="w-3.5 h-3.5" /> Nurse Portal
+              </span>
+            </div>
+            <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-rose-500" /> ABDM Nurse Station
+            </div>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* SEARCH BAR */}
+          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-44 xl:w-56 transition-colors focus-within:border-rose-500 dark:focus-within:border-rose-500">
+            <HeartPulse className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search patients, vitals..." 
+              className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
+              onClick={() => setActiveNav('patients')}
+            />
+          </div>
+
+          {/* THEME TOGGLE */}
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
+
+          {/* Notifications */}
+          <button 
+            type="button"
+            onClick={() => setNotificationPopoverOpen(true)}
+            className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            title="Nurse Notifications & Alerts"
+          >
+            <Bell className="w-5 h-5 text-rose-500" />
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
+                {unreadNotificationsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Quick Rounds / Patient Care Shortcut */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('patients')}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all cursor-pointer border border-rose-200 dark:border-rose-800/60 shadow-2xs"
+          >
+            <HeartPulse className="w-3.5 h-3.5" />
+            <span>Active Rounds</span>
+          </button>
+          
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+
+          {/* Quick Profile pill */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('profile')}
+            className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/30 border border-slate-200/60 dark:border-slate-700/60 transition-colors cursor-pointer"
+          >
+            <div className="w-7 h-7 rounded-xl bg-rose-500 text-white flex items-center justify-center font-black text-xs">
+              {nurseName.replace('Nurse ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+            </div>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{nurseName}</span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={onLogout}
+            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN LAYOUT */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* DESKTOP SIDEBAR */}
+        <div className="hidden lg:block shrink-0">
+          <NurseSidebar activeNav={activeNav} onNavigate={setActiveNav} user={resolvedNurse} />
+        </div>
+
+        {/* MOBILE SIDEBAR MODAL */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+              <motion.div 
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl flex flex-col z-10"
+              >
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <span className="font-black text-slate-900 dark:text-white">Nurse Console</span>
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <NurseSidebar 
+                    activeNav={activeNav} 
+                    onNavigate={(id) => {
+                      setActiveNav(id);
+                      setIsSidebarOpen(false);
+                    }} 
+                    user={resolvedNurse} 
+                  />
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* MAIN WORKBENCH VIEWPORT */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {renderActiveView()}
         </main>
       </div>
 
-      {/* FLOATING ACTION BUTTON */}
-      <NurseFloatingActions />
-
+      {/* NOTIFICATIONS POPOVER */}
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          setActiveNav('alerts');
+        }}
+      />
     </div>
   );
 };
-
-export default NurseDashboardPage;

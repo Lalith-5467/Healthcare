@@ -64,7 +64,7 @@ interface InsuranceViewProps {
 }
 
 export const InsuranceView: React.FC<InsuranceViewProps> = ({
-  user: _user,
+  user,
   onNavigate: _onNavigate,
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
           // Clean out invalid duplicates and align holder name
           const valid = parsed
             .filter((p: any) => p.planName && p.providerName)
-            .map((p: any) => ({ ...p, policyHolder: p.policyHolder || 'Ragul Kumar' }));
+            .map((p: any) => ({ ...p, policyHolder: p.policyHolder || user?.name || 'Policy Holder' }));
           if (valid.length > 0) {
             setPolicies(valid);
           }
@@ -210,7 +210,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     // 1. Submit to shared insurance workflow so insurance incharge sees it immediately
     submitPatientClaim({
       insuranceId: 'INS-MC-2026-10245',
-      patientName: 'Ragul Kumar',
+      patientName: user?.name || 'Patient',
       hospital: newClaim.hospitalName,
       treatment: newClaim.treatmentType,
       submittedAmount: newClaim.claimedAmount,

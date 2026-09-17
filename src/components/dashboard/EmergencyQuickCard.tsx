@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, QrCode } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface EmergencyQuickCardProps {
   onOpenEmergency: () => void;
 }
 
 export const EmergencyQuickCard: React.FC<EmergencyQuickCardProps> = ({ onOpenEmergency }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -19,7 +21,7 @@ export const EmergencyQuickCard: React.FC<EmergencyQuickCardProps> = ({ onOpenEm
         </div>
         <div className="space-y-1">
           <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight">
-            24x7 Emergency Assistance
+            {t('header.emergency_sos', '24x7 Emergency Assistance')}
           </h3>
           <p className="text-xs text-slate-700 dark:text-slate-200 font-medium">
             Quick access to your emergency contacts, 108 ambulance dispatch, & SOS QR card.
@@ -34,7 +36,7 @@ export const EmergencyQuickCard: React.FC<EmergencyQuickCardProps> = ({ onOpenEm
         className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-rose-600/30 hover:shadow-rose-600/50 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
       >
         <QrCode className="w-4 h-4" />
-        <span>Open SOS QR Card</span>
+        <span>{t('card.my_health_qr', 'Open SOS QR Card')}</span>
       </motion.button>
     </motion.div>
   );

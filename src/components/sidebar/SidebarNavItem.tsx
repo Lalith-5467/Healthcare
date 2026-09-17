@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import type { NavItemConfig } from './types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SidebarNavItemProps {
   item: NavItemConfig;
@@ -26,10 +27,12 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
   onSelectNav,
   isNested = false
 }) => {
+  const { t } = useLanguage();
   const Icon = item.icon;
   const isEmergency = item.isSpecial === 'sos';
   const isAI = item.isSpecial === 'ai';
   const hasChildren = item.children && item.children.length > 0;
+  const translatedLabel = t('nav.' + item.id, item.label);
 
   let containerClass = 'group relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer select-none w-full outline-none ';
 
@@ -65,7 +68,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
         whileHover={{ x: isCollapsed ? 0 : 2, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleClick}
-        aria-label={item.label}
+        aria-label={translatedLabel}
         className={containerClass}
       >
         {/* LEFT ACTIVE GLOW PILL */}
@@ -94,7 +97,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
         {!isCollapsed && (
           <div className="flex-1 flex items-center justify-between min-w-0 transition-all duration-150">
             <span className={`truncate ${isActive ? 'font-black text-slate-900 dark:text-white' : ''}`}>
-              {item.label}
+              {translatedLabel}
             </span>
 
             <div className="flex items-center gap-1.5 shrink-0">
@@ -164,7 +167,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
       {/* FLOATING TOOLTIP WHEN COLLAPSED */}
       {isCollapsed && (
         <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-2xl border border-slate-200 dark:border-slate-700 whitespace-nowrap opacity-0 pointer-events-none group-hover/tooltip:opacity-100 group-hover/tooltip:pointer-events-auto transition-opacity duration-150 z-50 flex items-center gap-2">
-          <span>{item.label}</span>
+          <span>{translatedLabel}</span>
           {item.badge && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold bg-teal-500/30 text-cyan-300 rounded-md">
               {item.badge}

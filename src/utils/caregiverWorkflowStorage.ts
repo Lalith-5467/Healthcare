@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { vitalApi } from '../services/dhrApis';
 
 export interface MedicationItem {
   id: string;
@@ -112,7 +113,6 @@ export interface CaregiverNotification {
 const STORAGE_KEY_WARDS = 'medicare_caregiver_wards_v2';
 const STORAGE_KEY_TASKS = 'medicare_caregiver_tasks_v2';
 const STORAGE_KEY_ALERTS = 'medicare_caregiver_alerts_v2';
-const STORAGE_KEY_NOTIFS = 'medicare_caregiver_notifs_v2';
 const STORAGE_KEY_ACTIVE_WARD = 'medicare_caregiver_active_ward_v2';
 
 const INITIAL_WARDS: WardDependent[] = [
@@ -509,103 +509,101 @@ const INITIAL_TASKS: CareTask[] = [
   }
 ];
 
-const INITIAL_NOTIFS: CaregiverNotification[] = [
-  {
-    id: 'nt-1',
-    wardId: 'ward-1',
-    wardName: 'Ragul Kumar',
-    title: 'Low Medication Stock Alert',
-    message: 'Atorvastatin 10mg has only 4 tablets remaining (2 days left). Tap to 1-click reorder.',
-    time: '20 mins ago',
-    read: false,
-    type: 'refill'
-  },
-  {
-    id: 'nt-2',
-    wardId: 'ward-1',
-    wardName: 'Ragul Kumar',
-    title: 'Upcoming Appointment Tomorrow',
-    message: 'Cardiology follow-up with Dr. Rajesh Varma at Apollo Hospital at 10:30 AM.',
-    time: '1 hour ago',
-    read: false,
-    type: 'appointment'
-  },
-  {
-    id: 'nt-3',
-    wardId: 'ward-2',
-    wardName: 'Meena Kumar',
-    title: 'Morning Vitals Recorded',
-    message: 'BP 122/78 mmHg is well within healthy bounds. Great job!',
-    time: '3 hours ago',
-    read: true,
-    type: 'vital'
-  }
-];
+
+
+import { caregiverApi } from '../services/dhrApis';
 
 export const useCaregiverWorkflow = () => {
-  const [wards, setWards] = useState<WardDependent[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_WARDS);
-    return saved ? JSON.parse(saved) : INITIAL_WARDS;
-  });
+  const [wards, setWards] = useState<WardDependent[]>(INITIAL_WARDS);
+  const [tasks, setTasks] = useState<CareTask[]>(INITIAL_TASKS);
+  const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
+  const [activeWardId, setActiveWardIdState] = useState<string>('ward-1');
+  const [loading, setLoading] = useState(false);
 
-  const [tasks, setTasks] = useState<CareTask[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_TASKS);
-    return saved ? JSON.parse(saved) : INITIAL_TASKS;
-  });
+  const loadBackendData = async () => {
+    try {
+      setLoading(true);
+      const res = await caregiverApi.getWards();
+      if (res && res.data && res.data.length > 0) {
+        const mappedWards: WardDependent[] = res.data.map((p: any, idx: number) => {
+          const rawVitals = Array.isArray(p.vitals) ? p.vitals : [];
+          const mappedVitals: VitalRecord[] = rawVitals.map((v: any) => ({
+            id: v.id,
+            date: new Date(v.recordedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+            time: new Date(v.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            systolic: v.systolicBp,
+            diastolic: v.diastolicBp,
+            heartRate: v.heartRate,
+            bloodSugar: v.bloodSugar,
+            sugarType: 'Post-Meal',
+            spo2: v.oxygenSaturation,
+            temperature: v.temperature,
+            weight: v.weightKg,
+            notes: v.notes,
+            status: (v.systolicBp > 140 || v.bloodSugar > 180) ? 'elevated' : 'normal',
+          }));
 
-  const [alerts, setAlerts] = useState<EmergencyAlert[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_ALERTS);
-    return saved ? JSON.parse(saved) : [];
-  });
+          const rawTasks = Array.isArray(p.caregiverTasks) ? p.caregiverTasks : [];
+          const mappedTasks: CareTask[] = rawTasks.map((t: any) => ({
+            id: t.id,
+            wardId: `ward-${idx + 1}`,
+            title: t.title,
+            category: t.category as any,
+            time: t.scheduledTime,
+            priority: (t.priority?.toLowerCase() || 'medium') as any,
+            completed: t.status === 'Completed',
+            completedAt: t.completedAt ? new Date(t.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+            assignedTo: 'Caregiver',
+            notes: t.notes,
+          }));
 
-  const [notifications, setNotifications] = useState<CaregiverNotification[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY_NOTIFS);
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFS;
-  });
+          if (mappedTasks.length > 0) {
+            setTasks(mappedTasks);
+          }
 
-  const [activeWardId, setActiveWardIdState] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY_ACTIVE_WARD) || 'ward-1';
-  });
+          const baseWard = INITIAL_WARDS[idx % INITIAL_WARDS.length] || INITIAL_WARDS[0];
+          return {
+            ...baseWard,
+            id: `ward-${idx + 1}`,
+            name: p.fullName || 'Patient',
+            age: p.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 68,
+            gender: (p.gender as any) || 'Female',
+            abhaId: p.user?.abhaId || '91-4421-8890-1204',
+            bloodGroup: p.bloodGroup || 'O+',
+            vitals: mappedVitals.length > 0 ? mappedVitals : baseWard.vitals,
+          };
+        });
+        setWards(mappedWards);
+        setActiveWardIdState(mappedWards[0].id);
+      }
+    } catch (err: any) {
+      console.error('Failed to load caregiver data from database:', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBackendData();
+    const handleSync = () => loadBackendData();
+    window.addEventListener('medicare_caregiver_sync', handleSync);
+    return () => {
+      window.removeEventListener('medicare_caregiver_sync', handleSync);
+    };
+  }, []);
 
   const setActiveWardId = (id: string) => {
     setActiveWardIdState(id);
-    localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, id);
-    window.dispatchEvent(new Event('medicare_caregiver_sync'));
   };
 
   const activeWard = wards.find(w => w.id === activeWardId) || wards[0] || INITIAL_WARDS[0];
 
-  const sync = (newWards = wards, newTasks = tasks, newAlerts = alerts, newNotifs = notifications) => {
-    localStorage.setItem(STORAGE_KEY_WARDS, JSON.stringify(newWards));
-    localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(newTasks));
-    localStorage.setItem(STORAGE_KEY_ALERTS, JSON.stringify(newAlerts));
-    localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(newNotifs));
-    localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, activeWardId);
+  const sync = (newWards = wards, newTasks = tasks, newAlerts = alerts) => {
+    setWards(newWards);
+    setTasks(newTasks);
+    setAlerts(newAlerts);
     window.dispatchEvent(new Event('medicare_caregiver_sync'));
   };
-
-  useEffect(() => {
-    const handleSync = () => {
-      const savedWards = localStorage.getItem(STORAGE_KEY_WARDS);
-      const savedTasks = localStorage.getItem(STORAGE_KEY_TASKS);
-      const savedAlerts = localStorage.getItem(STORAGE_KEY_ALERTS);
-      const savedNotifs = localStorage.getItem(STORAGE_KEY_NOTIFS);
-      const savedActiveWard = localStorage.getItem(STORAGE_KEY_ACTIVE_WARD);
-
-      if (savedWards) setWards(JSON.parse(savedWards));
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
-      if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
-      if (savedNotifs) setNotifications(JSON.parse(savedNotifs));
-      if (savedActiveWard) setActiveWardIdState(savedActiveWard);
-    };
-
-    window.addEventListener('storage', handleSync);
-    window.addEventListener('medicare_caregiver_sync', handleSync);
-    return () => {
-      window.removeEventListener('storage', handleSync);
-      window.removeEventListener('medicare_caregiver_sync', handleSync);
-    };
-  }, []);
 
   // 1. Toggle medication taken
   const toggleMedicationTaken = (wardId: string, medId: string) => {
@@ -627,7 +625,7 @@ export const useCaregiverWorkflow = () => {
       };
     });
     setWards(updated);
-    sync(updated, tasks, alerts, notifications);
+    sync(updated, tasks, alerts);
   };
 
   // 2. Add vital reading
@@ -652,6 +650,18 @@ export const useCaregiverWorkflow = () => {
       status
     };
 
+    // Sync to MySQL Database
+    vitalApi.createVital({
+      systolicBp: reading.systolic,
+      diastolicBp: reading.diastolic,
+      heartRate: reading.heartRate,
+      oxygenSaturation: reading.spo2,
+      temperature: reading.temperature,
+      bloodSugar: reading.bloodSugar,
+      weightKg: reading.weight,
+      notes: reading.notes || `Caregiver recorded vitals for ward ${wardId}`,
+    }).catch(() => {});
+
     const updated = wards.map(w => {
       if (w.id !== wardId) return w;
       return {
@@ -660,21 +670,8 @@ export const useCaregiverWorkflow = () => {
       };
     });
 
-    const notif: CaregiverNotification = {
-      id: `nt-${Date.now()}`,
-      wardId,
-      wardName: wards.find(w => w.id === wardId)?.name || 'Ward',
-      title: status === 'critical' ? '⚠️ Critical Vital Logged' : 'New Vital Reading Recorded',
-      message: `${newVital.systolic ? `BP: ${newVital.systolic}/${newVital.diastolic} mmHg` : ''} ${newVital.bloodSugar ? `Sugar: ${newVital.bloodSugar} mg/dL` : ''} ${newVital.spo2 ? `SpO2: ${newVital.spo2}%` : ''}`,
-      time: 'Just now',
-      read: false,
-      type: 'vital'
-    };
-
-    const newNotifs = [notif, ...notifications];
     setWards(updated);
-    setNotifications(newNotifs);
-    sync(updated, tasks, alerts, newNotifs);
+    sync(updated, tasks, alerts);
   };
 
   // 3. Request Pharmacy Refill
@@ -694,21 +691,8 @@ export const useCaregiverWorkflow = () => {
       };
     });
 
-    const notif: CaregiverNotification = {
-      id: `nt-${Date.now()}`,
-      wardId,
-      wardName: ward.name,
-      title: 'Pharmacy Refill Dispatched',
-      message: `Prescription refill for ${med.name} sent to Apollo Central Pharmacy. Expected arrival: 45 mins.`,
-      time: 'Just now',
-      read: false,
-      type: 'refill'
-    };
-
-    const newNotifs = [notif, ...notifications];
     setWards(updated);
-    setNotifications(newNotifs);
-    sync(updated, tasks, alerts, newNotifs);
+    sync(updated, tasks, alerts);
   };
 
   // 4. Toggle Task Complete
@@ -723,7 +707,7 @@ export const useCaregiverWorkflow = () => {
       };
     });
     setTasks(updatedTasks);
-    sync(wards, updatedTasks, alerts, notifications);
+    sync(wards, updatedTasks, alerts);
   };
 
   // 5. Add Care Task
@@ -735,7 +719,7 @@ export const useCaregiverWorkflow = () => {
     };
     const updatedTasks = [newTask, ...tasks];
     setTasks(updatedTasks);
-    sync(wards, updatedTasks, alerts, notifications);
+    sync(wards, updatedTasks, alerts);
   };
 
   // 6. Trigger SOS Emergency
@@ -754,21 +738,8 @@ export const useCaregiverWorkflow = () => {
 
     const newAlerts = [newAlert, ...alerts];
 
-    const notif: CaregiverNotification = {
-      id: `nt-${Date.now()}`,
-      wardId: ward.id,
-      wardName: ward.name,
-      title: `🚨 EMERGENCY ALERT: ${type}`,
-      message: `Emergency triggered for ${ward.name} at ${ward.currentLocation}. Ambulance & Care team notified.`,
-      time: 'Just now',
-      read: false,
-      type: 'alert'
-    };
-
-    const newNotifs = [notif, ...notifications];
     setAlerts(newAlerts);
-    setNotifications(newNotifs);
-    sync(wards, tasks, newAlerts, newNotifs);
+    sync(wards, tasks, newAlerts);
     return newAlert;
   };
 
@@ -776,7 +747,7 @@ export const useCaregiverWorkflow = () => {
   const resolveSOS = (alertId: string) => {
     const updatedAlerts = alerts.map(a => a.id === alertId ? { ...a, status: 'Resolved' as const } : a);
     setAlerts(updatedAlerts);
-    sync(wards, tasks, updatedAlerts, notifications);
+    sync(wards, tasks, updatedAlerts);
   };
 
   // 8. Add Note to Ward
@@ -800,7 +771,7 @@ export const useCaregiverWorkflow = () => {
     });
 
     setWards(updated);
-    sync(updated, tasks, alerts, notifications);
+    sync(updated, tasks, alerts);
   };
 
   // 9. Schedule Appointment
@@ -819,29 +790,11 @@ export const useCaregiverWorkflow = () => {
       };
     });
 
-    const notif: CaregiverNotification = {
-      id: `nt-${Date.now()}`,
-      wardId,
-      wardName: wards.find(w => w.id === wardId)?.name || 'Ward',
-      title: 'Appointment Confirmed',
-      message: `${apt.mode} booked with ${apt.doctorName} (${apt.specialty}) for ${apt.date} at ${apt.time}.`,
-      time: 'Just now',
-      read: false,
-      type: 'appointment'
-    };
-
-    const newNotifs = [notif, ...notifications];
     setWards(updated);
-    setNotifications(newNotifs);
-    sync(updated, tasks, alerts, newNotifs);
+    sync(updated, tasks, alerts);
   };
 
-  // 10. Mark Notif Read
-  const markNotifRead = (id: string) => {
-    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
-    setNotifications(updated);
-    sync(wards, tasks, alerts, updated);
-  };
+
 
   // 11. Add New Dependent Ward
   const addWard = (wardData: Omit<WardDependent, 'id' | 'vitals' | 'medications' | 'appointments' | 'notes' | 'geofenceStatus' | 'currentLocation' | 'lastLocationUpdate' | 'overallStatus'>) => {
@@ -867,7 +820,7 @@ export const useCaregiverWorkflow = () => {
     const updated = [...wards, newWard];
     setWards(updated);
     setActiveWardId(newWard.id);
-    sync(updated, tasks, alerts, notifications);
+    sync(updated, tasks, alerts);
   };
 
   return {
@@ -877,17 +830,15 @@ export const useCaregiverWorkflow = () => {
     activeWard,
     tasks,
     alerts,
-    notifications,
-    toggleMedicationTaken,
-    addVitalReading,
-    requestMedicationRefill,
     toggleTask,
-    addTask,
+    toggleMedicationTaken,
+    requestMedicationRefill,
+    addVitalReading,
     triggerSOS,
     resolveSOS,
     addNote,
+    addTask,
     addAppointment,
-    markNotifRead,
     addWard
   };
 };

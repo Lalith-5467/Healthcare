@@ -9,6 +9,18 @@ export interface OrderStatusUpdatePayload {
   previousStatus: string;
   updatedAt: string;
   message: string;
+  statusTimeline?: Record<string, string | null>;
+  totalAmount?: number | string;
+}
+
+export interface HealthShareEventPayload {
+  patientId?: string;
+  doctorId?: string;
+  userId?: string;
+  event: string;
+  requestId?: string;
+  status?: string;
+  data?: any;
 }
 
 const SOCKET_SERVER_URL = 'http://localhost:5000';
@@ -17,6 +29,8 @@ class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
   private listeners: Set<(payload: OrderStatusUpdatePayload) => void> = new Set();
+  private healthShareListeners: Set<(payload: HealthShareEventPayload) => void> = new Set();
+  private notificationListeners: Set<(payload: any) => void> = new Set();
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
 
   /**
@@ -70,6 +84,41 @@ class SocketService {
       });
     });
 
+    // Listen for health share events
+    const healthShareEvents = [
+      'health-share:request-created',
+      'health_share:request_created',
+      'health-share:request-approved',
+      'health_share:request_approved',
+      'health-share:request-rejected',
+      'health_share:request_rejected',
+      'health-share:session-revoked',
+      'health_share:session_revoked',
+    ];
+
+    healthShareEvents.forEach((evtName) => {
+      this.socket?.on(evtName, (payload: HealthShareEventPayload) => {
+        this.healthShareListeners.forEach((callback) => {
+          try {
+            callback(payload);
+          } catch (err) {
+            console.error(`Error handling socket health share event (${evtName}):`, err);
+          }
+        });
+      });
+    });
+
+    // Listen for real-time notifications
+    this.socket.on('notification:new', (payload: any) => {
+      this.notificationListeners.forEach((callback) => {
+        try {
+          callback(payload);
+        } catch (err) {
+          console.error('Error handling socket notification event:', err);
+        }
+      });
+    });
+
     return this.socket;
   }
 
@@ -80,6 +129,26 @@ class SocketService {
     this.listeners.add(callback);
     return () => {
       this.listeners.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to health share and access consent events
+   */
+  public subscribeToHealthShareEvents(callback: (payload: HealthShareEventPayload) => void): () => void {
+    this.healthShareListeners.add(callback);
+    return () => {
+      this.healthShareListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to new real-time notifications
+   */
+  public subscribeToNotifications(callback: (payload: any) => void): () => void {
+    this.notificationListeners.add(callback);
+    return () => {
+      this.notificationListeners.delete(callback);
     };
   }
 

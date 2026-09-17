@@ -5,6 +5,9 @@ import { requireRole } from '../middleware/role.middleware';
 import {
   getUsersController,
   getUserByIdController,
+  createUserController,
+  updateUserController,
+  deleteUserController,
   updateUserStatusController,
   updateUserRoleController,
 } from '../controllers/admin.controller';
@@ -21,21 +24,42 @@ router.get(
   getUsersController
 );
 
-// 2. Get single user details with role profile (ADMIN & SUPER_ADMIN)
+// 2. Create new user with profile in MySQL (ADMIN & SUPER_ADMIN)
+router.post(
+  '/users',
+  requireRole(Role.ADMIN, Role.SUPER_ADMIN),
+  createUserController
+);
+
+// 3. Get single user details with role profile (ADMIN & SUPER_ADMIN)
 router.get(
   '/users/:id',
   requireRole(Role.ADMIN, Role.SUPER_ADMIN),
   getUserByIdController
 );
 
-// 3. Activate or deactivate user (ADMIN & SUPER_ADMIN)
+// 4. Update user details & profile in MySQL (ADMIN & SUPER_ADMIN)
+router.put(
+  '/users/:id',
+  requireRole(Role.ADMIN, Role.SUPER_ADMIN),
+  updateUserController
+);
+
+// 5. Delete user from MySQL (ADMIN & SUPER_ADMIN)
+router.delete(
+  '/users/:id',
+  requireRole(Role.ADMIN, Role.SUPER_ADMIN),
+  deleteUserController
+);
+
+// 6. Activate or deactivate user (ADMIN & SUPER_ADMIN)
 router.patch(
   '/users/:id/status',
   requireRole(Role.ADMIN, Role.SUPER_ADMIN),
   updateUserStatusController
 );
 
-// 4. Update user role (SUPER_ADMIN ONLY - Ordinary ADMIN receives 403 Forbidden)
+// 7. Update user role (SUPER_ADMIN ONLY - Ordinary ADMIN receives 403 Forbidden)
 router.patch(
   '/users/:id/role',
   requireRole(Role.SUPER_ADMIN),

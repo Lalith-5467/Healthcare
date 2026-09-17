@@ -93,3 +93,67 @@ export const updateUserRoleController = async (
     next(error);
   }
 };
+
+export const createUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await AdminService.createUser({
+      ...req.body,
+      actorId: req.user!.id,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await AdminService.updateUser(id, {
+      ...req.body,
+      actorId: req.user!.id,
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await AdminService.deleteUser(id, req.user!.id, req.ip);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

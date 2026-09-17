@@ -17,7 +17,7 @@ export interface PrescriptionItemInput {
 }
 
 export interface CreatePrescriptionInput {
-  patientId: string;
+  patientId?: string;
   diagnosis?: string;
   notes?: string;
   validUntil?: string | Date;
@@ -48,13 +48,24 @@ export class PrescriptionService {
     user: AuthUser,
     ipAddress?: string
   ) {
+    let targetPatientId = data.patientId;
+    if (user.role === Role.PATIENT && !targetPatientId) {
+      const pat = await prisma.patient.findUnique({ where: { userId: user.id } });
+      if (!pat) throw new AppError('Patient profile not found', 404);
+      targetPatientId = pat.id;
+    }
+
+    if (!targetPatientId) {
+      throw new AppError('Patient ID is required', 400);
+    }
+
     // 1. Verify patient exists
     const patient = await prisma.patient.findUnique({
-      where: { id: data.patientId },
+      where: { id: targetPatientId },
     });
 
     if (!patient) {
-      const err: AppError = new Error(`Patient with ID ${data.patientId} not found`);
+      const err: AppError = new Error(`Patient with ID ${targetPatientId} not found`);
       err.statusCode = 404;
       throw err;
     }
@@ -101,7 +112,7 @@ export class PrescriptionService {
     // 3. Create prescription and nested items
     const prescription = await prisma.prescription.create({
       data: {
-        patientId: data.patientId,
+        patientId: targetPatientId,
         doctorId,
         diagnosis: data.diagnosis || null,
         notes: data.notes || null,
@@ -156,6 +167,20 @@ export class PrescriptionService {
         itemCount: prescription.items.length,
       },
     });
+
+    // 5. Notify Patient
+    if (patient.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: patient.userId,
+          title: 'New Prescription Issued',
+          message: `Dr. ${prescription.doctor?.fullName || 'Physician'} has prescribed ${prescription.items.map((i: any) => i.medicineName).join(', ')}.`,
+          type: 'PRESCRIPTION',
+          category: 'Prescription',
+          relatedModule: 'prescriptions',
+        },
+      });
+    }
 
     return prescription;
   }

@@ -30,10 +30,10 @@ router.post(
   createPharmacyController
 );
 
-// 3. Admin: List all pharmacies
+// 3. List all pharmacies
 router.get(
   '/',
-  requireRole('ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'PHARMACIST', 'NURSE', 'CAREGIVER', 'INSURANCE_PROVIDER', 'ADMIN', 'SUPER_ADMIN'),
   getPharmaciesController
 );
 

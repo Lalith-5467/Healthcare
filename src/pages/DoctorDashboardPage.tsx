@@ -23,19 +23,51 @@ import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/v
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
 import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
+import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 
 interface DoctorDashboardPageProps {
   onLogout: () => void;
   user?: { name: string; email: string };
+  initialNavId?: string;
+  onNavigate?: (navId: string) => void;
 }
 
-export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user }) => {
-  const [activeNav, setActiveNav] = useState('overview');
+export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const getInitialDoctorNav = () => {
+    if (!initialNavId || initialNavId === 'dashboard') return 'overview';
+    return initialNavId;
+  };
+  const [activeNav, setActiveNav] = useState(getInitialDoctorNav());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
   const [scannedPatientName, setScannedPatientName] = useState<string | undefined>(undefined);
   const [patient360Tab, setPatient360Tab] = useState('summary');
   const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNav(initialNavId === 'dashboard' ? 'overview' : initialNavId);
+    }
+  }, [initialNavId]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
 
@@ -71,7 +103,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   const renderActiveView = () => {
     switch (activeNav) {
       case 'overview':
-        return <DoctorOverviewView onNavigate={setActiveNav} user={user} />;
+        return <DoctorOverviewView onNavigate={setActiveNav} onSelectPatient={handleSelectPatient} user={user} />;
       case 'appointments':
       case 'schedule':
       case 'queue':
@@ -90,7 +122,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           />
         );
       case 'scan':
-        return <QRScannerView onScanSuccess={handleScanSuccess} />;
+        return <QRScannerView onScanSuccess={handleScanSuccess} onNavigateToDashboard={() => setActiveNav('overview')} />;
       case 'patient-360':
       case 'vitals':
       case 'labs':
@@ -139,7 +171,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {/* SEARCH BAR */}
           <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-teal-500 dark:focus-within:border-cyan-500">
             <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
@@ -154,12 +186,14 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           {/* LANGUAGE TOGGLE */}
           <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             <button
+              type="button"
               onClick={() => setLanguage('EN')}
               className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               EN
             </button>
             <button
+              type="button"
               onClick={() => setLanguage('TA')}
               className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
@@ -167,42 +201,54 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             </button>
           </div>
 
-          <ThemeToggle />
+          {/* THEME TOGGLE */}
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
+
+          {/* Notifications */}
+          <button 
+            type="button"
+            onClick={() => setNotificationPopoverOpen(true)}
+            className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
+            title="Doctor Notifications"
+          >
+            <Bell className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
+                {unreadNotificationsCount}
+              </span>
+            )}
+          </button>
 
           {/* Quick QR Scanner Shortcut */}
           <button
+            type="button"
             onClick={() => setActiveNav('scan')}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-teal-200 dark:border-teal-800/60"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-teal-200 dark:border-teal-800/60 shadow-2xs"
           >
+            <Stethoscope className="w-3.5 h-3.5" />
             <span>Scan QR</span>
           </button>
 
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+
           {/* User Display Pill */}
-          <div className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <div className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {doctorName.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <span className="text-xs font-black text-slate-800 dark:text-slate-200">{doctorName}</span>
           </div>
 
-          {/* Notifications */}
           <button 
-            onClick={() => setActiveNav('appointments')}
-            className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-            title="Appointments"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
-          </button>
-          
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
-
-          <button 
+            type="button"
             onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
+            title="Logout"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-xs font-bold hidden sm:block">Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
@@ -255,6 +301,16 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           {renderActiveView()}
         </main>
       </div>
+
+      {/* NOTIFICATIONS POPOVER */}
+      <NotificationPopover
+        isOpen={notificationPopoverOpen}
+        onClose={() => setNotificationPopoverOpen(false)}
+        onNavigateToNotifications={() => {
+          setNotificationPopoverOpen(false);
+          setActiveNav('appointments');
+        }}
+      />
     </div>
   );
 };

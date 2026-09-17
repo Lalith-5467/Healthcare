@@ -282,13 +282,47 @@ const initialStats: StatItem[] = [
   },
 ];
 
+import { dashboardApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
+
 /* ─────────────────────────────────────────────────────────────
    COMPONENT — grid/padding/gap UNCHANGED
    ───────────────────────────────────────────────────────────── */
 
 export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   const [items, setItems] = useState<StatItem[]>(initialStats);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    dashboardApi.getStats().then((res) => {
+      if (res && res.data) {
+        const d = res.data;
+        setItems((prev) =>
+          prev.map((item) => {
+            if (item.id === 'appointments') {
+              const count = d.upcomingAppointments ?? 2;
+              return {
+                ...item,
+                value: count.toString().padStart(2, '0'),
+                subtitle: `${count} upcoming scheduled`,
+                badgeText: `📅 ${count} Upcoming`,
+              };
+            }
+            if (item.id === 'medicines') {
+              const count = d.activePrescriptions ?? 3;
+              return {
+                ...item,
+                value: count.toString().padStart(2, '0'),
+                subtitle: `${count} active prescribed therapies`,
+              };
+            }
+            return item;
+          })
+        );
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isHovered) return;
@@ -301,7 +335,60 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
       });
     }, 3500);
     return () => clearInterval(id);
-  }, [isHovered, items]);
+  }, [isHovered]);
+
+  const translateStatTitle = (id: string, original: string) => {
+    switch (id) {
+      case 'checkup': return t('card.health_checkup', original);
+      case 'insurance': return t('card.insurance_policy', original);
+      case 'family': return t('card.family_members', original);
+      case 'appointments': return t('card.appointments', original);
+      case 'medicines': return t('card.active_medicines', original);
+      case 'analytics': return t('card.health_score', original);
+      default: return original;
+    }
+  };
+
+  const translateStatValue = (val: string) => {
+    if (val === 'Due') return t('card.due', 'Due');
+    return val;
+  };
+
+  const translateStatSubtitle = (id: string, original: string) => {
+    switch (id) {
+      case 'checkup': return t('card.scheduled_in_30_days', original);
+      case 'insurance': return t('card.careplus_active', original);
+      case 'family': return t('card.shared_emergency_records', original);
+      case 'appointments': return t('card.upcoming_this_week', original);
+      case 'medicines': return t('card.adherence_today', original);
+      case 'analytics': return t('card.points_from_last_week', original);
+      default: return original;
+    }
+  };
+
+  const translateStatBadge = (id: string, original: string) => {
+    switch (id) {
+      case 'checkup': return `📅 ${t('card.scheduled_in_30_days', 'Scheduled in 30 days')}`;
+      case 'insurance': return `✓ ${t('card.covered', 'Covered')}`;
+      case 'family': return `+ 3 ${t('card.linked', 'Linked')}`;
+      case 'appointments': return `📅 2 ${t('card.upcoming', 'Upcoming')}`;
+      case 'medicines': return `✓ 100% ${t('card.on_time', 'On Time')}`;
+      case 'analytics': return `↑ +4 ${t('card.health_score', 'pts')}`;
+      default: return original;
+    }
+  };
+
+  const translateStatFooter = (id: string, original: string) => {
+    switch (id) {
+      case 'checkup': return t('card.stay_healthy_checkup', original);
+      case 'insurance': return t('card.protected_coverage_active', original);
+      case 'family': return t('card.family_connected', original);
+      case 'appointments': return t('card.stay_on_track', original);
+      case 'medicines': return t('card.great_adherence', original);
+      case 'analytics': return t('card.improving_great', original);
+      default: return original;
+    }
+  };
 
   return (
     /* ── ORIGINAL: grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 — UNCHANGED ── */
@@ -353,7 +440,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                     className="flex items-center gap-0.5 text-[11px] font-bold group-hover:opacity-75 transition-opacity"
                     style={{ color: s.accentColor }}
                   >
-                    View <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    {t('apt.view_details', 'View')} <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
 
@@ -361,11 +448,11 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 <div className="flex items-center justify-between gap-1">
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight truncate">
-                      {s.title}
+                      {translateStatTitle(s.id, s.title)}
                     </p>
                     <div className="flex items-baseline gap-1 mt-0.5">
                       <span className="text-[1.6rem] font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                        {s.value}
+                        {translateStatValue(s.value)}
                       </span>
                       {s.unit && (
                         <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-500">{s.unit}</span>
@@ -381,10 +468,10 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 {/* Row 3 — Badge + subtitle */}
                 <div className="flex flex-col gap-1">
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${s.badgeCls}`}>
-                    {s.badgeText}
+                    {translateStatBadge(s.id, s.badgeText)}
                   </span>
                   <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate">
-                    {s.subtitle}
+                    {translateStatSubtitle(s.id, s.subtitle)}
                   </p>
                 </div>
 
@@ -395,7 +482,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
                 <div className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 border ${s.footerBg} shadow-sm`}>
                   <FooterIcon className={`w-3 h-3 shrink-0 ${s.footerIconCls}`} />
                   <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate">
-                    {s.footerText}
+                    {translateStatFooter(s.id, s.footerText)}
                   </span>
                 </div>
 

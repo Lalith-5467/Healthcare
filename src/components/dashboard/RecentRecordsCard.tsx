@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, ArrowRight, Download } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecentRecordsCardProps {
   onNavigate: (id: string) => void;
@@ -8,6 +9,7 @@ interface RecentRecordsCardProps {
 }
 
 export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate, onToast }) => {
+  const { t } = useLanguage();
   const records = [
     { id: 1, title: 'Complete Blood Count (CBC)', date: '21 Aug 2026', type: 'Lab Report', status: 'Normal', doctor: 'Dr. Anita Sharma' },
     { id: 2, title: 'Cardiology Prescription', date: '20 Aug 2026', type: 'Prescription', status: 'Active', doctor: 'Dr. Rajesh Kumar' },
@@ -33,7 +35,7 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Recent Health Records
+              {t('card.recent_records', 'Recent Health Records')}
             </h3>
             <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">ABDM Vault Encrypted Documents</span>
           </div>
@@ -43,7 +45,7 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
           onClick={() => onNavigate('records')}
           className="text-xs font-extrabold text-[#00a896] hover:underline flex items-center gap-1 cursor-pointer font-sans"
         >
-          <span>View All Records</span>
+          <span>{t('common.view_all', 'View All Records')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

@@ -319,22 +319,28 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* THEME TOGGLE */}
-            <ThemeToggle />
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
 
             {/* AUTH BUTTONS */}
-            <button
-              onClick={() => onNavigate('login')}
-              className="h-10 px-4 text-sm font-bold text-[#00a896] hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-2.5 ml-1">
+              <button
+                type="button"
+                onClick={() => onNavigate('login')}
+                className="h-10 px-4 text-sm font-bold text-[#00a896] hover:text-teal-700 dark:hover:text-cyan-300 hover:bg-teal-50/80 dark:hover:bg-teal-950/40 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center border border-teal-500/20 hover:border-teal-500/40"
+              >
+                Sign In
+              </button>
 
-            <button
-              onClick={() => onNavigate('register')}
-              className="h-10 px-4 text-sm font-bold text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-500 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer"
-            >
-              Register
-            </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('register')}
+                className="h-10 px-5 text-sm font-black text-white bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-cyan-600 rounded-xl transition-all shadow-md shadow-teal-500/25 hover:shadow-lg inline-flex items-center justify-center cursor-pointer active:scale-95"
+              >
+                Register
+              </button>
+            </div>
           </div>
 
           {/* MOBILE TOGGLE */}

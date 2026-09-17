@@ -1,12 +1,25 @@
 import { Router } from 'express';
-import { getTodaySchedule, createAppointment } from '../controllers/appointment.controller';
+import { authenticate } from '../middleware/auth.middleware';
+import {
+  getAppointmentsController,
+  getAppointmentByIdController,
+  createAppointmentController,
+  updateAppointmentController,
+  cancelAppointmentController,
+  getTodaySchedule,
+} from '../controllers/appointment.controller';
 
 const router = Router();
 
-// Route to get today's appointments for the doctor dashboard
-router.get('/schedule', getTodaySchedule);
+router.use(authenticate);
 
-// Route to create a new appointment from the patient portal
-router.post('/', createAppointment);
+router.get('/schedule', getTodaySchedule);
+router.get('/', getAppointmentsController);
+router.get('/:id', getAppointmentByIdController);
+router.post('/', createAppointmentController);
+router.patch('/:id', updateAppointmentController);
+router.patch('/:id/cancel', cancelAppointmentController);
+router.post('/:id/cancel', cancelAppointmentController);
+router.delete('/:id', cancelAppointmentController);
 
 export default router;

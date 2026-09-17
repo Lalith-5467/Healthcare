@@ -14,6 +14,7 @@ import { ScheduleAuditView } from '../components/pharmacist/ScheduleAuditView';
 import { PharmacyBillingView } from '../components/pharmacist/PharmacyBillingView';
 import { PharmacySettingsView } from '../components/pharmacist/PharmacySettingsView';
 import { PharmacistNotificationPopover } from '../components/pharmacist/PharmacistNotificationPopover';
+import { notificationApi } from '../services/dhrApis';
 import { showGlobalToast } from '../components/common/GlobalToastManager';
 import { getPharmacyOrders } from '../utils/healthWorkflowStorage';
 import { INITIAL_MEDICINE_STOCK } from '../components/pharmacy/pharmacyData';
@@ -40,7 +41,24 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
   const [orderFilterSubtab, setOrderFilterSubtab] = useState<string>('All');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res && res.data) {
+        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
+      }
+    } catch {}
+  };
+
+  React.useEffect(() => {
+    loadUnreadCount();
+    const handleUpdate = () => loadUnreadCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    return () => window.removeEventListener('notifications_updated', handleUpdate);
+  }, []);
 
   // Resolve logged-in username dynamically from user prop or localStorage
   const effectiveUser = React.useMemo(() => {
@@ -76,16 +94,21 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     }
   }, [initialNavId]);
 
+  const [targetOrderId, setTargetOrderId] = useState<string | null>(null);
+
   const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     setToastMessage(msg);
     showGlobalToast(msg, type);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleSelectNav = (id: string, filterSubtab?: string) => {
+  const handleSelectNav = (id: string, filterSubtab?: string, targetOrder?: string) => {
     setActiveNavId(id);
     if (filterSubtab) {
       setOrderFilterSubtab(filterSubtab);
+    }
+    if (targetOrder) {
+      setTargetOrderId(targetOrder);
     }
     localStorage.setItem('pharmacist_active_nav_id', id);
 
@@ -200,7 +223,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         <div className="flex-1 max-w-xl mx-2 relative">
           <form onSubmit={handleSearchSubmit} className="relative">
             <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -215,7 +238,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                   onClick={() => {
                     setSearchQuery('');
                   }}
-                  className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -367,24 +390,30 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           
           {/* THEME TOGGLE */}
-          <ThemeToggle />
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
 
           {/* NOTIFICATION BELL */}
-          <div className="relative">
+          <div className="relative flex items-center">
             <button
               onClick={() => setNotificationPopoverOpen(!notificationPopoverOpen)}
-              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Dispensary Alerts & Notifications"
+              className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
+              title="Notifications"
             >
               <Bell className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-[#0b1120] animate-pulse"></span>
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                </span>
+              )}
             </button>
 
             <PharmacistNotificationPopover
               isOpen={notificationPopoverOpen}
               onClose={() => setNotificationPopoverOpen(false)}
-              onNavigate={(navId) => {
-                handleSelectNav(navId);
+              onNavigate={(navId, orderId) => {
+                handleSelectNav(navId, undefined, orderId);
               }}
             />
           </div>
@@ -392,7 +421,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
 
           {/* User pill */}
-          <div className="hidden md:flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-slate-100 dark:bg-slate-800">
+          <div className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {(effectiveUser.name || 'Pharmacist').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
@@ -401,11 +430,11 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
 
           <button 
             onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-xs font-bold hidden sm:block">Logout</span>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
@@ -524,6 +553,8 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                 <PharmacistOrdersView
                   user={effectiveUser}
                   initialFilter={orderFilterSubtab}
+                  targetOrderId={targetOrderId}
+                  onClearTargetOrder={() => setTargetOrderId(null)}
                   onToast={showToast}
                 />
               ) : activeNavId === 'medicines' ? (

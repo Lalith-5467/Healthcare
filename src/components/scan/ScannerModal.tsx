@@ -567,13 +567,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       <>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-teal-500/10 text-[#00a896] dark:text-teal-450 border border-teal-500/20">
+            <div className="p-1.5 rounded-lg bg-teal-500/10 text-[#00a896] border border-teal-500/20">
               <Activity className="w-4 h-4" />
             </div>
-            <span className="text-xs font-black tracking-wide text-slate-700 dark:text-slate-300">Live OCR Extraction</span>
+            <span className="text-xs font-black tracking-wide text-slate-900">Live OCR Extraction</span>
           </div>
           {scannerState === 'scanning' && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-teal-655 dark:text-teal-400 border border-teal-500/20 bg-teal-500/10 animate-pulse">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-teal-700 border border-teal-500/20 bg-teal-500/10 animate-pulse">
               PROCESSING
             </span>
           )}
@@ -583,22 +583,22 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <div className="space-y-1">
           <div className="flex justify-between text-[10px] font-mono text-slate-500">
             <span>Extraction Progress</span>
-            <span className="text-teal-600 dark:text-teal-400 font-bold">{scanProgress}%</span>
+            <span className="text-[#00a896] font-bold">{scanProgress}%</span>
           </div>
-          <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div className="h-full bg-[#00a896] transition-all duration-100" style={{ width: `${scanProgress}%` }} />
           </div>
         </div>
 
         {/* Detected fields */}
         <div className="space-y-2 flex-1">
-          <div className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 dark:text-slate-500">Detected Fields</div>
+          <div className="text-[10px] font-black uppercase tracking-wide text-slate-500">Detected Fields</div>
           <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
             {detectedFields.length === 0 ? (
-              <p className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500 italic font-mono">Awaiting scan initiation...</p>
+              <p className="text-xs text-slate-400 italic font-mono">Awaiting scan initiation...</p>
             ) : (
               detectedFields.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                <div key={i} className="flex items-center gap-2 text-xs text-slate-800 font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   <span>{f}</span>
                 </div>
@@ -608,18 +608,18 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         </div>
 
         {/* Trust credentials metrics */}
-        <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800/80">
+        <div className="space-y-2 pt-4 border-t border-slate-100">
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">Confidence Score</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">{confidence > 0 ? `${confidence}%` : '—'}</span>
+            <span className="font-bold text-emerald-600">{confidence > 0 ? `${confidence}%` : '—'}</span>
           </div>
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">ABDM Compliant</span>
-            <span className="font-bold text-[#00a896] dark:text-teal-450">{confidence > 50 ? 'VERIFIED' : 'PENDING'}</span>
+            <span className="font-bold text-[#00a896]">{confidence > 50 ? 'VERIFIED' : 'PENDING'}</span>
           </div>
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">Processing Engine</span>
-            <span className="font-bold text-purple-600 dark:text-purple-405 font-medium">Tesseract OCR v4 + NLP</span>
+            <span className="font-bold text-purple-600 font-medium">Tesseract OCR v4 + NLP</span>
           </div>
         </div>
       </>
@@ -632,60 +632,63 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex flex-col"
-      style={{ backgroundColor: '#020617' }}
-    >
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-slate-50 text-slate-900 font-sans">
       {/* Hidden inputs */}
       <input ref={nativeCameraRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" />
       <input ref={galleryRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
 
       {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
-      <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200 dark:border-slate-800" style={{ backgroundColor: '#0f172a' }}>
+      <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200 bg-white shadow-xs">
         <button
           type="button" onClick={onClose}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-slate-200 hover:text-slate-900 dark:text-white text-xs font-extrabold border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
-          style={{ backgroundColor: '#1e293b' }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-slate-700 hover:text-slate-900 text-xs font-extrabold border border-slate-200 bg-slate-100 hover:bg-slate-200 cursor-pointer transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Exit Scanner</span>
         </button>
 
         <div className="flex items-center gap-2.5">
-          <div className="relative w-8 h-8 rounded-xl flex items-center justify-center text-cyan-400 border border-teal-500/30" style={{ backgroundColor: 'rgba(20,184,166,0.15)' }}>
+          <div className="relative w-8 h-8 rounded-xl flex items-center justify-center text-[#00a896] border border-teal-500/30 bg-teal-500/10">
             <Scan className="w-4 h-4" />
             {phase === 'scanning' && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
             )}
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-900 dark:text-white tracking-wide">AI Optical Medical Scanner</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-300 border border-emerald-500/30 animate-pulse" style={{ backgroundColor: 'rgba(16,185,129,0.15)' }}>
+              <span className="text-xs font-black text-slate-900 tracking-wide">AI Optical Medical Scanner</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-700 border border-emerald-500/30 bg-emerald-50 animate-pulse">
                 {phase === 'scanning' ? 'PROCESSING' : 'LIVE OCR HUD'}
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{phase === 'scanning' ? scanStatusMsg : 'Auto-edge detection • ABDM compliant'}</p>
+            <p className="text-[10px] text-slate-500 font-mono">{phase === 'scanning' ? scanStatusMsg : 'Auto-edge detection • ABDM compliant'}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button" onClick={() => setFlashOn(f => !f)}
-            className="p-2 rounded-xl transition-colors cursor-pointer border text-xs font-bold flex items-center gap-1.5"
-            style={{ backgroundColor: flashOn ? 'rgba(245,158,11,0.15)' : '#1e293b', borderColor: flashOn ? 'rgba(245,158,11,0.4)' : '#334155', color: flashOn ? '#fcd34d' : '#94a3b8' }}
+            className={`p-2 rounded-xl transition-colors cursor-pointer border text-xs font-bold flex items-center gap-1.5 ${
+              flashOn
+                ? 'bg-amber-50 border-amber-300 text-amber-700'
+                : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+            }`}
           >
             {flashOn ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
             <span className="hidden md:inline">{flashOn ? 'Torch ON' : 'Torch OFF'}</span>
           </button>
-          <button type="button" onClick={onClose} className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white transition-colors cursor-pointer border border-slate-200 dark:border-slate-700" style={{ backgroundColor: '#1e293b' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-600 hover:text-slate-900 transition-colors cursor-pointer border border-slate-200 bg-slate-100 hover:bg-slate-200"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* ── MAIN AREA ───────────────────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden relative" style={{ backgroundColor: '#020617' }}>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden relative bg-slate-50">
         {/* Subtle grid background */}
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(0,168,150,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,168,150,0.04) 1px, transparent 1px)',
@@ -701,26 +704,28 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.94, opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="relative w-full max-w-xl rounded-3xl p-6 sm:p-8 space-y-5 text-center text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-2xl"
-              style={{ backgroundColor: 'rgba(15,23,42,0.98)' }}
+              className="relative w-full max-w-xl rounded-3xl p-6 sm:p-8 space-y-5 text-center text-slate-900 border border-slate-200/90 bg-white shadow-xl"
             >
               <div className="space-y-2">
-                <div className="w-16 h-16 rounded-2xl border border-teal-500/30 flex items-center justify-center text-cyan-400 mx-auto" style={{ backgroundColor: 'rgba(20,184,166,0.15)' }}>
+                <div className="w-16 h-16 rounded-2xl border border-teal-500/30 flex items-center justify-center text-[#00a896] bg-teal-500/10 mx-auto shadow-xs">
                   <Scan className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Medical Document Optical Scanner</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Medical Document Optical Scanner</h3>
+                <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
                   Scan prescriptions, lab reports, or hospital summaries using live camera or instant AI demo extraction.
                 </p>
               </div>
 
               {/* Doc type selector */}
-              <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800" style={{ backgroundColor: '#020617' }}>
+              <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-slate-200 bg-slate-100/90">
                 {(['prescription', 'lab_report'] as const).map(t => (
                   <button
                     key={t} type="button" onClick={() => setActiveDocType(t)}
-                    className="py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    style={{ backgroundColor: activeDocType === t ? '#00a896' : 'transparent', color: activeDocType === t ? '#fff' : '#94a3b8' }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeDocType === t
+                        ? 'bg-[#00a896] text-white shadow-sm'
+                        : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
                   >
                     {t === 'prescription' ? <Sparkles className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
                     <span>{t === 'prescription' ? 'Prescription Rx' : 'Lab Report'}</span>
@@ -733,43 +738,41 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 {/* Camera */}
                 <div
                   onClick={handleStartCamera}
-                  className="p-4 rounded-2xl border border-teal-500/30 transition-all cursor-pointer flex flex-col gap-3 hover:border-teal-400/60"
-                  style={{ backgroundColor: 'rgba(20,184,166,0.08)' }}
+                  className="p-4 rounded-2xl border border-teal-200 bg-teal-50/40 hover:bg-teal-50/80 transition-all cursor-pointer flex flex-col gap-3 hover:border-teal-400 shadow-xs hover:shadow-md group"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="p-2 rounded-xl text-slate-900 dark:text-white shadow" style={{ backgroundColor: '#00a896' }}><Camera className="w-5 h-5" /></div>
-                    <span className="text-[10px] font-mono font-bold text-teal-300 px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(20,184,166,0.2)' }}>Real-time</span>
+                    <div className="p-2 rounded-xl text-white shadow-xs bg-[#00a896] group-hover:scale-105 transition-transform"><Camera className="w-5 h-5" /></div>
+                    <span className="text-[10px] font-mono font-bold text-teal-700 bg-teal-100/80 border border-teal-300 px-2 py-0.5 rounded-full">Real-time</span>
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">Start Device Camera</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Live optical capture via webcam or mobile camera.</p>
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-[#00a896] transition-colors">Start Device Camera</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Live optical capture via webcam or mobile camera.</p>
                   </div>
                 </div>
 
                 {/* AI Demo */}
                 <div
                   onClick={() => startScan()}
-                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex flex-col gap-3 hover:border-amber-500/40"
-                  style={{ backgroundColor: 'rgba(30,41,59,0.8)' }}
+                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-amber-50/30 transition-all cursor-pointer flex flex-col gap-3 hover:border-amber-400 shadow-xs hover:shadow-md group"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="p-2 rounded-xl border border-amber-500/30 text-amber-400" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}><Cpu className="w-5 h-5" /></div>
-                    <span className="text-[10px] font-mono font-bold text-amber-300 px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}>AI Demo</span>
+                    <div className="p-2 rounded-xl border border-amber-300 text-amber-600 bg-amber-50 group-hover:scale-105 transition-transform"><Cpu className="w-5 h-5" /></div>
+                    <span className="text-[10px] font-mono font-bold text-amber-700 bg-amber-100/80 border border-amber-300 px-2 py-0.5 rounded-full">AI Demo</span>
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">Instant AI Scan Demo</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Simulate full OCR extraction pipeline instantly.</p>
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-amber-700 transition-colors">Instant AI Scan Demo</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Simulate full OCR extraction pipeline instantly.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                <button type="button" onClick={onSwitchToUpload} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white font-bold flex items-center gap-1.5 cursor-pointer">
-                  <Upload className="w-3.5 h-3.5 text-teal-400" />
+              <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <button type="button" onClick={onSwitchToUpload} className="text-slate-700 hover:text-[#00a896] font-bold flex items-center gap-1.5 cursor-pointer">
+                  <Upload className="w-3.5 h-3.5 text-[#00a896]" />
                   <span>Upload PDF or photo from device</span>
                 </button>
                 <div className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-mono">
-                  <Lock className="w-3 h-3 text-emerald-400" />
+                  <Lock className="w-3 h-3 text-emerald-600" />
                   <span>On-Device HIPAA Encryption</span>
                 </div>
               </div>
@@ -788,12 +791,11 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             >
               {/* ── VIEWFINDER ─────────────────────────────────────── */}
               <div
-                className="relative w-full max-w-sm rounded-3xl overflow-hidden border-2 shadow-2xl"
+                className="relative w-full max-w-sm rounded-3xl overflow-hidden border-2 shadow-2xl bg-slate-900"
                 style={{
                   aspectRatio: '3/4', maxHeight: '62vh',
-                  backgroundColor: '#0f172a',
-                  borderColor: scanProgress > 80 ? '#34d399' : '#22d3ee',
-                  boxShadow: `0 0 ${scanProgress > 50 ? 30 : 10}px ${scanProgress > 80 ? '#34d39940' : '#22d3ee30'}`,
+                  borderColor: scanProgress > 80 ? '#10b981' : '#00a896',
+                  boxShadow: `0 0 ${scanProgress > 50 ? 25 : 10}px ${scanProgress > 80 ? '#10b98140' : '#00a89630'}`,
                 }}
               >
                 {flashOn && <div className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundColor: 'rgba(254,240,138,0.1)' }} />}
@@ -804,8 +806,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 {scannerState === 'scanning' && (
                   <div className="absolute inset-0 z-20 pointer-events-none p-3 flex flex-col justify-between">
                     {/* Top status pill */}
-                    <div className="flex justify-between items-center text-[10px] font-mono text-cyan-300 px-3 py-1.5 rounded-full border"
-                      style={{ backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(34,211,238,0.3)', backdropFilter: 'blur(8px)' }}>
+                    <div className="flex justify-between items-center text-[10px] font-mono text-cyan-300 px-3 py-1.5 rounded-full border bg-slate-950/80 border-cyan-500/30 backdrop-blur-md">
                       <span className="flex items-center gap-1.5">
                         <motion.span
                           className="w-2 h-2 rounded-full bg-emerald-400"
@@ -835,15 +836,14 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
                     {/* Bottom progress */}
                     <div className="space-y-1.5">
-                      <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(30,41,59,0.8)' }}>
+                      <div className="w-full h-1 rounded-full overflow-hidden bg-slate-800">
                         <motion.div
                           className="h-full rounded-full"
                           style={{ width: `${scanProgress}%`, background: 'linear-gradient(to right, #00a896, #22d3ee)', boxShadow: '0 0 8px #22d3ee' }}
                           transition={{ duration: 0.1 }}
                         />
                       </div>
-                      <div className="text-center text-[11px] font-mono px-2 py-1 rounded-xl border"
-                        style={{ color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(2,6,23,0.75)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                      <div className="text-center text-[11px] font-mono px-2 py-1 rounded-xl border text-white/90 bg-slate-950/80 border-white/10">
                         {scanStatusMsg}
                       </div>
                     </div>
@@ -856,8 +856,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.35, delay: 0.1 }}
-                className="w-full max-w-xs rounded-2xl p-4 space-y-3 shadow-2xl border border-slate-200 dark:border-slate-800"
-                style={{ backgroundColor: 'rgba(15,23,42,0.98)' }}
+                className="w-full max-w-xs rounded-3xl p-5 space-y-3 shadow-xl border border-slate-200 bg-white"
               >
                 {renderTelemetryContent()}
               </motion.div>
@@ -867,15 +866,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       </div>
 
       {/* ── BOTTOM CONTROLS ─────────────────────────────────────────────── */}
-      <div className="shrink-0 px-6 py-4 border-t border-slate-200 dark:border-slate-800 shadow-2xl" style={{ backgroundColor: 'rgba(15,23,42,0.98)' }}>
+      <div className="shrink-0 px-6 py-4 border-t border-slate-200 bg-white shadow-lg">
         <div className="max-w-md mx-auto flex items-center justify-between gap-6">
           {/* Gallery */}
           <button type="button" onClick={() => galleryRef.current?.click()}
-            className="flex flex-col items-center gap-1.5 cursor-pointer group" style={{ color: '#64748b' }}>
-            <div className="p-3 rounded-2xl border border-slate-200 dark:border-slate-700 group-hover:border-cyan-500/40 group-hover:scale-105 transition-all" style={{ backgroundColor: '#1e293b' }}>
-              <Image className="w-5 h-5 text-cyan-400" />
+            className="flex flex-col items-center gap-1.5 cursor-pointer group text-slate-600 hover:text-slate-900 transition-colors">
+            <div className="p-3 rounded-2xl border border-slate-200 bg-slate-100 group-hover:bg-slate-200 group-hover:border-teal-500/40 group-hover:scale-105 transition-all shadow-xs">
+              <Image className="w-5 h-5 text-[#00a896]" />
             </div>
-            <span className="text-[11px] font-bold">Photo Library</span>
+            <span className="text-[11px] font-bold text-slate-700">Photo Library</span>
           </button>
 
           {/* Main scan button */}
@@ -887,28 +886,26 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             aria-label="Start Scan"
           >
             <motion.div
-              className="rounded-full border-2 flex items-center justify-center p-1.5 w-16 h-16"
+              className="rounded-full border-2 flex items-center justify-center p-1.5 w-16 h-16 border-teal-500/40 bg-teal-50"
               animate={phase === 'scanning' ? { boxShadow: ['0 0 0px #00a89620', '0 0 20px #00a89650', '0 0 0px #00a89620'] } : {}}
               transition={{ duration: 1, repeat: Infinity }}
-              style={{ borderColor: 'rgba(0,168,150,0.8)', backgroundColor: '#020617' }}
             >
-              <div className="w-full h-full rounded-full flex items-center justify-center text-slate-900 dark:text-white shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #00a896, #22d3ee)' }}>
+              <div className="w-full h-full rounded-full flex items-center justify-center text-white shadow-md bg-[#00a896] hover:bg-[#00897b] transition-colors">
                 {phase === 'scanning' ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Scan className="w-6 h-6" />}
               </div>
             </motion.div>
-            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 whitespace-nowrap">
               {phase === 'scanning' ? 'Scanning...' : 'Start Scan'}
             </span>
           </button>
 
           {/* Upload */}
           <button type="button" onClick={onSwitchToUpload}
-            className="flex flex-col items-center gap-1.5 cursor-pointer group" style={{ color: '#64748b' }}>
-            <div className="p-3 rounded-2xl border border-slate-200 dark:border-slate-700 group-hover:border-cyan-500/40 group-hover:scale-105 transition-all" style={{ backgroundColor: '#1e293b' }}>
-              <Upload className="w-5 h-5 text-cyan-400" />
+            className="flex flex-col items-center gap-1.5 cursor-pointer group text-slate-600 hover:text-slate-900 transition-colors">
+            <div className="p-3 rounded-2xl border border-slate-200 bg-slate-100 group-hover:bg-slate-200 group-hover:border-teal-500/40 group-hover:scale-105 transition-all shadow-xs">
+              <Upload className="w-5 h-5 text-[#00a896]" />
             </div>
-            <span className="text-[11px] font-bold">Upload File</span>
+            <span className="text-[11px] font-bold text-slate-700">Upload File</span>
           </button>
         </div>
       </div>

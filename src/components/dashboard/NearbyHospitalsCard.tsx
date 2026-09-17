@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Building2, ArrowRight, MapPin } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface NearbyHospitalsCardProps {
   onNavigate: (id: string) => void;
 }
 
 export const NearbyHospitalsCard: React.FC<NearbyHospitalsCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -21,7 +23,7 @@ export const NearbyHospitalsCard: React.FC<NearbyHospitalsCardProps> = ({ onNavi
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Nearby Hospitals
+              {t('nav.hospitals', 'Nearby Hospitals')}
             </h3>
             <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">12 Empanelled Facilities</span>
           </div>
@@ -43,7 +45,7 @@ export const NearbyHospitalsCard: React.FC<NearbyHospitalsCardProps> = ({ onNavi
           onClick={() => onNavigate('hospitals')}
           className="inline-flex items-center gap-1.5 font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-sans"
         >
-          <span>Find Nearby Hospitals</span>
+          <span>{t('nav.hospitals', 'Find Nearby Hospitals')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 

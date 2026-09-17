@@ -1,18 +1,18 @@
 export interface ReminderItem {
   id: string;
   title: string;
-  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System';
+  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System' | 'Clinical Access' | string;
   description: string;
   date: string; // e.g. "24 Aug 2026"
   time: string; // e.g. "12:30 PM"
   repeat: 'Does not repeat' | 'Daily' | 'Weekly' | 'Monthly' | 'Custom';
   customDays?: string[];
   timing: 'At scheduled time' | '5 minutes before' | '15 minutes before' | '30 minutes before' | '1 hour before' | '1 day before';
-  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled';
+  status: 'Upcoming' | 'Due Now' | 'Completed' | 'Snoozed' | 'Dismissed' | 'Missed' | 'Pending' | 'Confirmed' | 'Declined' | 'Cancelled' | string;
   priority: 'Normal' | 'Important' | 'High Priority';
   completedTime?: string;
   snoozedUntil?: string;
-  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation' | 'health-share' | 'dashboard' | string;
   sourcePrescriptionId?: string;
   doctorName?: string;
   clinicName?: string;
@@ -24,11 +24,11 @@ export interface NotificationLog {
   id: string;
   title: string;
   description: string;
-  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System';
+  category: 'Medication' | 'Appointment' | 'Pharmacy' | 'Consultation' | 'General' | 'System' | 'Clinical Access' | string;
   timeAgo: string;
   date: string;
   isRead: boolean;
-  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation';
+  relatedModule?: 'medicines' | 'appointments' | 'pharmacy' | 'consultation' | 'health-share' | 'dashboard' | string;
 }
 
 export interface NotificationSettingsState {
@@ -171,57 +171,7 @@ export const INITIAL_REMINDERS: ReminderItem[] = [
   }
 ];
 
-export const INITIAL_NOTIFICATIONS: NotificationLog[] = [
-  {
-    id: 'NOTIF-201',
-    title: 'Medicine marked as taken',
-    description: 'Vitamin D3 (1000 IU) marked as taken at 08:02 AM.',
-    category: 'Medication',
-    timeAgo: '2 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'medicines'
-  },
-  {
-    id: 'NOTIF-202',
-    title: 'Appointment Reminder',
-    description: 'Your Cardiology appointment with Dr. Rajesh Kumar is today at 05:00 PM.',
-    category: 'Appointment',
-    timeAgo: '3 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'appointments'
-  },
-  {
-    id: 'NOTIF-203',
-    title: 'Pharmacy Refill Dispatched',
-    description: 'Refill Order RX-2026-00482 is out for delivery with HealthPlus Pharmacy.',
-    category: 'Pharmacy',
-    timeAgo: '5 hours ago',
-    date: 'Today',
-    isRead: false,
-    relatedModule: 'pharmacy'
-  },
-  {
-    id: 'NOTIF-204',
-    title: 'Consultation Summary Available',
-    description: 'Dr. Rajesh Kumar published your video consultation summary notes.',
-    category: 'Consultation',
-    timeAgo: 'Yesterday',
-    date: '23 Aug',
-    isRead: true,
-    relatedModule: 'consultation'
-  },
-  {
-    id: 'NOTIF-205',
-    title: 'System Backup Complete',
-    description: 'Longitudinal medical records encrypted & synced to ABDM storage.',
-    category: 'System',
-    timeAgo: '2 days ago',
-    date: '22 Aug',
-    isRead: true
-  }
-];
+
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettingsState = {
   medicationReminders: true,

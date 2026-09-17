@@ -191,48 +191,83 @@ const INITIAL_MOCK_DATA: InsurancePolicyRecord[] = [
   }
 ];
 
-const getInsuranceRecords = (): InsurancePolicyRecord[] => {
-  const data = localStorage.getItem(STORAGE_KEY_INSURANCE);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY_INSURANCE, JSON.stringify(INITIAL_MOCK_DATA));
-    return INITIAL_MOCK_DATA;
-  }
-  try {
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MOCK_DATA;
-  } catch {
-    return INITIAL_MOCK_DATA;
-  }
-};
+import { insuranceApi } from '../services/dhrApis';
 
 export const useInsuranceWorkflow = () => {
-  const [records, setRecords] = useState<InsurancePolicyRecord[]>(() => getInsuranceRecords());
+  const [records, setRecords] = useState<InsurancePolicyRecord[]>(INITIAL_MOCK_DATA);
+  const [loading, setLoading] = useState(false);
+
+  const loadBackendPolicies = async () => {
+    try {
+      setLoading(true);
+      const res = await insuranceApi.getPolicies();
+      if (res && res.data && res.data.length > 0) {
+        const mapped: InsurancePolicyRecord[] = res.data.map((p: any) => {
+          let benefitsObj = INITIAL_MOCK_DATA[0].benefits;
+          try {
+            if (p.benefits) benefitsObj = typeof p.benefits === 'string' ? JSON.parse(p.benefits) : p.benefits;
+          } catch {}
+
+          const rawClaims = Array.isArray(p.claims) ? p.claims : [];
+          const activeClaim = rawClaims.find((c: any) => c.status === 'New' || c.status === 'Under Review') || null;
+          const pastClaims = rawClaims.filter((c: any) => c.status !== 'New' && c.status !== 'Under Review');
+
+          const mapClaim = (c: any): InsuranceClaim => ({
+            claimId: c.claimId || c.id,
+            insuranceId: p.insuranceId,
+            patientId: p.patientId,
+            hospital: c.hospital,
+            treatment: c.treatment,
+            admissionDate: new Date(c.admissionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            dischargeDate: new Date(c.dischargeDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            submittedAmount: Number(c.submittedAmount),
+            approvedAmount: Number(c.approvedAmount),
+            patientContribution: Number(c.patientContribution),
+            status: c.status as any,
+            documents: c.documents ? (typeof c.documents === 'string' ? JSON.parse(c.documents) : c.documents) : [],
+            timeline: c.timeline ? (typeof c.timeline === 'string' ? JSON.parse(c.timeline) : c.timeline) : [],
+          });
+
+          return {
+            insuranceId: p.insuranceId,
+            patientId: p.patientId,
+            patientName: p.patient?.fullName || 'Patient',
+            policyNumber: p.policyNumber,
+            policyName: p.policyName,
+            policyStatus: p.policyStatus as any,
+            policyStartDate: new Date(p.policyStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            policyEndDate: new Date(p.policyEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            coverageAmount: Number(p.coverageAmount),
+            usedCoverage: Number(p.usedCoverage),
+            remainingCoverage: Number(p.remainingCoverage),
+            benefits: benefitsObj,
+            claims: pastClaims.map(mapClaim),
+            currentClaim: activeClaim ? mapClaim(activeClaim) : null,
+          };
+        });
+        setRecords(mapped);
+      }
+    } catch (err: any) {
+      console.error('Failed to load insurance policies from database:', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setRecords(getInsuranceRecords());
+    loadBackendPolicies();
 
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY_INSURANCE) {
-        setRecords(getInsuranceRecords());
-      }
-    };
-    
     const handleCustomEvent = () => {
-      setRecords(getInsuranceRecords());
+      loadBackendPolicies();
     };
 
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('medicare_sync_insurance', handleCustomEvent);
-
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('medicare_sync_insurance', handleCustomEvent);
     };
   }, []);
 
-  const triggerSync = (updatedRecords: InsurancePolicyRecord[]) => {
-    localStorage.setItem(STORAGE_KEY_INSURANCE, JSON.stringify(updatedRecords));
-    setRecords(updatedRecords);
+  const triggerSync = () => {
     window.dispatchEvent(new Event('medicare_sync_insurance'));
   };
 
@@ -240,10 +275,8 @@ export const useInsuranceWorkflow = () => {
   const searchPolicy = (query: string): InsurancePolicyRecord | null => {
     if (!query) return null;
     const q = query.trim().toLowerCase();
-    const current = getInsuranceRecords();
 
-    // 1. Exact match on insuranceId, policyNumber, or patientId
-    const exact = current.find(r => 
+    const exact = records.find(r => 
       r.insuranceId.toLowerCase() === q ||
       r.policyNumber.toLowerCase() === q ||
       r.patientId.toLowerCase() === q ||
@@ -252,8 +285,7 @@ export const useInsuranceWorkflow = () => {
     );
     if (exact) return exact;
 
-    // 2. Substring match
-    const partial = current.find(r => 
+    const partial = records.find(r => 
       r.insuranceId.toLowerCase().includes(q) ||
       r.policyNumber.toLowerCase().includes(q) ||
       r.patientName.toLowerCase().includes(q) ||
@@ -266,7 +298,7 @@ export const useInsuranceWorkflow = () => {
   };
 
   // Patient Submits a New Claim
-  const submitPatientClaim = (claimInput: {
+  const submitPatientClaim = async (claimInput: {
     insuranceId?: string;
     patientName?: string;
     hospital: string;
@@ -274,169 +306,77 @@ export const useInsuranceWorkflow = () => {
     submittedAmount: number;
     attachedFiles?: string[];
   }) => {
-    const current = getInsuranceRecords();
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const targetPolicy = records.find(r => r.insuranceId === claimInput.insuranceId) || records[0];
     const claimId = `CLM-2026-${Math.floor(10000 + Math.random() * 90000)}`;
 
-    const targetInsuranceId = claimInput.insuranceId || 'INS-MC-2026-10245';
-
-    let recordFound = false;
-    const updated = current.map(record => {
-      if (record.insuranceId === targetInsuranceId || record.patientName.toLowerCase() === (claimInput.patientName || '').toLowerCase()) {
-        recordFound = true;
-
-        const newClaim: InsuranceClaim = {
-          claimId,
-          insuranceId: record.insuranceId,
-          patientId: record.patientId,
-          hospital: claimInput.hospital,
-          treatment: claimInput.treatment,
-          admissionDate: dateStr,
-          dischargeDate: 'Ongoing / Submitted',
-          submittedAmount: claimInput.submittedAmount,
-          approvedAmount: 0,
-          patientContribution: 0,
-          status: 'Under Review',
-          documents: (claimInput.attachedFiles || ['Hospital_Bill.pdf', 'Discharge_Summary.pdf']).map((f, i) => ({
-            id: `doc-${Date.now()}-${i}`,
-            name: f,
-            uploadDate: dateStr,
-            uploadedBy: 'Patient',
-            status: 'Verified'
-          })),
-          timeline: [
-            { id: `t-${Date.now()}-1`, date: dateStr, time: timeStr, action: 'Claim Submitted by Patient', role: 'Patient', status: 'Completed' },
-            { id: `t-${Date.now()}-2`, date: dateStr, time: timeStr, action: 'ABDM Medical Records Uploaded', role: 'System', status: 'Completed' },
-            { id: `t-${Date.now()}-3`, date: dateStr, time: 'Pending', action: 'Insurance Verification in Queue', role: 'Insurance Team', status: 'Current' }
-          ]
-        };
-
-        // If there was an existing current claim, push it to past claims
-        const pastClaims = record.currentClaim ? [record.currentClaim, ...record.claims] : record.claims;
-
-        return {
-          ...record,
-          currentClaim: newClaim,
-          claims: pastClaims
-        };
-      }
-      return record;
-    });
-
-    if (!recordFound && current.length > 0) {
-      // Fallback update primary record
-      const primary = current[0];
-      const newClaim: InsuranceClaim = {
+    try {
+      await insuranceApi.createClaim({
         claimId,
-        insuranceId: primary.insuranceId,
-        patientId: primary.patientId,
+        insuranceId: targetPolicy.insuranceId,
         hospital: claimInput.hospital,
         treatment: claimInput.treatment,
-        admissionDate: dateStr,
-        dischargeDate: 'Ongoing / Submitted',
         submittedAmount: claimInput.submittedAmount,
-        approvedAmount: 0,
-        patientContribution: 0,
-        status: 'Under Review',
-        documents: (claimInput.attachedFiles || ['Hospital_Bill.pdf', 'Prescription.pdf']).map((f, i) => ({
+        documents: (claimInput.attachedFiles || ['Hospital_Bill.pdf', 'Discharge_Summary.pdf']).map((f, i) => ({
           id: `doc-${Date.now()}-${i}`,
           name: f,
-          uploadDate: dateStr,
+          uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           uploadedBy: 'Patient',
           status: 'Verified'
         })),
-        timeline: [
-          { id: `t-${Date.now()}-1`, date: dateStr, time: timeStr, action: 'Claim Submitted by Patient', role: 'Patient', status: 'Completed' },
-          { id: `t-${Date.now()}-2`, date: dateStr, time: 'Pending', action: 'Insurance Verification in Queue', role: 'Insurance Team', status: 'Current' }
-        ]
-      };
-      updated[0] = {
-        ...primary,
-        currentClaim: newClaim
-      };
+      });
+      loadBackendPolicies();
+      triggerSync();
+    } catch (err: any) {
+      console.error('Failed to submit claim to MySQL:', err?.message);
     }
 
-    triggerSync(updated);
     return claimId;
   };
 
-  const updateCurrentClaimStatus = (
+  const updateCurrentClaimStatus = async (
     insuranceId: string, 
     status: InsuranceClaim['status'], 
     approvedAmount?: number,
     timelineAction?: string
   ) => {
-    const current = getInsuranceRecords();
-    
-    const updated = current.map(record => {
-      if (record.insuranceId === insuranceId && record.currentClaim) {
-        const updatedClaim = { ...record.currentClaim, status };
-        
-        if (approvedAmount !== undefined) {
-          updatedClaim.approvedAmount = approvedAmount;
-          updatedClaim.patientContribution = Math.max(0, updatedClaim.submittedAmount - approvedAmount);
-        }
+    const targetPolicy = records.find(r => r.insuranceId === insuranceId);
+    const targetClaim = targetPolicy?.currentClaim;
 
-        if (timelineAction) {
-          const newEvent: InsuranceTimelineEvent = {
-            id: Date.now().toString(),
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-            action: timelineAction,
-            role: 'Insurance Team',
-            status: 'Completed'
-          };
-          updatedClaim.timeline = [...updatedClaim.timeline, newEvent];
-        }
-
-        // If settled or approved
-        if (status === 'Settled' || status === 'Rejected') {
-          return {
-            ...record,
-            usedCoverage: status === 'Settled' ? record.usedCoverage + (approvedAmount || 0) : record.usedCoverage,
-            remainingCoverage: status === 'Settled' ? Math.max(0, record.remainingCoverage - (approvedAmount || 0)) : record.remainingCoverage,
-            claims: [updatedClaim, ...record.claims],
-            currentClaim: null
-          };
-        }
-
-        return {
-          ...record,
-          currentClaim: updatedClaim
-        };
+    if (targetClaim) {
+      try {
+        await insuranceApi.updateClaimStatus(targetClaim.claimId, {
+          status,
+          approvedAmount,
+          reason: timelineAction,
+        });
+        loadBackendPolicies();
+        triggerSync();
+      } catch (err: any) {
+        console.error('Failed to update claim status in MySQL:', err?.message);
       }
-      return record;
-    });
-    
-    triggerSync(updated);
+    }
   };
 
   const updateDocumentStatus = (insuranceId: string, docId: string, status: InsuranceDocument['status']) => {
-    const current = getInsuranceRecords();
-    
-    const updated = current.map(record => {
-      if (record.insuranceId === insuranceId && record.currentClaim) {
-        const updatedDocs = record.currentClaim.documents.map(d => 
-          d.id === docId ? { ...d, status } : d
-        );
-        return {
-          ...record,
-          currentClaim: {
-            ...record.currentClaim,
-            documents: updatedDocs
-          }
-        };
-      }
-      return record;
-    });
-    
-    triggerSync(updated);
+    setRecords(prev =>
+      prev.map(r => {
+        if (r.insuranceId === insuranceId && r.currentClaim) {
+          return {
+            ...r,
+            currentClaim: {
+              ...r.currentClaim,
+              documents: r.currentClaim.documents.map(d => (d.id === docId ? { ...d, status } : d)),
+            },
+          };
+        }
+        return r;
+      })
+    );
   };
 
   return {
     records,
+    loading,
     searchPolicy,
     submitPatientClaim,
     updateCurrentClaimStatus,

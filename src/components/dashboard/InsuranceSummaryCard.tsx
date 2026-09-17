@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface InsuranceSummaryCardProps {
   onNavigate: (id: string) => void;
 }
 
 export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -21,14 +23,14 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Insurance Policy Summary
+              {t('card.insurance_policy', 'Insurance Policy Summary')}
             </h3>
             <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">CarePlus Family Floater</span>
           </div>
         </div>
 
         <span className="px-3 py-1 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-500/30 font-mono">
-          ● Active Coverage
+          ● {t('card.covered', 'Active Coverage')}
         </span>
       </div>
 
@@ -51,7 +53,7 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
           onClick={() => onNavigate('insurance')}
           className="inline-flex items-center gap-1.5 font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-sans"
         >
-          <span>View Insurance Module</span>
+          <span>{t('nav.insurance', 'View Insurance Module')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 

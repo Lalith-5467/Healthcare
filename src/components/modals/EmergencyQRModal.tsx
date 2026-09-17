@@ -5,10 +5,20 @@ import { X, ShieldAlert, AlertTriangle } from 'lucide-react';
 interface EmergencyQRModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user?: {
+    name?: string;
+    bloodGroup?: string;
+    phone?: string;
+    emergencyContact?: string;
+  };
 }
 
-export const EmergencyQRModal: React.FC<EmergencyQRModalProps> = ({ isOpen, onClose }) => {
+export const EmergencyQRModal: React.FC<EmergencyQRModalProps> = ({ isOpen, onClose, user }) => {
   if (!isOpen) return null;
+
+  const patientName = user?.name || 'Akshara Raman';
+  const bloodGroup = user?.bloodGroup || 'O+ Positive';
+  const emergencyPhone = user?.emergencyContact || user?.phone || '+91 98765 00112';
 
   return (
     <AnimatePresence>
@@ -42,15 +52,15 @@ export const EmergencyQRModal: React.FC<EmergencyQRModalProps> = ({ isOpen, onCl
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3 shadow-xs">
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400 font-medium">Patient Identity</span>
-                <span className="font-extrabold text-slate-900 dark:text-white text-sm">Lalith Patel</span>
+                <span className="font-extrabold text-slate-900 dark:text-white text-sm">{patientName}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400 font-medium">Blood Group</span>
-                <span className="font-extrabold text-rose-700 dark:text-rose-400 text-sm bg-rose-500/15 px-2.5 py-0.5 rounded-full border border-rose-500/30">O+ Positive</span>
+                <span className="font-extrabold text-rose-700 dark:text-rose-400 text-sm bg-rose-500/15 px-2.5 py-0.5 rounded-full border border-rose-500/30">{bloodGroup}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400 font-medium">Emergency Phone</span>
-                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm">+91 98765 43210</span>
+                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm">{emergencyPhone}</span>
               </div>
             </div>
 

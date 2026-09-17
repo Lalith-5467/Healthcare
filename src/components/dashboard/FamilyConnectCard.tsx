@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Users, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface FamilyConnectCardProps {
   onNavigate: (id: string) => void;
 }
 
 export const FamilyConnectCard: React.FC<FamilyConnectCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -21,14 +23,14 @@ export const FamilyConnectCard: React.FC<FamilyConnectCardProps> = ({ onNavigate
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Family Connect Network
+              {t('nav.family', 'Family Connect Network')}
             </h3>
-            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">Shared Dependent Records</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">{t('card.shared_emergency_records', 'Shared Dependent Records')}</span>
           </div>
         </div>
 
         <span className="px-3 py-1 text-[10px] font-black uppercase bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full border border-purple-500/30 font-mono">
-          3 Members
+          3 {t('card.family_members', 'Members')}
         </span>
       </div>
 
@@ -48,11 +50,11 @@ export const FamilyConnectCard: React.FC<FamilyConnectCardProps> = ({ onNavigate
           onClick={() => onNavigate('family')}
           className="inline-flex items-center gap-1.5 font-extrabold text-[#00a896] dark:text-cyan-400 hover:underline transition-colors cursor-pointer font-sans"
         >
-          <span>Open Family Connect</span>
+          <span>{t('nav.family', 'Open Family Connect')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold">Records Synced</span>
+        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold">{t('card.linked', 'Records Synced')}</span>
       </div>
     </motion.div>
   );

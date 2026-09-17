@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Video, Clock, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UpcomingAppointmentCardProps {
   onNavigate: (id: string) => void;
@@ -11,6 +12,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
   onNavigate,
   onToast
 }) => {
+  const { t } = useLanguage();
   const [secondsLeft, setSecondsLeft] = useState(6135);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Upcoming Appointment
+              {t('card.upcoming_appointment', 'Upcoming Appointment')}
             </h3>
             <span className="text-xs font-bold flex items-center gap-1.5 mt-0.5" style={{ color: '#0284c7' }}>
               <span className="relative flex h-1.5 w-1.5">

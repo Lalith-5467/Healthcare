@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Crown, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PremiumDashboardCardProps {
   onOpenPremium: () => void;
 }
 
 export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOpenPremium }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -3, scale: 1.008 }}
@@ -39,7 +41,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                Unlock Premium Health Portal
+                {t('card.premium_care', 'Unlock Premium Health Portal')}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase font-mono tracking-wider"
                 style={{ background: 'rgba(245,158,11,.15)', color: '#fcd34d', border: '1px solid rgba(245,158,11,.3)' }}>
@@ -81,7 +83,7 @@ export const PremiumDashboardCard: React.FC<PremiumDashboardCardProps> = ({ onOp
         }}
       >
         <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-        <span>Explore Premium Plans</span>
+        <span>{t('card.explore_premium', 'Explore Premium Plans')}</span>
         <ArrowRight className="w-3.5 h-3.5 text-amber-200" />
       </motion.button>
     </motion.div>
