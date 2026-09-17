@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { GlobalToastManager } from './components/common/GlobalToastManager';
+import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/landing/Header';
 import { Hero } from './components/landing/Hero';
 import { AboutHospital } from './components/landing/AboutHospital';
@@ -703,12 +704,14 @@ export const App: React.FC = () => {
             }
             if (currentPortal === 'nurse') {
               return (
-                <NurseDashboardPage 
-                  user={user as any || undefined} 
-                  initialNavId={initialNavId}
-                  onLogout={handleLogout}
-                  onNavigate={handleNavigate}
-                />
+                <LanguageProvider>
+                  <NurseDashboardPage 
+                    user={user as any || undefined} 
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout}
+                    onNavigate={handleNavigate}
+                  />
+                </LanguageProvider>
               );
             }
             if (currentPortal === 'insurance') {

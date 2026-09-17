@@ -12,6 +12,7 @@ import {
   History 
 } from 'lucide-react';
 import { useNurseWorkflow } from '../../utils/nurseWorkflowStorage';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface NurseSidebarProps {
   activeNav: string;
@@ -22,6 +23,7 @@ interface NurseSidebarProps {
 type ColorTheme = 'blue' | 'amber' | 'emerald' | 'purple' | 'indigo' | 'rose' | 'slate';
 
 export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigate, user }) => {
+  const { t } = useLanguage();
   const { bookings } = useNurseWorkflow();
   const pendingRequestsCount = bookings.filter(b => b.status === 'Pending').length;
   const activeCareCount = bookings.filter(b => b.status === 'Accepted' || b.status === 'On the Way' || b.status === 'Arrived' || b.status === 'Care in Progress').length;
@@ -37,10 +39,10 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
     badge?: string;
     badgeColor?: string;
   }> = [
-    { id: 'dashboard', label: 'Command Center', icon: Home, color: 'blue' },
+    { id: 'dashboard', label: t('nurse.sidebar.command_center', 'Command Center'), icon: Home, color: 'blue' },
     { 
       id: 'requests', 
-      label: 'Care Requests', 
+      label: t('nurse.sidebar.care_requests', 'Care Requests'), 
       icon: Bell,
       color: 'amber',
       badge: pendingRequestsCount > 0 ? `${pendingRequestsCount}` : undefined,
@@ -48,20 +50,20 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
     },
     { 
       id: 'patients', 
-      label: 'Active Patient Care', 
+      label: t('nurse.sidebar.active_patient_care', 'Active Patient Care'), 
       icon: Stethoscope,
       color: 'emerald',
-      badge: activeCareCount > 0 ? `${activeCareCount} Active` : undefined,
+      badge: activeCareCount > 0 ? `${activeCareCount} ${t('nurse.sidebar.active', 'Active')}` : undefined,
       badgeColor: 'bg-emerald-500'
     },
-    { id: 'schedule', label: 'Today’s Visits', icon: Calendar, color: 'purple' },
-    { id: 'inventory', label: 'Medical Kit & Supplies', icon: Package, color: 'slate' },
-    { id: 'history', label: 'Care History & Records', icon: History, color: 'indigo' },
-    { id: 'alerts', label: 'Emergency Alerts', icon: AlertTriangle, color: 'rose' },
+    { id: 'schedule', label: t('nurse.sidebar.todays_visits', 'Today’s Visits'), icon: Calendar, color: 'purple' },
+    { id: 'inventory', label: t('nurse.sidebar.inventory', 'Medical Kit & Supplies'), icon: Package, color: 'slate' },
+    { id: 'history', label: t('nurse.sidebar.history', 'Care History & Records'), icon: History, color: 'indigo' },
+    { id: 'alerts', label: t('nurse.sidebar.alerts', 'Emergency Alerts'), icon: AlertTriangle, color: 'rose' },
     
-    { category: 'Nurse Station' },
-    { id: 'profile', label: 'Nurse Profile & KYC', icon: User, color: 'slate' },
-    { id: 'settings', label: 'Station Settings', icon: Settings, color: 'slate' }
+    { category: t('nurse.sidebar.nurse_station_category', 'Nurse Station') },
+    { id: 'profile', label: t('nurse.sidebar.profile', 'Nurse Profile & KYC'), icon: User, color: 'slate' },
+    { id: 'settings', label: t('nurse.sidebar.settings', 'Station Settings'), icon: Settings, color: 'slate' }
   ];
 
   const getColorClasses = (color: ColorTheme, isActive: boolean) => {
@@ -151,7 +153,7 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              On Duty Shift
+              {t('nurse.sidebar.on_duty_shift', 'On Duty Shift')}
             </span>
             <span className="text-[10px] font-mono font-semibold text-emerald-600/70 dark:text-emerald-400/70">RN-7701</span>
           </div>
@@ -168,7 +170,7 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
       <nav className="flex-1 px-3 py-3 space-y-1.5">
         <div className="px-3 pb-1">
           <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Clinical Workflow
+            {t('nurse.sidebar.clinical_workflow', 'Clinical Workflow')}
           </span>
         </div>
 
@@ -216,7 +218,7 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
       <div className="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-          <span className="truncate">ABDM Verified Nurse Portal</span>
+          <span className="truncate">{t('nurse.sidebar.abdm_verified', 'ABDM Verified Nurse Portal')}</span>
         </div>
       </div>
     </aside>
