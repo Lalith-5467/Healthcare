@@ -33,6 +33,9 @@ import { CaregiverPreferencesAlertsView } from '../components/caregiver-dashboar
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
 import { notificationApi } from '../services/dhrApis';
 
+import { useLanguage } from '../context/LanguageContext';
+import { getLocalizedName } from '../utils/caregiverDataTranslator';
+
 interface CaregiverDashboardPageProps {
   user?: { 
     name: string; 
@@ -51,12 +54,12 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
   onLogout,
   onNavigate
 }) => {
+  const { language, setLanguage, t } = useLanguage();
   const [activeNav, setActiveNav] = useState(initialNavId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const [isGlobalSOSOpen, setIsGlobalSOSOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   const loadUnreadCount = async () => {
@@ -124,12 +127,12 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
             <Logo />
             <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
               <span className="text-xs font-black uppercase tracking-wider text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-900/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-teal-500/20">
-                <HeartHandshake className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> Caregiver Portal
+                <HeartHandshake className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> {t('caregiver.header.portal_tag', 'Caregiver Portal')}
               </span>
             </div>
             
             <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> ABDM Guardian Proxy
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> {t('caregiver.header.abdm_proxy', 'ABDM Guardian Proxy')}
             </div>
           </div>
         </div>
@@ -142,24 +145,24 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
             <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
             <input 
               type="text" 
-              placeholder="Search ward records..." 
+              placeholder={t('caregiver.header.search_placeholder', 'Search ward records...')} 
               className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
             />
           </div>
           
           {/* LANGUAGE TOGGLE */}
-          <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+          <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             <button
               type="button"
-              onClick={() => setLanguage('EN')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              onClick={() => setLanguage('en')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'en' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               EN
             </button>
             <button
               type="button"
-              onClick={() => setLanguage('TA')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              onClick={() => setLanguage('ta')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'ta' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               தமிழ்
             </button>
@@ -172,17 +175,25 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
 
           {/* DEPENDENT SWITCHER DROPDOWN */}
           <div className="hidden sm:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
-            <span className="text-slate-400 text-[10px] uppercase font-mono">Ward:</span>
+            <span className="text-slate-400 text-[10px] uppercase font-mono">{t('caregiver.header.ward_label', 'Ward:')}</span>
             <select
               value={activeWard.id}
               onChange={(e) => setActiveWardId(e.target.value)}
               className="bg-transparent text-slate-900 dark:text-white font-extrabold focus:outline-none cursor-pointer text-xs"
             >
-              {wards.map((w) => (
-                <option key={w.id} value={w.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                  {w.name} ({w.relationship})
-                </option>
-              ))}
+              {wards.map((w) => {
+                const relLower = (w.relationship || '').toLowerCase();
+                const relLabel = relLower.includes('father') ? t('caregiver.common.father', 'Father')
+                  : relLower.includes('mother') ? t('caregiver.common.mother', 'Mother')
+                  : relLower.includes('spouse') ? t('caregiver.common.spouse', 'Spouse')
+                  : relLower.includes('child') ? t('caregiver.common.child', 'Child')
+                  : w.relationship;
+                return (
+                  <option key={w.id} value={w.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                    {getLocalizedName(w.name, t)} ({relLabel})
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -225,7 +236,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {((user?.name || 'Caregiver').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase())}
             </div>
-            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{user?.name || 'Ananya Sen'}</span>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{getLocalizedName(user?.name || 'Anjali', t)}</span>
           </div>
 
           {/* LOGOUT BUTTON */}
@@ -236,7 +247,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
             title="Logout from Caregiver Portal"
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+            <span className="hidden sm:inline">{t('caregiver.header.logout', 'Logout')}</span>
           </button>
         </div>
       </header>
@@ -270,7 +281,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
               >
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <span className="font-black text-xs text-teal-600 dark:text-cyan-400 uppercase tracking-wider">
-                    Caregiver Menu
+                    {t('caregiver.nav.menu', 'Caregiver Menu')}
                   </span>
                   <button onClick={() => setIsSidebarOpen(false)} className="p-1 text-slate-400">
                     <X className="w-5 h-5" />
@@ -338,26 +349,31 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
 
               <div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  Confirm Emergency SOS Dispatch
+                  {t('caregiver.sos.confirm_title', 'Confirm Emergency SOS Dispatch')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Choose the nature of the emergency for {activeWard.name}:
+                  {t('caregiver.sos.choose_nature', 'Choose the nature of the emergency for')} {activeWard.name}:
                 </p>
               </div>
 
               <div className="space-y-2">
-                {(['SOS Panic Button', 'Fall Detected', 'Abnormal Vitals', 'Geofence Breach'] as const).map((type) => (
+                {[
+                  { key: 'SOS Panic Button', label: t('caregiver.sos.panic_button', 'SOS Panic Button') },
+                  { key: 'Fall Detected', label: t('caregiver.sos.fall_detected', 'Fall Detected') },
+                  { key: 'Abnormal Vitals', label: t('caregiver.sos.abnormal_vitals', 'Abnormal Vitals') },
+                  { key: 'Geofence Breach', label: t('caregiver.sos.geofence_breach', 'Geofence Breach') }
+                ].map((item) => (
                   <button
-                    key={type}
+                    key={item.key}
                     onClick={() => {
-                      triggerSOS(activeWard.id, type as any);
+                      triggerSOS(activeWard.id, item.key as any);
                       setIsGlobalSOSOpen(false);
                       setToastMsg(`🚨 Urgent Emergency SOS dispatched for ${activeWard.name}!`);
                       setTimeout(() => setToastMsg(null), 3000);
                     }}
                     className="w-full py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-600 hover:text-white text-rose-700 dark:text-rose-300 font-black text-xs border border-rose-200 dark:border-rose-800/60 transition-all text-left flex items-center justify-between"
                   >
-                    <span>{type}</span>
+                    <span>{item.label}</span>
                     <AlertOctagon className="w-4 h-4" />
                   </button>
                 ))}
@@ -367,7 +383,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
                 onClick={() => setIsGlobalSOSOpen(false)}
                 className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                Cancel
+                {t('caregiver.common.cancel', 'Cancel')}
               </button>
             </motion.div>
           </div>

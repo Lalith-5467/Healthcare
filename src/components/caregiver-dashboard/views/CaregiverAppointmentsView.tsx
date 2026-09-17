@@ -14,8 +14,11 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 export const CaregiverAppointmentsView: React.FC = () => {
+  const { t } = useLanguage();
   const { wards, activeWard, setActiveWardId, addAppointment } = useCaregiverWorkflow();
   const [isBookOpen, setIsBookOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -81,10 +84,10 @@ export const CaregiverAppointmentsView: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Calendar className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            <span>Doctor Appointments & Telehealth</span>
+            <span>{t('caregiver.appointments.title', 'Doctor Visits & Consultations')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Schedule specialist consultations, home visits, and join live encrypted telehealth sessions.
+            {t('caregiver.appointments.subtitle', 'Manage doctor visits, teleconsultations, and follow-ups for your ward.')}
           </p>
         </div>
 
@@ -100,7 +103,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                {ward.name}
+                {getLocalizedName(ward.name, t)}
               </button>
             ))}
           </div>
@@ -110,7 +113,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
             className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Book Visit</span>
+            <span>{t('caregiver.appointments.book_btn', 'Book Visit')}</span>
           </button>
         </div>
       </div>
@@ -123,16 +126,16 @@ export const CaregiverAppointmentsView: React.FC = () => {
               <Calendar className="w-7 h-7" />
             </div>
             <h3 className="text-base font-black text-slate-900 dark:text-white">
-              No Upcoming Appointments for {activeWard.name}
+              {t('caregiver.appointments.no_appts', 'No Upcoming Appointments for')} {getLocalizedName(activeWard.name, t)}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-              Schedule a routine review or video consultation with primary doctor {activeWard.primaryDoctor.name}.
+              {t('caregiver.appointments.schedule_hint', 'Schedule a routine review or video consultation with primary doctor')} {getLocalizedName(activeWard.primaryDoctor.name, t)}.
             </p>
             <button
               onClick={() => setIsBookOpen(true)}
               className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md transition-all"
             >
-              Book Now
+              {t('caregiver.appointments.book_now', 'Book Now')}
             </button>
           </div>
         ) : (
@@ -154,13 +157,15 @@ export const CaregiverAppointmentsView: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                      {apt.doctorName}
+                      {getLocalizedName(apt.doctorName, t)}
                     </h3>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-cyan-300">
                       {apt.specialty}
                     </span>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      {apt.mode}
+                      {apt.mode === 'In-Clinic' ? t('caregiver.appointments.in_clinic', 'In-Clinic') :
+                       apt.mode === 'Video Consultation' ? t('caregiver.appointments.video_consult', 'Video Consultation') :
+                       apt.mode === 'Home Visit' ? t('caregiver.appointments.home_visit', 'Home Visit') : apt.mode}
                     </span>
                   </div>
 
@@ -173,7 +178,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
                       <Clock className="w-3.5 h-3.5" /> {apt.date}
                     </span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black">
-                      • Status: {apt.status}
+                      • {t('caregiver.appointments.status_label', 'Status:')} {apt.status === 'Upcoming' ? t('caregiver.appointments.upcoming_status', 'Upcoming') : apt.status}
                     </span>
                   </div>
                 </div>
@@ -187,7 +192,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
                     className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs shadow-md shadow-cyan-500/20 flex items-center gap-1.5 transition-all"
                   >
                     <Video className="w-3.5 h-3.5" />
-                    <span>Join Video Call</span>
+                    <span>{t('caregiver.appointments.join_video', 'Join Video Call')}</span>
                   </button>
                 ) : (
                   <a
@@ -195,7 +200,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
                     className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs flex items-center gap-1.5 transition-all"
                   >
                     <Phone className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" />
-                    <span>Contact Clinic</span>
+                    <span>{t('caregiver.appointments.contact_clinic', 'Contact Clinic')}</span>
                   </a>
                 )}
               </div>
@@ -218,7 +223,7 @@ export const CaregiverAppointmentsView: React.FC = () => {
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-                  <span>Book Doctor Visit for {activeWard.name}</span>
+                  <span>Book Doctor Visit for {getLocalizedName(activeWard.name, t)}</span>
                 </h3>
                 <button onClick={() => setIsBookOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
               </div>
@@ -339,10 +344,10 @@ export const CaregiverAppointmentsView: React.FC = () => {
               <div className="relative h-72 rounded-2xl bg-slate-800 border border-slate-700 overflow-hidden flex flex-col justify-between p-4">
                 <div className="flex items-center justify-between text-xs">
                   <span className="bg-slate-900/80 px-3 py-1 rounded-full font-bold backdrop-blur-xs">
-                    Doctor: {activeCallDoctor || 'Dr. Rajesh Varma'}
+                    Doctor: {getLocalizedName(activeCallDoctor || 'Dr. Rajesh Varma', t)}
                   </span>
                   <span className="bg-slate-900/80 px-3 py-1 rounded-full font-bold backdrop-blur-xs text-teal-400">
-                    Patient: {activeWard.name} (Caregiver Attending)
+                    Patient: {getLocalizedName(activeWard.name, t)} (Caregiver Attending)
                   </span>
                 </div>
 

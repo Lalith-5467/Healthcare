@@ -3,6 +3,7 @@ import { AppError } from '../middleware/errorHandler';
 import { AuthUser } from '../@types/express';
 import { AuditService } from './audit.service';
 import { PharmacyService } from './pharmacy.service';
+import { CaregiverService } from './caregiver.service';
 import { emitOrderStatusUpdate } from '../socket';
 
 const OrderStatus = {
@@ -350,11 +351,15 @@ export class PharmacyOrderService {
       throw err;
     }
 
-    // 2. Patient ownership validation
+    // 2. Patient / Caregiver ownership validation
     if (user.role === Role.PATIENT && prescription.patient.userId !== user.id) {
       const err: AppError = new Error('Access denied: You can only order for your own prescription');
       err.statusCode = 403;
       throw err;
+    }
+
+    if (user.role === Role.CAREGIVER) {
+      await CaregiverService.validateCaregiverAccess(user.id, user.role as any, prescription.patientId);
     }
 
     // 3. Status validation: MUST be in CONFIRMED status

@@ -15,10 +15,10 @@ const router = Router();
 // All pharmacy order routes require authentication
 router.use(authenticate);
 
-// 1. Create a pharmacy order from confirmed prescription (Patient, Admin, Super Admin)
+// 1. Create a pharmacy order from confirmed prescription or refill request (Patient, Caregiver, Admin, Super Admin)
 router.post(
   '/',
-  requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   createPharmacyOrderController
 );
 

@@ -14,6 +14,8 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../context/LanguageContext';
+import { getLocalizedName } from '../../utils/caregiverDataTranslator';
 
 interface CaregiverSidebarProps {
   activeNav: string;
@@ -22,29 +24,29 @@ interface CaregiverSidebarProps {
 }
 
 export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, onNavigate, user }) => {
+  const { t } = useLanguage();
   const { wards, activeWardId, setActiveWardId, alerts, tasks } = useCaregiverWorkflow();
   const unreadAlerts = alerts.filter(a => a.status === 'Active').length;
   const pendingTasks = tasks.filter(t => !t.completed).length;
 
-
   const NAV_ITEMS = [
-    { id: 'dashboard', label: 'Command Center', icon: Home },
-    { id: 'wards', label: 'My Wards / Dependents', icon: Users, badge: wards.length },
+    { id: 'dashboard', label: t('caregiver.nav.dashboard', 'Command Center'), icon: Home },
+    { id: 'wards', label: t('caregiver.nav.wards', 'My Wards / Dependents'), icon: Users, badge: wards.length },
     
-    { category: 'Daily Care & Health' },
-    { id: 'medications', label: 'Medication Tracker', icon: Pill },
-    { id: 'routines', label: 'Daily Care Tasks', icon: CheckSquare, badge: pendingTasks > 0 ? pendingTasks : undefined },
-    { id: 'vitals', label: 'Vitals & Biometrics', icon: Activity },
-    { id: 'appointments', label: 'Doctor Visits & Calls', icon: Calendar },
+    { category: t('caregiver.nav.cat_daily', 'Daily Care & Health') },
+    { id: 'medications', label: t('caregiver.nav.medications', 'Medication Tracker'), icon: Pill },
+    { id: 'routines', label: t('caregiver.nav.routines', 'Daily Care Tasks'), icon: CheckSquare, badge: pendingTasks > 0 ? pendingTasks : undefined },
+    { id: 'vitals', label: t('caregiver.nav.vitals', 'Vitals & Biometrics'), icon: Activity },
+    { id: 'appointments', label: t('caregiver.nav.appointments', 'Doctor Visits & Calls'), icon: Calendar },
     
-    { category: 'Emergency & Safety' },
-    { id: 'emergency', label: 'SOS & Geofence Safety', icon: AlertOctagon, danger: true, badge: unreadAlerts > 0 ? unreadAlerts : undefined },
-    { id: 'records', label: 'ABHA Health Records', icon: FileText },
-    { id: 'care-circle', label: 'Care Circle & Consent', icon: ShieldCheck },
+    { category: t('caregiver.nav.cat_emergency', 'Emergency & Safety') },
+    { id: 'emergency', label: t('caregiver.nav.emergency', 'SOS & Geofence Safety'), icon: AlertOctagon, danger: true, badge: unreadAlerts > 0 ? unreadAlerts : undefined },
+    { id: 'records', label: t('caregiver.nav.records', 'ABHA Health Records'), icon: FileText },
+    { id: 'care-circle', label: t('caregiver.nav.care_circle', 'Care Circle & Consent'), icon: ShieldCheck },
     
-    { category: 'Account' },
-    { id: 'profile', label: 'Caregiver Profile', icon: UserCheck },
-    { id: 'settings', label: 'Preferences & Alerts', icon: Settings }
+    { category: t('caregiver.nav.cat_account', 'Account') },
+    { id: 'profile', label: t('caregiver.nav.profile', 'Caregiver Profile'), icon: UserCheck },
+    { id: 'settings', label: t('caregiver.nav.settings', 'Preferences & Alerts'), icon: Settings }
   ];
 
   return (
@@ -53,7 +55,7 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
       {/* ACTIVE WARD QUICK SELECTOR */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40">
         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">
-          Active Dependent
+          {t('caregiver.nav.active_dependent', 'Active Dependent')}
         </label>
         <div className="space-y-1.5">
           {wards.map(ward => {
@@ -73,10 +75,14 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
                     ward.overallStatus === 'Alert' ? 'bg-rose-500 animate-ping' :
                     ward.overallStatus === 'Needs Attention' ? 'bg-amber-500' : 'bg-emerald-500'
                   }`} />
-                  <span className="truncate">{ward.name}</span>
+                  <span className="truncate">{getLocalizedName(ward.name, t)}</span>
                 </div>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold shrink-0">
-                  {ward.relationship}
+                  {ward.relationship.toLowerCase().includes('father') ? t('caregiver.common.father', 'Father')
+                    : ward.relationship.toLowerCase().includes('mother') ? t('caregiver.common.mother', 'Mother')
+                    : ward.relationship.toLowerCase().includes('spouse') ? t('caregiver.common.spouse', 'Spouse')
+                    : ward.relationship.toLowerCase().includes('child') ? t('caregiver.common.child', 'Child')
+                    : ward.relationship}
                 </span>
               </button>
             );
@@ -143,10 +149,10 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
           </div>
           <div className="truncate flex-1">
             <p className="text-xs font-black text-slate-900 dark:text-white truncate">
-              {user?.name || 'Anita Sharma'}
+              {getLocalizedName(user?.name || 'Anita Sharma', t)}
             </p>
             <p className="text-[10px] font-semibold text-teal-600 dark:text-cyan-400 truncate flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 inline" /> Verified Caregiver
+              <ShieldCheck className="w-3 h-3 inline" /> {t('caregiver.nav.verified_caregiver', 'Verified Caregiver')}
             </p>
           </div>
         </div>

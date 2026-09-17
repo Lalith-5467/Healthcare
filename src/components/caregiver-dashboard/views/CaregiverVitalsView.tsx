@@ -15,8 +15,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 export const CaregiverVitalsView: React.FC = () => {
+  const { t } = useLanguage();
   const { wards, activeWard, setActiveWardId, addVitalReading } = useCaregiverWorkflow();
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -80,10 +83,10 @@ export const CaregiverVitalsView: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Activity className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            <span>Biometrics & Vital Trends</span>
+            <span>{t('caregiver.vitals.title', 'Biometrics & Vital Trends')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Continuous remote health monitoring with automatic threshold alerts for family members.
+            {t('caregiver.vitals.subtitle', 'Continuous remote health monitoring with automatic threshold alerts for family members.')}
           </p>
         </div>
 
@@ -100,7 +103,7 @@ export const CaregiverVitalsView: React.FC = () => {
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                {ward.name}
+                {getLocalizedName(ward.name, t)}
               </button>
             ))}
           </div>
@@ -110,7 +113,7 @@ export const CaregiverVitalsView: React.FC = () => {
             className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Record New Reading</span>
+            <span>{t('caregiver.vitals.record_new', 'Record New Reading')}</span>
           </button>
         </div>
       </div>
@@ -121,39 +124,41 @@ export const CaregiverVitalsView: React.FC = () => {
         <div className="p-5 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
-              <Heart className="w-4 h-4 text-rose-500" /> Blood Pressure
+              <Heart className="w-4 h-4 text-rose-500" /> {t('caregiver.vitals.col_bp', 'Blood Pressure')}
             </span>
             <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
-              Optimal
+              {t('caregiver.vitals.optimal', 'Optimal')}
             </span>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-white">
             {latest?.systolic || 124} / {latest?.diastolic || 80}
           </p>
-          <p className="text-[11px] text-slate-400 font-semibold">Target: &lt; 130/85 mmHg</p>
+          <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} &lt; 130/85 mmHg</p>
         </div>
 
         {/* BLOOD SUGAR */}
         <div className="p-5 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
-              <Droplets className="w-4 h-4 text-cyan-500" /> Glucose
+              <Droplets className="w-4 h-4 text-cyan-500" /> {t('caregiver.vitals.col_glucose', 'Glucose')}
             </span>
             <span className="text-[10px] font-black px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-cyan-300">
-              {latest?.sugarType || 'Fasting'}
+              {latest?.sugarType === 'Fasting' ? t('caregiver.vitals.fasting', 'Fasting') :
+               latest?.sugarType === 'Post-Meal' ? t('caregiver.vitals.post_meal', 'Post-Meal') :
+               latest?.sugarType || t('caregiver.vitals.fasting', 'Fasting')}
             </span>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-white">
             {latest?.bloodSugar || 112} <span className="text-sm font-normal text-slate-400">mg/dL</span>
           </p>
-          <p className="text-[11px] text-slate-400 font-semibold">Target: 80 - 130 mg/dL</p>
+          <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} 80 - 130 mg/dL</p>
         </div>
 
         {/* SPO2 */}
         <div className="p-5 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
-              <Wind className="w-4 h-4 text-sky-500" /> Oxygen (SpO2)
+              <Wind className="w-4 h-4 text-sky-500" /> {t('caregiver.vitals.col_spo2', 'Oxygen (SpO2)')}
             </span>
             <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
               98%
@@ -162,23 +167,23 @@ export const CaregiverVitalsView: React.FC = () => {
           <p className="text-2xl font-black text-slate-900 dark:text-white">
             {latest?.spo2 || 98}%
           </p>
-          <p className="text-[11px] text-slate-400 font-semibold">Target: 95 - 100%</p>
+          <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} 95 - 100%</p>
         </div>
 
         {/* HEART RATE */}
         <div className="p-5 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-violet-500" /> Pulse
+              <Activity className="w-4 h-4 text-violet-500" /> {t('caregiver.vitals.col_pulse', 'Pulse')}
             </span>
             <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
-              Resting
+              {t('caregiver.vitals.resting', 'Resting')}
             </span>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-white">
             {latest?.heartRate || 74} <span className="text-sm font-normal text-slate-400">bpm</span>
           </p>
-          <p className="text-[11px] text-slate-400 font-semibold">Target: 60 - 90 bpm</p>
+          <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} 60 - 90 bpm</p>
         </div>
       </div>
 
@@ -188,10 +193,10 @@ export const CaregiverVitalsView: React.FC = () => {
           <div>
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              <span>Telemetry History: {activeWard.name}</span>
+              <span>{t('caregiver.vitals.telemetry_history', 'Telemetry History:')} {getLocalizedName(activeWard.name, t)}</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              All records timestamped and cryptographically linked to ABDM health locker.
+              {t('caregiver.vitals.telemetry_sub', 'All records timestamped and cryptographically linked to ABDM health locker.')}
             </p>
           </div>
         </div>
@@ -200,13 +205,13 @@ export const CaregiverVitalsView: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-                <th className="pb-3 px-3">Date & Time</th>
-                <th className="pb-3 px-3">Blood Pressure</th>
-                <th className="pb-3 px-3">Blood Glucose</th>
-                <th className="pb-3 px-3">SpO2</th>
-                <th className="pb-3 px-3">Pulse</th>
-                <th className="pb-3 px-3">Notes</th>
-                <th className="pb-3 px-3">Status</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_datetime', 'Date & Time')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_bp', 'Blood Pressure')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_glucose', 'Blood Glucose')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_spo2', 'SpO2')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_pulse', 'Pulse')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_notes', 'Notes')}</th>
+                <th className="pb-3 px-3">{t('caregiver.vitals.col_status', 'Status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -260,7 +265,7 @@ export const CaregiverVitalsView: React.FC = () => {
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Activity className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-                  <span>Record Vitals for {activeWard.name}</span>
+                  <span>{t('caregiver.vitals.record_vitals_for', 'Record Vitals for')} {getLocalizedName(activeWard.name, t)}</span>
                 </h3>
                 <button onClick={() => setIsLogOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
               </div>

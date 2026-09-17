@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma';
 import { Role } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { CaregiverService } from './caregiver.service';
 
 export interface CreateMedicineDTO {
   name: string;
@@ -39,13 +40,24 @@ export class MedicineService {
   static async getActiveMedications(userId: string, role: Role, patientIdQuery?: string) {
     let patientId = patientIdQuery;
 
-    if (role === Role.PATIENT) {
+    if (role === Role.CAREGIVER) {
+      if (patientIdQuery) {
+        await CaregiverService.validateCaregiverAccess(userId, role, patientIdQuery);
+        patientId = patientIdQuery;
+      } else {
+        const wards = await CaregiverService.getWards(userId, role);
+        if (wards && wards.length > 0) {
+          patientId = wards[0].id;
+        }
+      }
+    } else if (role === Role.PATIENT) {
       const patient = await prisma.patient.findUnique({ where: { userId } });
       if (!patient) throw new AppError('Patient profile not found', 404);
+      if (patientIdQuery && patientIdQuery !== patient.id) {
+        throw new AppError('You are not authorized to view another patient\'s medications', 403);
+      }
       patientId = patient.id;
-    }
-
-    if (!patientId) {
+    } else if (!patientId) {
       const firstPatient = await prisma.patient.findFirst();
       if (firstPatient) patientId = firstPatient.id;
     }
@@ -243,49 +255,71 @@ export class MedicineService {
   /**
    * Record Dose Taken / Skipped in MySQL
    */
-  static async recordDoseLog(userId: string, role: Role, data: { doseId: string; medicineId: string; status: 'taken' | 'skipped'; skipReason?: string }) {
-    let patientId = '';
-    if (role === Role.PATIENT) {
-      const patient = await prisma.patient.findUnique({ where: { userId } });
-      if (patient) patientId = patient.id;
-    }
-
-    // Check if patientMedication exists in DB
+  static async recordDoseLog(userId: string, role: Role, data: { doseId?: string; medicineId: string; status: 'taken' | 'skipped'; skipReason?: string }) {
+    // Find target patient medication
     const med = await prisma.patientMedication.findFirst({
       where: {
         OR: [{ id: data.medicineId }, { name: { contains: data.medicineId } }],
       },
     });
 
-    if (med) {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!med) {
+      throw new AppError('Medication record not found', 404);
+    }
 
-      // Create or update DoseLog
-      const log = await prisma.doseLog.create({
-        data: {
-          patientId: med.patientId,
-          patientMedicationId: med.id,
-          doseTime: nowTime,
-          status: data.status,
-          takenAt: data.status === 'taken' ? nowTime : null,
-          skippedReason: data.skipReason || null,
-        },
-      });
+    // Verify caregiver / user authorization for this patient
+    await CaregiverService.validateCaregiverAccess(userId, role, med.patientId);
 
-      // Update counts
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Check for existing log today
+    const existingLog = await prisma.doseLog.findFirst({
+      where: {
+        patientMedicationId: med.id,
+        createdAt: { gte: todayStart },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Handle duplicate take requests cleanly
+    if (existingLog && existingLog.status === data.status && data.status === 'taken') {
+      return existingLog;
+    }
+
+    // Create new DoseLog entry
+    const log = await prisma.doseLog.create({
+      data: {
+        patientId: med.patientId,
+        patientMedicationId: med.id,
+        doseTime: nowTime,
+        status: data.status,
+        takenAt: data.status === 'taken' ? nowTime : null,
+        skippedReason: data.skipReason || null,
+      },
+    });
+
+    // Increment / decrement dose counts safely
+    const isNewTake = data.status === 'taken' && (!existingLog || existingLog.status !== 'taken');
+    const isNewSkip = data.status === 'skipped' && (!existingLog || existingLog.status !== 'skipped');
+
+    if (isNewTake || isNewSkip) {
       await prisma.patientMedication.update({
         where: { id: med.id },
         data: {
-          takenDoses: data.status === 'taken' ? { increment: 1 } : undefined,
-          skippedDoses: data.status === 'skipped' ? { increment: 1 } : undefined,
-          remainingDoses: data.status === 'taken' ? { decrement: 1 } : undefined,
+          ...(isNewTake && {
+            takenDoses: { increment: 1 },
+            remainingDoses: { decrement: Math.min(med.remainingDoses, 1) },
+          }),
+          ...(isNewSkip && {
+            skippedDoses: { increment: 1 },
+          }),
         },
       });
-
-      return log;
     }
 
-    return { success: true, message: 'Dose state recorded' };
+    return log;
   }
 
   /**

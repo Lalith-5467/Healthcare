@@ -16,6 +16,13 @@ import {
   X
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { 
+  getLocalizedName, 
+  getLocalizedRecordTitle, 
+  getLocalizedRecordType, 
+  getLocalizedRelationship 
+} from '../../../utils/caregiverDataTranslator';
 
 const MOCK_RECORDS = [
   { id: 1, type: 'Consultation', title: 'Cardiology Follow-up', date: '30 Aug 2026', provider: 'Dr. Ramesh Kumar', facility: 'Apollo Hospital', category: 'Medical Records', status: 'Available' },
@@ -26,15 +33,34 @@ const MOCK_RECORDS = [
 ];
 
 export const CaregiverAbhaRecordsView: React.FC = () => {
+  const { t } = useLanguage();
   const { wards, activeWard, setActiveWardId } = useCaregiverWorkflow();
   const [activeTab, setActiveTab] = useState('Overview');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSynced, setLastSynced] = useState('02 Sep 2026, 09:42 AM');
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const filteredRecords = MOCK_RECORDS.filter(r => {
+    const matchesTab = activeTab === 'Overview' || r.category === activeTab;
+    const matchesSearch = !searchQuery.trim() || 
+      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      getLocalizedRecordTitle(r.title, t).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.type.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
   const [isFullViewOpen, setIsFullViewOpen] = useState(false);
 
-  const TABS = ['Overview', 'Medical Records', 'Prescriptions', 'Lab Reports', 'Hospital Records', 'Vaccination'];
+  const TABS = [
+    { id: 'Overview', label: t('caregiver.records.tab_overview', 'Overview') },
+    { id: 'Medical Records', label: t('caregiver.records.tab_medical', 'Medical Records') },
+    { id: 'Prescriptions', label: t('caregiver.records.tab_prescriptions', 'Prescriptions') },
+    { id: 'Lab Reports', label: t('caregiver.records.tab_lab', 'Lab Reports') },
+    { id: 'Hospital Records', label: t('caregiver.records.tab_hospital', 'Hospital Records') },
+    { id: 'Vaccination', label: t('caregiver.records.tab_vaccination', 'Vaccination') }
+  ];
 
   const handleSync = () => {
     setIsSyncing(true);
@@ -54,7 +80,7 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-24 select-none">
       {/* TOAST */}
       <AnimatePresence>
         {toastMsg && (
@@ -75,10 +101,10 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            <span>ABHA Health Records</span>
+            <span>{t('caregiver.records.title', 'ABHA Health Records')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Access and organize authorized digital health records for your dependents.
+            {t('caregiver.records.subtitle', 'Access and organize authorized digital health records for your dependents.')}
           </p>
         </div>
         <button
@@ -87,7 +113,7 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 self-start md:self-auto"
         >
           <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>{isSyncing ? 'Syncing...' : 'Sync Records'}</span>
+          <span>{isSyncing ? t('caregiver.records.syncing', 'Syncing...') : t('caregiver.records.sync_btn', 'Sync Records')}</span>
         </button>
       </div>
 
@@ -97,15 +123,15 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
         {/* SELECTOR */}
         <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">
-            Select Dependent
+            {t('caregiver.records.select_dependent', 'Select Dependent')}
           </label>
           <select 
-            value={activeWard.id}
+            value={activeWard?.id || ''}
             onChange={(e) => setActiveWardId(e.target.value)}
             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-black text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
           >
             {wards.map(w => (
-              <option key={w.id} value={w.id}>{w.name} ({w.relationship})</option>
+              <option key={w.id} value={w.id}>{getLocalizedName(w.name, t)} ({getLocalizedRelationship(w.relationship, t)})</option>
             ))}
           </select>
         </div>
@@ -116,23 +142,23 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           
           <div>
             <h3 className="font-black flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-teal-600 dark:text-teal-400" /> ABHA Health Account
+              <ShieldCheck className="w-5 h-5 text-teal-600 dark:text-teal-400" /> {t('caregiver.records.abha_account', 'ABHA Health Account')}
             </h3>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 text-xs">
               <div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">Status</p>
-                <p className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Connected</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">{t('caregiver.common.status', 'Status')}</p>
+                <p className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {t('caregiver.records.status_connected', 'Connected')}</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">Records</p>
-                <p className="font-black text-slate-900 dark:text-white">24 Available</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">{t('caregiver.records.stat_records', 'Records')}</p>
+                <p className="font-black text-slate-900 dark:text-white">24 {t('caregiver.records.available', 'Available')}</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">New</p>
-                <p className="font-black text-amber-600 dark:text-amber-400">3 Unread</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">{t('caregiver.records.stat_new', 'New')}</p>
+                <p className="font-black text-amber-600 dark:text-amber-400">3 {t('caregiver.records.unread', 'Unread')}</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">Last Synced</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">{t('caregiver.records.last_synced', 'Last Synced')}</p>
                 <p className="font-bold text-slate-700 dark:text-slate-300">{lastSynced}</p>
               </div>
             </div>
@@ -145,15 +171,15 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
         <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
           {TABS.map(tab => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                activeTab === tab 
+                activeTab === tab.id 
                   ? 'bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400' 
                   : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'
               }`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -161,9 +187,16 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Search health records..." 
-            className="w-full bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-full pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-teal-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('caregiver.records.search_placeholder', 'Search health records...')} 
+            className="w-full bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-full pl-9 pr-8 py-2 text-xs font-bold focus:outline-none focus:border-teal-500"
           />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -176,69 +209,68 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           {activeTab === 'Overview' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Total Records</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{t('caregiver.records.total_records', 'Total Records')}</p>
                 <p className="text-xl font-black text-slate-900 dark:text-white">24</p>
               </div>
               <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Recent Records</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{t('caregiver.records.recent_records', 'Recent Records')}</p>
                 <p className="text-xl font-black text-teal-600 dark:text-teal-400">3</p>
               </div>
               <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Last Consultation</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{t('caregiver.records.last_consultation', 'Last Consultation')}</p>
                 <p className="text-sm font-black text-slate-900 dark:text-white">30 Aug 2026</p>
               </div>
               <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Access Status</p>
-                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">Authorized</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{t('caregiver.records.access_status', 'Access Status')}</p>
+                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{t('caregiver.records.authorized', 'Authorized')}</p>
               </div>
             </div>
           )}
 
           <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-            {activeTab === 'Overview' ? 'Recent Records' : `${activeTab} Records`}
+            {activeTab === 'Overview' ? t('caregiver.records.recent_records', 'Recent Records') : `${TABS.find(t => t.id === activeTab)?.label} ${t('caregiver.records.stat_records', 'Records')}`}
           </h3>
 
           <div className="space-y-3">
-            {MOCK_RECORDS.filter(r => activeTab === 'Overview' || r.category === activeTab).map(record => (
-              <div key={record.id} className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-teal-500/30">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shrink-0">
-                    {record.type === 'Consultation' && <Activity className="w-5 h-5 text-indigo-500" />}
-                    {record.type === 'Prescription' && <FileText className="w-5 h-5 text-teal-500" />}
-                    {record.type === 'Lab Report' && <Activity className="w-5 h-5 text-rose-500" />}
-                    {record.type === 'Discharge Summary' && <Building2 className="w-5 h-5 text-amber-500" />}
-                    {record.type === 'Vaccination' && <Syringe className="w-5 h-5 text-emerald-500" />}
-                  </div>
-                  <div>
-                    <h4 className="font-black text-sm text-slate-900 dark:text-white leading-tight">{record.title}</h4>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">{record.date} • {record.provider}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400">
-                        {record.type}
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> {record.status}
-                      </span>
+            {filteredRecords.length === 0 ? (
+              <div className="p-8 text-center bg-white dark:bg-[#0b1120] rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-400 font-bold">
+                {t('common.no_records_found', 'No health records found matching your search.')}
+              </div>
+            ) : (
+              filteredRecords.map((record) => (
+                <div key={record.id} className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-teal-500/30">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shrink-0">
+                      {record.type === 'Consultation' && <Activity className="w-5 h-5 text-indigo-500" />}
+                      {record.type === 'Prescription' && <FileText className="w-5 h-5 text-teal-500" />}
+                      {record.type === 'Lab Report' && <Activity className="w-5 h-5 text-rose-500" />}
+                      {record.type === 'Discharge Summary' && <Building2 className="w-5 h-5 text-amber-500" />}
+                      {record.type === 'Vaccination' && <Syringe className="w-5 h-5 text-emerald-500" />}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-sm text-slate-900 dark:text-white leading-tight">{getLocalizedRecordTitle(record.title, t)}</h4>
+                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">{record.date} • {getLocalizedName(record.provider, t)}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400">
+                          {getLocalizedRecordType(record.type, t)}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {record.status === 'Completed' ? t('caregiver.common.completed', 'Completed') : t('caregiver.records.available', 'Available')}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button onClick={() => setSelectedRecord(record)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors flex items-center justify-center gap-2">
+                      <Eye className="w-4 h-4" /> {t('caregiver.common.view', 'View')}
+                    </button>
+                    <button onClick={handleDownload} className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
+                      <Download className="w-4 h-4" /> {t('caregiver.common.save', 'Save')}
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button onClick={() => setSelectedRecord(record)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors flex items-center justify-center gap-2">
-                    <Eye className="w-4 h-4" /> View
-                  </button>
-                  <button className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
-                    <Download className="w-4 h-4" /> Save
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {MOCK_RECORDS.filter(r => activeTab === 'Overview' || r.category === activeTab).length === 0 && (
-              <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                <FileText className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                <p className="font-bold text-slate-500">No {activeTab.toLowerCase()} available.</p>
-              </div>
+              ))
             )}
           </div>
         </div>
@@ -250,28 +282,28 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 mb-4">
               <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              Health Record Access
+              {t('caregiver.records.sec_access', 'Health Record Access')}
             </h3>
             <div className="space-y-3 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold">Status</span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Authorized</span>
+                <span className="text-slate-500 font-bold">{t('caregiver.common.status', 'Status')}</span>
+                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {t('caregiver.records.authorized', 'Authorized')}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold">Access Granted</span>
+                <span className="text-slate-500 font-bold">{t('caregiver.records.access_granted', 'Access Granted')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">28 Aug 2026</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold">Access Expires</span>
+                <span className="text-slate-500 font-bold">{t('caregiver.records.access_expires', 'Access Expires')}</span>
                 <span className="font-bold text-slate-900 dark:text-white">28 Aug 2027</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-bold">Source</span>
-                <span className="font-bold text-slate-900 dark:text-white">Digital Consent</span>
+                <span className="text-slate-500 font-bold">{t('caregiver.records.source', 'Source')}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{t('caregiver.records.digital_consent', 'Digital Consent')}</span>
               </div>
             </div>
             <p className="text-[10px] text-slate-500 mt-4 text-center">
-              Manage consent permissions in Care Circle & Consent.
+              {t('caregiver.records.manage_consent_hint', 'Manage consent permissions in Care Circle & Consent.')}
             </p>
           </div>
 
@@ -279,16 +311,16 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 mb-4">
               <Clock className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              Record Timeline
+              {t('caregiver.records.timeline_title', 'Record Timeline')}
             </h3>
             
             <div className="space-y-0 relative before:absolute before:inset-y-0 before:left-2.5 before:w-px before:bg-slate-200 dark:before:bg-slate-800 ml-2">
-              {MOCK_RECORDS.map((record, i) => (
+              {MOCK_RECORDS.map((record) => (
                 <div key={record.id} className="relative pl-8 py-3 group cursor-pointer" onClick={() => setSelectedRecord(record)}>
                   <div className="absolute left-1 top-4 w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-[#0b1120] -ml-[5px] group-hover:bg-teal-500 transition-colors" />
                   <p className="text-[10px] font-black text-slate-400 mb-0.5">{record.date}</p>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{record.type} Added</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">{record.provider}</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{getLocalizedRecordType(record.type, t)} {t('caregiver.common.add', 'Added')}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{getLocalizedName(record.provider, t)}</p>
                 </div>
               ))}
             </div>
@@ -311,7 +343,7 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
               <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                 <span className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                   <FileText className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-                  Health Record Details
+                  {t('caregiver.records.details_title', 'Health Record Details')}
                 </span>
                 <button onClick={() => setSelectedRecord(null)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800">
                   <X className="w-5 h-5" />
@@ -320,25 +352,25 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{selectedRecord.title}</h2>
-                  <p className="text-xs font-bold text-slate-500 mt-1">{selectedRecord.type} • {selectedRecord.date}</p>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{getLocalizedRecordTitle(selectedRecord.title, t)}</h2>
+                  <p className="text-xs font-bold text-slate-500 mt-1">{getLocalizedRecordType(selectedRecord.type, t)} • {selectedRecord.date}</p>
                 </div>
 
                 <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 space-y-3 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">Provider</span>
-                    <span className="font-black text-slate-900 dark:text-white">{selectedRecord.provider}</span>
+                    <span className="text-slate-500 font-bold">{t('caregiver.meds.prescribed_by', 'Provider')}</span>
+                    <span className="font-black text-slate-900 dark:text-white">{getLocalizedName(selectedRecord.provider, t)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 font-bold">Facility</span>
                     <span className="font-black text-slate-900 dark:text-white">{selectedRecord.facility}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">Record Status</span>
-                    <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {selectedRecord.status}</span>
+                    <span className="text-slate-500 font-bold">{t('caregiver.common.status', 'Record Status')}</span>
+                    <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {selectedRecord.status === 'Completed' ? t('caregiver.common.completed', 'Completed') : t('caregiver.records.available', 'Available')}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <span className="text-slate-500 font-bold">Last Synced</span>
+                    <span className="text-slate-500 font-bold">{t('caregiver.records.last_synced', 'Last Synced')}</span>
                     <span className="font-bold text-slate-900 dark:text-white">{lastSynced}</span>
                   </div>
                 </div>
@@ -352,7 +384,7 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
                   {/* Mock Document Content */}
                   <div className="p-4 space-y-3 overflow-y-auto custom-scrollbar text-left relative z-10 flex-1 bg-white text-slate-800">
                     <h3 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 mb-2">
-                      {selectedRecord.title}
+                      {getLocalizedRecordTitle(selectedRecord.title, t)}
                     </h3>
                     
                     {selectedRecord.type === 'Consultation' && (
@@ -402,10 +434,10 @@ export const CaregiverAbhaRecordsView: React.FC = () => {
 
               <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1120] flex gap-3">
                 <button onClick={handleFullView} className="flex-1 py-3 rounded-xl font-black text-xs border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center justify-center gap-2 transition-colors">
-                  <Eye className="w-4 h-4" /> Full View
+                  <Eye className="w-4 h-4" /> {t('caregiver.records.full_view', 'Full View')}
                 </button>
                 <button onClick={handleDownload} className="flex-1 py-3 rounded-xl bg-teal-500 text-slate-950 font-black text-xs hover:bg-teal-400 flex items-center justify-center gap-2 transition-all shadow-lg shadow-teal-500/20">
-                  <Download className="w-4 h-4" /> Download PDF
+                  <Download className="w-4 h-4" /> {t('caregiver.records.download_pdf', 'Download PDF')}
                 </button>
               </div>
             </motion.div>

@@ -27,6 +27,16 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { 
+  getLocalizedDosage, 
+  getLocalizedInstructions, 
+  getLocalizedTaskTitle, 
+  getLocalizedTaskCategory, 
+  getLocalizedLocation, 
+  getLocalizedTimeAgo,
+  getLocalizedName 
+} from '../../../utils/caregiverDataTranslator';
 
 interface CaregiverOverviewViewProps {
   onNavigate: (navId: string) => void;
@@ -34,6 +44,7 @@ interface CaregiverOverviewViewProps {
 }
 
 export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   const { 
     wards, 
     activeWard, 
@@ -119,13 +130,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-500/20 border border-teal-200 dark:border-teal-400/30 text-teal-700 dark:text-teal-300 text-xs font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" /> Caregiver Command Center
+              <Sparkles className="w-3.5 h-3.5" /> {t('caregiver.overview.tag', 'Caregiver Command Center')}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Family Health & Guardian Portal
+              {t('caregiver.overview.title', 'Family Health & Guardian Portal')}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl font-medium leading-relaxed">
-              Monitoring <span className="font-bold text-slate-900 dark:text-white">{wards.length} dependents</span> across medication adherence, live vitals telemetry, geofence safety rings, and emergency doctor dispatch.
+              {t('caregiver.overview.subtitle', 'Monitoring dependents across medication adherence, live vitals telemetry, geofence safety rings, and emergency doctor dispatch.')}
             </p>
           </div>
 
@@ -136,21 +147,21 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/25 flex items-center gap-2 hover:scale-105 active:scale-95"
             >
               <Activity className="w-4 h-4" />
-              <span>Log Vitals</span>
+              <span>{t('caregiver.overview.log_vitals', 'Log Vitals')}</span>
             </button>
             <button
               onClick={() => onNavigate('medications')}
               className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/20 text-slate-700 dark:text-white font-bold text-xs border border-slate-200 dark:border-white/20 transition-all flex items-center gap-2"
             >
               <Pill className="w-4 h-4 text-cyan-600 dark:text-cyan-300" />
-              <span>Manage Pills</span>
+              <span>{t('caregiver.overview.manage_pills', 'Manage Pills')}</span>
             </button>
             <button
               onClick={() => setIsSOSConfirmOpen(true)}
               className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 animate-pulse"
             >
               <AlertOctagon className="w-4 h-4" />
-              <span>Emergency SOS</span>
+              <span>{t('caregiver.overview.emergency_sos', 'Emergency SOS')}</span>
             </button>
           </div>
         </div>
@@ -158,21 +169,21 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         {/* METRIC PILLS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/60">
           <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dependents</p>
-            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{wards.length} Active</p>
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('caregiver.overview.stat_dependents', 'DEPENDENTS')}</p>
+            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{wards.length} {t('caregiver.overview.active', 'Active')}</p>
           </div>
           <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Meds Adherence</p>
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('caregiver.overview.stat_meds_adherence', 'MEDS ADHERENCE')}</p>
             <p className="text-xl font-black text-teal-600 dark:text-teal-400 mt-1">{adherenceRate}%</p>
           </div>
           <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Care Tasks</p>
-            <p className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{pendingTasksCount} Tasks</p>
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('caregiver.overview.stat_pending_tasks', 'PENDING CARE TASKS')}</p>
+            <p className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{pendingTasksCount} {t('caregiver.overview.tasks_count', 'Tasks')}</p>
           </div>
           <div className="bg-white/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-white/50 dark:border-slate-700/40 backdrop-blur-md shadow-sm">
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Alerts</p>
+            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('caregiver.overview.stat_active_alerts', 'ACTIVE ALERTS')}</p>
             <p className={`text-xl font-black mt-1 ${activeAlertsCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-emerald-600 dark:text-emerald-400'}`}>
-              {activeAlertsCount > 0 ? `${activeAlertsCount} Active Alert` : 'All Safe'}
+              {activeAlertsCount > 0 ? `${activeAlertsCount} Active Alert` : t('caregiver.overview.all_safe', 'All Safe')}
             </p>
           </div>
         </div>
@@ -183,13 +194,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-            <span>Assigned Wards & Family Health Status</span>
+            <span>{t('caregiver.overview.wards_status_title', 'Assigned Wards & Family Health Status')}</span>
           </h2>
           <button 
             onClick={() => onNavigate('wards')} 
             className="text-xs font-bold text-teal-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
           >
-            View All Profiles <ChevronRight className="w-3.5 h-3.5" />
+            {t('caregiver.overview.view_all_profiles', 'View All Profiles')} <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -217,10 +228,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
-                        {ward.name}
+                        {getLocalizedName(ward.name, t)}
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                        {ward.relationship} • {ward.age} yrs • {ward.bloodGroup}
+                        {ward.relationship.toLowerCase().includes('father') ? t('caregiver.common.father', 'Father') : ward.relationship.toLowerCase().includes('mother') ? t('caregiver.common.mother', 'Mother') : ward.relationship} • {ward.age} {t('caregiver.common.years', 'yrs')} • {ward.bloodGroup}
                       </p>
                     </div>
                   </div>
@@ -230,33 +241,33 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     ward.overallStatus === 'Needs Attention' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
                     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                   }`}>
-                    {ward.overallStatus}
+                    {t(ward.overallStatus === 'Alert' ? 'caregiver.common.alert' : ward.overallStatus === 'Needs Attention' ? 'caregiver.common.needs_attention' : 'caregiver.common.stable', ward.overallStatus)}
                   </span>
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2 text-xs">
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      <Pill className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> Today's Meds
+                      <Pill className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> {t('caregiver.overview.todays_meds', "Today's Meds")}
                     </span>
                     <span className="font-bold text-slate-900 dark:text-white">
-                      {takenCount}/{medCount} taken
+                      {takenCount}/{medCount} {t('caregiver.overview.taken_unit', 'taken')}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-rose-500" /> Geofence
+                      <MapPin className="w-3.5 h-3.5 text-rose-500" /> {t('caregiver.overview.geofence', 'Geofence')}
                     </span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold truncate max-w-[140px]">
-                      {ward.geofenceStatus}
+                      {ward.geofenceStatus === 'Inside Safe Zone' ? t('caregiver.overview.inside_safe_zone', 'Inside Safe Zone') : ward.geofenceStatus}
                     </span>
                   </div>
                 </div>
 
                 {isSelected && (
                   <div className="mt-3 bg-teal-50 dark:bg-cyan-950/40 text-teal-700 dark:text-cyan-300 text-[11px] font-black py-1 px-2.5 rounded-lg flex items-center justify-between">
-                    <span>Currently Monitoring</span>
+                    <span>{t('caregiver.overview.currently_monitoring', 'Currently Monitoring')}</span>
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
                 )}
@@ -271,17 +282,16 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
         
         {/* LEFT 8 COLS: VITALS & MEDICATIONS & ROUTINES */}
         <div className="lg:col-span-8 space-y-6">
-          
-          {/* VITALS TELEMETRY DECK */}
+               {/* VITALS TELEMETRY DECK */}
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Activity className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-                  <span>Real-time Biometrics: {activeWard.name}</span>
+                  <span>{t('caregiver.overview.realtime_biometrics', 'Real-time Biometrics:')} {getLocalizedName(activeWard.name, t)}</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Last recorded: {latestVital?.date || 'Today'} at {latestVital?.time || 'Morning'}
+                  {t('caregiver.overview.last_recorded', 'Last recorded:')} {latestVital?.date ? latestVital.date : t('caregiver.common.today', 'Today')} - {latestVital?.time ? latestVital.time : t('caregiver.meds.morning', 'Morning')}
                 </p>
               </div>
 
@@ -289,7 +299,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 onClick={() => setIsLogVitalOpen(true)}
                 className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-bold transition-all flex items-center gap-1.5"
               >
-                <Plus className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> Record Vitals
+                <Plus className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> {t('caregiver.overview.record_vitals', 'Record Vitals')}
               </button>
             </div>
 
@@ -297,49 +307,49 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               {/* BP */}
               <div className="p-3.5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
-                  <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-rose-500" /> BP</span>
-                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Normal</span>
+                  <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-rose-500" /> {t('caregiver.overview.bp', 'BP')}</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">{t('caregiver.overview.bp_normal', 'Normal')}</span>
                 </div>
                 <p className="text-lg font-black text-slate-900 dark:text-white">
                   {latestVital?.systolic || 126}/{latestVital?.diastolic || 82}
                 </p>
-                <p className="text-[10px] text-slate-400">mmHg</p>
+                <p className="text-[10px] text-slate-400">{t('caregiver.overview.mmhg', 'mmHg')}</p>
               </div>
 
               {/* Blood Sugar */}
               <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
-                  <span className="flex items-center gap-1"><Droplets className="w-3.5 h-3.5 text-cyan-500" /> Sugar</span>
-                  <span className="text-[10px] font-black uppercase text-teal-600 dark:text-cyan-400">Fasting</span>
+                  <span className="flex items-center gap-1"><Droplets className="w-3.5 h-3.5 text-cyan-500" /> {t('caregiver.overview.blood_sugar', 'Sugar')}</span>
+                  <span className="text-[10px] font-black uppercase text-teal-600 dark:text-cyan-400">{t('caregiver.overview.fasting', 'Fasting')}</span>
                 </div>
                 <p className="text-lg font-black text-slate-900 dark:text-white">
                   {latestVital?.bloodSugar || 118}
                 </p>
-                <p className="text-[10px] text-slate-400">mg/dL</p>
+                <p className="text-[10px] text-slate-400">{t('caregiver.overview.mg_dl', 'mg/dL')}</p>
               </div>
 
               {/* SpO2 */}
               <div className="p-3.5 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-100/50 dark:border-sky-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
-                  <span className="flex items-center gap-1"><Wind className="w-3.5 h-3.5 text-sky-500" /> SpO2</span>
-                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Optimal</span>
+                  <span className="flex items-center gap-1"><Wind className="w-3.5 h-3.5 text-sky-500" /> {t('caregiver.overview.spo2', 'SpO2')}</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">{t('caregiver.overview.optimal', 'Optimal')}</span>
                 </div>
                 <p className="text-lg font-black text-slate-900 dark:text-white">
                   {latestVital?.spo2 || 98}%
                 </p>
-                <p className="text-[10px] text-slate-400">Oxygen Saturation</p>
+                <p className="text-[10px] text-slate-400">{t('caregiver.overview.spo2_desc', 'Oxygen Saturation')}</p>
               </div>
 
               {/* Heart Rate */}
               <div className="p-3.5 rounded-2xl bg-violet-50/50 dark:bg-violet-950/20 border border-violet-100/50 dark:border-violet-900/30">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-bold mb-1">
-                  <span className="flex items-center gap-1"><Activity className="w-3.5 h-3.5 text-violet-500" /> Pulse</span>
-                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">Resting</span>
+                  <span className="flex items-center gap-1"><Activity className="w-3.5 h-3.5 text-violet-500" /> {t('caregiver.overview.heart_rate', 'Pulse')}</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">{t('caregiver.overview.resting', 'Resting')}</span>
                 </div>
                 <p className="text-lg font-black text-slate-900 dark:text-white">
                   {latestVital?.heartRate || 74}
                 </p>
-                <p className="text-[10px] text-slate-400">bpm</p>
+                <p className="text-[10px] text-slate-400">{t('caregiver.overview.bpm', 'bpm')}</p>
               </div>
             </div>
           </div>
@@ -350,10 +360,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Pill className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  <span>Today's Medicine Schedule for {activeWard.name}</span>
+                  <span>{t('caregiver.overview.todays_meds_schedule', "Today's Medicine Schedule for")} {getLocalizedName(activeWard.name, t)}</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Tap checkmark to record dosage administered or assisted
+                  {t('caregiver.overview.tap_checkbox_hint', 'Tap checkbox to record dosage administered or assisted')}
                 </p>
               </div>
 
@@ -361,7 +371,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 onClick={() => onNavigate('medications')} 
                 className="text-xs font-bold text-teal-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
               >
-                All Meds <ChevronRight className="w-3.5 h-3.5" />
+                {t('caregiver.overview.all_meds', 'All Meds')} <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -395,16 +405,16 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                             {med.name}
                           </h4>
                           <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-cyan-300 font-bold">
-                            {med.timing}
+                            {med.timing.toLowerCase().includes('morn') ? t('caregiver.meds.morning', 'Morning') : med.timing.toLowerCase().includes('night') ? t('caregiver.meds.night', 'Night') : med.timing.toLowerCase().includes('noon') || med.timing.toLowerCase().includes('after') ? t('caregiver.meds.afternoon', 'Afternoon') : med.timing}
                           </span>
                           {isLowStock && (
                             <span className="text-[10px] px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 font-bold">
-                              Low ({med.stockLeft} left)
+                              {t('caregiver.meds.low_stock_warning', 'Low')} ({med.stockLeft} {t('caregiver.overview.remaining', 'left')})
                             </span>
                           )}
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                          {med.dosage} • {med.instructions}
+                          {getLocalizedDosage(med.dosage, t)} • {getLocalizedInstructions(med.instructions, t)}
                         </p>
                       </div>
                     </div>
@@ -415,7 +425,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                           onClick={() => requestMedicationRefill(activeWard.id, med.id)}
                           className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black transition-all flex items-center gap-1 shadow-sm"
                         >
-                          <RefreshCw className="w-3 h-3" /> 1-Click Refill
+                          <RefreshCw className="w-3 h-3" /> {t('caregiver.meds.order_refill_now', '1-Click Refill')}
                         </button>
                       )}
                       {med.takenToday && med.takenAt && (
@@ -436,10 +446,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-                  <span>Caregiver Daily Tasks & Routine</span>
+                  <span>{t('caregiver.nav.routines', 'Caregiver Daily Tasks & Routine')}</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Essential health duties for {activeWard.name} and family members
+                  {t('caregiver.overview.tasks_subtitle', 'Essential health duties for')} {getLocalizedName(activeWard.name, t)} {t('caregiver.overview.and_family_members', 'and family members')}
                 </p>
               </div>
 
@@ -447,7 +457,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 onClick={() => onNavigate('routines')} 
                 className="text-xs font-bold text-teal-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
               >
-                Manage Routines <ChevronRight className="w-3.5 h-3.5" />
+                {t('caregiver.overview.manage_routines', 'Manage Routines')} <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -472,10 +482,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     </div>
                     <div>
                       <p className={`text-xs font-bold ${task.completed ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                        {task.title}
+                        {getLocalizedTaskTitle(task.title, t)}
                       </p>
                       <p className="text-[10px] text-slate-400">
-                        {task.category} • Scheduled: {task.time}
+                        {getLocalizedTaskCategory(task.category, t)} • {t('caregiver.tasks.scheduled', 'Scheduled:')} {task.time}
                       </p>
                     </div>
                   </div>
@@ -484,7 +494,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     task.priority === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' :
                     'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                   }`}>
-                    {task.priority}
+                    {t(task.priority === 'high' ? 'caregiver.common.high_priority' : task.priority === 'medium' ? 'caregiver.common.medium_priority' : 'caregiver.common.low_priority', task.priority)}
                   </span>
                 </div>
               ))}
@@ -500,10 +510,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-rose-500" />
-                <span>Geofence & Safety</span>
+                <span>{t('caregiver.overview.geofence_safety', 'Geofence & Safety')}</span>
               </h3>
               <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Safe
+                <ShieldCheck className="w-3 h-3" /> {t('caregiver.overview.safe', 'Safe')}
               </span>
             </div>
 
@@ -516,13 +526,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               </div>
 
               <div className="relative z-10 flex justify-between items-center text-[10px] font-bold">
-                <span className="bg-white/80 dark:bg-slate-900/80 text-slate-800 dark:text-white px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">GPS Active</span>
-                <span className="bg-white/80 dark:bg-slate-900/80 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">98% Battery</span>
+                <span className="bg-white/80 dark:bg-slate-900/80 text-slate-800 dark:text-white px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">{t('caregiver.overview.gps_active', 'GPS Active')}</span>
+                <span className="bg-white/80 dark:bg-slate-900/80 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-transparent">98% {t('caregiver.overview.battery', 'Battery')}</span>
               </div>
 
               <div className="relative z-10 bg-white/90 dark:bg-slate-900/90 rounded-xl p-2 text-xs backdrop-blur-md shadow-sm border border-slate-100 dark:border-transparent text-slate-900 dark:text-white">
-                <p className="font-black truncate">{activeWard.currentLocation}</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">Updated: {activeWard.lastLocationUpdate}</p>
+                <p className="font-black truncate">{getLocalizedLocation(activeWard.currentLocation, t)}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">{t('caregiver.overview.updated', 'Updated:')} {getLocalizedTimeAgo(activeWard.lastLocationUpdate, t)}</p>
               </div>
             </div>
 
@@ -530,7 +540,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               onClick={() => onNavigate('emergency')}
               className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-900 dark:text-white transition-all flex items-center justify-center gap-2"
             >
-              <span>View Safety Ring & SOS Settings</span>
+              <span>{t('caregiver.overview.view_safety_settings', 'View Safety Ring & SOS Settings')}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -539,7 +549,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-transparent dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Stethoscope className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              <span>Primary Doctor</span>
+              <span>{t('caregiver.overview.primary_doctor', 'Primary Doctor')}</span>
             </h3>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 space-y-2">
@@ -549,10 +559,10 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 </div>
                 <div>
                   <h4 className="text-xs font-black text-slate-900 dark:text-white">
-                    {activeWard.primaryDoctor.name}
+                    {getLocalizedName(activeWard.primaryDoctor.name, t)}
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
-                    {activeWard.primaryDoctor.specialty}
+                    {activeWard.primaryDoctor.specialty.toLowerCase().includes('cardio') ? t('caregiver.doctor.cardiologist', 'Cardiologist') : activeWard.primaryDoctor.specialty.toLowerCase().includes('neuro') ? t('caregiver.doctor.neurologist', 'Neurologist') : activeWard.primaryDoctor.specialty}
                   </p>
                 </div>
               </div>
@@ -566,13 +576,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                   href={`tel:${activeWard.primaryDoctor.phone}`}
                   className="flex-1 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Phone className="w-3.5 h-3.5" /> Call Clinic
+                  <Phone className="w-3.5 h-3.5" /> {t('caregiver.overview.call_clinic', 'Call Clinic')}
                 </a>
                 <button
                   onClick={() => onNavigate('appointments')}
                   className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Calendar className="w-3.5 h-3.5" /> Book Visit
+                  <Calendar className="w-3.5 h-3.5" /> {t('caregiver.overview.book_visit', 'Book Visit')}
                 </button>
               </div>
             </div>
@@ -582,14 +592,14 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
           <div className="rounded-3xl p-6 bg-gradient-to-br from-indigo-50/80 via-fuchsia-50/50 to-cyan-50/80 dark:from-indigo-950/40 dark:via-fuchsia-950/20 dark:to-cyan-950/40 border border-indigo-100/50 dark:border-indigo-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm text-slate-800 dark:text-slate-200 space-y-3 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-fuchsia-200/20 dark:bg-fuchsia-500/10 rounded-full blur-2xl pointer-events-none" />
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-wider relative z-10">
-              <Sparkles className="w-4 h-4 animate-pulse text-fuchsia-500" /> AI Care Assistant Summary
+              <Sparkles className="w-4 h-4 animate-pulse text-fuchsia-500" /> {t('caregiver.overview.ai_summary_title', 'AI Care Assistant Summary')}
             </div>
             <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium relative z-10">
-              "{activeWard.name}'s blood pressure trend is stable (126/82 mmHg). Morning medications are complete. Remember to assist with 20 minutes of gentle walking before sunset."
+              "{t('caregiver.overview.ai_quote', `${activeWard.name}'s blood pressure trend is stable (126/82 mmHg). Morning medications are complete. Remember to assist with 20 minutes of gentle walking before sunset.`)}"
             </p>
             <div className="pt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-bold relative z-10">
-              <span>ABDM Health ID Linked</span>
-              <span className="text-indigo-600 dark:text-indigo-400">Consent Verified</span>
+              <span>{t('caregiver.overview.abdm_linked', 'ABDM Health ID Linked')}</span>
+              <span className="text-indigo-600 dark:text-indigo-400">{t('caregiver.overview.consent_verified', 'Consent Verified')}</span>
             </div>
           </div>
 
@@ -610,7 +620,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Activity className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-                  <span>Log Vitals for {activeWard.name}</span>
+                  <span>{t('caregiver.overview.log_vitals_for', 'Log Vitals for')} {getLocalizedName(activeWard.name, t)}</span>
                 </h3>
                 <button onClick={() => setIsLogVitalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
                   <X className="w-5 h-5" />
@@ -620,7 +630,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
               <form onSubmit={handleSaveVital} className="mt-4 space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Systolic BP (mmHg)</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.systolic_bp', 'Systolic BP (mmHg)')}</label>
                     <input
                       type="number"
                       value={systolic}
@@ -630,7 +640,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Diastolic BP (mmHg)</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.diastolic_bp', 'Diastolic BP (mmHg)')}</label>
                     <input
                       type="number"
                       value={diastolic}
@@ -643,7 +653,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Blood Sugar (mg/dL)</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.blood_sugar_label', 'Blood Sugar (mg/dL)')}</label>
                     <input
                       type="number"
                       value={bloodSugar}
@@ -653,7 +663,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">SpO2 Oxygen (%)</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.spo2_label', 'SpO2 Oxygen (%)')}</label>
                     <input
                       type="number"
                       value={spo2}
@@ -665,7 +675,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Heart Rate / Pulse (bpm)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.heart_rate_label', 'Heart Rate / Pulse (bpm)')}</label>
                   <input
                     type="number"
                     value={heartRate}
@@ -676,7 +686,7 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Caregiver Observation Notes</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">{t('caregiver.overview.notes_label', 'Caregiver Observation Notes')}</label>
                   <textarea
                     rows={2}
                     value={vitalNotes}
@@ -692,13 +702,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                     onClick={() => setIsLogVitalOpen(false)}
                     className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300"
                   >
-                    Cancel
+                    {t('caregiver.common.cancel', 'Cancel')}
                   </button>
                   <button
                     type="submit"
                     className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black shadow-lg shadow-teal-500/20"
                   >
-                    Save Vitals
+                    {t('caregiver.overview.save_vitals', 'Save Vitals')}
                   </button>
                 </div>
               </form>
@@ -724,17 +734,17 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
 
               <div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  Trigger Emergency SOS?
+                  {t('caregiver.overview.trigger_sos_title', 'Trigger Emergency SOS?')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  This will dispatch Apollo 108 Emergency Ambulance to <span className="font-bold text-slate-900 dark:text-white">{activeWard.currentLocation}</span> and broadcast urgent alerts to all family caregivers.
+                  {t('caregiver.overview.dispatch_desc', 'This will dispatch Apollo 108 Emergency Ambulance to')} <span className="font-bold text-slate-900 dark:text-white">{activeWard.currentLocation}</span> {t('caregiver.sos.broadcast_desc', 'and broadcast urgent alerts to all family caregivers.')}
                 </p>
               </div>
 
               <div className="bg-rose-50 dark:bg-rose-950/30 p-3 rounded-2xl border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300 font-bold text-left space-y-1">
-                <p>• Patient: {activeWard.name} ({activeWard.age} yrs, {activeWard.bloodGroup})</p>
-                <p>• ABHA ID: {activeWard.abhaId}</p>
-                <p>• Known Allergies: {activeWard.allergies.join(', ')}</p>
+                <p>• {t('caregiver.tasks.patient', 'Patient')}: {getLocalizedName(activeWard.name, t)} ({activeWard.age} {t('caregiver.common.years', 'yrs')}, {activeWard.bloodGroup})</p>
+                <p>• {t('caregiver.wards.abha_id', 'ABHA ID')}: {activeWard.abhaId}</p>
+                <p>• {t('caregiver.overview.known_allergies', 'Known Allergies:')} {activeWard.allergies.join(', ')}</p>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -742,13 +752,13 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
                   onClick={() => setIsSOSConfirmOpen(false)}
                   className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
                 >
-                  Cancel
+                  {t('caregiver.common.cancel', 'Cancel')}
                 </button>
                 <button
                   onClick={handleTriggerSOS}
                   className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30"
                 >
-                  Confirm & Dispatch SOS
+                  {t('caregiver.overview.confirm_dispatch', 'Confirm & Dispatch SOS')}
                 </button>
               </div>
             </motion.div>
