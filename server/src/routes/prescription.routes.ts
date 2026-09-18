@@ -33,6 +33,7 @@ router.get(
     'DOCTOR',
     'NURSE',
     'PHARMACIST',
+    'CAREGIVER',
     'ADMIN',
     'SUPER_ADMIN'
   ),
@@ -47,6 +48,7 @@ router.get(
     'DOCTOR',
     'NURSE',
     'PHARMACIST',
+    'CAREGIVER',
     'ADMIN',
     'SUPER_ADMIN'
   ),

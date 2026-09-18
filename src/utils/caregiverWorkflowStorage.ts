@@ -517,7 +517,9 @@ export const useCaregiverWorkflow = () => {
   const [wards, setWards] = useState<WardDependent[]>(INITIAL_WARDS);
   const [tasks, setTasks] = useState<CareTask[]>(INITIAL_TASKS);
   const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
-  const [activeWardId, setActiveWardIdState] = useState<string>('ward-1');
+  const [activeWardId, setActiveWardIdState] = useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEY_ACTIVE_WARD) || 'ward-1';
+  });
   const [loading, setLoading] = useState(false);
 
   const loadBackendData = async () => {
@@ -574,7 +576,14 @@ export const useCaregiverWorkflow = () => {
           };
         });
         setWards(mappedWards);
-        setActiveWardIdState(mappedWards[0].id);
+        const savedId = localStorage.getItem(STORAGE_KEY_ACTIVE_WARD);
+        const exists = mappedWards.some(w => w.id === savedId);
+        if (exists && savedId) {
+          setActiveWardIdState(savedId);
+        } else if (mappedWards.length > 0) {
+          setActiveWardIdState(mappedWards[0].id);
+          localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, mappedWards[0].id);
+        }
       }
     } catch (err: any) {
       console.error('Failed to load caregiver data from database:', err?.message);
@@ -585,15 +594,25 @@ export const useCaregiverWorkflow = () => {
 
   useEffect(() => {
     loadBackendData();
-    const handleSync = () => loadBackendData();
+    const handleSync = () => {
+      const saved = localStorage.getItem(STORAGE_KEY_ACTIVE_WARD);
+      if (saved) {
+        setActiveWardIdState(saved);
+      }
+    };
     window.addEventListener('medicare_caregiver_sync', handleSync);
+    window.addEventListener('medicare_active_ward_change', handleSync);
     return () => {
       window.removeEventListener('medicare_caregiver_sync', handleSync);
+      window.removeEventListener('medicare_active_ward_change', handleSync);
     };
   }, []);
 
   const setActiveWardId = (id: string) => {
+    localStorage.setItem(STORAGE_KEY_ACTIVE_WARD, id);
     setActiveWardIdState(id);
+    window.dispatchEvent(new CustomEvent('medicare_active_ward_change', { detail: id }));
+    window.dispatchEvent(new Event('medicare_caregiver_sync'));
   };
 
   const activeWard = wards.find(w => w.id === activeWardId) || wards[0] || INITIAL_WARDS[0];

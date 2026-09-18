@@ -24,14 +24,14 @@ router.post(
 // 2. List medical records with pagination, filters, and patient isolation
 router.get(
   '/',
-  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   getRecordsController
 );
 
 // 3. Get single medical record by ID (with ownership check)
 router.get(
   '/:id',
-  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   getRecordByIdController
 );
 

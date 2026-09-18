@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuthUser } from '../@types/express';
 import { AuditService } from './audit.service';
+import { CaregiverService } from './caregiver.service';
 
 export interface PrescriptionItemInput {
   medicineId?: string;
@@ -198,8 +199,17 @@ export class PrescriptionService {
 
     const where: Prisma.PrescriptionWhereInput = {};
 
-    // 1. Patient Isolation: Force filter to the authenticated patient's profile ID
-    if (user.role === Role.PATIENT) {
+    // 1. Patient / Caregiver Isolation Enforcement
+    if (user.role === Role.CAREGIVER) {
+      if (options.patientId) {
+        await CaregiverService.validateCaregiverAccess(user.id, user.role, options.patientId);
+        where.patientId = options.patientId;
+      } else {
+        const wards = await CaregiverService.getWards(user.id, user.role);
+        const wardIds = wards.map(w => w.id);
+        where.patientId = { in: wardIds };
+      }
+    } else if (user.role === Role.PATIENT) {
       const patient = await prisma.patient.findUnique({
         where: { userId: user.id },
       });
@@ -319,8 +329,10 @@ export class PrescriptionService {
       throw err;
     }
 
-    // Patient isolation: Patient can only view their own prescription
-    if (user.role === Role.PATIENT && prescription.patient.userId !== user.id) {
+    // CAREGIVER & PATIENT ISOLATION CHECK
+    if (user.role === Role.CAREGIVER) {
+      await CaregiverService.validateCaregiverAccess(user.id, user.role, prescription.patientId);
+    } else if (user.role === Role.PATIENT && prescription.patient.userId !== user.id) {
       const err: AppError = new Error('Access denied: You can only access your own prescriptions');
       err.statusCode = 403;
       throw err;

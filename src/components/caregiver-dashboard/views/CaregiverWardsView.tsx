@@ -451,12 +451,18 @@ export const CaregiverWardsView: React.FC<CaregiverWardsViewProps> = ({ onNaviga
               <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1120] space-y-3">
                 <button 
                   onClick={() => {
-                    setActiveWardId(selectedDependent.id);
+                    const targetId = selectedDependent?.id;
+                    const match = workflowWards.find(w => w.id === targetId || w.name.toLowerCase() === (selectedDependent?.wardName || selectedDependent?.fullName || selectedDependent?.name || '').toLowerCase());
+                    if (match) {
+                      setActiveWardId(match.id);
+                    } else if (targetId) {
+                      setActiveWardId(targetId);
+                    }
                     if (onNavigate) {
                       onNavigate('records');
                     } else {
                       const recordsBtn = document.querySelector('[data-nav="records"]') as HTMLButtonElement;
-                      if(recordsBtn) recordsBtn.click();
+                      if (recordsBtn) recordsBtn.click();
                     }
                     setSelectedDependent(null);
                   }}

@@ -38,6 +38,7 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
     { id: 'routines', label: t('caregiver.nav.routines', 'Daily Care Tasks'), icon: CheckSquare, badge: pendingTasks > 0 ? pendingTasks : undefined },
     { id: 'vitals', label: t('caregiver.nav.vitals', 'Vitals & Biometrics'), icon: Activity },
     { id: 'appointments', label: t('caregiver.nav.appointments', 'Doctor Visits & Calls'), icon: Calendar },
+    { id: 'home-care', label: t('caregiver.nav.home_care', 'Nurse & Home-Care'), icon: HeartHandshake },
     
     { category: t('caregiver.nav.cat_emergency', 'Emergency & Safety') },
     { id: 'emergency', label: t('caregiver.nav.emergency', 'SOS & Geofence Safety'), icon: AlertOctagon, danger: true, badge: unreadAlerts > 0 ? unreadAlerts : undefined },
@@ -109,6 +110,7 @@ export const CaregiverSidebar: React.FC<CaregiverSidebarProps> = ({ activeNav, o
           return (
             <button
               key={item.id}
+              data-nav={item.id}
               onClick={() => onNavigate(item.id!)}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all group ${
                 isActive

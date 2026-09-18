@@ -24,6 +24,7 @@ import { CaregiverAbhaRecordsView } from '../components/caregiver-dashboard/view
 import { CaregiverMedicationsView } from '../components/caregiver-dashboard/views/CaregiverMedicationsView';
 import { CaregiverVitalsView } from '../components/caregiver-dashboard/views/CaregiverVitalsView';
 import { CaregiverAppointmentsView } from '../components/caregiver-dashboard/views/CaregiverAppointmentsView';
+import { CaregiverHomeCareView } from '../components/caregiver-dashboard/views/CaregiverHomeCareView';
 import { CaregiverEmergencyView } from '../components/caregiver-dashboard/views/CaregiverEmergencyView';
 import { CaregiverDailyTasksView } from '../components/caregiver-dashboard/views/CaregiverDailyTasksView';
 import { CaregiverCareCircleConsentView } from '../components/caregiver-dashboard/views/CaregiverCareCircleConsentView';
@@ -86,7 +87,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
       case 'dashboard':
         return <CaregiverOverviewView onNavigate={setActiveNav} />;
       case 'wards':
-        return <CaregiverWardsView />;
+        return <CaregiverWardsView onNavigate={setActiveNav} />;
       case 'records':
         return <CaregiverAbhaRecordsView />;
       case 'medications':
@@ -95,6 +96,8 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
         return <CaregiverVitalsView />;
       case 'appointments':
         return <CaregiverAppointmentsView />;
+      case 'home-care':
+        return <CaregiverHomeCareView />;
       case 'emergency':
         return <CaregiverEmergencyView />;
       case 'routines':
