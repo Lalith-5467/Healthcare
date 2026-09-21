@@ -105,6 +105,7 @@ export const CaregiverMedicationsView: React.FC = () => {
     try {
       const newStatus = currentTaken ? 'skipped' : 'taken';
       await medicineApi.recordDoseLog({
+        doseId: `dose-${medId}`,
         medicineId: medId,
         status: newStatus as any,
       });

@@ -31,8 +31,7 @@ import { CaregiverCareCircleConsentView } from '../components/caregiver-dashboar
 import { CaregiverProfileView } from '../components/caregiver-dashboard/views/CaregiverProfileView';
 import { CaregiverPreferencesAlertsView } from '../components/caregiver-dashboard/views/CaregiverPreferencesAlertsView';
 
-import { NotificationPopover } from '../components/dashboard/NotificationPopover';
-import { notificationApi } from '../services/dhrApis';
+import { CaregiverNotificationPopover } from '../components/caregiver-dashboard/CaregiverNotificationPopover';
 
 import { useLanguage } from '../context/LanguageContext';
 import { getLocalizedName } from '../utils/caregiverDataTranslator';
@@ -61,25 +60,15 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const [isGlobalSOSOpen, setIsGlobalSOSOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const { 
+    wards, 
+    activeWard, 
+    setActiveWardId, 
+    alerts, 
+    triggerSOS, 
+    unreadNotificationsCount 
+  } = useCaregiverWorkflow();
 
-  const loadUnreadCount = async () => {
-    try {
-      const res = await notificationApi.getNotifications();
-      if (res && res.data) {
-        setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
-      }
-    } catch {}
-  };
-
-  React.useEffect(() => {
-    loadUnreadCount();
-    const handleUpdate = () => loadUnreadCount();
-    window.addEventListener('notifications_updated', handleUpdate);
-    return () => window.removeEventListener('notifications_updated', handleUpdate);
-  }, []);
-
-  const { wards, activeWard, setActiveWardId, alerts, triggerSOS } = useCaregiverWorkflow();
   const activeAlerts = alerts.filter(a => a.status === 'Active').length;
 
   const renderContent = () => {
@@ -394,12 +383,12 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
       </AnimatePresence>
 
       {/* NOTIFICATIONS POPOVER */}
-      <NotificationPopover
+      <CaregiverNotificationPopover
         isOpen={isNotifDropdownOpen}
         onClose={() => setIsNotifDropdownOpen(false)}
-        onNavigateToNotifications={() => {
+        onNavigate={(routeId) => {
+          setActiveNav(routeId);
           setIsNotifDropdownOpen(false);
-          setActiveNav('dashboard');
         }}
       />
 

@@ -270,6 +270,7 @@ export const MOCK_ABHA_DEPENDENTS: AbhaDependentProfile[] = [
         facility: 'Apollo Senior Care Center',
         status: 'Active',
         diagnosis: 'Mild Cognitive Decline & Primary Hypertension',
+        summary: 'Geriatric prescription renewal for memory support and blood pressure control.',
         medications: [
           { medicineName: 'Amlodipine', dosage: '5', unit: 'mg', frequency: 'Once daily morning', instructions: 'Take with plain water' },
           { medicineName: 'Donepezil', dosage: '5', unit: 'mg', frequency: 'Once daily at bedtime', instructions: 'Take after dinner' }

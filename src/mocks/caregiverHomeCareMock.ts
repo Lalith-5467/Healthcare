@@ -144,3 +144,39 @@ export const DEMO_HOME_CARE_BOOKINGS_BY_WARD: Record<string, DemoHomeCareBooking
     }
   ]
 };
+
+// Helper function to add new home care booking from Patient Dashboard or Caregiver Portal
+export const addHomeCareBooking = (booking: DemoHomeCareBooking) => {
+  if (!DEMO_HOME_CARE_BOOKINGS_BY_WARD[booking.dependentId]) {
+    DEMO_HOME_CARE_BOOKINGS_BY_WARD[booking.dependentId] = [];
+  }
+  
+  // Prepend to active in-memory dictionary
+  DEMO_HOME_CARE_BOOKINGS_BY_WARD[booking.dependentId].unshift(booking);
+
+  // Add corresponding caregiver notification to localStorage
+  try {
+    const STORAGE_KEY_NOTIFS = 'medicare_caregiver_notifs_v2';
+    const existingNotifs = JSON.parse(localStorage.getItem(STORAGE_KEY_NOTIFS) || '[]');
+    const newNotif = {
+      id: `notif-${Date.now()}`,
+      dependentId: booking.dependentId,
+      wardName: booking.dependentName,
+      title: 'New Home Care Booking Requested',
+      message: `Home care visit for ${booking.serviceType} booked for ${booking.bookingDate} at ${booking.bookingTime}.`,
+      type: 'Nurse Booking',
+      timestamp: 'Just now',
+      read: false,
+      relatedRoute: 'home-care'
+    };
+    const updatedNotifs = [newNotif, ...existingNotifs];
+    localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(updatedNotifs));
+  } catch (e) {
+    console.error('Failed to create caregiver notification:', e);
+  }
+
+  // Dispatch sync events to update Caregiver Overview & Caregiver Home Care View in real-time
+  window.dispatchEvent(new Event('medicare_caregiver_sync'));
+  window.dispatchEvent(new Event('notifications_updated'));
+};
+

@@ -44,6 +44,15 @@ export const CaregiverHomeCareView: React.FC = () => {
   // In-memory state initialized with mock dataset mapped by ward ID
   const [bookingsMap, setBookingsMap] = useState<Record<string, DemoHomeCareBooking[]>>(DEMO_HOME_CARE_BOOKINGS_BY_WARD);
 
+  // Sync state on live medicare_caregiver_sync events
+  React.useEffect(() => {
+    const handleSync = () => {
+      setBookingsMap({ ...DEMO_HOME_CARE_BOOKINGS_BY_WARD });
+    };
+    window.addEventListener('medicare_caregiver_sync', handleSync);
+    return () => window.removeEventListener('medicare_caregiver_sync', handleSync);
+  }, []);
+
   // Search and Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');

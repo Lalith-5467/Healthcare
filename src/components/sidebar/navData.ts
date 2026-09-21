@@ -23,7 +23,8 @@ import {
   Brain,
   Stethoscope,
   Lock,
-  Brush
+  Brush,
+  HeartHandshake
 } from 'lucide-react';
 import type { NavItemConfig } from './types';
 
@@ -67,6 +68,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemConfig[] = [
       { id: 'diet-plan', label: 'Diet & Nutrient Plans', icon: Apple, path: '/diet-plans' },
       { id: 'report-insights', label: 'Report Insights & AI', icon: Brain, path: '/insights', isSpecial: 'ai' },
       { id: 'nurse-booking', label: 'In-Home Nurse Booking', icon: Stethoscope, path: '/nurse-booking' },
+      { id: 'caregiver-booking', label: 'Caregiver / Home Care', icon: HeartHandshake, path: '/caregiver-booking' },
       { id: 'janitor-booking', label: 'Janitor Booking', icon: Brush, path: '/janitor-booking' },
       { id: 'security-privacy', label: 'Security & Privacy', icon: Lock, path: '/security' }
     ]

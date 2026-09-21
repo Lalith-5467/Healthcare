@@ -31,6 +31,7 @@ import { authApi } from './services/dhrApis';
 import { clearAuthToken } from './services/apiClient';
 import { socketService } from './services/socketService';
 import { showGlobalToast } from './components/common/GlobalToastManager';
+import { GlobalNotificationListener } from './components/common/GlobalNotificationListener';
 
 const NAV_MAP: Record<string, string> = {
   'family-connect': 'family',
@@ -73,6 +74,7 @@ const NAV_MAP: Record<string, string> = {
   'insights': 'report-insights',
   'report-insights': 'report-insights',
   'nurse-booking': 'nurse-booking',
+  'caregiver-booking': 'caregiver-booking',
   'janitor-booking': 'janitor-booking',
   'security': 'security-privacy',
   'security-privacy': 'security-privacy'
@@ -179,6 +181,7 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
     if (nav === 'diet-plan') return '/user/diet-plans';
     if (nav === 'report-insights') return '/user/insights';
     if (nav === 'nurse-booking') return '/user/nurse-booking';
+    if (nav === 'caregiver-booking') return '/user/caregiver-booking';
     if (nav === 'janitor-booking') return '/user/janitor-booking';
     if (nav === 'security-privacy') return '/user/security';
     return `/user/${nav}`;
@@ -629,6 +632,7 @@ export const App: React.FC = () => {
     <LanguageProvider>
       <ThemeProvider key={themeKey} storageKey={themeKey}>
         <GlobalToastManager />
+        <GlobalNotificationListener activeRole={activeRole} />
         <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
           
           {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}

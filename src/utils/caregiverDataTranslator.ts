@@ -67,6 +67,19 @@ export const getLocalizedTaskCategory = (category: string, t: (key: string, fall
   return category;
 };
 
+export const getLocalizedTaskStatus = (status: string | undefined, completed: boolean, t: (key: string, fallback?: string) => string): string => {
+  if (status === 'In Progress' || status === 'in_progress') {
+    return t('caregiver.tasks.status_in_progress', 'In Progress');
+  }
+  if (status === 'Overdue' || status === 'overdue') {
+    return t('caregiver.tasks.status_overdue', 'Overdue');
+  }
+  if (status === 'Completed' || status === 'completed' || completed) {
+    return t('caregiver.tasks.status_completed', 'Completed');
+  }
+  return t('caregiver.tasks.status_pending', 'Pending');
+};
+
 export const getLocalizedLocation = (loc: string, t: (key: string, fallback?: string) => string): string => {
   if (!loc) return '';
   const lower = loc.toLowerCase();

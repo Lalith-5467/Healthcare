@@ -32,17 +32,22 @@ export interface VitalRecord {
   status: 'normal' | 'elevated' | 'critical';
 }
 
+export type CareTaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Overdue';
+
 export interface CareTask {
   id: string;
   wardId: string;
   title: string;
-  category: 'Medication' | 'Vitals' | 'Nutrition' | 'Mobility' | 'Hygiene' | 'Doctor';
+  category: 'Medication' | 'Vitals' | 'Nutrition' | 'Mobility' | 'Hygiene' | 'Doctor' | 'Hydration' | 'Personal Care' | 'Wellness';
+  dueDate?: string;
   time: string;
   priority: 'low' | 'medium' | 'high';
   completed: boolean;
+  status?: CareTaskStatus;
   completedAt?: string;
   assignedTo: string;
   notes?: string;
+  instructions?: string;
 }
 
 export interface WardAppointment {
@@ -99,20 +104,33 @@ export interface WardDependent {
   notes: Array<{ id: string; date: string; time: string; author: string; text: string; tag: string }>;
 }
 
+export type CaregiverNotificationType = 
+  | 'Appointment Reminder'
+  | 'Appointment Status'
+  | 'Nurse Booking'
+  | 'Care Task'
+  | 'Vital Alert'
+  | 'ABHA Update'
+  | 'General Caregiver Alert';
+
 export interface CaregiverNotification {
   id: string;
-  wardId?: string;
+  dependentId: string;
   wardName?: string;
   title: string;
   message: string;
-  time: string;
+  type: CaregiverNotificationType;
+  timestamp: string;
   read: boolean;
-  type: 'vital' | 'med' | 'alert' | 'appointment' | 'refill';
+  relatedEntityId?: string;
+  relatedRoute: 'appointments' | 'home-care' | 'routines' | 'vitals' | 'records' | 'medications' | 'dashboard';
+  actionRoute?: string;
 }
 
 const STORAGE_KEY_WARDS = 'medicare_caregiver_wards_v2';
 const STORAGE_KEY_TASKS = 'medicare_caregiver_tasks_v2';
 const STORAGE_KEY_ALERTS = 'medicare_caregiver_alerts_v2';
+const STORAGE_KEY_NOTIFS = 'medicare_caregiver_notifs_v2';
 const STORAGE_KEY_ACTIVE_WARD = 'medicare_caregiver_active_ward_v2';
 
 const INITIAL_WARDS: WardDependent[] = [
@@ -456,56 +474,284 @@ const INITIAL_WARDS: WardDependent[] = [
 ];
 
 const INITIAL_TASKS: CareTask[] = [
+  // Ward 1 - Ragul Kumar (Father / Arun Raj)
   {
     id: 't-1',
     wardId: 'ward-1',
     title: 'Assist Ragul with Morning BP & Metformin',
     category: 'Medication',
+    dueDate: 'Today',
     time: '08:00 AM',
     priority: 'high',
     completed: true,
+    status: 'Completed',
     completedAt: '08:30 AM',
-    assignedTo: 'Anita (Primary Caregiver)'
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Take Telmisartan and Metformin post-breakfast with warm water.'
   },
   {
     id: 't-2',
-    wardId: 'ward-2',
-    title: 'Ensure Meena takes Calcium post-lunch',
-    category: 'Medication',
-    time: '01:30 PM',
-    priority: 'medium',
+    wardId: 'ward-1',
+    title: 'Morning Blood Pressure Check',
+    category: 'Vitals',
+    dueDate: 'Today',
+    time: '09:30 AM',
+    priority: 'high',
     completed: false,
-    assignedTo: 'Anita (Primary Caregiver)'
+    status: 'In Progress',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Measure sitting BP before noon meal. Record systolic/diastolic.'
   },
   {
     id: 't-3',
     wardId: 'ward-1',
-    title: 'Book Home Nurse for Ragul ECG check',
-    category: 'Doctor',
-    time: '03:00 PM',
+    title: 'Breakfast & Dietary Check',
+    category: 'Nutrition',
+    dueDate: 'Today',
+    time: '10:00 AM',
     priority: 'medium',
     completed: false,
-    assignedTo: 'Anita (Primary Caregiver)'
+    status: 'Pending',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Serve low-sodium oats breakfast and verify hydration.'
   },
   {
     id: 't-4',
-    wardId: 'ward-2',
-    title: 'Assist Meena with 15-min Knee Mobility Exercises',
-    category: 'Mobility',
-    time: '05:30 PM',
+    wardId: 'ward-1',
+    title: 'Doctor Appointment Preparation for Cardiology Review',
+    category: 'Doctor',
+    dueDate: 'Today',
+    time: '07:30 AM',
     priority: 'high',
     completed: false,
-    assignedTo: 'Anita (Primary Caregiver)'
+    status: 'Overdue',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Prepare latest lab reports and ECG history file for Dr. Rajesh Varma.'
   },
   {
     id: 't-5',
     wardId: 'ward-1',
     title: 'Record Evening Blood Sugar & Night Medication',
     category: 'Vitals',
+    dueDate: 'Today',
     time: '08:30 PM',
     priority: 'high',
     completed: false,
-    assignedTo: 'Anita (Primary Caregiver)'
+    status: 'Pending',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Test post-dinner blood sugar and administer Atorvastatin.'
+  },
+
+  // Ward 2 - Meena Kumar (Mother / Meena Raj)
+  {
+    id: 't-6',
+    wardId: 'ward-2',
+    title: 'Ensure Meena takes Calcium post-lunch',
+    category: 'Medication',
+    dueDate: 'Today',
+    time: '01:30 PM',
+    priority: 'medium',
+    completed: false,
+    status: 'Pending',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Administer Calcium + Vit D3 after lunch with warm milk.'
+  },
+  {
+    id: 't-7',
+    wardId: 'ward-2',
+    title: 'Hydration & Electrolyte Monitoring',
+    category: 'Hydration',
+    dueDate: 'Today',
+    time: '11:00 AM',
+    priority: 'low',
+    completed: false,
+    status: 'In Progress',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Ensure at least 500ml of water or fresh coconut water intake.'
+  },
+  {
+    id: 't-8',
+    wardId: 'ward-2',
+    title: 'Assist Meena with 15-min Knee Mobility Exercises',
+    category: 'Mobility',
+    dueDate: 'Today',
+    time: '05:30 PM',
+    priority: 'high',
+    completed: false,
+    status: 'Pending',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Guide through gentle joint stretches wearing knee support brace.'
+  },
+  {
+    id: 't-9',
+    wardId: 'ward-2',
+    title: 'Morning Thyronorm & Temperature Check',
+    category: 'Vitals',
+    dueDate: 'Today',
+    time: '07:00 AM',
+    priority: 'high',
+    completed: false,
+    status: 'Overdue',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Check morning body temp and confirm Thyronorm on empty stomach.'
+  },
+
+  // Ward 3 - Aarav Kumar (Son)
+  {
+    id: 't-10',
+    wardId: 'ward-3',
+    title: 'Morning Levolin Inhaler Check',
+    category: 'Medication',
+    dueDate: 'Today',
+    time: '07:30 AM',
+    priority: 'high',
+    completed: true,
+    status: 'Completed',
+    completedAt: '07:45 AM',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: '2 puffs via spacer before school.'
+  },
+  {
+    id: 't-11',
+    wardId: 'ward-3',
+    title: 'School Water Bottle & Hydration Check',
+    category: 'Hydration',
+    dueDate: 'Today',
+    time: '08:15 AM',
+    priority: 'low',
+    completed: false,
+    status: 'In Progress',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Pack warm water bottle for school.'
+  },
+  {
+    id: 't-12',
+    wardId: 'ward-3',
+    title: 'Evening Peak Flow Measurement',
+    category: 'Vitals',
+    dueDate: 'Today',
+    time: '06:00 PM',
+    priority: 'medium',
+    completed: false,
+    status: 'Pending',
+    assignedTo: 'Anita (Primary Caregiver)',
+    instructions: 'Record peak flow score post school play.'
+  }
+];
+
+const INITIAL_NOTIFICATIONS: CaregiverNotification[] = [
+  // Ward 1 - Ragul Kumar (Father / Arun Raj)
+  {
+    id: 'notif-101',
+    dependentId: 'ward-1',
+    wardName: 'Ragul Kumar',
+    title: 'Cardiology Follow-up Confirmed',
+    message: 'In-clinic Cardiology appointment with Dr. Rajesh Varma confirmed for tomorrow at 10:30 AM.',
+    type: 'Appointment Status',
+    timestamp: '10 mins ago',
+    read: false,
+    relatedEntityId: 'apt-1',
+    relatedRoute: 'appointments'
+  },
+  {
+    id: 'notif-102',
+    dependentId: 'ward-1',
+    wardName: 'Ragul Kumar',
+    title: 'Overdue Care Task Alert',
+    message: 'Doctor appointment preparation for Ragul\'s cardiology review is overdue.',
+    type: 'Care Task',
+    timestamp: '25 mins ago',
+    read: false,
+    relatedEntityId: 't-4',
+    relatedRoute: 'routines'
+  },
+  {
+    id: 'notif-103',
+    dependentId: 'ward-1',
+    wardName: 'Ragul Kumar',
+    title: 'Mild Elevation in Evening BP',
+    message: 'Recorded BP: 136/88 mmHg. Mild elevation detected post-dinner walk.',
+    type: 'Vital Alert',
+    timestamp: '2 hours ago',
+    read: true,
+    relatedEntityId: 'v2',
+    relatedRoute: 'vitals'
+  },
+  {
+    id: 'notif-104',
+    dependentId: 'ward-1',
+    wardName: 'Ragul Kumar',
+    title: 'New ABHA Health Record Linked',
+    message: 'Apollo Central Health City uploaded latest Cardiology Follow-up summary to ABDM Health Locker.',
+    type: 'ABHA Update',
+    timestamp: 'Yesterday',
+    read: true,
+    relatedEntityId: 'rec-101',
+    relatedRoute: 'records'
+  },
+
+  // Ward 2 - Meena Kumar (Mother / Meena Raj)
+  {
+    id: 'notif-201',
+    dependentId: 'ward-2',
+    wardName: 'Meena Kumar',
+    title: 'Home Nurse Arrival Update',
+    message: 'Sister Sarah (Verified Home Care Nurse) has arrived for Meena\'s knee mobility session.',
+    type: 'Nurse Booking',
+    timestamp: 'Just now',
+    read: false,
+    relatedEntityId: 'hb-201',
+    relatedRoute: 'home-care'
+  },
+  {
+    id: 'notif-202',
+    dependentId: 'ward-2',
+    wardName: 'Meena Kumar',
+    title: 'Post-Lunch Medication Reminder',
+    message: 'Upcoming task: Ensure Meena takes Calcium + Vit D3 after lunch.',
+    type: 'Care Task',
+    timestamp: '1 hour ago',
+    read: false,
+    relatedEntityId: 't-6',
+    relatedRoute: 'routines'
+  },
+  {
+    id: 'notif-203',
+    dependentId: 'ward-2',
+    wardName: 'Meena Kumar',
+    title: 'Upcoming Orthopedic Consultation',
+    message: 'Joint mobility & physiotherapy test with Dr. Ananya Sen scheduled for Sept 4 at 11:00 AM.',
+    type: 'Appointment Reminder',
+    timestamp: '3 hours ago',
+    read: true,
+    relatedEntityId: 'apt-3',
+    relatedRoute: 'appointments'
+  },
+
+  // Ward 3 - Aarav Kumar (Son)
+  {
+    id: 'notif-301',
+    dependentId: 'ward-3',
+    wardName: 'Aarav Kumar',
+    title: 'Morning Asthma Dose Completed',
+    message: 'Levolin Inhaler 50mcg (2 puffs) recorded successfully before school.',
+    type: 'Care Task',
+    timestamp: '2 hours ago',
+    read: true,
+    relatedEntityId: 't-10',
+    relatedRoute: 'routines'
+  },
+  {
+    id: 'notif-302',
+    dependentId: 'ward-3',
+    wardName: 'Aarav Kumar',
+    title: 'Peak Flow Vitals Normal',
+    message: 'Peak flow reading 220 L/min recorded (Green zone - optimal pediatric lung function).',
+    type: 'Vital Alert',
+    timestamp: '4 hours ago',
+    read: true,
+    relatedEntityId: 'v4',
+    relatedRoute: 'vitals'
   }
 ];
 
@@ -517,6 +763,7 @@ export const useCaregiverWorkflow = () => {
   const [wards, setWards] = useState<WardDependent[]>(INITIAL_WARDS);
   const [tasks, setTasks] = useState<CareTask[]>(INITIAL_TASKS);
   const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
+  const [notifications, setNotifications] = useState<CaregiverNotification[]>(INITIAL_NOTIFICATIONS);
   const [activeWardId, setActiveWardIdState] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY_ACTIVE_WARD) || 'ward-1';
   });
@@ -714,14 +961,39 @@ export const useCaregiverWorkflow = () => {
     sync(updated, tasks, alerts);
   };
 
-  // 4. Toggle Task Complete
+  // 4. Update Task Status & Toggle
+  const updateTaskStatus = (taskId: string, status: CareTaskStatus) => {
+    const updatedTasks = tasks.map(t => {
+      if (t.id !== taskId) return t;
+      const isCompleted = status === 'Completed';
+      return {
+        ...t,
+        status,
+        completed: isCompleted,
+        completedAt: isCompleted ? (t.completedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : undefined
+      };
+    });
+    setTasks(updatedTasks);
+    sync(wards, updatedTasks, alerts);
+  };
+
+  const startTask = (taskId: string) => {
+    updateTaskStatus(taskId, 'In Progress');
+  };
+
+  const reopenTask = (taskId: string) => {
+    updateTaskStatus(taskId, 'Pending');
+  };
+
   const toggleTask = (taskId: string) => {
     const updatedTasks = tasks.map(t => {
       if (t.id !== taskId) return t;
       const nextDone = !t.completed;
+      const nextStatus: CareTaskStatus = nextDone ? 'Completed' : 'Pending';
       return {
         ...t,
         completed: nextDone,
+        status: nextStatus,
         completedAt: nextDone ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined
       };
     });
@@ -842,6 +1114,23 @@ export const useCaregiverWorkflow = () => {
     sync(updated, tasks, alerts);
   };
 
+  const markNotificationRead = (id: string) => {
+    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+    setNotifications(updated);
+    window.dispatchEvent(new Event('notifications_updated'));
+    window.dispatchEvent(new Event('medicare_caregiver_sync'));
+  };
+
+  const markAllNotificationsRead = (targetWardId?: string) => {
+    const wardIdToClear = targetWardId || activeWardId;
+    const updated = notifications.map(n => n.dependentId === wardIdToClear ? { ...n, read: true } : n);
+    setNotifications(updated);
+    window.dispatchEvent(new Event('notifications_updated'));
+    window.dispatchEvent(new Event('medicare_caregiver_sync'));
+  };
+
+  const unreadNotificationsCount = notifications.filter(n => n.dependentId === activeWardId && !n.read).length;
+
   return {
     wards,
     activeWardId,
@@ -849,7 +1138,14 @@ export const useCaregiverWorkflow = () => {
     activeWard,
     tasks,
     alerts,
+    notifications,
+    unreadNotificationsCount,
+    markNotificationRead,
+    markAllNotificationsRead,
     toggleTask,
+    updateTaskStatus,
+    startTask,
+    reopenTask,
     toggleMedicationTaken,
     requestMedicationRefill,
     addVitalReading,

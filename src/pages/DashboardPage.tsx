@@ -51,6 +51,7 @@ import { LabTestView } from '../components/more-features/views/LabTestView';
 import { DietPlanView } from '../components/more-features/views/DietPlanView';
 import { ReportInsightsView } from '../components/more-features/views/ReportInsightsView';
 import { NurseBookingView } from '../components/more-features/views/NurseBookingView';
+import { CaregiverBookingView } from '../components/dashboard/CaregiverBookingView';
 import { JanitorBookingView } from '../components/more-features/views/JanitorBookingView';
 import { SecurityPrivacyView } from '../components/more-features/views/SecurityPrivacyView';
 import { LanguageProvider } from '../context/LanguageContext';
@@ -232,6 +233,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       'diet-plan': '/user/diet-plans',
       'report-insights': '/user/insights',
       'nurse-booking': '/user/nurse-booking',
+      'caregiver-booking': '/user/caregiver-booking',
       'janitor-booking': '/user/janitor-booking',
       'security-privacy': '/user/security'
     };
@@ -276,6 +278,8 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       showToast('Switched to Report Insights & AI');
     } else if (targetId === 'nurse-booking') {
       showToast('Switched to In-Home Nurse Booking');
+    } else if (targetId === 'caregiver-booking') {
+      showToast('Switched to Caregiver / Home Care Booking');
     } else if (targetId === 'janitor-booking') {
       showToast('Switched to Janitor Booking');
     } else if (targetId === 'security-privacy') {
@@ -434,6 +438,8 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
           <ReportInsightsView />
         ) : activeNavId === 'nurse-booking' ? (
           <NurseBookingView user={effectiveUser} />
+        ) : activeNavId === 'caregiver-booking' ? (
+          <CaregiverBookingView user={effectiveUser} onNavigate={handleSelectNav} />
         ) : activeNavId === 'janitor-booking' ? (
           <JanitorBookingView />
         ) : activeNavId === 'security-privacy' ? (

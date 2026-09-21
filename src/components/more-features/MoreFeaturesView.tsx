@@ -27,7 +27,8 @@ import {
   Activity,
   Heart,
   BadgeCheck,
-  HelpCircle
+  HelpCircle,
+  HeartHandshake
 } from 'lucide-react';
 
 interface UserProfile {
@@ -141,6 +142,19 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
       rating: '4.9 ★ (980+ Nurses Active)',
       actionText: 'Book In-Home Nurse',
       highlights: ['Background Verified Staff', '24/7 & Shift Based Care', 'Vital Monitoring Included']
+    },
+    {
+      id: 'caregiver-booking',
+      title: 'Caregiver & Home Care Booking',
+      category: 'Clinical Services',
+      description: 'Schedule certified geriatric caregivers, home assistants & physio walking support for family members.',
+      icon: HeartHandshake,
+      badge: 'Caregiver Portal Sync',
+      color: 'from-teal-600 to-cyan-600',
+      badgeBg: 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border-teal-500/30',
+      rating: '4.9 ★ (1,500+ Family Bookings)',
+      actionText: 'Book Caregiver Visit',
+      highlights: ['Real-Time Caregiver Tracking', 'Geriatric & Post-Op Hygiene', 'ABDM Proxy Consent Linked']
     },
     {
       id: 'security-privacy',
