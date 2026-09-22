@@ -209,7 +209,27 @@ export const patientTranslations = {
     "common.loading": "Loading...",
     "common.no_data": "No data found",
     "common.success": "Success",
-    "common.error": "Error"
+    "common.error": "Error",
+
+    // Notification Titles & Messages
+    "notif.medication_scheduled_title": "Medication Scheduled: Amoxicillin 500mg",
+    "notif.medication_scheduled_msg": "Your afternoon dose is scheduled for 2:00 PM. Please take it after food.",
+    "notif.tele_consultation_title": "Tele-Consultation Confirmed",
+    "notif.tele_consultation_msg": "Your video appointment with Dr. Rajesh Varma is confirmed for tomorrow at 10:30 AM.",
+    "notif.vitals_logged_title": "Vitals Logged: BP 120/80 mmHg",
+    "notif.vitals_logged_msg": "Your daily vital readings were logged. All systems normal.",
+    "notif.abha_verified_title": "ABHA Health Record Verified",
+    "notif.abha_verified_msg": "CBC & Lipid Profile results from Apollo Diagnostics are synced to your health locker.",
+    "notif.pharmacy_preparing_title": "Pharmacy Order Preparing",
+    "notif.pharmacy_preparing_msg": "Apollo Central Pharmacy is preparing your prescribed medications for dispatch.",
+    "notif.dose_time_reminder_title": "Medication Reminder",
+    "notif.dose_time_reminder_msg": "Your medication dose time has arrived. Please take your prescribed medicine.",
+    "notif.doctor_appointment_title": "Doctor Appointment Reminder",
+    "notif.doctor_appointment_msg": "Your doctor appointment is tomorrow at 10:00 AM. Please be ready in advance.",
+    "notif.lab_results_title": "Lab Test Results Ready",
+    "notif.lab_results_msg": "Your test results are ready. Please check your health record for details.",
+    "notif.emergency_alert_title": "Emergency Alert",
+    "notif.emergency_alert_msg": "Emergency notification. Please contact your doctor immediately."
   },
   ta: {
     // Header & Brand
@@ -417,6 +437,26 @@ export const patientTranslations = {
     "common.loading": "ஏற்றுகிறது...",
     "common.no_data": "தரவு எதுவும் இல்லை",
     "common.success": "வெற்றி",
-    "common.error": "பிழை"
+    "common.error": "பிழை",
+
+    // Notification Titles & Messages
+    "notif.medication_scheduled_title": "மருந்து அட்டவணைப்படுத்தப்பட்டது: அமோக்சிசிலின் 500 மிகி",
+    "notif.medication_scheduled_msg": "உங்கள் பிற்பகல் மருந்து அளவு மதியம் 2:00 மணிக்கு திட்டமிடப்பட்டுள்ளது. உணவிற்குப் பிறகு உட்கொள்ளவும்.",
+    "notif.tele_consultation_title": "வீடியோ மருத்துவச் சந்திப்பு உறுதி செய்யப்பட்டது",
+    "notif.tele_consultation_msg": "டாக்டர் ராஜேஷ் வர்மாவுடனான உங்கள் வீடியோ சந்திப்பு நாளை காலை 10:30 மணிக்கு உறுதி செய்யப்பட்டுள்ளது.",
+    "notif.vitals_logged_title": "உடல்நல அளவீடுகள் பதிவு செய்யப்பட்டன: BP 120/80 mmHg",
+    "notif.vitals_logged_msg": "உங்கள் தினசரி உடல்நல அளவீடுகள் பதிவு செய்யப்பட்டன. அனைத்தும் இயல்பாக உள்ளன.",
+    "notif.abha_verified_title": "ஆயுஷ்மான் பாரத் (ABHA) மருத்துவ பதிவு சரிபார்க்கப்பட்டது",
+    "notif.abha_verified_msg": "அப்பல்லோ பரிசோதனை மையத்திலிருந்து சிபிசி மற்றும் லிப்பிட் சுயவிவர முடிவுகள் உங்கள் சுகாதார கணக்கில் ஒத்திசைக்கப்பட்டன.",
+    "notif.pharmacy_preparing_title": "மருந்தக ஆர்டர் தயார் செய்யப்படுகிறது",
+    "notif.pharmacy_preparing_msg": "அப்பல்லோ மத்திய மருந்தகம் உங்கள் பரிந்துரைக்கப்பட்ட மருந்துகளை அனுப்ப தயார் செய்கிறது.",
+    "notif.dose_time_reminder_title": "மருந்து நினைவூட்டல்",
+    "notif.dose_time_reminder_msg": "உங்கள் மருந்து எடுத்துக்கொள்ளும் நேரம் வந்துவிட்டது. தயவுசெய்து உங்கள் மருந்தை எடுத்துக்கொள்ளவும்.",
+    "notif.doctor_appointment_title": "மருத்துவர் சந்திப்பு நினைவூட்டல்",
+    "notif.doctor_appointment_msg": "உங்கள் மருத்துவர் சந்திப்பு நாளை காலை 10 மணிக்கு உள்ளது. தயவுசெய்து நேரத்திற்கு முன்பாக தயாராக இருக்கவும்.",
+    "notif.lab_results_title": "பரிசோதனை முடிவுகள் தயார்",
+    "notif.lab_results_msg": "உங்கள் பரிசோதனை முடிவுகள் தயாராக உள்ளன. மேலும் விவரங்களுக்கு உங்கள் சுகாதார பதிவைப் பார்க்கவும்.",
+    "notif.emergency_alert_title": "அவசர அறிவிப்பு",
+    "notif.emergency_alert_msg": "அவசர அறிவிப்பு. தயவுசெய்து உடனடியாக உங்கள் மருத்துவரை தொடர்பு கொள்ளவும்."
   }
 };

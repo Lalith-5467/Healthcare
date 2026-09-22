@@ -12,10 +12,13 @@ import {
   CheckCircle2, 
   ExternalLink,
   X,
-  ShieldCheck
+  ShieldCheck,
+  Volume2
 } from 'lucide-react';
 import type { NotificationLog } from '../reminders/remindersData';
 import { notificationApi } from '../../services/dhrApis';
+import { notificationVoiceService } from '../../services/notificationVoiceService';
+import { useLanguage } from '../../context/LanguageContext';
 import { PatientAccessRequestsModal } from './PatientAccessRequestsModal';
 
 const formatTimeAgo = (dateStr?: string) => {
@@ -41,9 +44,48 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   onClose,
   onNavigateToNotifications
 }) => {
+  const { language, t } = useLanguage();
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+
+  const getLocalizedNotifText = (rawTitle: string, rawDesc: string) => {
+    if (language !== 'ta') return { title: rawTitle, description: rawDesc };
+
+    let title = rawTitle;
+    let description = rawDesc;
+
+    if (rawTitle.includes('Medication Scheduled') || rawTitle.includes('Amoxicillin')) {
+      title = t('notif.medication_scheduled_title', rawTitle);
+      description = t('notif.medication_scheduled_msg', rawDesc);
+    } else if (rawTitle.includes('Tele-Consultation') || rawTitle.includes('Consultation Confirmed')) {
+      title = t('notif.tele_consultation_title', rawTitle);
+      description = t('notif.tele_consultation_msg', rawDesc);
+    } else if (rawTitle.includes('Vitals Logged') || rawTitle.includes('BP 120/80')) {
+      title = t('notif.vitals_logged_title', rawTitle);
+      description = t('notif.vitals_logged_msg', rawDesc);
+    } else if (rawTitle.includes('ABHA Health Record') || rawTitle.includes('ABHA')) {
+      title = t('notif.abha_verified_title', rawTitle);
+      description = t('notif.abha_verified_msg', rawDesc);
+    } else if (rawTitle.includes('Pharmacy Order') || rawTitle.includes('Pharmacy')) {
+      title = t('notif.pharmacy_preparing_title', rawTitle);
+      description = t('notif.pharmacy_preparing_msg', rawDesc);
+    } else if (rawTitle.includes('Medication Reminder') || rawDesc.includes('dose time has arrived') || rawDesc.includes('நேரம் வந்துவிட்டது')) {
+      title = t('notif.dose_time_reminder_title', rawTitle);
+      description = t('notif.dose_time_reminder_msg', rawDesc);
+    } else if (rawTitle.includes('Doctor Appointment') || rawDesc.includes('10 மணிக்கு') || rawDesc.includes('10:00 AM')) {
+      title = t('notif.doctor_appointment_title', rawTitle);
+      description = t('notif.doctor_appointment_msg', rawDesc);
+    } else if (rawTitle.includes('Lab Test') || rawTitle.includes('Test Results') || rawDesc.includes('பரிசோதனை முடிவுகள்')) {
+      title = t('notif.lab_results_title', rawTitle);
+      description = t('notif.lab_results_msg', rawDesc);
+    } else if (rawTitle.includes('Emergency') || rawTitle.includes('அவசர') || rawDesc.includes('உடனடியாக') || rawDesc.includes('மருத்துவரை')) {
+      title = t('notif.emergency_alert_title', rawTitle);
+      description = t('notif.emergency_alert_msg', rawDesc);
+    }
+
+    return { title, description };
+  };
 
   const loadNotifications = async () => {
     try {
@@ -223,53 +265,67 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                   <p className="text-[10px] text-slate-600 dark:text-slate-400">You're all up to date with your health updates.</p>
                 </div>
               ) : (
-                filteredNotifs.map((notif) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => {
-                      handleMarkRead(notif.id);
-                      if (notif.relatedModule === 'health-share' || notif.category === 'Clinical Access' || notif.title.includes('Access Request')) {
-                        setIsAccessModalOpen(true);
-                      }
-                    }}
-                    className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer group ${
-                      notif.isRead
-                        ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                        : 'bg-teal-500/5 dark:bg-teal-500/10 hover:bg-teal-500/10 dark:hover:bg-teal-500/15'
-                    }`}
-                  >
-                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0 mt-0.5">
-                      {getCategoryIcon(notif.category)}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <h4 className={`font-extrabold truncate text-xs ${
-                          notif.isRead ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'
-                        }`}>
-                          {notif.title}
-                        </h4>
-                        <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 shrink-0">{notif.timeAgo}</span>
+                filteredNotifs.map((notif) => {
+                  const { title: displayTitle, description: displayDesc } = getLocalizedNotifText(notif.title, notif.description);
+                  return (
+                    <div
+                      key={notif.id}
+                      onClick={() => {
+                        handleMarkRead(notif.id);
+                        if (notif.relatedModule === 'health-share' || notif.category === 'Clinical Access' || notif.title.includes('Access Request')) {
+                          setIsAccessModalOpen(true);
+                        }
+                      }}
+                      className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer group ${
+                        notif.isRead
+                          ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                          : 'bg-teal-500/5 dark:bg-teal-500/10 hover:bg-teal-500/10 dark:hover:bg-teal-500/15'
+                      }`}
+                    >
+                      <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0 mt-0.5">
+                        {getCategoryIcon(notif.category)}
                       </div>
 
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed font-medium">
-                        {notif.description}
-                      </p>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className={`font-extrabold truncate text-xs ${
+                            notif.isRead ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'
+                          }`}>
+                            {displayTitle}
+                          </h4>
+                          <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 shrink-0">{notif.timeAgo}</span>
+                        </div>
 
-                    <div className="flex flex-col items-center gap-1 shrink-0">
-                      {!notif.isRead && (
-                        <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
-                      )}
-                      <button
-                        onClick={(e) => handleRemoveSingle(notif.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-opacity cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed font-medium">
+                          {displayDesc}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-center gap-1.5 shrink-0">
+                        {!notif.isRead && (
+                          <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language);
+                          }}
+                          title="Play voice announcement"
+                          className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 hover:scale-110 transition-all cursor-pointer"
+                        >
+                          <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                        </button>
+                        <button
+                          onClick={(e) => handleRemoveSingle(notif.id, e)}
+                          title="Dismiss notification"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-opacity cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

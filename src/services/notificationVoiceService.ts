@@ -1,3 +1,5 @@
+import { apiClient } from './apiClient';
+
 export interface VoiceSettings {
   enabled: boolean;
   language: 'en' | 'ta';
@@ -15,11 +17,12 @@ const DEFAULT_SETTINGS: VoiceSettings = {
 };
 
 class NotificationVoiceService {
-  private queue: { text: string; lang: 'en' | 'ta' }[] = [];
+  private queue: { notifId?: string; text: string; lang: 'en' | 'ta' }[] = [];
   private isSpeaking = false;
   private settings: VoiceSettings = DEFAULT_SETTINGS;
   private voicesLoaded = false;
   private availableVoices: SpeechSynthesisVoice[] = [];
+  private playedNotifIds: Set<string> = new Set();
 
   constructor() {
     this.loadSettings();
@@ -53,11 +56,11 @@ class NotificationVoiceService {
   }
 
   public isVoiceSupported(): boolean {
-    return typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    return typeof window !== 'undefined';
   }
 
   private initVoices() {
-    if (!this.isVoiceSupported()) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
     const load = () => {
       this.availableVoices = window.speechSynthesis.getVoices();
@@ -72,24 +75,44 @@ class NotificationVoiceService {
     }
   }
 
+  public getAppLanguage(): 'en' | 'ta' {
+    if (typeof window === 'undefined') return 'en';
+    try {
+      const stored = localStorage.getItem('medicare_language');
+      if (stored) {
+        const lower = stored.toLowerCase();
+        if (lower === 'ta' || lower === 'tamil' || lower.startsWith('ta')) return 'ta';
+      }
+    } catch {}
+    return 'en';
+  }
+
   /**
    * Speak a notification text. If speech is currently running, adds to queue.
+   * Uses deduplication via optional notificationId.
    */
-  public speakNotification(text: string, lang?: 'en' | 'ta') {
-    if (!this.settings.enabled || !this.isVoiceSupported() || !text || !text.trim()) {
+  public speakNotification(text: string, lang?: 'en' | 'ta', notifId?: string) {
+    if (!this.settings.enabled || !text || !text.trim()) {
       return;
     }
 
-    const selectedLang = lang || this.settings.language;
-    this.queue.push({ text: text.trim(), lang: selectedLang });
+    if (notifId && this.playedNotifIds.has(notifId)) {
+      return; // Skip duplicate audio play for same notification
+    }
+    if (notifId) {
+      this.playedNotifIds.add(notifId);
+    }
+
+    const selectedLang = lang || this.getAppLanguage();
+    this.queue.push({ notifId, text: text.trim(), lang: selectedLang });
 
     if (!this.isSpeaking) {
       this.processQueue();
     }
   }
 
-  private processQueue() {
-    if (this.queue.length === 0 || !this.isVoiceSupported() || !this.settings.enabled) {
+  private async processQueue() {
+    if (this.queue.length === 0 || !this.settings.enabled) {
       this.isSpeaking = false;
       return;
     }
@@ -101,26 +124,67 @@ class NotificationVoiceService {
       return;
     }
 
+    // Attempt Murf API speech generation for Tamil / Murf TTS
+    if (currentItem.lang === 'ta' || currentItem.text.match(/[\u0B80-\u0BFF]/)) {
+      try {
+        const res = await apiClient.post<{ success: boolean; audioUrl?: string; audioBase64?: string; fallback?: boolean }>('/notifications/speech', {
+          text: currentItem.text,
+          language: 'ta-IN',
+        });
+
+        if (res && res.data && res.data.success && (res.data.audioUrl || res.data.audioBase64)) {
+          const src = res.data.audioUrl || `data:audio/mp3;base64,${res.data.audioBase64}`;
+          const audio = new Audio(src);
+          audio.volume = Math.max(0, Math.min(1, this.settings.volume));
+          audio.playbackRate = Math.max(0.5, Math.min(1.5, this.settings.rate));
+
+          audio.onended = () => {
+            this.isSpeaking = false;
+            setTimeout(() => this.processQueue(), 250);
+          };
+
+          audio.onerror = (e) => {
+            console.warn('Murf audio playback note, falling back to SpeechSynthesis:', e);
+            this.playBrowserSpeech(currentItem.text, 'ta');
+          };
+
+          await audio.play();
+          return;
+        }
+      } catch (err) {
+        console.warn('Murf API service call note (falling back to SpeechSynthesis):', err);
+      }
+    }
+
+    // Fallback to browser SpeechSynthesis
+    this.playBrowserSpeech(currentItem.text, currentItem.lang);
+  }
+
+  private playBrowserSpeech(text: string, lang: 'en' | 'ta') {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      this.isSpeaking = false;
+      return;
+    }
+
     try {
-      // Cancel previous remaining audio if any stuck
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(currentItem.text);
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = Math.max(0, Math.min(1, this.settings.volume));
       utterance.rate = Math.max(0.5, Math.min(1.5, this.settings.rate));
 
-      // Select voice by language
       if (this.availableVoices.length === 0) {
         this.availableVoices = window.speechSynthesis.getVoices();
       }
 
-      if (currentItem.lang === 'ta') {
-        const tamilVoice = this.availableVoices.find(v => v.lang.startsWith('ta'));
+      if (lang === 'ta') {
+        const tamilVoice = this.availableVoices.find(v => v.lang.startsWith('ta') || v.lang.includes('TA'));
         if (tamilVoice) {
           utterance.voice = tamilVoice;
           utterance.lang = tamilVoice.lang;
         } else {
           utterance.lang = 'ta-IN';
+          console.warn('Murf API key unconfigured & Tamil voice engine not found on device; falling back to standard ta-IN locale synthesis.');
         }
       } else {
         const englishVoice = this.availableVoices.find(v => v.lang.startsWith('en-IN') || v.lang.startsWith('en-US') || v.lang.startsWith('en'));
@@ -134,7 +198,7 @@ class NotificationVoiceService {
 
       utterance.onend = () => {
         this.isSpeaking = false;
-        setTimeout(() => this.processQueue(), 250); // slight pause between notifications
+        setTimeout(() => this.processQueue(), 250);
       };
 
       utterance.onerror = (err) => {
@@ -153,7 +217,7 @@ class NotificationVoiceService {
   public stopSpeaking() {
     this.queue = [];
     this.isSpeaking = false;
-    if (this.isVoiceSupported()) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
       } catch (e) {
