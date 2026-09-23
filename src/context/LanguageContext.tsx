@@ -47,6 +47,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLanguageState(normalized);
     try {
       localStorage.setItem(STORAGE_KEY, normalized);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('medicare_language_changed', { detail: { language: normalized } }));
+      }
     } catch {}
   }, []);
 

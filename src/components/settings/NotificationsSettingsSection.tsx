@@ -162,6 +162,34 @@ export const NotificationsSettingsSection: React.FC<NotificationsSettingsSection
 
 const VoiceSettingsControl: React.FC = () => {
   const [voiceState, setVoiceState] = React.useState(() => notificationVoiceService.getSettings());
+  const [voiceStatus, setVoiceStatus] = React.useState(() => notificationVoiceService.getVoiceStatus());
+
+  React.useEffect(() => {
+    const handleSettingsSync = (e: any) => {
+      if (e?.detail) {
+        setVoiceState(e.detail);
+      } else {
+        setVoiceState(notificationVoiceService.getSettings());
+      }
+      setVoiceStatus(notificationVoiceService.getVoiceStatus());
+    };
+
+    const handleLangSync = (e: any) => {
+      const newLang = e?.detail?.language;
+      if (newLang === 'en' || newLang === 'ta') {
+        setVoiceState(prev => ({ ...prev, language: newLang }));
+      }
+      setVoiceStatus(notificationVoiceService.getVoiceStatus());
+    };
+
+    window.addEventListener('medicare_voice_settings_changed', handleSettingsSync);
+    window.addEventListener('medicare_language_changed', handleLangSync);
+
+    return () => {
+      window.removeEventListener('medicare_voice_settings_changed', handleSettingsSync);
+      window.removeEventListener('medicare_language_changed', handleLangSync);
+    };
+  }, []);
 
   const handleToggleVoice = () => {
     const updated = !voiceState.enabled;
@@ -173,7 +201,8 @@ const VoiceSettingsControl: React.FC = () => {
   const handleChangeLanguage = (lang: 'en' | 'ta') => {
     const newSettings = { ...voiceState, language: lang };
     setVoiceState(newSettings);
-    notificationVoiceService.saveSettings({ language: lang });
+    notificationVoiceService.setLanguage(lang, true);
+    setVoiceStatus(notificationVoiceService.getVoiceStatus());
   };
 
   const handleChangeRate = (rate: number) => {
@@ -215,69 +244,86 @@ const VoiceSettingsControl: React.FC = () => {
       </div>
 
       {voiceState.enabled && (
-        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div>
-            <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Voice Language</label>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleChangeLanguage('en')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold text-xs transition ${
-                  voiceState.language === 'en'
-                    ? 'bg-teal-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-                }`}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChangeLanguage('ta')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold text-xs transition ${
-                  voiceState.language === 'ta'
-                    ? 'bg-teal-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-                }`}
-              >
-                தமிழ் (Tamil)
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Speech Speed</label>
-            <div className="flex gap-1">
-              {[
-                { label: '0.8x', val: 0.8 },
-                { label: '1.0x', val: 1.0 },
-                { label: '1.2x', val: 1.2 }
-              ].map(r => (
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Voice Language</label>
+              <div className="flex gap-1.5">
                 <button
-                  key={r.val}
                   type="button"
-                  onClick={() => handleChangeRate(r.val)}
-                  className={`flex-1 py-1.5 rounded-xl text-center font-bold text-xs transition ${
-                    voiceState.rate === r.val
+                  onClick={() => handleChangeLanguage('en')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold text-xs transition ${
+                    voiceState.language === 'en'
                       ? 'bg-teal-600 text-white shadow-sm'
                       : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
                   }`}
                 >
-                  {r.label}
+                  English
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => handleChangeLanguage('ta')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold text-xs transition ${
+                    voiceState.language === 'ta'
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                  }`}
+                >
+                  தமிழ் (Tamil)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Speech Speed</label>
+              <div className="flex gap-1">
+                {[
+                  { label: '0.8x', val: 0.8 },
+                  { label: '1.0x', val: 1.0 },
+                  { label: '1.2x', val: 1.2 }
+                ].map(r => (
+                  <button
+                    key={r.val}
+                    type="button"
+                    onClick={() => handleChangeRate(r.val)}
+                    className={`flex-1 py-1.5 rounded-xl text-center font-bold text-xs transition ${
+                      voiceState.rate === r.val
+                        ? 'bg-teal-600 text-white shadow-sm'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={handleTestVoice}
+                className="w-full py-2 px-3 bg-slate-900 dark:bg-slate-800 text-teal-400 font-bold text-xs rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Test Voice ({voiceState.language === 'ta' ? 'தமிழ்' : 'EN'})</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={handleTestVoice}
-              className="w-full py-2 px-3 bg-slate-900 dark:bg-slate-800 text-teal-400 font-bold text-xs rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>Test Voice</span>
-            </button>
-          </div>
+          {/* Helpful device voice engine status hint */}
+          {voiceState.language === 'ta' && (
+            <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-800 dark:text-teal-300 flex items-start gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0" />
+              <div>
+                <span className="font-bold">Tamil Voice Status: </span>
+                {voiceStatus.tamilSupported ? (
+                  <span>Native device voice detected ({voiceStatus.tamilVoiceName}).</span>
+                ) : (
+                  <span>High-fidelity online audio stream ready. For offline Tamil voice synthesis, install Tamil in Windows Settings &gt; Time &amp; Language &gt; Speech &gt; Add voices.</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

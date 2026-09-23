@@ -38,12 +38,47 @@ export class MurfService {
 
     const apiKey = process.env.MURF_API_KEY;
 
+    // If Murf API key is not configured, generate natural Tamil speech via standard TTS audio service
     if (!apiKey) {
-      console.warn('MURF_API_KEY is not set in server environment. Returning fallback flag.');
+      if (isTamil || /[\u0B80-\u0BFF]/.test(text)) {
+        try {
+          const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ta&client=tw-ob&q=${encodeURIComponent(text.slice(0, 200))}`;
+          const ttsRes = await fetch(ttsUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            },
+          });
+
+          if (ttsRes.ok) {
+            const arrayBuf = await ttsRes.arrayBuffer();
+            const audioBase64 = Buffer.from(arrayBuf).toString('base64');
+
+            audioCache.set(cacheKey, {
+              audioBase64,
+              timestamp: Date.now(),
+            });
+
+            return {
+              success: true,
+              audioBase64,
+              isMurf: false,
+              isTamilTts: true,
+              voiceDetails: {
+                voice_id: 'Tamil-Natural-TTS',
+                style: 'Natural',
+                multiNativeLocale: 'ta-IN',
+              },
+            };
+          }
+        } catch (ttsErr: any) {
+          console.warn('[MurfService] Natural Tamil TTS fallback note:', ttsErr?.message || ttsErr);
+        }
+      }
+
       return {
         success: false,
         fallback: true,
-        message: 'MURF_API_KEY not configured. Falling back to browser SpeechSynthesis.',
+        message: 'MURF_API_KEY not configured. Falling back to client synthesis.',
       };
     }
 

@@ -14,10 +14,10 @@ const router = Router();
 // All medical record routes require authentication
 router.use(authenticate);
 
-// 1. Create a medical record (Patients, Doctors, Nurses, Admins, Super Admins)
+// 1. Create a medical record (Patients, Doctors, Nurses, Caregivers, Admins, Super Admins)
 router.post(
   '/',
-  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   createRecordController
 );
 
@@ -35,15 +35,15 @@ router.get(
   getRecordByIdController
 );
 
-// 4. Update medical record (Patients, Doctors, Nurses, Admins, Super Admins)
+// 4. Update medical record (Patients, Doctors, Nurses, Caregivers, Admins, Super Admins)
 router.put(
   '/:id',
-  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   updateRecordController
 );
 router.patch(
   '/:id',
-  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   updateRecordController
 );
 

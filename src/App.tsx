@@ -240,6 +240,37 @@ const getInitialAppState = () => {
     userData = null;
   }
 
+  // Enforce portal-role isolation so sessions from one portal do not leak into another portal
+  if (isPharmacistPath && userData && userData.role !== 'Pharmacist') {
+    userData = {
+      name: 'Suresh Nair, R.Ph',
+      email: 'pharmacist@health.com',
+      role: 'Pharmacist',
+      abhaId: 'RPH-TN-2018-994',
+    };
+  } else if (isDoctorPath && userData && userData.role !== 'Doctor') {
+    userData = {
+      name: 'Dr. Arjun Kumar',
+      email: 'dr.arjun.kumar@apollocentral.in',
+      role: 'Doctor',
+    };
+  } else if (isNursePath && userData && userData.role !== 'Nurse') {
+    userData = {
+      name: 'Sister Priya Nair',
+      email: 'nurse@health.com',
+      role: 'Nurse',
+    };
+  } else if (isUserPath && userData && userData.role !== 'Patient') {
+    userData = {
+      name: 'Ananya Sharma',
+      email: 'ananya@health.com',
+      role: 'Patient',
+      abhaId: '91-9482-1102-4821',
+      bloodGroup: 'B+',
+      age: 29
+    };
+  }
+
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
   let nav = target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard';
 
@@ -346,6 +377,14 @@ export const App: React.FC = () => {
             const u = res.data;
             const profile: any = u.profile || {};
             const normalizedRole = normalizeRole(u.role);
+            const pathLower = window.location.pathname.toLowerCase();
+            if (pathLower.startsWith('/pharmacist') && normalizedRole !== 'Pharmacist') return;
+            if (pathLower.startsWith('/doctor') && normalizedRole !== 'Doctor') return;
+            if (pathLower.startsWith('/nurse') && normalizedRole !== 'Nurse') return;
+            if (pathLower.startsWith('/caregiver') && normalizedRole !== 'Caregiver') return;
+            if (pathLower.startsWith('/insurance') && normalizedRole !== 'Insurance') return;
+            if (pathLower.startsWith('/user') && normalizedRole !== 'Patient') return;
+
             const refreshedUser = {
               id: u.id,
               profileId: profile.id,

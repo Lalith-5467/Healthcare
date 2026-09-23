@@ -19,7 +19,7 @@ router.use(authenticate);
 // 1. Patient & Healthcare staff: Retrieve verified, active tie-up pharmacies
 router.get(
   '/available',
-  requireRole('PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'PHARMACIST', 'INSURANCE_PROVIDER', 'ADMIN', 'SUPER_ADMIN'),
   getAvailablePharmaciesController
 );
 
@@ -37,10 +37,10 @@ router.get(
   getPharmaciesController
 );
 
-// 4. Admin: Get single pharmacy details
+// 4. Get single pharmacy details
 router.get(
   '/:id',
-  requireRole('ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'PHARMACIST', 'NURSE', 'CAREGIVER', 'INSURANCE_PROVIDER', 'ADMIN', 'SUPER_ADMIN'),
   getPharmacyByIdController
 );
 

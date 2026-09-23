@@ -86,8 +86,10 @@ export const GlobalNotificationListener: React.FC<GlobalNotificationListenerProp
     setIsAudioEnabled(true);
     setVoiceBannerVisible(false);
 
-    // Speak a subtle test confirmation to unlock audio context in browser
-    notificationVoiceService.speakNotification('Voice notifications active');
+    // Speak a subtle test confirmation in selected language to unlock audio context in browser
+    const lang = notificationVoiceService.getAppLanguage();
+    const activationMessage = lang === 'ta' ? 'குரல் அறிவிப்புகள் செயல்படுத்தப்பட்டன' : 'Voice notifications active';
+    notificationVoiceService.speakNotification(activationMessage, lang);
   };
 
   const handleDismissBanner = () => {

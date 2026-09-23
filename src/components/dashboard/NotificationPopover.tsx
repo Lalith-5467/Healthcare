@@ -305,11 +305,11 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                         {!notif.isRead && (
                           <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
                         )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language);
-                          }}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
+                            }}
                           title="Play voice announcement"
                           className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 hover:scale-110 transition-all cursor-pointer"
                         >

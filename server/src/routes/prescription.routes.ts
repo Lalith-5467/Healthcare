@@ -18,10 +18,10 @@ const router = Router();
 // All prescription routes require authentication
 router.use(authenticate);
 
-// 1. Create prescription with nested items (Patient, Doctor, Admin, Super Admin)
+// 1. Create prescription with nested items (Patient, Doctor, Nurse, Caregiver, Admin, Super Admin)
 router.post(
   '/',
-  requireRole('PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   createPrescriptionController
 );
 
@@ -55,17 +55,17 @@ router.get(
   getPrescriptionByIdController
 );
 
-// 4. Patient review prescription: PENDING_REVIEW -> REVIEWED
+// 4. Review prescription: PENDING_REVIEW -> REVIEWED
 router.patch(
   '/:id/review',
-  requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   reviewPrescriptionController
 );
 
-// 5. Patient confirm prescription: REVIEWED -> CONFIRMED
+// 5. Confirm prescription: REVIEWED -> CONFIRMED
 router.patch(
   '/:id/confirm',
-  requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   confirmPrescriptionController
 );
 

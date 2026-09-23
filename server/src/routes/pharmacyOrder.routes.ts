@@ -15,24 +15,24 @@ const router = Router();
 // All pharmacy order routes require authentication
 router.use(authenticate);
 
-// 1. Create a pharmacy order from confirmed prescription or refill request (Patient, Caregiver, Admin, Super Admin)
+// 1. Create a pharmacy order from confirmed prescription or refill request (Patient, Caregiver, Doctor, Nurse, Admin, Super Admin)
 router.post(
   '/',
-  requireRole('PATIENT', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'CAREGIVER', 'DOCTOR', 'NURSE', 'ADMIN', 'SUPER_ADMIN'),
   createPharmacyOrderController
 );
 
-// 2. List pharmacy orders (Patient sees own orders; Pharmacist sees their pharmacy orders; Admin sees all)
+// 2. List pharmacy orders (Patient sees own orders; Pharmacist sees their pharmacy orders; Doctor/Nurse/Caregiver/Admin see relevant orders)
 router.get(
   '/',
-  requireRole('PATIENT', 'PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'PHARMACIST', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   getPharmacyOrdersController
 );
 
 // 3. Get single pharmacy order by ID
 router.get(
   '/:id',
-  requireRole('PATIENT', 'PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),
+  requireRole('PATIENT', 'PHARMACIST', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
   getPharmacyOrderByIdController
 );
 

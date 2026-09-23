@@ -105,25 +105,43 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
   const mainScrollRef = useRef<HTMLDivElement>(null);
 
   const effectiveUser: UserProfile = React.useMemo(() => {
+    const isDoctorOrStaff = (name?: string): boolean => {
+      if (!name) return false;
+      const lower = name.toLowerCase().trim();
+      return (
+        lower === 'patient' ||
+        lower.startsWith('dr.') ||
+        lower.startsWith('dr ') ||
+        lower.includes('doctor') ||
+        lower.includes('arjun') ||
+        lower.includes('pharmacist') ||
+        lower.includes('r.ph') ||
+        lower.includes('suresh nair') ||
+        lower.includes('nurse') ||
+        lower.includes('admin') ||
+        lower.includes('caregiver')
+      );
+    };
+
     let resolvedName = user?.name || '';
-    if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+    if (!resolvedName || isDoctorOrStaff(resolvedName)) {
       try {
         const custom = localStorage.getItem('patient_user_name');
-        if (custom && custom.trim() && !custom.includes('Pharmacist') && !custom.includes('R.Ph') && !custom.includes('Suresh Nair')) {
+        if (custom && custom.trim() && !isDoctorOrStaff(custom)) {
           resolvedName = custom.trim();
         } else {
           const prof = localStorage.getItem('user_profile_data');
           if (prof) {
             const parsed = JSON.parse(prof);
-            if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+            if (parsed?.name && !isDoctorOrStaff(parsed.name)) {
               resolvedName = parsed.name.trim();
             }
           }
-          if (!resolvedName || resolvedName === 'Patient' || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
+          if (!resolvedName || isDoctorOrStaff(resolvedName)) {
             const appUser = localStorage.getItem('app_user');
             if (appUser) {
               const parsed = JSON.parse(appUser);
-              if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+              if (parsed?.name && !isDoctorOrStaff(parsed.name)) {
                 resolvedName = parsed.name.trim();
               }
             }
@@ -131,8 +149,8 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
         }
       } catch {}
     }
-    if (!resolvedName || resolvedName.includes('Pharmacist') || resolvedName.includes('R.Ph') || resolvedName.includes('Suresh Nair')) {
-      resolvedName = user?.name || user?.email?.split('@')[0] || 'Patient User';
+    if (!resolvedName || isDoctorOrStaff(resolvedName)) {
+      resolvedName = 'Ananya Sharma';
     }
     return {
       ...(user || {}),
