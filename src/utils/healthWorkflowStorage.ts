@@ -94,7 +94,7 @@ export interface ExtendedReminderItem extends ReminderItem {
 }
 
 export const getReminders = (): ExtendedReminderItem[] => {
-  return getStoredJSON<ExtendedReminderItem[]>(STORAGE_KEYS.REMINDERS, INITIAL_REMINDERS as ExtendedReminderItem[]);
+  return getStoredJSON<ExtendedReminderItem[]>(STORAGE_KEYS.REMINDERS, []);
 };
 
 export const saveReminder = (reminder: ExtendedReminderItem): boolean => {
@@ -171,7 +171,7 @@ export interface ExtendedPharmacyOrder extends PharmacyOrder {
 }
 
 export const getPharmacyOrders = (): ExtendedPharmacyOrder[] => {
-  return getStoredJSON<ExtendedPharmacyOrder[]>(STORAGE_KEYS.PHARMACY_ORDERS, INITIAL_ORDERS as ExtendedPharmacyOrder[]);
+  return getStoredJSON<ExtendedPharmacyOrder[]>(STORAGE_KEYS.PHARMACY_ORDERS, []);
 };
 
 export const savePharmacyOrder = (order: ExtendedPharmacyOrder): boolean => {
@@ -257,7 +257,7 @@ export const updatePharmacyOrderStatus = (
 };
 
 export const getLinkedPrescriptions = (): LinkedPrescription[] => {
-  return getStoredJSON<LinkedPrescription[]>(STORAGE_KEYS.LINKED_PRESCRIPTIONS, INITIAL_PRESCRIPTIONS);
+  return getStoredJSON<LinkedPrescription[]>(STORAGE_KEYS.LINKED_PRESCRIPTIONS, []);
 };
 
 export const saveLinkedPrescription = (linked: LinkedPrescription): boolean => {
@@ -275,7 +275,7 @@ export interface ExtendedMedicineItem extends MedicineItem {
 }
 
 export const getMedications = (): ExtendedMedicineItem[] => {
-  return getStoredJSON<ExtendedMedicineItem[]>(STORAGE_KEYS.MEDICINES, INITIAL_MEDICINES as ExtendedMedicineItem[]);
+  return getStoredJSON<ExtendedMedicineItem[]>(STORAGE_KEYS.MEDICINES, []);
 };
 
 export const saveMedication = (med: ExtendedMedicineItem): boolean => {
@@ -288,7 +288,7 @@ export const saveMedication = (med: ExtendedMedicineItem): boolean => {
 };
 
 export const getTodayDoses = (): DoseRecord[] => {
-  return getStoredJSON<DoseRecord[]>(STORAGE_KEYS.TODAY_DOSES, INITIAL_TODAY_DOSES);
+  return getStoredJSON<DoseRecord[]>(STORAGE_KEYS.TODAY_DOSES, []);
 };
 
 export const saveTodayDoses = (doses: DoseRecord[]): boolean => {
@@ -297,10 +297,8 @@ export const saveTodayDoses = (doses: DoseRecord[]): boolean => {
   return ok;
 };
 
-
-
 export const getMedicalRecords = (): MedicalRecordItem[] => {
-  return getStoredJSON<MedicalRecordItem[]>(STORAGE_KEYS.MEDICAL_RECORDS, INITIAL_RECORDS);
+  return getStoredJSON<MedicalRecordItem[]>(STORAGE_KEYS.MEDICAL_RECORDS, []);
 };
 
 export const saveMedicalRecord = (record: MedicalRecordItem): boolean => {

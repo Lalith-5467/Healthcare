@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth.middleware';
 import {
   getMedicinesController,
   getActiveMedicationsController,
+  getAdherenceTrendsController,
   createPatientMedicationController,
   recordDoseLogController,
   updatePatientMedicationController,
@@ -16,6 +17,7 @@ router.use(authenticate);
 
 router.get('/', getMedicinesController);
 router.get('/active', getActiveMedicationsController);
+router.get('/adherence', getAdherenceTrendsController);
 router.post('/patient-meds', createPatientMedicationController);
 router.patch('/patient-meds/:id', updatePatientMedicationController);
 router.delete('/patient-meds/:id', deletePatientMedicationController);

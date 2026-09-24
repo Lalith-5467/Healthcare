@@ -212,6 +212,8 @@ export const medicineApi = {
     apiClient.get<any[]>(`/medicines?${search ? `search=${encodeURIComponent(search)}&` : ''}${category ? `category=${encodeURIComponent(category)}` : ''}`),
   getActiveMedications: (patientId?: string) =>
     apiClient.get<{ medications: any[]; todayDoses: any[] }>(patientId ? `/medicines/active?patientId=${patientId}` : '/medicines/active'),
+  getAdherenceTrends: (patientId?: string) =>
+    apiClient.get<{ summary: any; timeSeries: any[]; hasData: boolean }>(patientId ? `/medicines/adherence?patientId=${patientId}` : '/medicines/adherence'),
   createPatientMedication: (data: any) => apiClient.post('/medicines/patient-meds', data),
   updatePatientMedication: (id: string, data: any) => apiClient.patch(`/medicines/patient-meds/${id}`, data),
   deletePatientMedication: (id: string) => apiClient.delete(`/medicines/patient-meds/${id}`),

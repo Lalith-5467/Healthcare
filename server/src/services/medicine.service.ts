@@ -367,4 +367,138 @@ export class MedicineService {
       },
     });
   }
+
+  /**
+   * Get Medication Adherence Trends & Summaries for a patient
+   */
+  static async getAdherenceTrends(userId: string, role: Role, patientIdQuery?: string) {
+    let patientId = patientIdQuery;
+
+    if (role === Role.CAREGIVER) {
+      if (patientIdQuery) {
+        await CaregiverService.validateCaregiverAccess(userId, role, patientIdQuery);
+        patientId = patientIdQuery;
+      } else {
+        const wards = await CaregiverService.getWards(userId, role);
+        if (wards && wards.length > 0) patientId = wards[0].id;
+      }
+    } else if (role === Role.PATIENT) {
+      const patient = await prisma.patient.findUnique({ where: { userId } });
+      if (!patient) throw new AppError('Patient profile not found', 404);
+      if (patientIdQuery && patientIdQuery !== patient.id) {
+        throw new AppError('You are not authorized to view another patient\'s adherence', 403);
+      }
+      patientId = patient.id;
+    } else if (!patientId) {
+      const firstPatient = await prisma.patient.findFirst();
+      if (firstPatient) patientId = firstPatient.id;
+    }
+
+    if (!patientId) throw new AppError('Patient ID is required', 400);
+
+    // 1. Fetch PatientMedication and DoseLog records
+    const patientMeds = await prisma.patientMedication.findMany({
+      where: { patientId },
+      include: {
+        doseLogs: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    const doseLogs = await prisma.doseLog.findMany({
+      where: { patientId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // 2. Query last recorded vital date
+    const latestVital = await prisma.vital.findFirst({
+      where: { patientId },
+      orderBy: { recordedAt: 'desc' },
+      select: { recordedAt: true },
+    });
+
+    // 3. Compute Adherence Metrics
+    let totalScheduledDoses = 0;
+    let totalTakenDoses = 0;
+    let totalMissedDoses = 0;
+
+    patientMeds.forEach((pm) => {
+      totalScheduledDoses += pm.totalDoses || 0;
+      totalTakenDoses += pm.takenDoses || 0;
+      totalMissedDoses += pm.skippedDoses || 0;
+    });
+
+    if (doseLogs.length > 0) {
+      const logTaken = doseLogs.filter((l) => l.status === 'taken').length;
+      const logMissed = doseLogs.filter((l) => l.status === 'skipped' || l.status === 'missed').length;
+      if (logTaken > totalTakenDoses) totalTakenDoses = logTaken;
+      if (logMissed > totalMissedDoses) totalMissedDoses = logMissed;
+      if (totalTakenDoses + totalMissedDoses > totalScheduledDoses) {
+        totalScheduledDoses = totalTakenDoses + totalMissedDoses;
+      }
+    }
+
+    const remainingOrIncomplete = Math.max(0, totalScheduledDoses - (totalTakenDoses + totalMissedDoses));
+    const totalIncompleteDoses = remainingOrIncomplete;
+
+    const adherencePercentage = totalScheduledDoses > 0
+      ? Math.min(100, Math.round((totalTakenDoses / totalScheduledDoses) * 100))
+      : 0;
+
+    // Group logs by Date/Day over time for time-series graph
+    const dailyMap = new Map<string, { date: string; label: string; scheduled: number; taken: number; missed: number; incomplete: number; adherencePct: number; status: string }>();
+
+    doseLogs.forEach((l) => {
+      const dateKey = l.createdAt.toISOString().split('T')[0];
+      const dateLabel = new Date(l.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, {
+          date: dateKey,
+          label: dateLabel,
+          scheduled: 0,
+          taken: 0,
+          missed: 0,
+          incomplete: 0,
+          adherencePct: 0,
+          status: 'PENDING',
+        });
+      }
+
+      const entry = dailyMap.get(dateKey)!;
+      entry.scheduled += 1;
+      if (l.status === 'taken') entry.taken += 1;
+      else if (l.status === 'skipped' || l.status === 'missed') entry.missed += 1;
+      else entry.incomplete += 1;
+    });
+
+    const timeSeries = Array.from(dailyMap.values()).map((entry) => {
+      const pct = entry.scheduled > 0 ? Math.round((entry.taken / entry.scheduled) * 100) : 0;
+      let status = 'PENDING';
+      if (entry.scheduled > 0) {
+        if (entry.taken === entry.scheduled) status = 'TAKEN';
+        else if (entry.taken === 0 && entry.missed > 0) status = 'MISSED';
+        else if (entry.taken > 0 && entry.taken < entry.scheduled) status = 'INCOMPLETE';
+      }
+      return {
+        ...entry,
+        adherencePct: pct,
+        status,
+      };
+    });
+
+    return {
+      summary: {
+        adherencePercentage,
+        totalScheduledDoses,
+        totalTakenDoses,
+        totalMissedDoses,
+        totalIncompleteDoses,
+        lastRecordedVitalDate: latestVital?.recordedAt ? latestVital.recordedAt.toISOString() : null,
+      },
+      timeSeries,
+      hasData: totalScheduledDoses > 0 || doseLogs.length > 0,
+    };
+  }
 }

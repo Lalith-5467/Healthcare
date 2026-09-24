@@ -30,6 +30,20 @@ export const getActiveMedicationsController = async (
   }
 };
 
+export const getAdherenceTrendsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : undefined;
+    const data = await MedicineService.getAdherenceTrends(req.user!.id, req.user!.role, patientId);
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createPatientMedicationController = async (
   req: Request,
   res: Response,

@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { healthShareApi, type Patient360AuthorizedData } from '../../../services/healthShareApi';
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
+import { PatientHealthTrendsView } from './PatientHealthTrendsView';
+import { TrendingUp } from 'lucide-react';
 
 interface Patient360ViewProps {
   patientId: string | null;
@@ -17,7 +19,9 @@ interface Patient360ViewProps {
 
 export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patientName: _patientName, onNavigate, initialTab }) => {
   const { records } = useDoctorWorkflow();
-  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'records' | 'reports'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'trends' | 'records' | 'reports'>(
+    (initialTab as any) || 'summary'
+  );
   
   // Real Backend Data State
   const [authData, setAuthData] = useState<Patient360AuthorizedData | null>(null);
@@ -268,12 +272,13 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
         {[
           { id: 'summary', label: 'Clinical Summary', icon: Activity, scope: 'Basic Information' },
+          { id: 'trends', label: 'Patient Health Trends', icon: TrendingUp, scope: 'Basic Information' },
           { id: 'vitals', label: 'Telemetry & Vitals', icon: HeartPulse, scope: 'Vitals' },
           { id: 'medications', label: 'Medications & Adherence', icon: Pill, scope: 'Medication History' },
           { id: 'records', label: 'Medical History', icon: FileText, scope: 'Medical Records' },
           { id: 'reports', label: 'Diagnostic Reports', icon: TestTube, scope: 'Reports' },
         ].map((tab) => {
-          const tabAllowed = hasScope(tab.scope) || tab.id === 'summary';
+          const tabAllowed = hasScope(tab.scope) || tab.id === 'summary' || tab.id === 'trends';
           return (
             <button
               key={tab.id}
@@ -296,6 +301,11 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       </div>
 
       {/* 3. Tab Contents */}
+      {/* HEALTH TRENDS TAB */}
+      {activeTab === 'trends' && (
+        <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} />
+      )}
+
       {/* SUMMARY TAB */}
       {activeTab === 'summary' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -392,62 +402,70 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
 
       {/* VITALS TAB */}
       {activeTab === 'vitals' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-          <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <HeartPulse className="w-5 h-5 text-rose-500" />
-            Vitals History
-          </h3>
+        <div className="space-y-6">
+          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} />
+          
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <HeartPulse className="w-5 h-5 text-rose-500" />
+              Vitals History Table
+            </h3>
 
-          {authData?.vitals && authData.vitals.length > 0 ? (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {authData.vitals.map((v, i) => (
-                <div key={v.id || i} className="py-3 flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 font-mono">
-                      {new Date(v.recordedAt).toLocaleString()}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-3 mt-1 text-xs font-bold text-slate-800 dark:text-slate-200">
-                      {v.systolicBp && <span>BP: <strong className="text-teal-600 dark:text-cyan-400">{v.systolicBp}/{v.diastolicBp} mmHg</strong></span>}
-                      {v.heartRate && <span>Heart Rate: <strong className="text-rose-500">{v.heartRate} bpm</strong></span>}
-                      {v.oxygenSaturation && <span>SpO2: <strong className="text-cyan-500">{v.oxygenSaturation}%</strong></span>}
-                      {v.temperature && <span>Temp: {v.temperature}°F</span>}
-                      {v.bloodSugar && <span>Sugar: {v.bloodSugar} mg/dL</span>}
+            {authData?.vitals && authData.vitals.length > 0 ? (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {authData.vitals.map((v, i) => (
+                  <div key={v.id || i} className="py-3 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-bold text-slate-400 font-mono">
+                        {new Date(v.recordedAt).toLocaleString()}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {v.systolicBp && <span>BP: <strong className="text-teal-600 dark:text-cyan-400">{v.systolicBp}/{v.diastolicBp} mmHg</strong></span>}
+                        {v.heartRate && <span>Heart Rate: <strong className="text-rose-500">{v.heartRate} bpm</strong></span>}
+                        {v.oxygenSaturation && <span>SpO2: <strong className="text-cyan-500">{v.oxygenSaturation}%</strong></span>}
+                        {v.temperature && <span>Temp: {v.temperature}°F</span>}
+                        {v.bloodSugar && <span>Sugar: {v.bloodSugar} mg/dL</span>}
+                      </div>
                     </div>
+                    {v.notes && <span className="text-xs text-slate-500 italic">{v.notes}</span>}
                   </div>
-                  {v.notes && <span className="text-xs text-slate-500 italic">{v.notes}</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">No vitals records found for this patient.</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 py-6 text-center">No vitals records found for this patient.</p>
+            )}
+          </div>
         </div>
       )}
 
       {/* MEDICATIONS TAB */}
       {activeTab === 'medications' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-          <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Pill className="w-5 h-5 text-teal-500" />
-            Current & Previous Medications
-          </h3>
+        <div className="space-y-6">
+          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} />
+          
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Pill className="w-5 h-5 text-teal-500" />
+              Current & Previous Medications
+            </h3>
 
-          {authData?.medicationHistory && authData.medicationHistory.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {authData.medicationHistory.map((m, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-black text-slate-900 dark:text-white">{m.medicineName}</h4>
-                    <span className="px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-cyan-300 rounded text-[10px] font-bold">{m.dosage}</span>
+            {authData?.medicationHistory && authData.medicationHistory.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {authData.medicationHistory.map((m, i) => (
+                  <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white">{m.medicineName}</h4>
+                      <span className="px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-cyan-300 rounded text-[10px] font-bold">{m.dosage}</span>
+                    </div>
+                    <p className="text-xs text-slate-500">Frequency: <strong className="text-slate-700 dark:text-slate-300">{m.frequency}</strong></p>
+                    {m.prescribedBy && <p className="text-[11px] text-slate-400">Prescribed by {m.prescribedBy}</p>}
                   </div>
-                  <p className="text-xs text-slate-500">Frequency: <strong className="text-slate-700 dark:text-slate-300">{m.frequency}</strong></p>
-                  {m.prescribedBy && <p className="text-[11px] text-slate-400">Prescribed by {m.prescribedBy}</p>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">No active medication records found.</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 py-6 text-center">No active medication records found.</p>
+            )}
+          </div>
         </div>
       )}
 

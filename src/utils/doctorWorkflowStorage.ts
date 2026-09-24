@@ -216,14 +216,13 @@ import { safeLocalStorageSet } from './safeStorage';
 const getDoctorRecords = (): DoctorPatientRecord[] => {
   const data = localStorage.getItem(STORAGE_KEY_DOCTOR);
   if (!data) {
-    safeLocalStorageSet(STORAGE_KEY_DOCTOR, JSON.stringify(INITIAL_MOCK_DATA));
-    return INITIAL_MOCK_DATA;
+    return [];
   }
   try {
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MOCK_DATA;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return INITIAL_MOCK_DATA;
+    return [];
   }
 };
 

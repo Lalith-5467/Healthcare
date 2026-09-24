@@ -877,7 +877,6 @@ export class HealthShareService {
       vitals = await prisma.vital.findMany({
         where: { patientId: patient.id },
         orderBy: { recordedAt: 'desc' },
-        take: 20,
       });
     }
 

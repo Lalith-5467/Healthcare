@@ -810,16 +810,54 @@ export const useCaregiverWorkflow = () => {
             setTasks(mappedTasks);
           }
 
-          const baseWard = INITIAL_WARDS[idx % INITIAL_WARDS.length] || INITIAL_WARDS[0];
           return {
-            ...baseWard,
-            id: `ward-${idx + 1}`,
+            id: p.id || `ward-${idx + 1}`,
             name: p.fullName || 'Patient',
-            age: p.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 68,
+            relationship: p.relationship || 'Dependent Ward',
+            age: p.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 65,
             gender: (p.gender as any) || 'Female',
-            abhaId: p.user?.abhaId || '91-4421-8890-1204',
+            abhaId: p.user?.abhaId || p.abhaId || 'ABHA Registered Patient',
             bloodGroup: p.bloodGroup || 'O+',
-            vitals: mappedVitals.length > 0 ? mappedVitals : baseWard.vitals,
+            primaryCondition: p.primaryCondition || 'General Health Care',
+            allergies: p.allergies ? (Array.isArray(p.allergies) ? p.allergies : [p.allergies]) : [],
+            emergencyContact: p.emergencyContactPhone || p.user?.phoneNumber || 'N/A',
+            primaryDoctor: {
+              name: p.primaryDoctorName || 'Dr. Rajesh Varma',
+              specialty: 'Attending Physician',
+              phone: p.primaryDoctorPhone || '+91 98450 12345',
+              hospital: p.hospital || 'Apollo Multispeciality Hospital'
+            },
+            geofenceStatus: 'Inside Safe Zone',
+            currentLocation: 'Monitored Residence',
+            lastLocationUpdate: 'Just now',
+            overallStatus: 'Stable',
+            accessLevel: 'Medical Proxy',
+            vitals: mappedVitals,
+            medications: (p.medications || []).map((m: any) => ({
+              id: m.id,
+              name: m.name,
+              dosage: m.dosage,
+              timing: 'Morning',
+              instructions: m.instructions || 'Take as prescribed',
+              takenToday: m.takenToday ?? false,
+              stockLeft: m.remainingDoses || 10,
+              totalStock: m.totalDoses || 30,
+              pillColor: 'bg-[#00a896]',
+              shape: 'capsule',
+              prescribedBy: m.prescribedBy || 'Attending Physician'
+            })),
+            appointments: (p.appointments || []).map((a: any) => ({
+              id: a.id,
+              wardId: p.id,
+              doctorName: a.doctor?.fullName || 'Attending Physician',
+              specialty: a.type || 'Consultation',
+              hospital: a.doctor?.hospital || 'MediCare Health',
+              date: new Date(a.appointmentDate).toLocaleDateString(),
+              time: a.slotTime || '10:00 AM',
+              mode: a.type === 'ONLINE' ? 'Video Consultation' : 'In-Clinic',
+              status: a.status === 'CONFIRMED' ? 'Upcoming' : a.status
+            })),
+            notes: []
           };
         });
         setWards(mappedWards);
@@ -862,7 +900,7 @@ export const useCaregiverWorkflow = () => {
     window.dispatchEvent(new Event('medicare_caregiver_sync'));
   };
 
-  const activeWard = wards.find(w => w.id === activeWardId) || wards[0] || INITIAL_WARDS[0];
+  const activeWard = wards.find(w => w.id === activeWardId) || wards[0] || null;
 
   const sync = (newWards = wards, newTasks = tasks, newAlerts = alerts) => {
     setWards(newWards);
