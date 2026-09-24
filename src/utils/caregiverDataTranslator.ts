@@ -123,6 +123,25 @@ export const getLocalizedName = (name: string, t: (key: string, fallback?: strin
   if (lower.includes('dr. vikram seth') || lower.includes('vikram seth')) return t('caregiver.name.dr_vikram_seth', 'Dr. Vikram Seth');
   if (lower.includes('star health')) return t('caregiver.name.star_health', 'Star Health');
   if (lower.includes('rajesh sharma')) return t('caregiver.name.rajesh_sharma', 'Rajesh Sharma');
+  
+  // Doctor Dashboard specific names
+  if (lower.includes('suresh menon') || lower.includes('suresh')) return t('caregiver.name.suresh_menon', 'Suresh Menon');
+  if (lower.includes('priya s') || lower.includes('priya')) return t('caregiver.name.priya_s', 'Priya S');
+  if (lower.includes('abinesh kumar') || lower.includes('abinesh')) return t('caregiver.name.abinesh_kumar', 'Abinesh Kumar');
+  if (lower.includes('meenakshi sundaram') || lower.includes('meenakshi')) return t('caregiver.name.meenakshi_sundaram', 'Mrs. Meenakshi Sundaram');
+  if (lower.includes('duvi@gmail.com') || lower.includes('duvi')) return t('caregiver.name.duvi', 'Duvi');
+  if (lower.includes('dr. sharmi') || lower.includes('sharmi')) return t('caregiver.name.dr_sharmi', 'Dr. Sharmi');
+  if (lower.includes('ananya sharma') || lower.includes('ananya')) return t('caregiver.name.ananya_sharma', 'Ananya Sharma');
+  
+  if (lower.includes('test ward 1789627809169') || lower.includes('test ward')) return t('caregiver.name.test_ward', 'Test Ward 1789627809169');
+  if (lower.includes('akshara raman') || lower.includes('akshara')) return t('caregiver.name.akshara_raman', 'Akshara Raman');
+  if (lower.includes('lalith kumar') || lower.includes('lalith')) return t('caregiver.name.lalith_kumar', 'Lalith Kumar');
+  
+  if (lower === 'arun') return t('caregiver.name.arun', 'Arun');
+  if (lower === 'siva') return t('caregiver.name.siva', 'Siva');
+  if (lower === 'devi') return t('caregiver.name.devi', 'Devi');
+  if (lower === 'banu') return t('caregiver.name.banu', 'Banu');
+
   return name;
 };
 

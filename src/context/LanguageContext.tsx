@@ -9,6 +9,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { patientTranslations } from "../translations/patientTranslations";
 import { caregiverTranslations } from "../translations/caregiverTranslations";
+import { doctorTranslations } from "../translations/doctorTranslations";
 
 export type Language = "en" | "ta";
 
@@ -55,23 +56,31 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = useCallback(
     (key: string, fallback?: string): string => {
-      // 1. Check patientTranslations for active language
+      // 1. Check doctorTranslations for active language
+      const dDict = (doctorTranslations[language] as Record<string, string>) || {};
+      if (dDict[key] !== undefined) return dDict[key];
+
+      // 2. Check patientTranslations for active language
       const pDict = (patientTranslations[language] as Record<string, string>) || {};
       if (pDict[key] !== undefined) return pDict[key];
 
-      // 2. Check caregiverTranslations for active language
+      // 3. Check caregiverTranslations for active language
       const cDict = (caregiverTranslations[language] as Record<string, string>) || {};
       if (cDict[key] !== undefined) return cDict[key];
 
-      // 3. Fallback: English in patientTranslations
+      // 4. Fallback: English in doctorTranslations
+      const dEnDict = (doctorTranslations["en"] as Record<string, string>) || {};
+      if (dEnDict[key] !== undefined) return dEnDict[key];
+
+      // 5. Fallback: English in patientTranslations
       const pEnDict = (patientTranslations["en"] as Record<string, string>) || {};
       if (pEnDict[key] !== undefined) return pEnDict[key];
 
-      // 4. Fallback: English in caregiverTranslations
+      // 6. Fallback: English in caregiverTranslations
       const cEnDict = (caregiverTranslations["en"] as Record<string, string>) || {};
       if (cEnDict[key] !== undefined) return cEnDict[key];
 
-      // 5. Last resort: provided fallback or raw key
+      // 7. Last resort: provided fallback or raw key
       return fallback ?? key;
     },
     [language]

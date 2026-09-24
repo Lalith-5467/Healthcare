@@ -15,15 +15,18 @@ import {
   Info
 } from 'lucide-react';
 import { vitalApi, medicineApi, type VitalEntity } from '../../../services/dhrApis';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface PatientHealthTrendsViewProps {
   patientId: string | null;
   patientName?: string;
+  mode?: 'all' | 'vitals' | 'medications';
 }
 
 type VitalMetricType = 'bp' | 'heartRate' | 'spo2' | 'bloodSugar' | 'temperature' | 'weight';
 
-export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = ({ patientId, patientName }) => {
+export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = ({ patientId, patientName, mode = 'all' }) => {
+  const { t } = useLanguage();
   const [selectedMetric, setSelectedMetric] = useState<VitalMetricType>('bp');
   
   // Vitals State
@@ -160,10 +163,10 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         <div className="flex flex-col items-center justify-center py-16 px-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center space-y-2">
           <HeartPulse className="w-10 h-10 text-slate-300 dark:text-slate-600" />
           <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-            No vitals recorded for the selected period.
+            {t("doctor.p360.no_vitals_recorded", "No vitals recorded for the selected period.")}
           </p>
           <p className="text-xs text-slate-400">
-            No vital telemetry entries were found for this patient in the last 6 months.
+            {t("doctor.p360.no_vitals_desc", "No vital telemetry entries were found for this patient in the last 6 months.")}
           </p>
         </div>
       );
@@ -310,10 +313,10 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* Selected / Hovered Value Callout */}
         <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700/60">
           <span className="text-slate-500">
-            {hoveredVitalIdx !== null ? `Reading on ${points[hoveredVitalIdx]?.dateStr}:` : 'Latest 6 Months Summary:'}
+            {hoveredVitalIdx !== null ? `${t("doctor.p360.reading_on", "Reading on")} ${points[hoveredVitalIdx]?.dateStr}:` : t("doctor.p360.latest_6_months_summary", "Latest 6 Months Summary:")}
           </span>
           <span className="font-mono text-slate-900 dark:text-white text-sm" style={{ color: accentColor }}>
-            {hoveredVitalIdx !== null ? points[hoveredVitalIdx]?.label : `${points.length} telemetry readings recorded`}
+            {hoveredVitalIdx !== null ? points[hoveredVitalIdx]?.label : t("doctor.p360.telemetry_readings", "{count} telemetry readings recorded").replace('{count}', points.length.toString())}
           </span>
         </div>
       </div>
@@ -356,9 +359,9 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
                     item.status === 'INCOMPLETE' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' :
                     'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>
-                    {item.status}
+                    {t(`doctor.p360.${item.status.toLowerCase()}`, item.status)}
                   </span>
-                  <span className="font-mono text-teal-600 dark:text-cyan-400 font-extrabold">{item.adherencePct}% Adherence</span>
+                  <span className="font-mono text-teal-600 dark:text-cyan-400 font-extrabold">{item.adherencePct}% {t("doctor.p360.adherence_percent", "Adherence")}</span>
                 </div>
               </div>
 
@@ -376,11 +379,11 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
               </div>
 
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 pt-0.5">
-                <span>Total Scheduled: {item.scheduled}</span>
+                <span>{t("doctor.p360.scheduled_label", "Total Scheduled:")} {item.scheduled}</span>
                 <div className="flex gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400">Taken: {item.taken}</span>
-                  <span className="text-rose-500">Missed: {item.missed}</span>
-                  <span className="text-amber-500">Incomplete: {item.incomplete}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{t("doctor.p360.taken_label", "Taken:")} {item.taken}</span>
+                  <span className="text-rose-500">{t("doctor.p360.missed_label", "Missed:")} {item.missed}</span>
+                  <span className="text-amber-500">{t("doctor.p360.incomplete_label", "Incomplete:")} {item.incomplete}</span>
                 </div>
               </div>
             </div>
@@ -392,6 +395,18 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
 
   const summary = adherenceData?.summary;
 
+  const getMetricLabel = (id: string) => {
+    switch (id) {
+      case 'bp': return t("doctor.trends.bp", "Blood Pressure");
+      case 'heartRate': return t("doctor.trends.hr", "Heart Rate");
+      case 'spo2': return t("doctor.trends.spo2", "SpO2 (Oxygen)");
+      case 'bloodSugar': return t("doctor.trends.sugar", "Blood Sugar (HbA1c)");
+      case 'temperature': return t("doctor.trends.temp", "Temperature");
+      case 'weight': return t("doctor.trends.weight", "Body Weight");
+      default: return id;
+    }
+  };
+
   return (
     <div className="space-y-6 select-none font-sans max-w-7xl mx-auto">
       {/* SECTION HEADER */}
@@ -399,21 +414,22 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <Activity className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            Patient Health Trends
+            {t("doctor.trends.title", "Patient Health Trends")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Real 6-month telemetry vitals timeline & medication adherence analytics
+            {t("doctor.trends.subtitle", "6-Month telemetry vitals, blood pressure, heart rate & lab metrics")}
             {patientName ? ` for ${patientName}` : ''}
           </p>
         </div>
       </div>
 
       {/* FEATURE 4 — DOCTOR-FRIENDLY SUMMARY CARDS */}
+      {(mode === 'all' || mode === 'medications') && (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* 1. Adherence % */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-emerald-500" /> Adherence
+            <TrendingUp className="w-3 h-3 text-emerald-500" /> {t("doctor.p360.medications_adherence", "Adherence")}
           </span>
           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
             {isAdherenceLoading ? '...' : `${summary?.adherencePercentage ?? 0}%`}
@@ -423,7 +439,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* 2. Total Scheduled */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-cyan-500" /> Scheduled
+            <Calendar className="w-3 h-3 text-cyan-500" /> {t("doctor.p360.scheduled", "Scheduled Doses")}
           </span>
           <p className="text-2xl font-black text-slate-900 dark:text-white font-mono">
             {isAdherenceLoading ? '...' : (summary?.totalScheduledDoses ?? 0)}
@@ -433,7 +449,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* 3. Total Taken */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Taken Doses
+            <CheckCircle2 className="w-3 h-3 text-emerald-500" /> {t("doctor.p360.taken", "Taken Doses")}
           </span>
           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
             {isAdherenceLoading ? '...' : (summary?.totalTakenDoses ?? 0)}
@@ -443,7 +459,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* 4. Total Missed */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <XCircle className="w-3 h-3 text-rose-500" /> Missed Doses
+            <XCircle className="w-3 h-3 text-rose-500" /> {t("doctor.p360.missed", "Missed Doses")}
           </span>
           <p className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
             {isAdherenceLoading ? '...' : (summary?.totalMissedDoses ?? 0)}
@@ -453,7 +469,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* 5. Total Incomplete */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3 text-amber-500" /> Incomplete
+            <AlertCircle className="w-3 h-3 text-amber-500" /> {t("doctor.p360.incomplete", "Incomplete")}
           </span>
           <p className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
             {isAdherenceLoading ? '...' : (summary?.totalIncompleteDoses ?? 0)}
@@ -463,36 +479,38 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {/* 6. Last Vital Date */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1 col-span-2 sm:col-span-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <Clock className="w-3 h-3 text-teal-500" /> Last Vital Date
+            <Clock className="w-3 h-3 text-teal-500" /> {t("doctor.p360.last_vital_date", "Last Vital Date")}
           </span>
           <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate pt-1">
-            {isVitalsLoading ? 'Loading...' : (lastRecordedVitalDate || 'No records')}
+            {isVitalsLoading ? t("doctor.overview.loading", "Loading...") : (lastRecordedVitalDate || t("doctor.p360.no_records", "No records"))}
           </p>
         </div>
       </div>
+      )}
 
       {/* FEATURE 1 — LAST 6 MONTHS VITALS TREND */}
+      {(mode === 'all' || mode === 'vitals') && (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <HeartPulse className="w-5 h-5 text-rose-500" />
-              6-Month Vitals Telemetry Trend
+              {t("doctor.p360.vitals_6month", "6-Month Vitals Telemetry Trend")}
             </h3>
             <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Chronological time-series graph of real patient vitals from the past 6 months
+              {t("doctor.p360.vitals_chart_sub", "Chronological time-series graph of real patient vitals from the past 6 months")}
             </p>
           </div>
 
           {/* VITAL TYPE SELECTOR BUTTONS */}
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
             {[
-              { id: 'bp', label: 'Blood Pressure' },
-              { id: 'heartRate', label: 'Heart Rate' },
-              { id: 'spo2', label: 'SpO2' },
-              { id: 'bloodSugar', label: 'Blood Sugar' },
-              { id: 'temperature', label: 'Temp' },
-              { id: 'weight', label: 'Weight' },
+              { id: 'bp', label: getMetricLabel('bp') },
+              { id: 'heartRate', label: getMetricLabel('heartRate') },
+              { id: 'spo2', label: getMetricLabel('spo2') },
+              { id: 'bloodSugar', label: getMetricLabel('bloodSugar') },
+              { id: 'temperature', label: getMetricLabel('temperature') },
+              { id: 'weight', label: getMetricLabel('weight') },
             ].map((m) => (
               <button
                 key={m.id}
@@ -514,7 +532,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {isVitalsLoading ? (
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <RefreshCw className="w-8 h-8 text-teal-500 animate-spin" />
-            <p className="text-xs font-bold text-slate-500">Loading 6-month telemetry vitals data...</p>
+            <p className="text-xs font-bold text-slate-500">{t("doctor.overview.loading", "Loading 6-month telemetry vitals data...")}</p>
           </div>
         ) : vitalsError ? (
           <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold text-center">
@@ -524,16 +542,18 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
           renderVitalsChart()
         )}
       </div>
+      )}
 
       {/* FEATURE 2 & 3 — MEDICATION ADHERENCE GRAPH & STATUS BREAKDOWN */}
+      {(mode === 'all' || mode === 'medications') && (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
         <div>
           <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Pill className="w-5 h-5 text-teal-500" />
-            Medication Adherence Over Time
+            {t("doctor.p360.adherence_over_time", "Medication Adherence Over Time")}
           </h3>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Real scheduled vs taken dose tracking with status categories (Taken, Missed, Incomplete, Pending)
+            {t("doctor.p360.adherence_chart_sub", "Real scheduled vs taken dose tracking with status categories (Taken, Missed, Incomplete, Pending)")}
           </p>
         </div>
 
@@ -541,7 +561,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
         {isAdherenceLoading ? (
           <div className="flex flex-col items-center justify-center py-16 space-y-3">
             <RefreshCw className="w-8 h-8 text-cyan-500 animate-spin" />
-            <p className="text-xs font-bold text-slate-500">Calculating medication adherence records...</p>
+            <p className="text-xs font-bold text-slate-500">{t("doctor.overview.loading", "Calculating medication adherence records...")}</p>
           </div>
         ) : adherenceError ? (
           <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold text-center">
@@ -551,6 +571,7 @@ export const PatientHealthTrendsView: React.FC<PatientHealthTrendsViewProps> = (
           renderAdherenceChart()
         )}
       </div>
+      )}
     </div>
   );
 };

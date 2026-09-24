@@ -9,6 +9,8 @@ import { healthShareApi, type Patient360AuthorizedData } from '../../../services
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
 import { PatientHealthTrendsView } from './PatientHealthTrendsView';
 import { TrendingUp } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 interface Patient360ViewProps {
   patientId: string | null;
@@ -18,6 +20,7 @@ interface Patient360ViewProps {
 }
 
 export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patientName: _patientName, onNavigate, initialTab }) => {
+  const { t } = useLanguage();
   const { records } = useDoctorWorkflow();
   const [activeTab, setActiveTab] = useState<'summary' | 'medications' | 'vitals' | 'trends' | 'records' | 'reports'>(
     (initialTab as any) || 'summary'
@@ -134,20 +137,24 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
 
           <div className="space-y-2">
             <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-black uppercase tracking-wider border border-rose-200 dark:border-rose-800">
-              403 Forbidden • Access Expired or Unauthorized
+              {t("doctor.p360.error_403_tag", "403 Forbidden • Access Expired or Unauthorized")}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Patient Access Expired or Revoked
+              {t("doctor.p360.error_title", "Patient Access Expired or Revoked")}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-medium">
-              {errorStatus.message}
+              {errorStatus.message === 'Patient not found' 
+                ? t("doctor.p360.patient_not_found", "Patient not found") 
+                : errorStatus.message === 'Access Denied: You do not have an active approved session for this patient.' 
+                  ? t("doctor.p360.access_denied_default", "Access Denied: You do not have an active approved session for this patient.") 
+                  : errorStatus.message}
             </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400 space-y-1 text-left font-medium">
-            <p className="font-bold text-slate-800 dark:text-slate-200">Security Enforcement Active:</p>
-            <p>• Medical record access requires explicit patient approval via secure QR scan.</p>
-            <p>• Temporary access sessions automatically expire after the authorized window.</p>
+            <p className="font-bold text-slate-800 dark:text-slate-200">{t("doctor.p360.error_security", "Security Enforcement Active:")}</p>
+            <p>{t("doctor.p360.error_reason_1", "• Medical record access requires explicit patient approval via secure QR scan.")}</p>
+            <p>{t("doctor.p360.error_reason_2", "• Temporary access sessions automatically expire after the authorized window.")}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -155,14 +162,14 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               onClick={() => onNavigate('overview')}
               className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs rounded-xl transition-all cursor-pointer"
             >
-              Back to Dashboard
+              {t("doctor.p360.back_to_dashboard", "Back to Dashboard")}
             </button>
             <button
               onClick={() => onNavigate('scan')}
               className="flex-1 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white dark:text-slate-950 font-black text-xs rounded-xl transition-all shadow-md shadow-teal-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Scan className="w-4 h-4" />
-              <span>Scan Patient QR</span>
+              <span>{t("doctor.p360.scan_qr", "Scan Patient QR")}</span>
             </button>
           </div>
         </motion.div>
@@ -221,32 +228,32 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
 
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-slate-950 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-lg shadow-teal-500/30 border border-white/20 shrink-0">
-            {patient.fullName.charAt(0)}
+            {getLocalizedName(patient.fullName, t).charAt(0)}
           </div>
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-cyan-300 text-[10px] font-black uppercase tracking-wider border border-teal-400/30 font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Temporary Access Active
+                {t("doctor.p360.access_active", "Temporary Access Active")}
               </span>
               {authData?.session?.expiresAt && (
                 <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  Expires: {new Date(authData.session.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {t("doctor.p360.expires_at", "Expires:")} {new Date(authData.session.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {patient.fullName}
+              {getLocalizedName(patient.fullName, t)}
             </h1>
 
             <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-300">
-              <span>{patient.age} yrs</span>
+              <span>{patient.age} {t("doctor.patients.years", "yrs")}</span>
               <span>•</span>
-              <span>{patient.gender}</span>
+              <span>{t(`doctor.patients.${patient.gender.toLowerCase()}`, patient.gender)}</span>
               <span>•</span>
-              <span className="text-rose-400 font-mono">Blood: {patient.bloodGroup}</span>
+              <span className="text-rose-400 font-mono">{t("doctor.p360.blood_group", "Blood:")} {patient.bloodGroup}</span>
               {patient.abhaId && (
                 <>
                   <span>•</span>
@@ -263,7 +270,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
             className="flex-1 md:flex-initial px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-lg shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer hover:scale-102"
           >
             <Stethoscope className="w-4 h-4" /> 
-            <span>Start Active Consultation</span>
+            <span>{t("doctor.p360.start_consultation", "Start Active Consultation")}</span>
           </button>
         </div>
       </div>
@@ -271,12 +278,12 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       {/* 2. Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
         {[
-          { id: 'summary', label: 'Clinical Summary', icon: Activity, scope: 'Basic Information' },
-          { id: 'trends', label: 'Patient Health Trends', icon: TrendingUp, scope: 'Basic Information' },
-          { id: 'vitals', label: 'Telemetry & Vitals', icon: HeartPulse, scope: 'Vitals' },
-          { id: 'medications', label: 'Medications & Adherence', icon: Pill, scope: 'Medication History' },
-          { id: 'records', label: 'Medical History', icon: FileText, scope: 'Medical Records' },
-          { id: 'reports', label: 'Diagnostic Reports', icon: TestTube, scope: 'Reports' },
+          { id: 'summary', label: t("doctor.p360.tab_summary", 'Clinical Summary'), icon: Activity, scope: 'Basic Information' },
+          { id: 'trends', label: t("doctor.p360.tab_trends", 'Patient Health Trends'), icon: TrendingUp, scope: 'Basic Information' },
+          { id: 'vitals', label: t("doctor.p360.tab_vitals", 'Telemetry & Vitals'), icon: HeartPulse, scope: 'Vitals' },
+          { id: 'medications', label: t("doctor.p360.tab_meds", 'Medications & Adherence'), icon: Pill, scope: 'Medication History' },
+          { id: 'records', label: t("doctor.p360.tab_history", 'Medical History'), icon: FileText, scope: 'Medical Records' },
+          { id: 'reports', label: t("doctor.p360.tab_reports", 'Diagnostic Reports'), icon: TestTube, scope: 'Reports' },
         ].map((tab) => {
           const tabAllowed = hasScope(tab.scope) || tab.id === 'summary' || tab.id === 'trends';
           return (
@@ -313,28 +320,28 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <User className="w-4 h-4 text-teal-500" />
-              Patient Demographics
+              {t("doctor.p360.demographics", "Patient Demographics")}
             </h3>
             
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400">Full Name</span>
-                <span className="font-bold text-slate-900 dark:text-white">{patient.fullName}</span>
+                <span className="text-slate-400">{t("doctor.profile.full_name", "Full Name")}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{getLocalizedName(patient.fullName, t)}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400">Gender / Age</span>
-                <span className="font-bold text-slate-900 dark:text-white">{patient.gender} • {patient.age} Yrs</span>
+                <span className="text-slate-400">{t("doctor.patients.gender_age", "Gender / Age")}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{t(`doctor.patients.${patient.gender.toLowerCase()}`, patient.gender)} • {patient.age} {t("doctor.patients.years", "Yrs")}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400">Blood Group</span>
+                <span className="text-slate-400">{t("doctor.p360.blood_group", "Blood Group")}</span>
                 <span className="font-mono font-bold text-rose-600 dark:text-rose-400">{patient.bloodGroup}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400">Emergency Contact</span>
-                <span className="font-bold text-slate-900 dark:text-white">{patient.emergencyContactName || 'None listed'} ({patient.emergencyContactPhone || 'N/A'})</span>
+                <span className="text-slate-400">{t("doctor.p360.emergency_contact", "Emergency Contact")}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{patient.emergencyContactName || t("doctor.p360.none_listed", "None listed")} ({patient.emergencyContactPhone || 'N/A'})</span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="text-slate-400">Address</span>
+                <span className="text-slate-400">{t("doctor.p360.address", "Address")}</span>
                 <span className="font-bold text-slate-900 dark:text-white text-right max-w-[180px]">{patient.address || 'Chennai, Tamil Nadu'}</span>
               </div>
             </div>
@@ -344,7 +351,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <Pill className="w-4 h-4 text-cyan-500" />
-              Medication Adherence
+              {t("doctor.p360.medications_adherence", "Medication Adherence")}
             </h3>
 
             {authData?.adherence?.hasData ? (
@@ -354,11 +361,11 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
                     <span className="text-3xl font-black text-teal-700 dark:text-teal-300">
                       {authData.adherence.percentage}%
                     </span>
-                    <p className="text-[11px] text-teal-600 dark:text-teal-400 font-bold mt-0.5">Overall Adherence</p>
+                    <p className="text-[11px] text-teal-600 dark:text-teal-400 font-bold mt-0.5">{t("doctor.p360.overall_adherence", "Overall Adherence")}</p>
                   </div>
                   <div className="text-right text-xs font-bold text-slate-600 dark:text-slate-300">
-                    <p>Taken: <span className="text-emerald-600 dark:text-emerald-400">{authData.adherence.completedReminders}</span></p>
-                    <p>Total: {authData.adherence.totalReminders}</p>
+                    <p>{t("doctor.p360.taken_label", "Taken:")} <span className="text-emerald-600 dark:text-emerald-400">{authData.adherence.completedReminders}</span></p>
+                    <p>{t("doctor.p360.total_label", "Total:")} {authData.adherence.totalReminders}</p>
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
@@ -369,10 +376,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-center space-y-2">
                 <Clock className="w-8 h-8 text-slate-400 mx-auto" />
                 <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                  {authData?.adherence?.message || 'Medication adherence data is not available.'}
-                </p>
-                <p className="text-[10px] text-slate-400">
-                  Adherence is computed as patient logs daily doses.
+                  {authData?.adherence?.message || t("doctor.p360.no_adherence", "Medication adherence data is not available.")}
                 </p>
               </div>
             )}
@@ -382,7 +386,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              Approved Scope of Access
+              {t("doctor.p360.approved_scope", "Approved Scope of Access")}
             </h3>
 
             <div className="space-y-2">
@@ -403,12 +407,12 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       {/* VITALS TAB */}
       {activeTab === 'vitals' && (
         <div className="space-y-6">
-          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} />
+          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} mode="vitals" />
           
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <HeartPulse className="w-5 h-5 text-rose-500" />
-              Vitals History Table
+              {t("doctor.p360.vitals_history_table", "Vitals History Table")}
             </h3>
 
             {authData?.vitals && authData.vitals.length > 0 ? (
@@ -420,11 +424,11 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
                         {new Date(v.recordedAt).toLocaleString()}
                       </span>
                       <div className="flex flex-wrap items-center gap-3 mt-1 text-xs font-bold text-slate-800 dark:text-slate-200">
-                        {v.systolicBp && <span>BP: <strong className="text-teal-600 dark:text-cyan-400">{v.systolicBp}/{v.diastolicBp} mmHg</strong></span>}
-                        {v.heartRate && <span>Heart Rate: <strong className="text-rose-500">{v.heartRate} bpm</strong></span>}
+                        {v.systolicBp && <span>{t("doctor.p360.bp", "BP")}: <strong className="text-teal-600 dark:text-cyan-400">{v.systolicBp}/{v.diastolicBp} mmHg</strong></span>}
+                        {v.heartRate && <span>{t("doctor.p360.heart_rate", "Heart Rate")}: <strong className="text-rose-500">{v.heartRate} bpm</strong></span>}
                         {v.oxygenSaturation && <span>SpO2: <strong className="text-cyan-500">{v.oxygenSaturation}%</strong></span>}
-                        {v.temperature && <span>Temp: {v.temperature}°F</span>}
-                        {v.bloodSugar && <span>Sugar: {v.bloodSugar} mg/dL</span>}
+                        {v.temperature && <span>{t("doctor.p360.temp", "Temp")}: {v.temperature}°F</span>}
+                        {v.bloodSugar && <span>{t("doctor.p360.sugar", "Sugar")}: {v.bloodSugar} mg/dL</span>}
                       </div>
                     </div>
                     {v.notes && <span className="text-xs text-slate-500 italic">{v.notes}</span>}
@@ -432,7 +436,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-6 text-center">No vitals records found for this patient.</p>
+              <p className="text-xs text-slate-500 py-6 text-center">{t("doctor.p360.no_vitals", "No vitals records found for this patient.")}</p>
             )}
           </div>
         </div>
@@ -441,12 +445,12 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       {/* MEDICATIONS TAB */}
       {activeTab === 'medications' && (
         <div className="space-y-6">
-          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} />
+          <PatientHealthTrendsView patientId={patient.id} patientName={patient.fullName} mode="medications" />
           
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Pill className="w-5 h-5 text-teal-500" />
-              Current & Previous Medications
+              {t("doctor.p360.current_meds", "Current & Previous Medications")}
             </h3>
 
             {authData?.medicationHistory && authData.medicationHistory.length > 0 ? (
@@ -457,13 +461,13 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
                       <h4 className="text-sm font-black text-slate-900 dark:text-white">{m.medicineName}</h4>
                       <span className="px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-cyan-300 rounded text-[10px] font-bold">{m.dosage}</span>
                     </div>
-                    <p className="text-xs text-slate-500">Frequency: <strong className="text-slate-700 dark:text-slate-300">{m.frequency}</strong></p>
-                    {m.prescribedBy && <p className="text-[11px] text-slate-400">Prescribed by {m.prescribedBy}</p>}
+                    <p className="text-xs text-slate-500">{t("doctor.p360.frequency", "Frequency:")} <strong className="text-slate-700 dark:text-slate-300">{m.frequency}</strong></p>
+                    {m.prescribedBy && <p className="text-[11px] text-slate-400">{t("doctor.p360.prescribed_by", "Prescribed by")} {m.prescribedBy}</p>}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-6 text-center">No active medication records found.</p>
+              <p className="text-xs text-slate-500 py-6 text-center">{t("doctor.p360.no_meds", "No active medication records found.")}</p>
             )}
           </div>
         </div>
@@ -474,7 +478,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
             <FileText className="w-5 h-5 text-indigo-500" />
-            Clinical Records & Consultation Notes
+            {t("doctor.p360.clinical_records", "Clinical Records & Consultation Notes")}
           </h3>
 
           {authData?.medicalRecords && authData.medicalRecords.length > 0 ? (
@@ -495,7 +499,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               ))}
             </div>
           ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">No clinical consultation notes recorded.</p>
+            <p className="text-xs text-slate-500 py-6 text-center">{t("doctor.p360.no_records", "No clinical consultation notes recorded.")}</p>
           )}
         </div>
       )}
@@ -505,7 +509,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
             <TestTube className="w-5 h-5 text-amber-500" />
-            Diagnostic & Lab Reports
+            {t("doctor.p360.diagnostic_reports", "Diagnostic & Lab Reports")}
           </h3>
 
           {authData?.reports && authData.reports.length > 0 ? (
@@ -523,7 +527,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               ))}
             </div>
           ) : (
-            <p className="text-xs text-slate-500 py-6 text-center">No lab or imaging reports available.</p>
+            <p className="text-xs text-slate-500 py-6 text-center">{t("doctor.p360.no_reports", "No lab or imaging reports available.")}</p>
           )}
         </div>
       )}

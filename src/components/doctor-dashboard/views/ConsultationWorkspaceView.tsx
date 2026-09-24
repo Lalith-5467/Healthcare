@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Save, CheckCircle, Clock, Plus, AlertCircle, FileText, Activity, Pill, Beaker, Stethoscope, History } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 interface ConsultationWorkspaceViewProps {
   patientId: string | null; // This is actually appointmentId
@@ -8,6 +10,7 @@ interface ConsultationWorkspaceViewProps {
 }
 
 export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps> = ({ patientId: appointmentId, onNavigate }) => {
+  const { t } = useLanguage();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -138,7 +141,7 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
     return (
       <div className="h-full flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-sm font-bold text-slate-500">Loading workspace...</p>
+        <p className="mt-4 text-sm font-bold text-slate-500">{t("doctor.overview.loading", "Loading workspace...")}</p>
       </div>
     );
   }
@@ -149,13 +152,13 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
         <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
           <Stethoscope className="w-8 h-8 text-slate-400" />
         </div>
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">No Active Consultation Selected</h2>
-        <p className="text-sm text-slate-500 mt-2 max-w-sm text-center">Please select a patient from your appointments schedule to begin or resume a consultation.</p>
+        <h2 className="text-xl font-black text-slate-900 dark:text-white">{t("doctor.consult.no_active", "No Active Consultation Selected")}</h2>
+        <p className="text-sm text-slate-500 mt-2 max-w-sm text-center">{t("doctor.consult.no_active_desc", "Please select a patient from your appointments schedule to begin or resume a consultation.")}</p>
         <button 
           onClick={() => onNavigate('appointments')} 
           className="mt-6 px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg shadow-teal-500/20 transition-all"
         >
-          View Appointments
+          {t("doctor.consult.view_appointments", "View Appointments")}
         </button>
       </div>
     );
@@ -174,18 +177,18 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
             onClick={() => onNavigate('appointments')}
             className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-black text-xs uppercase tracking-wider transition-colors cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4" /> Cancel & Exit
+            <ChevronLeft className="w-4 h-4" /> {t("doctor.consult.cancel_exit", "Cancel & Exit")}
           </button>
           <div className="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Active Encounter Workspace</span>
+            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">{t("doctor.consult.active_encounter", "Active Encounter Workspace")}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
           <Clock className="w-4 h-4" /> 
-          <span>In Progress</span>
+          <span>{t("doctor.consult.in_progress", "In Progress")}</span>
         </div>
       </header>
 
@@ -197,26 +200,26 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
           
           <div className="flex items-center gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-xl font-black text-white shrink-0 shadow-sm uppercase">
-              {patient.fullName.charAt(0)}
+              {getLocalizedName(patient.fullName, t).charAt(0)}
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900 dark:text-white">{patient.fullName}</h2>
+              <h2 className="text-sm font-black text-slate-900 dark:text-white">{getLocalizedName(patient.fullName, t)}</h2>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Blood</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">{t("doctor.p360.blood_group", "Blood")}</p>
               <p className="font-black text-rose-500 mt-0.5">{patient.bloodGroup || 'Unknown'}</p>
             </div>
             <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p>
-              <p className="font-black text-slate-700 dark:text-slate-200 mt-0.5">{patient.gender}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">{t("doctor.patients.gender_age", "Gender").split(' / ')[0]}</p>
+              <p className="font-black text-slate-700 dark:text-slate-200 mt-0.5">{t(`doctor.patients.${patient.gender?.toLowerCase()}`, patient.gender)}</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5"><History className="w-3.5 h-3.5" /> Recent Records</h3>
+            <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5"><History className="w-3.5 h-3.5" /> {t("doctor.consult.recent_records", "Recent Records")}</h3>
             {patient.medicalRecords?.length > 0 ? (
               patient.medicalRecords.slice(0, 2).map((rec: any) => (
                 <div key={rec.id} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
@@ -241,12 +244,12 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                 <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800/50">
                   <Stethoscope className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 </div>
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Clinical Assessment</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">{t("doctor.consult.clinical_assessment", "Clinical Assessment")}</h2>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Chief Complaint & Symptoms</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">{t("doctor.consult.chief_complaint", "Chief Complaint & Symptoms")}</label>
                   <input 
                     type="text" 
                     value={complaint}
@@ -257,7 +260,7 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Objective / Observations</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">{t("doctor.consult.observations", "Objective / Observations")}</label>
                   <textarea 
                     rows={4}
                     value={notes}
@@ -275,12 +278,12 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                 <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center border border-blue-100 dark:border-blue-800/50">
                   <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Diagnosis & Plan</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">{t("doctor.consult.diagnosis_plan", "Diagnosis & Plan")}</h2>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Primary Diagnosis (ICD-10)</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">{t("doctor.consult.primary_diagnosis", "Primary Diagnosis (ICD-10)")}</label>
                   <input 
                     type="text" 
                     value={diagnosis}
@@ -292,7 +295,7 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Treatment Plan</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">{t("doctor.consult.treatment_plan", "Treatment Plan")}</label>
                   <textarea 
                     rows={4}
                     value={treatment}
@@ -304,7 +307,7 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Follow-up Instructions</label>
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">{t("doctor.consult.follow_up", "Follow-up Instructions")}</label>
                   <input 
                     type="text" 
                     value={followUp}
@@ -327,31 +330,31 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
             
             <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Pill className="w-4 h-4 text-teal-500" /> Rx Form
+                <Pill className="w-4 h-4 text-teal-500" /> {t("doctor.consult.rx_form", "Rx Form")}
               </h3>
             </div>
 
             <form onSubmit={handleAddRx} className="space-y-3 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Medicine</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t("doctor.consult.medicine", "Medicine")}</label>
                 <input type="text" value={rxMedicine} onChange={e => setRxMedicine(e.target.value)} placeholder="e.g. Paracetamol" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500" required />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Dose</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t("doctor.consult.dose", "Dose")}</label>
                   <input type="text" value={rxDose} onChange={e => setRxDose(e.target.value)} placeholder="500mg" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500" required />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Freq</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t("doctor.consult.freq", "Freq")}</label>
                   <input type="text" value={rxFreq} onChange={e => setRxFreq(e.target.value)} placeholder="1-1-1" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500" required />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Days</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t("doctor.consult.days", "Days")}</label>
                   <input type="text" value={rxDuration} onChange={e => setRxDuration(e.target.value)} placeholder="5" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-teal-500" required />
                 </div>
               </div>
               <button type="submit" className="w-full mt-2 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-black transition-colors flex justify-center items-center gap-1.5 cursor-pointer">
-                <Plus className="w-3.5 h-3.5" /> Add Drug
+                <Plus className="w-3.5 h-3.5" /> {t("doctor.consult.add_drug", "Add Drug")}
               </button>
             </form>
 
@@ -362,7 +365,7 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
                     <p className="text-xs font-bold text-slate-900 dark:text-white">{rx.medicine}</p>
                     <p className="text-[10px] text-slate-500 mt-0.5">{rx.dose} • {rx.frequency} • {rx.duration} days</p>
                   </div>
-                  <button onClick={() => setAddedRx(addedRx.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-rose-500 cursor-pointer text-xs font-bold">Remove</button>
+                  <button onClick={() => setAddedRx(addedRx.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-rose-500 cursor-pointer text-xs font-bold">{t("doctor.consult.remove", "Remove")}</button>
                 </div>
               ))}
             </div>
@@ -375,21 +378,21 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
       <div className="h-16 bg-white dark:bg-[#0b1120] border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-none z-10">
         <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
           {saving ? (
-            <span className="flex items-center gap-1.5"><div className="w-3 h-3 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div> Saving...</span>
+            <span className="flex items-center gap-1.5"><div className="w-3 h-3 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div> {t("doctor.consult.saving", "Saving...")}</span>
           ) : lastSaved ? (
-            <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> Saved {lastSaved.toLocaleTimeString()}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> {t("doctor.consult.saved", "Saved")} {lastSaved.toLocaleTimeString()}</span>
           ) : null}
         </div>
         
         <div className="flex items-center gap-3">
           <button onClick={handleSaveDraft} className="px-5 py-2.5 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer border border-slate-200 dark:border-slate-700">
-            Save as Draft
+            {t("doctor.consult.save_draft", "Save as Draft")}
           </button>
           <button 
             onClick={handleComplete}
             className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-black text-xs rounded-xl shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2 cursor-pointer"
           >
-            <Save className="w-4 h-4" /> Sign & Complete
+            <Save className="w-4 h-4" /> {t("doctor.consult.sign_complete", "Sign & Complete")}
           </button>
         </div>
       </div>

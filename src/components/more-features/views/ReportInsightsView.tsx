@@ -96,35 +96,35 @@ export function ReportInsightsView() {
         <div className="xl:col-span-2 space-y-6">
           
           {/* AI SUMMARY HERO */}
-          <div className="bg-slate-900 dark:bg-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-lg relative overflow-hidden">
+          <div className="bg-white dark:bg-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
             
             <div className="relative z-10">
-              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 mb-6">
-                <Sparkles className="w-6 h-6 text-cyan-400" /> AI Report Summary
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+                <Sparkles className="w-6 h-6 text-cyan-500 dark:text-cyan-400" /> AI Report Summary
               </h2>
               
-              <div className="bg-slate-800/50 rounded-2xl p-5 mb-8 border border-slate-700/50">
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-medium">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 mb-8 border border-slate-200 dark:border-slate-700/50">
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                   The report contains multiple results within the laboratory-provided reference ranges. A small number of values may require additional review based on the report's reference intervals and patient context.
                 </p>
-                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-cyan-500">
+                <div className="mt-4 flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-cyan-600 dark:text-cyan-500">
                   <ShieldCheck className="w-3 h-3" /> AI-assisted analysis
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-emerald-900/20 border border-emerald-800/30 rounded-2xl p-4">
-                  <div className="text-3xl font-black text-emerald-400 mb-1">18</div>
-                  <div className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Within Range</div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-2xl p-4">
+                  <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-1">18</div>
+                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Within Range</div>
                 </div>
-                <div className="bg-amber-900/20 border border-amber-800/30 rounded-2xl p-4">
-                  <div className="text-3xl font-black text-amber-400 mb-1">3</div>
-                  <div className="text-xs font-bold text-amber-500 uppercase tracking-widest">Needs Review</div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 rounded-2xl p-4">
+                  <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mb-1">3</div>
+                  <div className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest">Needs Review</div>
                 </div>
-                <div className="bg-rose-900/20 border border-rose-800/30 rounded-2xl p-4">
-                  <div className="text-3xl font-black text-slate-500 mb-1">0</div>
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">Critical</div>
+                <div className="bg-slate-50 dark:bg-rose-900/20 border border-slate-200 dark:border-rose-800/30 rounded-2xl p-4">
+                  <div className="text-3xl font-black text-slate-400 dark:text-slate-500 mb-1">0</div>
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest">Critical</div>
                 </div>
               </div>
             </div>

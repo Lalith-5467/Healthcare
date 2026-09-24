@@ -447,8 +447,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 onClick={() => setSelectedVitalMetric(m.id as any)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden ${
                   isSelected
-                    ? `bg-[#1a1f33] ${m.activeBorder} ring-2 ring-indigo-500/40 shadow-[0_0_15px_rgba(0,0,0,0.5)]`
-                    : 'bg-[#15192b] border-slate-700/50 hover:bg-[#1a1f33]'
+                    ? `bg-slate-900/5 dark:bg-[#1a1f33] ${m.activeBorder} ring-2 ring-indigo-500/40 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(0,0,0,0.5)]`
+                    : 'bg-white dark:bg-[#15192b] border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-[#1a1f33]'
                 }`}
               >
                 <div className={`absolute -top-4 -left-4 w-32 h-32 ${m.glow} blur-2xl pointer-events-none rounded-full transition-opacity duration-500 ${isSelected ? 'opacity-100' : 'opacity-50'}`}></div>
@@ -458,14 +458,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     <m.icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-medium text-slate-300 block leading-tight">{m.label}</span>
+                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block leading-tight">{m.label}</span>
                     <div className="flex items-baseline gap-1 mt-0">
-                      <span className="font-sans font-bold text-xl text-white leading-tight">{m.val}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{m.unit}</span>
+                      <span className="font-sans font-bold text-xl text-slate-900 dark:text-white leading-tight">{m.val}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{m.unit}</span>
                     </div>
                   </div>
                 </div>
-                <div className="h-px w-full bg-slate-700/50 z-10 my-0"></div>
+                <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 z-10 my-0"></div>
                 <div className="flex items-center justify-between w-full z-10">
                   {m.isNormal && (
                     <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20 leading-none">
@@ -484,7 +484,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         {/* MIDDLE SECTION: MAIN CHART & TODAY'S SUMMARY */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
                {/* Main Chart (Left 8 cols) */}
-          <div className="lg:col-span-8 bg-[#0b132b] border border-slate-800/80 rounded-[20px] p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+          <div className="lg:col-span-8 bg-white dark:bg-[#0b132b] border border-slate-200 dark:border-slate-800/80 rounded-[20px] p-6 sm:p-8 relative overflow-hidden flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
             {/* Ambient Background Gradient Glow */}
             <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-900/10 blur-[100px] rounded-full pointer-events-none"></div>
 
@@ -493,7 +493,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Heart className={`w-5 h-5 ${selectedVitalMetric === 'Heart Rate' ? 'text-[#ff4d6d]' : 'text-slate-400'}`} fill={selectedVitalMetric === 'Heart Rate' ? 'currentColor' : 'none'} />
-                  <span className="text-lg font-extrabold text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
+                  <span className="text-lg font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">{selectedVitalMetric} TREND</span>
                 </div>
                 <div className="text-[11px] text-slate-400 font-medium">
                   {vitalsTimeframe === '7D' && 'Week View · Aug 21 - Aug 27'}
@@ -502,9 +502,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   {vitalsTimeframe === '1Y' && 'Year View · 2026'}
                 </div>
               </div>
-              <div className="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-2 shadow-sm backdrop-blur-sm">
+              <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 flex items-center gap-2 shadow-sm backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]"></span>
-                <span className="text-[10px] text-slate-200 font-bold tracking-wide">Active</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-200 font-bold tracking-wide">Active</span>
               </div>
             </div>
 
@@ -525,7 +525,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               {/* Grid Lines (Horizontal) */}
               <div className="absolute inset-0 z-0 flex flex-col justify-between pb-8 pl-8 pr-2">
                 {[...Array(7)].map((_, i) => (
-                  <div key={`h-${i}`} className="w-full h-[1px] border-t border-dashed border-slate-700/30"></div>
+                  <div key={`h-${i}`} className="w-full h-[1px] border-t border-dashed border-slate-200 dark:border-slate-700/30"></div>
                 ))}
               </div>
 
@@ -536,7 +536,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   vitalsTimeframe === '30D' ? 6 :
                   vitalsTimeframe === '3M' ? 4 : 6
                 )].map((_, i) => (
-                  <div key={`v-${i}`} className="h-full w-[1px] border-l border-dashed border-slate-700/30"></div>
+                  <div key={`v-${i}`} className="h-full w-[1px] border-l border-dashed border-slate-200 dark:border-slate-700/30"></div>
                 ))}
               </div>
 

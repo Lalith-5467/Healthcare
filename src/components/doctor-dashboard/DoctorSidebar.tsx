@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Video
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface DoctorSidebarProps {
   activeNav: string;
@@ -19,24 +20,25 @@ interface DoctorSidebarProps {
 }
 
 export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavigate, user }) => {
+  const { t } = useLanguage();
   const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Rajesh Varma, MD';
 
   const NAV_ITEMS = [
-    { id: 'dashboard', label: 'Command Center', icon: Home },
+    { id: 'dashboard', label: t('doctor.sidebar.command_center', 'Command Center'), icon: Home },
     { 
       id: 'scan', 
-      label: 'Scan Patient QR', 
+      label: t('doctor.sidebar.scan_qr', 'Scan Patient QR'), 
       icon: Scan,
       special: true
     },
-    { id: 'patients', label: 'Clinical Patients', icon: Users },
-    { id: 'appointments', label: 'OPD & Schedule', icon: Calendar },
-    { id: 'consultations', label: 'Active Consultation', icon: Video, urgent: true },
-    { id: 'patient-360', label: 'Patient 360° & AI', icon: Brain },
-    { id: 'prescriptions', label: 'Prescriptions & Notes', icon: Pill },
+    { id: 'patients', label: t('doctor.sidebar.clinical_patients', 'Clinical Patients'), icon: Users },
+    { id: 'appointments', label: t('doctor.sidebar.opd_schedule', 'OPD & Schedule'), icon: Calendar },
+    { id: 'consultations', label: t('doctor.sidebar.active_consultation', 'Active Consultation'), icon: Video, urgent: true },
+    { id: 'patient-360', label: t('doctor.sidebar.patient_360', 'Patient 360° & AI'), icon: Brain },
+    { id: 'prescriptions', label: t('doctor.sidebar.prescriptions_notes', 'Prescriptions & Notes'), icon: Pill },
     
-    { category: 'Practitioner Console' },
-    { id: 'settings', label: 'Profile & Settings', icon: Settings }
+    { category: t('doctor.sidebar.practitioner_console', 'Practitioner Console') },
+    { id: 'settings', label: t('doctor.sidebar.profile_settings', 'Profile & Settings'), icon: Settings }
   ];
 
   return (
@@ -48,7 +50,7 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavig
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              ON DUTY · CLINIC
+              {t('doctor.sidebar.on_duty', 'ON DUTY · CLINIC')}
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-400">MCI-84920</span>
           </div>
@@ -67,7 +69,7 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavig
       <nav className="flex-1 px-3 py-3 space-y-1">
         <div className="px-3 pb-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Clinical Workflows
+            {t('doctor.sidebar.clinical_workflows', 'Clinical Workflows')}
           </span>
         </div>
 
@@ -140,7 +142,9 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavig
       <div className="p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#0b1120]">
         <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-400">
           <ShieldCheck className="w-4 h-4 shrink-0" />
-          <span className="text-[11px] font-black uppercase tracking-wider truncate">ABDM Verified Clinician</span>
+          <span className="text-[11px] font-black uppercase tracking-wider truncate">
+            {t('doctor.sidebar.abdm_verified', 'ABDM Verified Clinician')}
+          </span>
         </div>
       </div>
     </aside>

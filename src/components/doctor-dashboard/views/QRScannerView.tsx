@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { healthShareApi, type ValidateQRResponse } from '../../../services/healthShareApi';
 import { socketService } from '../../../services/socketService';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface QRScannerViewProps {
   onScanSuccess?: (patientId: string) => void;
@@ -19,6 +20,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
   onScanSuccess, 
   onNavigateToDashboard 
 }) => {
+  const { t } = useLanguage();
   const [stage, setStage] = useState<ScanStage>('SCANNING');
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -207,10 +209,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         <div>
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-              Scan Patient QR
+              {t("doctor.scan.title", "Scan Patient QR")}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium max-w-lg mx-auto">
-              Scan the patient's secure temporary MediCare Health QR code to request authorized clinical access.
+              {t("doctor.scan.scan_subtitle", "Scan the patient's secure temporary MediCare Health QR code to request authorized clinical access.")}
             </p>
           </div>
 
@@ -222,7 +224,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             {/* Security Indicator */}
             <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-3 py-1.5 rounded-full text-xs font-bold border border-teal-200 dark:border-teal-800/50">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Zero-PHI Encrypted QR</span>
+              <span>{t("doctor.scan.zero_phi", "Zero-PHI Encrypted QR")}</span>
             </div>
 
             {/* Scanner Viewport */}
@@ -252,7 +254,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                     } ${isScanning || isCameraActive ? 'animate-pulse' : ''}`}
                   />
                   <p className="text-xs font-bold text-slate-300 mt-3">
-                    Point camera at the patient's MediCare Health QR
+                    {t("doctor.scan.point_camera", "Point camera at the patient's MediCare Health QR")}
                   </p>
                 </div>
               </div>
@@ -280,7 +282,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                   }`}
                 >
                   <Camera className="w-4 h-4" />
-                  {isCameraActive ? 'Camera Active' : 'Start Camera'}
+                  {isCameraActive ? t("doctor.scan.camera_active", "Camera Active") : t("doctor.scan.start_cam", "Start Camera")}
                 </button>
 
                 <input
@@ -297,14 +299,14 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                   disabled={isScanning}
                   className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Upload className="w-4 h-4" /> Upload QR Image
+                  <Upload className="w-4 h-4" /> {t("doctor.scan.upload_qr", "Upload QR Image")}
                 </button>
               </div>
 
               {/* Manual Token Verification Entry */}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                  Or enter secure QR reference token directly:
+                  {t("doctor.scan.manual_label", "Or enter secure QR reference token directly:")}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -320,7 +322,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                     disabled={!manualToken || isScanning}
                     className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                   >
-                    {isScanning ? 'Verifying...' : 'Validate QR'}
+                    {isScanning ? t("doctor.scan.verifying", "Verifying...") : t("doctor.scan.validate", "Validate QR")}
                   </button>
                 </div>
               </div>
@@ -333,7 +335,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                   disabled={isScanning}
                   className="text-xs font-black text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
                 >
-                  {isScanning ? 'Validating Token...' : 'Test with sample patient QR'}
+                  {isScanning ? t("doctor.scan.validating", "Validating Token...") : t("doctor.scan.test_sample", "Test with sample patient QR")}
                 </button>
               </div>
             </div>
@@ -353,11 +355,11 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-black uppercase tracking-wider mb-2 backdrop-blur-md">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Patient Identified Successfully</span>
+                <span>{t("doctor.scan.identified", "Patient Identified Successfully")}</span>
               </div>
-              <h2 className="text-2xl font-black">Patient Access Request</h2>
+              <h2 className="text-2xl font-black">{t("doctor.scan.access_request", "Patient Access Request")}</h2>
               <p className="text-xs text-teal-50 mt-0.5">
-                Medical records are confidential. Request patient consent to view authorized data.
+                {t("doctor.scan.access_desc", "Medical records are confidential. Request patient consent to view authorized data.")}
               </p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
@@ -385,23 +387,23 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                       {validationData.patient.fullName}
                     </h3>
                     <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-300/40">
-                      Verified
+                      {t("doctor.scan.verified", "Verified")}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
-                    <span>{validationData.patient.age} Yrs</span>
+                    <span>{validationData.patient.age.toString().replace(/years?|yrs?/i, '').trim()} {t("doctor.patients.years", "Yrs")}</span>
                     <span>•</span>
-                    <span>{validationData.patient.gender}</span>
+                    <span>{t(`doctor.patients.${validationData.patient.gender.toLowerCase()}`, validationData.patient.gender)}</span>
                     <span>•</span>
                     <span className="text-rose-600 dark:text-rose-400">
-                      Blood Group: {validationData.patient.bloodGroup}
+                      {t("doctor.patients.blood_group", "Blood Group")}: {validationData.patient.bloodGroup}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="text-right text-xs font-mono font-bold text-slate-400">
-                Token: <span className="text-teal-600 dark:text-teal-400">{validationData.token}</span>
+                {t("doctor.scan.token", "Token")}: <span className="text-teal-600 dark:text-teal-400">{validationData.token}</span>
               </div>
             </div>
 
@@ -409,24 +411,24 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
               <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Stethoscope className="w-3.5 h-3.5 text-teal-500" />
-                Doctor Requesting Access
+                {t("doctor.scan.doctor_requesting", "Doctor Requesting Access")}
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-bold">Doctor Name</span>
+                  <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.doc_name", "Doctor Name")}</span>
                   <span className="font-black text-slate-900 dark:text-white">{validationData.doctor.fullName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-bold">Doctor / License ID</span>
+                  <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.doc_id", "Doctor / License ID")}</span>
                   <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{validationData.doctor.licenseNumber || validationData.doctor.id}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-bold">Hospital / Clinic</span>
+                  <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.hospital", "Hospital / Clinic")}</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{validationData.doctor.hospital}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] font-bold">Specialization & Dept</span>
+                  <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.specialization", "Specialization & Dept")}</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{validationData.doctor.speciality}</span>
                 </div>
               </div>
@@ -435,7 +437,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             {/* Access Purpose Dropdown */}
             <div>
               <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                Purpose of Access
+                {t("doctor.scan.purpose_label", "Purpose of Access")}
               </label>
               <select
                 value={selectedPurpose}
@@ -453,7 +455,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             {/* Permission Scope Checkboxes */}
             <div>
               <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                Requested Information Scope
+                {t("doctor.scan.scope_label", "Requested Information Scope")}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {validationData.availableScopes.map((scope) => {
@@ -491,7 +493,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                 disabled={isSubmittingRequest}
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs transition-colors cursor-pointer"
               >
-                Cancel
+                {t("doctor.scan.cancel", "Cancel")}
               </button>
 
               <button
@@ -501,7 +503,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                 className="w-full sm:flex-1 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                <span>{isSubmittingRequest ? 'Sending Request...' : 'Send Access Request'}</span>
+                <span>{isSubmittingRequest ? t("doctor.scan.sending", "Sending Request...") : t("doctor.scan.send_request", "Send Access Request")}</span>
               </button>
             </div>
           </div>
@@ -533,42 +535,42 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
           <div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
               {requestStatus === 'APPROVED' 
-                ? 'Access Approved & Active ✓' 
+                ? t("doctor.scan.approved", "Access Approved & Active ✓") 
                 : requestStatus === 'REJECTED' 
-                ? 'Access Request Declined' 
-                : 'Access Request Sent ✓'}
+                ? t("doctor.scan.declined", "Access Request Declined") 
+                : t("doctor.scan.sent", "Access Request Sent ✓")}
             </h2>
             <p className="text-sm font-bold text-teal-600 dark:text-teal-400 mt-1">
-              Patient: {validationData.patient.fullName}
+              {t("doctor.scan.patient_label", "Patient:")} {validationData.patient.fullName}
             </p>
           </div>
 
           {/* Details Card */}
           <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-left space-y-2.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400 font-bold">Requested by:</span>
+              <span className="text-slate-400 font-bold">{t("doctor.scan.requested_by", "Requested by:")}</span>
               <span className="font-black text-slate-900 dark:text-white">{validationData.doctor.fullName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400 font-bold">Purpose:</span>
+              <span className="text-slate-400 font-bold">{t("doctor.scan.purpose", "Purpose:")}</span>
               <span className="font-bold text-slate-800 dark:text-slate-200">{selectedPurpose}</span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700">
-              <span className="text-slate-400 font-bold">Status:</span>
+              <span className="text-slate-400 font-bold">{t("doctor.scan.status", "Status:")}</span>
               {requestStatus === 'APPROVED' ? (
                 <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-black text-[11px] border border-emerald-400/50 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  ACCESS APPROVED / ACTIVE
+                  {t("doctor.scan.status_approved", "ACCESS APPROVED / ACTIVE")}
                 </span>
               ) : requestStatus === 'REJECTED' ? (
                 <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-black text-[11px] border border-rose-400/50 flex items-center gap-1.5">
                   <XCircle className="w-3.5 h-3.5 text-rose-500" />
-                  REQUEST REJECTED / DECLINED
+                  {t("doctor.scan.status_rejected", "REQUEST REJECTED / DECLINED")}
                 </span>
               ) : (
                 <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-black text-[11px] border border-amber-300/40 animate-pulse flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                  WAITING FOR PATIENT APPROVAL
+                  {t("doctor.scan.status_waiting", "WAITING FOR PATIENT APPROVAL")}
                 </span>
               )}
             </div>
@@ -577,10 +579,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
           {/* Description text */}
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
             {requestStatus === 'APPROVED'
-              ? 'Consent granted by patient. Clinical records, medications, vitals, and AI summaries are now unlocked for this authorized session.'
+              ? t("doctor.scan.consent_granted", "Consent granted by patient. Clinical records, medications, vitals, and AI summaries are now unlocked for this authorized session.")
               : requestStatus === 'REJECTED'
-              ? 'The patient declined this access request. No medical records can be accessed without explicit patient authorization.'
-              : 'The patient has received a notification and must click "ACCEPT & SHARE" on their device before clinical health records can be viewed.'}
+              ? t("doctor.scan.consent_declined", "The patient declined this access request. No medical records can be accessed without explicit patient authorization.")
+              : t("doctor.scan.consent_waiting", "The patient has received a notification and must click \"ACCEPT & SHARE\" on their device before clinical health records can be viewed.")}
           </p>
 
           {/* Action Buttons */}
@@ -593,14 +595,14 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                   className="flex-1 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Eye className="w-4 h-4" />
-                  <span>View Patient 360° & AI Records</span>
+                  <span>{t("doctor.scan.view_360", "View Patient 360° & AI Records")}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleResetScanner}
                   className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs rounded-xl transition-all cursor-pointer"
                 >
-                  Scan Another
+                  {t("doctor.scan.scan_another", "Scan Another")}
                 </button>
               </>
             ) : requestStatus === 'REJECTED' ? (
@@ -610,14 +612,14 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                   onClick={handleResetScanner}
                   className="flex-1 py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-black text-xs rounded-xl transition-all cursor-pointer"
                 >
-                  Scan Another Patient
+                  {t("doctor.scan.scan_another_pt", "Scan Another Patient")}
                 </button>
                 <button
                   type="button"
                   onClick={onNavigateToDashboard || handleResetScanner}
                   className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs rounded-xl transition-all cursor-pointer"
                 >
-                  Dashboard
+                  {t("doctor.scan.dashboard", "Dashboard")}
                 </button>
               </>
             ) : (
@@ -626,7 +628,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                 onClick={onNavigateToDashboard || handleResetScanner}
                 className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-black text-xs rounded-xl transition-all cursor-pointer shadow-md"
               >
-                Back to Dashboard
+                {t("doctor.scan.back_dashboard", "Back to Dashboard")}
               </button>
             )}
           </div>

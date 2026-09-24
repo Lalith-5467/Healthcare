@@ -25,6 +25,8 @@ import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/
 import { QRScannerView } from '../components/doctor-dashboard/views/QRScannerView';
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
 import { notificationApi } from '../services/dhrApis';
+import { useLanguage } from '../context/LanguageContext';
+import { getLocalizedName } from '../utils/caregiverDataTranslator';
 
 interface DoctorDashboardPageProps {
   onLogout: () => void;
@@ -34,6 +36,7 @@ interface DoctorDashboardPageProps {
 }
 
 export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogout, user, initialNavId, onNavigate: _onNavigate }) => {
+  const { language, setLanguage, t } = useLanguage();
   const getInitialDoctorNav = () => {
     if (!initialNavId || initialNavId === 'dashboard') return 'overview';
     return initialNavId;
@@ -43,7 +46,6 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   const [scannedPatientId, setScannedPatientId] = useState<string | null>('1');
   const [scannedPatientName, setScannedPatientName] = useState<string | undefined>(undefined);
   const [patient360Tab, setPatient360Tab] = useState('summary');
-  const [language, setLanguage] = useState<'EN' | 'TA'>('EN');
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
@@ -161,12 +163,12 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             <Logo />
             <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
               <span className="text-xs font-black uppercase tracking-wider text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-900/30 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-500/20">
-                <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> Doctor Portal
+                <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> {t('doctor.portal.title', 'Doctor Portal')}
               </span>
             </div>
             
             <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> ABDM Practitioner Console
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> {t('doctor.portal.abdm_console', 'ABDM Practitioner Console')}
             </div>
           </div>
         </div>
@@ -177,7 +179,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
             <input 
               type="text" 
-              placeholder="Search patients, meds..." 
+              placeholder={t('doctor.header.search_placeholder', 'Search patients, meds...')} 
               className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
               onClick={() => setActiveNav('patients')}
             />
@@ -187,15 +189,15 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           <div className="hidden lg:flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             <button
               type="button"
-              onClick={() => setLanguage('EN')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'EN' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              onClick={() => setLanguage('en')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'en' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               EN
             </button>
             <button
               type="button"
-              onClick={() => setLanguage('TA')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'TA' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              onClick={() => setLanguage('ta')}
+              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'ta' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               தமிழ்
             </button>
@@ -228,7 +230,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-teal-200 dark:border-teal-800/60 shadow-2xs"
           >
             <Stethoscope className="w-3.5 h-3.5" />
-            <span>Scan QR</span>
+            <span>{t('doctor.sidebar.scan_qr', 'Scan QR')}</span>
           </button>
 
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
@@ -238,17 +240,17 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
               {doctorName.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
-            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{doctorName}</span>
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{getLocalizedName(doctorName, t)}</span>
           </div>
 
           <button 
             type="button"
             onClick={onLogout}
             className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
-            title="Logout"
+            title={t('doctor.header.logout', 'Logout')}
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+            <span className="hidden sm:inline">{t('doctor.header.logout', 'Logout')}</span>
           </button>
         </div>
       </header>
@@ -273,7 +275,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
                 className="absolute inset-y-0 left-0 w-64 bg-white dark:bg-[#0b1120] shadow-2xl flex flex-col z-10"
               >
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                  <span className="font-black text-slate-900 dark:text-white">Doctor Console</span>
+                  <span className="font-black text-slate-900 dark:text-white">{t('doctor.sidebar.practitioner_console', 'Doctor Console')}</span>
                   <button 
                     onClick={() => setIsSidebarOpen(false)}
                     className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -298,7 +300,9 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
 
         {/* MAIN WORKBENCH VIEWPORT */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {renderActiveView()}
+          <div className="max-w-[1600px] mx-auto h-full">
+            {renderActiveView()}
+          </div>
         </main>
       </div>
 

@@ -24,6 +24,8 @@ interface DoctorAppointmentsScheduleViewProps {
 }
 
 import { appointmentApi } from '../../../services/dhrApis';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 const mockSlots = [
   {
@@ -126,6 +128,7 @@ const mockSlots = [
   }
 ];
 export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsScheduleViewProps> = ({ onStartConsultation, onViewProfile, onViewConsultation }) => {
+  const { t } = useLanguage();
   const [liveAppointments, setLiveAppointments] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -155,6 +158,19 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
 
 
   const statuses = ['All', 'Scheduled', 'In Consultation', 'Completed', 'Delayed', 'No-show', 'Cancelled'];
+
+  const getStatusLabel = (st: string) => {
+    switch (st) {
+      case 'All': return t("doctor.appointments.all", "All Appointments");
+      case 'Scheduled': return t("doctor.appointments.scheduled", "Scheduled");
+      case 'In Consultation': return t("doctor.appointments.in_consultation", "In Consultation");
+      case 'Completed': return t("doctor.appointments.completed", "Completed");
+      case 'Delayed': return t("doctor.appointments.delayed", "Delayed");
+      case 'No-show': return t("doctor.appointments.no_show", "No-show");
+      case 'Cancelled': return t("doctor.appointments.cancelled", "Cancelled");
+      default: return st;
+    }
+  };
 
   const loadAppointments = async () => {
     try {
@@ -236,8 +252,8 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       // Search filter
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = apt.patientName.toLowerCase().includes(query);
+        const localizedName = getLocalizedName(apt.patientName, t);
+        const matchesName = localizedName.toLowerCase().includes(query) || apt.patientName.toLowerCase().includes(query);
         const matchesId = apt.patientId.toLowerCase().includes(query);
         const matchesAptId = apt.id.toLowerCase().includes(query);
         if (!matchesName && !matchesId && !matchesAptId) return false;
@@ -262,13 +278,13 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-700 dark:text-cyan-400 text-xs font-black uppercase tracking-wider mb-1">
-            <Calendar className="w-3.5 h-3.5" /> OPD & Tele-Health Schedule
+            <Calendar className="w-3.5 h-3.5" /> {t("doctor.appointments.opd_tele", "OPD & Tele-Health Schedule")}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Doctor Itinerary
+            {t("doctor.appointments.itinerary", "Doctor Itinerary")}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Confirmed clinical appointments, patient queue management, and 1-click video call start.
+            {t("doctor.appointments.itinerary_subtitle", "Confirmed clinical appointments, patient queue management, and 1-click video call start.")}
           </p>
         </div>
       </div>
@@ -276,12 +292,12 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       {/* SUMMARY CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {[
-          { label: 'Today\'s Appts', value: totalToday, color: 'text-slate-900 dark:text-white', bg: 'bg-white dark:bg-slate-900', border: 'border-slate-200 dark:border-slate-800' },
-          { label: 'Completed', value: totalCompleted, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-950/20', border: 'border-emerald-200/50 dark:border-emerald-900/50' },
-          { label: 'Waiting/Active', value: totalWaiting, color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50/50 dark:bg-blue-950/20', border: 'border-blue-200/50 dark:border-blue-900/50' },
-          { label: 'Delayed', value: totalDelayed, color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-50/50 dark:bg-orange-950/20', border: 'border-orange-200/50 dark:border-orange-900/50' },
-          { label: 'No-show', value: totalNoShow, color: 'text-rose-700 dark:text-rose-400', bg: 'bg-rose-50/50 dark:bg-rose-950/20', border: 'border-rose-200/50 dark:border-rose-900/50' },
-          { label: 'Cancelled', value: totalCancelled, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/30', border: 'border-slate-200 dark:border-slate-800' }
+          { label: t("doctor.appointments.today_appts", "Today's Appts"), value: totalToday, color: 'text-slate-900 dark:text-white', bg: 'bg-white dark:bg-slate-900', border: 'border-slate-200 dark:border-slate-800' },
+          { label: t("doctor.appointments.completed", "Completed"), value: totalCompleted, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-950/20', border: 'border-emerald-200/50 dark:border-emerald-900/50' },
+          { label: t("doctor.appointments.waiting_active", "Waiting/Active"), value: totalWaiting, color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50/50 dark:bg-blue-950/20', border: 'border-blue-200/50 dark:border-blue-900/50' },
+          { label: t("doctor.appointments.delayed", "Delayed"), value: totalDelayed, color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-50/50 dark:bg-orange-950/20', border: 'border-orange-200/50 dark:border-orange-900/50' },
+          { label: t("doctor.appointments.no_show", "No-show"), value: totalNoShow, color: 'text-rose-700 dark:text-rose-400', bg: 'bg-rose-50/50 dark:bg-rose-950/20', border: 'border-rose-200/50 dark:border-rose-900/50' },
+          { label: t("doctor.appointments.cancelled", "Cancelled"), value: totalCancelled, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/30', border: 'border-slate-200 dark:border-slate-800' }
         ].map((stat, idx) => (
           <div key={idx} className={`${stat.bg} ${stat.border} rounded-2xl p-4 sm:p-5 border shadow-sm flex flex-col justify-center items-center text-center transition-all`}>
             <span className={`text-2xl sm:text-3xl font-black ${stat.color} leading-none mb-1`}>{stat.value}</span>
@@ -300,7 +316,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
           <input
             type="text"
             className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm shadow-sm transition-all"
-            placeholder="Search patient name or ID..."
+            placeholder={t("doctor.appointments.search_placeholder", "Search appointments by patient name, ID, or condition...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -315,10 +331,10 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
               onChange={(e) => setDateFilter(e.target.value)}
               className="appearance-none bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 pl-4 pr-10 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm cursor-pointer"
             >
-              <option value="All Dates">All Dates</option>
-              <option value="Yesterday">Yesterday</option>
-              <option value="Today">Today</option>
-              <option value="Tomorrow">Tomorrow</option>
+              <option value="All Dates">{t("doctor.appointments.all_dates", "All Dates")}</option>
+              <option value="Yesterday">{t("doctor.appointments.yesterday", "Yesterday")}</option>
+              <option value="Today">{t("doctor.appointments.today", "Today")}</option>
+              <option value="Tomorrow">{t("doctor.appointments.tomorrow", "Tomorrow")}</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
               <ChevronDown className="h-4 w-4" />
@@ -337,7 +353,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
-                {tab}
+                {getStatusLabel(tab)}
               </button>
             ))}
           </div>
@@ -348,14 +364,14 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-sm font-bold text-slate-500">Loading your schedule...</p>
+          <p className="mt-4 text-sm font-bold text-slate-500">{t("doctor.overview.loading", "Loading your schedule...")}</p>
         </div>
       ) : (
         <div className="space-y-4">
           <AnimatePresence>
             {filteredSlots.length === 0 ? (
               <div className="p-10 text-center text-slate-500 bg-white dark:bg-[#0b1120] rounded-3xl border border-slate-200 dark:border-slate-800">
-                No appointments found matching your criteria.
+                {t("doctor.appointments.empty", "No appointments found for this filter")}
               </div>
             ) : (
               filteredSlots.map((apt, i) => (
@@ -372,23 +388,23 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                   <div className="flex items-start gap-4 lg:w-[25%] min-w-0">
                     {/* Avatar */}
                     <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-black text-slate-700 dark:text-slate-300 shrink-0 text-sm shadow-sm mt-0.5">
-                      {getInitials(apt.patientName)}
+                      {getInitials(getLocalizedName(apt.patientName, t))}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white truncate">{apt.patientName}</h3>
+                        <h3 className="text-base font-black text-slate-900 dark:text-white truncate">{getLocalizedName(apt.patientName, t)}</h3>
                         <span className="text-[10px] font-mono font-bold text-slate-400 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">
                           {apt.patientId}
                         </span>
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2">
-                        {apt.age}y • {apt.gender}
+                        {apt.age.toString().replace(/years?|yrs?/i, '').trim()} {t("doctor.patients.years", "Yrs")} • {t(`doctor.patients.${apt.gender.toLowerCase()}`, apt.gender)}
                       </div>
                       
                       <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50 inline-flex">
                         {apt.isTele ? <Video className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> : <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />}
-                        <span>{apt.type}</span>
+                        <span>{apt.isTele ? t("doctor.appointments.teleconsult", "Video Consultation") : t("doctor.appointments.in_clinic", "In-Clinic")}</span>
                       </div>
                     </div>
                   </div>
@@ -398,7 +414,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                     <div className="flex items-center gap-2 mb-2.5">
                       <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm flex items-center gap-1.5 ${getStatusColor(apt.status)}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(apt.status)} ${apt.status === 'In Consultation' ? 'animate-pulse' : ''}`} />
-                        {apt.status}
+                        {getStatusLabel(apt.status)}
                       </span>
                     </div>
                     
@@ -406,22 +422,22 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                       {apt.status === 'Delayed' && (
                         <>
                           <p className="text-orange-600 dark:text-orange-400 font-bold flex items-center gap-1 mb-1">
-                            <Clock className="w-3 h-3" /> Delayed {apt.delayDuration}
+                            <Clock className="w-3 h-3" /> {t("doctor.appointments.delayed", "Delayed")} {apt.delayDuration}
                           </p>
-                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Arrived:</span> <span className="text-slate-900 dark:text-slate-200">{apt.arrivedAt}</span></p>
-                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Scheduled:</span> <span className="text-slate-900 dark:text-slate-200">{apt.time}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">{t("doctor.appointments.arrived", "Arrived")}:</span> <span className="text-slate-900 dark:text-slate-200">{apt.arrivedAt}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">{t("doctor.appointments.time_slot", "Scheduled")}:</span> <span className="text-slate-900 dark:text-slate-200">{apt.time}</span></p>
                         </>
                       )}
                       {apt.status === 'In Consultation' && (
                         <p className="flex items-center gap-1.5">
-                          <span className="text-slate-500">Started:</span>
+                          <span className="text-slate-500">{t("doctor.appointments.in_consultation", "Started")}:</span>
                           <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">{apt.startedAt}</span>
                         </p>
                       )}
                       {apt.status === 'No-show' && (
                         <>
-                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Expected:</span> <span className="text-slate-900 dark:text-slate-200">{apt.expectedArrival}</span></p>
-                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">Updated:</span> <span className="text-slate-900 dark:text-slate-200">{apt.statusUpdated}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">{t("doctor.appointments.status", "Expected")}:</span> <span className="text-slate-900 dark:text-slate-200">{apt.expectedArrival}</span></p>
+                          <p className="flex justify-between max-w-[150px]"><span className="text-slate-500">{t("doctor.appointments.status", "Updated")}:</span> <span className="text-slate-900 dark:text-slate-200">{apt.statusUpdated}</span></p>
                         </>
                       )}
                       {apt.status === 'Cancelled' && (
@@ -429,13 +445,13 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                       )}
                       {apt.status === 'Completed' && (
                         <p className="flex items-center gap-1.5">
-                          <span className="text-slate-500">Completed:</span>
+                          <span className="text-slate-500">{t("doctor.appointments.completed", "Completed")}:</span>
                           <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">{apt.completedAt}</span>
                         </p>
                       )}
                       {apt.status === 'Scheduled' && (
                         <p className="flex items-center gap-1.5">
-                          <span className="text-slate-500">Scheduled:</span>
+                          <span className="text-slate-500">{t("doctor.appointments.time_slot", "Scheduled")}:</span>
                           <span className="text-slate-900 dark:text-slate-200 font-mono font-bold">{apt.time}</span>
                         </p>
                       )}
@@ -444,7 +460,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
 
                   {/* Column 3: Reason for Visit (w-3/12 -> 25%) */}
                   <div className="lg:w-[25%] flex flex-col justify-center border-t border-slate-100 dark:border-slate-800 lg:border-t-0 lg:border-l lg:pl-6 pt-4 lg:pt-0">
-                    <span className="uppercase text-[9px] font-bold text-slate-400 tracking-widest mb-1.5 block">Reason for Visit</span>
+                    <span className="uppercase text-[9px] font-bold text-slate-400 tracking-widest mb-1.5 block">{t("doctor.appointments.reason", "Reason for visit")}</span>
                     <span className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-relaxed pr-2">{apt.reason}</span>
                   </div>
 
@@ -454,7 +470,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                       onClick={() => setSelectedPatient(apt)}
                       className="w-full px-4 py-2.5 rounded-xl font-bold text-xs bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer text-center shadow-sm"
                     >
-                      View Profile
+                      {t("doctor.appointments.view_profile", "View Profile")}
                     </button>
                     
                     {apt.status === 'Completed' && (
@@ -463,7 +479,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                         className="w-full px-4 py-2.5 rounded-xl font-black text-xs transition-all flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 cursor-pointer shadow-sm"
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        <span>View Consultation</span>
+                        <span>{t("doctor.appointments.view_consult", "View Consultation")}</span>
                       </button>
                     )}
 
@@ -478,13 +494,13 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                         }`}
                       >
                         {apt.status === 'In Consultation' ? (
-                          <span>Continue Consultation</span>
+                          <span>{t("doctor.appointments.continue_consult", "Continue Consultation")}</span>
                         ) : apt.status === 'No-show' ? (
-                          <span>Mark as No-show</span>
+                          <span>{t("doctor.appointments.mark_noshow", "Mark as No-show")}</span>
                         ) : (
                           <>
                             {apt.isTele ? <Video className="w-3.5 h-3.5" /> : <Stethoscope className="w-3.5 h-3.5" />}
-                            <span>Begin Consultation</span>
+                            <span>{t("doctor.appointments.begin_consult", "Begin Consultation")}</span>
                           </>
                         )}
                       </button>
@@ -521,7 +537,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <User className="w-5 h-5 text-teal-500" /> Patient Profile
+                    <User className="w-5 h-5 text-teal-500" /> {t("doctor.appointments.patient_profile", "Patient Profile")}
                   </h2>
                   <button 
                     onClick={() => setSelectedPatient(null)}
@@ -533,10 +549,10 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
 
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-16 h-16 rounded-full bg-teal-500/10 text-teal-600 dark:text-cyan-400 border-2 border-teal-500/20 flex items-center justify-center font-black text-2xl shadow-sm shrink-0">
-                    {getInitials(selectedPatient.patientName)}
+                    {getInitials(getLocalizedName(selectedPatient.patientName, t))}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white truncate">{selectedPatient.patientName}</h3>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white truncate">{getLocalizedName(selectedPatient.patientName, t)}</h3>
                     <p className="text-sm font-semibold text-slate-500">{selectedPatient.age} years • {selectedPatient.gender}</p>
                     <p className="text-[11px] font-mono font-bold text-slate-400 mt-0.5">ID: {selectedPatient.patientId}</p>
                   </div>
@@ -545,48 +561,46 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
                 <div className="space-y-6">
                   {/* Appointment Details */}
                   <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Appointment Details</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">{t("doctor.appointments.apt_details", "Appointment Details")}</h4>
                     <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50 space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-slate-500">Date & Time</span>
+                        <span className="text-xs font-semibold text-slate-500">{t("doctor.appointments.time_slot", "Time Slot")}</span>
                         <span className="text-xs font-bold text-slate-900 dark:text-white">{selectedPatient.date}, {selectedPatient.time}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-slate-500">Type</span>
+                        <span className="text-xs font-semibold text-slate-500">{t("doctor.appointments.type", "Type")}</span>
                         <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                           {selectedPatient.isTele ? <Video className="w-3.5 h-3.5 text-blue-500" /> : <MapPin className="w-3.5 h-3.5 text-teal-500" />}
-                          {selectedPatient.type}
+                          {selectedPatient.isTele ? t("doctor.appointments.teleconsult", "Video Consultation") : t("doctor.appointments.in_clinic", "In-Clinic")}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-slate-500">Status</span>
+                        <span className="text-xs font-semibold text-slate-500">{t("doctor.appointments.status", "Status")}</span>
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm ${getStatusColor(selectedPatient.status)}`}>
-                          {selectedPatient.status}
+                          {getStatusLabel(selectedPatient.status)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-slate-500">Department</span>
+                        <span className="text-xs font-semibold text-slate-500">{t("doctor.appointments.department", "Department")}</span>
                         <span className="text-xs font-bold text-slate-900 dark:text-white">{selectedPatient.department}</span>
                       </div>
                       <div className="pt-3 mt-1 border-t border-slate-200 dark:border-slate-700/50">
-                        <span className="text-xs font-semibold text-slate-500 block mb-1">Reason for Visit</span>
+                        <span className="text-xs font-semibold text-slate-500 block mb-1">{t("doctor.appointments.reason", "Reason for visit")}</span>
                         <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedPatient.reason}</p>
                       </div>
                     </div>
                   </div>
-
-
                 </div>
 
                 <div className="mt-10 mb-4">
                   <button 
                     onClick={() => {
-                      if (onViewProfile) onViewProfile(selectedPatient.recordId, 'summary', selectedPatient.patientName);
+                      if (onViewProfile) onViewProfile(selectedPatient.recordId, 'summary', getLocalizedName(selectedPatient.patientName, t));
                       setSelectedPatient(null);
                     }}
                     className="w-full px-4 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-sm shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_15px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-transform cursor-pointer"
                   >
-                    View Full Clinical Profile
+                    {t("doctor.appointments.full_clinical_profile", "View Full Clinical Profile")}
                   </button>
                 </div>
               </div>

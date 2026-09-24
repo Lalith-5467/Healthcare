@@ -160,12 +160,12 @@ export const SecurityPrivacyView: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden ring-1 ring-inset ring-white/5"
+        className="bg-slate-100 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden ring-1 ring-inset ring-slate-200 dark:ring-white/5"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-slate-600/10 blur-3xl rounded-full pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-slate-300/30 dark:bg-slate-600/10 blur-3xl rounded-full pointer-events-none"></div>
         <div className="flex gap-4 relative z-10">
-          <div className="hidden sm:flex shrink-0 p-3 bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 items-center justify-center">
-            <Lock className="w-8 h-8 text-slate-300 drop-shadow-sm" />
+          <div className="hidden sm:flex shrink-0 p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 items-center justify-center">
+            <Lock className="w-8 h-8 text-slate-700 dark:text-slate-300 drop-shadow-sm" />
           </div>
           <div>
             <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1 block">ACCOUNT SECURITY</span>
