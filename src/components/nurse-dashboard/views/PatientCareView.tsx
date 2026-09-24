@@ -9,9 +9,11 @@ import { useNurseWorkflow, type BookingStatus } from '../../../utils/nurseWorkfl
 
 interface PatientCareViewProps {
   onNavigate: (id: string) => void;
+  user?: { name: string; email: string };
 }
 
-export const PatientCareView: React.FC<PatientCareViewProps> = ({ onNavigate }) => {
+export const PatientCareView: React.FC<PatientCareViewProps> = ({ onNavigate, user }) => {
+  const nurseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Shwathy';
   const { bookings, updateBookingStatus, updateBookingData, addNotification, toggleChecklistItem } = useNurseWorkflow();
   const [activeTab, setActiveTab] = useState<'tracking' | 'vitals' | 'checklist' | 'notes'>('tracking');
 
@@ -20,7 +22,7 @@ export const PatientCareView: React.FC<PatientCareViewProps> = ({ onNavigate }) 
     b.status !== 'Pending' && 
     b.status !== 'Rejected' && 
     b.status !== 'Completed'
-  ) || bookings[0];
+  );
 
   const [vitalsForm, setVitalsForm] = useState({
     bp: activeBooking?.vitals?.bp || '120/80',
@@ -208,7 +210,7 @@ export const PatientCareView: React.FC<PatientCareViewProps> = ({ onNavigate }) 
 
                 <div className="relative pl-8 space-y-8 before:absolute before:left-[15px] before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                   {[
-                    { label: 'Booking Accepted & Assigned to Nurse Sarah', status: ['Accepted', 'Scheduled', 'On the Way', 'Arrived', 'Care in Progress', 'Completed'], desc: 'Procedure schedule confirmed.' },
+                    { label: `Booking Accepted & Assigned to ${nurseName}`, status: ['Accepted', 'Scheduled', 'On the Way', 'Arrived', 'Care in Progress', 'Completed'], desc: 'Procedure schedule confirmed.' },
                     { label: 'En Route to Patient Location', status: ['On the Way', 'Arrived', 'Care in Progress', 'Completed'], desc: `Traveling to ${activeBooking.location}. Distance: ~${activeBooking.distanceKm || '2.4 km'}.` },
                     { label: 'Arrived at Patient Doorstep', status: ['Arrived', 'Care in Progress', 'Completed'], desc: 'Doorstep arrival confirmed.' },
                     { label: 'Bedside Clinical Care in Progress', status: ['Care in Progress', 'Completed'], desc: 'Surgical wound change & IV telemetry active.' },

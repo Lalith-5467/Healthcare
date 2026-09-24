@@ -97,7 +97,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
         return <CareRequestsView />;
       case 'patients':
       case 'vitals':
-        return <PatientCareView onNavigate={setActiveNav} />;
+        return <PatientCareView onNavigate={setActiveNav} user={resolvedNurse} />;
       case 'schedule':
         return <NurseScheduleView />;
       case 'inventory':
@@ -135,9 +135,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
                 <HeartPulse className="w-3.5 h-3.5" /> {t('nav.nurse_portal', 'Nurse Portal')}
               </span>
             </div>
-            <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-rose-500" /> {t('nurse.abdm_station', 'ABDM Nurse Station')}
-            </div>
+
           </div>
         </div>
         
@@ -199,15 +197,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
             )}
           </button>
 
-          {/* Quick Rounds / Patient Care Shortcut */}
-          <button
-            type="button"
-            onClick={() => setActiveNav('patients')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all cursor-pointer border border-rose-200 dark:border-rose-800/60 shadow-2xs"
-          >
-            <HeartPulse className="w-3.5 h-3.5" />
-            <span>{t('nurse.active_rounds', 'Active Rounds')}</span>
-          </button>
+
           
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
 

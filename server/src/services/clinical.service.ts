@@ -455,14 +455,18 @@ export class ClinicalService {
    */
   static async updateCareRequest(id: string, data: { status?: string; notes?: string; etaMinutes?: number }, userId?: string) {
     let nurseIdToAssign: string | undefined = undefined;
-    if (data.status === 'Accepted' && userId) {
+    
+    if (userId) {
       const nurse = await prisma.nurse.findUnique({ where: { userId } });
       if (nurse) {
         nurseIdToAssign = nurse.id;
-      } else {
+      } else if (data.status === 'Accepted') {
         const firstNurse = await prisma.nurse.findFirst();
         if (firstNurse) nurseIdToAssign = firstNurse.id;
       }
+    } else if (data.status === 'Accepted') {
+      const firstNurse = await prisma.nurse.findFirst();
+      if (firstNurse) nurseIdToAssign = firstNurse.id;
     }
 
     const updated = await prisma.careRequest.update({
@@ -487,7 +491,21 @@ export class ClinicalService {
     // Notify patient of status change
     try {
       if (updated.patient?.userId) {
-        const nurseDisplayName = updated.nurse?.fullName || 'Assigned Nurse';
+        let triggerUserName: string | null = null;
+        if (userId) {
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { patient: true, nurse: true, doctor: true, caregiver: true, pharmacist: true }
+          });
+          if (user) {
+            triggerUserName = user.nurse?.fullName || user.patient?.fullName || user.doctor?.fullName || user.caregiver?.fullName || user.pharmacist?.fullName || user.email.split('@')[0];
+            if (!triggerUserName.toLowerCase().startsWith('nurse')) {
+              triggerUserName = `Nurse ${triggerUserName}`;
+            }
+          }
+        }
+        
+        const nurseDisplayName = triggerUserName || updated.nurse?.fullName || 'Assigned Nurse';
         let msg = `Your care request status has been updated to ${updated.status}.`;
         
         switch(data.status) {
