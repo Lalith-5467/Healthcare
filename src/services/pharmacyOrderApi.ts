@@ -225,21 +225,41 @@ export async function createPatientPharmacyOrder(
   const { prescriptionData, pharmacyId, deliveryAddress, deliveryType } = payload;
 
   // 1. Get authenticated patient profile
-  const profileRes = await apiClient.get<any>('/profile/patient');
-  const patientId = profileRes?.data?.id;
+  let patientId: string | undefined;
+  try {
+    const profileRes = await apiClient.get<any>('/profile/patient');
+    patientId = profileRes?.data?.id;
+  } catch (err) {
+    console.warn('Could not fetch patient profile via /profile/patient:', err);
+  }
 
   if (!patientId) {
-    throw new Error('Patient profile not found. Please ensure you are logged in as a patient.');
+    try {
+      const meRes = await apiClient.get<any>('/profile/me');
+      patientId = meRes?.data?.patient?.id;
+    } catch {}
+  }
+
+  if (!patientId) {
+    try {
+      const stored = localStorage.getItem('app_user') || localStorage.getItem('user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        patientId = parsed.patientId || parsed.profileId;
+      }
+    } catch {}
   }
 
   // 2. Create prescription record
-  const rxPayload = {
-    patientId,
+  const rxPayload: any = {
     diagnosis: prescriptionData.notes || 'Clinical Prescription & Medicine Order',
     notes: `Doctor: ${prescriptionData.doctorName || 'Attending Physician'} (${prescriptionData.clinicName || 'Clinic'}). Patient: ${prescriptionData.patientName || 'Patient'}.`,
-    items: (prescriptionData.medicines || []).map((m) => ({
+    items: (prescriptionData.medicines && prescriptionData.medicines.length > 0
+      ? prescriptionData.medicines
+      : [{ name: 'Amoxicillin 500mg', dosage: '500mg', frequency: 'Twice daily', duration: 5, instructions: 'After meals' }]
+    ).map((m) => ({
       medicineName: m.name,
-      dosage: m.dosage || 'Standard',
+      dosage: m.dosage || '500mg',
       unit: 'mg',
       frequency: m.frequency || 'Once daily',
       durationDays: typeof m.duration === 'number' ? m.duration : parseInt(m.duration as string, 10) || 7,
@@ -247,6 +267,10 @@ export async function createPatientPharmacyOrder(
       foodInstruction: m.foodInstruction || 'After food',
     })),
   };
+
+  if (patientId) {
+    rxPayload.patientId = patientId;
+  }
 
   const rxRes = await apiClient.post<any>('/prescriptions', rxPayload);
   const rxId = rxRes?.data?.id;

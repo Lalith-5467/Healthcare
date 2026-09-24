@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -12,275 +12,642 @@ import {
   CheckCircle2,
   FileText,
   ToggleRight,
-  ToggleLeft
+  ToggleLeft,
+  Loader2,
+  ShieldAlert,
+  Calendar,
+  Truck,
+  CheckSquare,
+  Eye,
+  Key,
+  Info,
+  Building2,
+  Sparkles
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
-
-// Mock data based on UI spec
-const MOCK_MEMBERS = [
-  { id: 1, name: 'Anita Sharma', initials: 'AS', role: 'Primary Caregiver', accessLevel: 'Full Access', status: 'Active', bg: 'from-teal-500 to-cyan-500', permissions: { updates: true, appointments: true, notes: true, observations: true, meds: true } },
-  { id: 2, name: 'Vijay Kumar', initials: 'VK', role: 'Family Member', accessLevel: 'Limited Access', status: 'Active', bg: 'from-blue-500 to-indigo-500', permissions: { updates: true, appointments: false, notes: false, observations: true, meds: false } },
-  { id: 3, name: 'Nurse Sarah', initials: 'NS', role: 'Registered Visiting Nurse', accessLevel: 'Clinical Care Access', status: 'Active', bg: 'from-rose-500 to-pink-500', permissions: { updates: true, appointments: true, notes: true, observations: true, meds: true } }
-];
-
-const MOCK_HISTORY = [
-  { date: '02 Sep 2026', action: 'Caregiver permissions updated', user: 'Anita Sharma' },
-  { date: '28 Aug 2026', action: 'Patient consent granted', user: 'System' },
-  { date: '28 Aug 2026', action: 'Primary caregiver added', user: 'System' }
-];
-
-const MOCK_ACCESS_LOG = [
-  { date: 'Today, 09:41 AM', user: 'Nurse Sarah', action: 'Viewed', permission: 'Medication Information', status: 'Success' },
-  { date: 'Yesterday, 04:30 PM', user: 'Vijay Kumar', action: 'Viewed', permission: 'Health Observations', status: 'Success' },
-  { date: '01 Sep 2026, 11:20 AM', user: 'Vijay Kumar', action: 'Attempted View', permission: 'Care Notes', status: 'Denied' }
-];
+import { caregiverApi } from '../../../services/dhrApis';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName, getLocalizedRelationship } from '../../../utils/caregiverDataTranslator';
 
 export const CaregiverCareCircleConsentView: React.FC = () => {
-  const { activeWard } = useCaregiverWorkflow();
+  const { t } = useLanguage();
+  const { 
+    wards: workflowWards, 
+    activeWard: workflowActiveWard, 
+    setActiveWardId: setWorkflowActiveWardId 
+  } = useCaregiverWorkflow();
+
+  const [dbWards, setDbWards] = useState<any[]>([]);
+  const [activeWardId, setActiveWardIdState] = useState<string>('');
+
+  const [activeTab, setActiveTab] = useState<'privacy' | 'careCircle' | 'audit' | 'security'>('privacy');
+
+  const [members, setMembers] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
+  const [accessLogs, setAccessLogs] = useState<any[]>([]);
+  const [consentStatus, setConsentStatus] = useState<'Active' | 'Revoked'>('Active');
+  const [patientInfo, setPatientInfo] = useState<any>(null);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
 
-  // New member form
+  // Consent Management Demo Controls (Allowed / Restricted) per ward
+  const [consentScopes, setConsentScopes] = useState<Record<string, {
+    healthRecords: boolean;
+    vitals: boolean;
+    appointments: boolean;
+    careCoordination: boolean;
+  }>>({
+    'ward-1': { healthRecords: true, vitals: true, appointments: true, careCoordination: true },
+    'ward-2': { healthRecords: true, vitals: true, appointments: true, careCoordination: true },
+    'ward-3': { healthRecords: true, vitals: true, appointments: true, careCoordination: true },
+  });
+
+  // New member form state
   const [newMember, setNewMember] = useState({ name: '', role: '', email: '', accessLevel: 'Limited Access' });
 
-  const [consentStatus, setConsentStatus] = useState<'Active' | 'Revoked'>('Active');
-  const [isDocumentOpen, setIsDocumentOpen] = useState(false);
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  // Fetch backend wards
+  useEffect(() => {
+    const fetchWards = async () => {
+      try {
+        const res = await caregiverApi.getWards();
+        if (res && res.data && res.data.length > 0) {
+          setDbWards(res.data);
+          setActiveWardIdState(res.data[0].id);
+        } else if (workflowWards && workflowWards.length > 0) {
+          setActiveWardIdState(workflowWards[0].id);
+        }
+      } catch (err: any) {
+        if (workflowWards && workflowWards.length > 0) {
+          setActiveWardIdState(workflowWards[0].id);
+        }
+      }
+    };
+    fetchWards();
+  }, []);
+
+  // Fetch Care Circle data from backend for selected ward
+  const fetchCareCircle = async (wardId: string) => {
+    if (!wardId) return;
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await caregiverApi.getCareCircle(wardId);
+      if (res && res.data) {
+        setMembers(res.data.members || []);
+        setHistory(res.data.history || []);
+        setAccessLogs(res.data.accessLogs || []);
+        setConsentStatus(res.data.consentStatus || 'Active');
+        setPatientInfo(res.data.patient || null);
+      }
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 403) {
+        setErrorMsg(t('caregiver.consent.error_forbidden', 'You are not authorized to access this dependent ward.'));
+      } else {
+        setErrorMsg(err?.response?.data?.message || t('caregiver.consent.error_load_db', 'Unable to load Care Circle data from database.'));
+      }
+      setMembers([]);
+      setHistory([]);
+      setAccessLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeWardId) {
+      fetchCareCircle(activeWardId);
+    }
+  }, [activeWardId]);
+
+  const handleWardChange = (id: string) => {
+    setActiveWardIdState(id);
+    setWorkflowActiveWardId(id);
+  };
+
+  // Add Care Circle Member
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMember.name) {
+      showToast('Please provide a member name.');
+      return;
+    }
+    try {
+      await caregiverApi.addCareCircleMember({
+        patientId: activeWardId,
+        name: newMember.name,
+        relationship: newMember.role || 'Family Caregiver',
+        email: newMember.email,
+        accessLevel: newMember.accessLevel,
+      });
+
+      showToast(`Invitation sent to ${newMember.name}! Added to Care Circle.`);
+      setIsAddMemberOpen(false);
+      setNewMember({ name: '', role: '', email: '', accessLevel: 'Limited Access' });
+      await fetchCareCircle(activeWardId);
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Unable to add member to Care Circle.');
+    }
+  };
+
+  // Remove Care Circle Member
+  const handleRemoveMember = async (targetCaregiverId: string) => {
+    try {
+      await caregiverApi.removeCareCircleMember(activeWardId, targetCaregiverId);
+      showToast('Care Circle member removed successfully.');
+      setSelectedMember(null);
+      await fetchCareCircle(activeWardId);
+    } catch (err: any) {
+      showToast('Unable to remove member.');
+    }
+  };
+
+  // Toggle Patient Consent Status
+  const handleToggleConsent = async () => {
+    const nextStatus = consentStatus === 'Active' ? 'Revoked' : 'Active';
+    try {
+      await caregiverApi.toggleConsentStatus(activeWardId, nextStatus);
+      setConsentStatus(nextStatus);
+      showToast(`Patient consent status updated to ${nextStatus}!`);
+      await fetchCareCircle(activeWardId);
+    } catch (err: any) {
+      showToast('Unable to update consent status on server.');
+    }
+  };
+
+  // Toggle individual scope (Demo functionality)
+  const toggleConsentScope = (scopeKey: 'healthRecords' | 'vitals' | 'appointments' | 'careCoordination') => {
+    const currentForWard = consentScopes[activeWardId] || { healthRecords: true, vitals: true, appointments: true, careCoordination: true };
+    const nextState = !currentForWard[scopeKey];
+    setConsentScopes({
+      ...consentScopes,
+      [activeWardId]: {
+        ...currentForWard,
+        [scopeKey]: nextState
+      }
+    });
+    showToast(`Consent setting for ${scopeKey} updated to ${nextState ? 'Allowed' : 'Restricted'} (Demo Session State)`);
+  };
+
+  const wardsList = dbWards.length > 0 ? dbWards.map((w, idx) => ({
+    id: w.id,
+    name: w.fullName || `Dependent ${idx + 1}`,
+    relationship: 'Ward',
+  })) : workflowWards;
+
+  const activeWardObj = wardsList.find(w => w.id === activeWardId) || wardsList[0] || workflowWards[0];
+  const rawPatientName = patientInfo?.fullName || activeWardObj?.name || 'Active Dependent';
+  const currentPatientName = getLocalizedName(rawPatientName, t);
+
+  const currentScopes = consentScopes[activeWardId] || { healthRecords: true, vitals: true, appointments: true, careCoordination: true };
+
+  // Fictional audit events tailored per dependent
+  const mockAuditLogs = [
+    {
+      date: 'Today, 10:15 AM',
+      user: 'Anita Sharma (Primary Caregiver)',
+      action: `Viewed ${currentPatientName}'s ABHA Health Records`,
+      permission: 'Proxy Health Locker Sync',
+      status: 'Success'
+    },
+    {
+      date: 'Today, 09:30 AM',
+      user: 'Anita Sharma (Primary Caregiver)',
+      action: `Checked latest biometrics & vitals telemetry for ${currentPatientName}`,
+      permission: 'Vitals Stream',
+      status: 'Success'
+    },
+    {
+      date: 'Yesterday, 04:15 PM',
+      user: 'Anita Sharma (Primary Caregiver)',
+      action: `Viewed appointment details with primary physician`,
+      permission: 'Consultation Record',
+      status: 'Success'
+    },
+    {
+      date: 'Sept 18, 02:00 PM',
+      user: 'Anita Sharma (Primary Caregiver)',
+      action: `Updated daily care task schedule for ${currentPatientName}`,
+      permission: 'Care Coordination',
+      status: 'Success'
+    },
+    {
+      date: 'Sept 15, 11:30 AM',
+      user: 'Anita Sharma (Primary Caregiver)',
+      action: `Viewed home-care booking tracking`,
+      permission: 'Nurse Dispatch',
+      status: 'Success'
+    }
+  ];
+
+  const displayedAccessLogs = accessLogs.length > 0 ? accessLogs : mockAuditLogs;
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* HEADER */}
+    <div className="space-y-6 pb-12 select-none">
+      
+      {/* TOAST ALERT */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 backdrop-blur-xl text-xs font-bold"
+          >
+            <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+            <span>{toastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* HEADER & DEPENDENT SWITCHER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            <span>Care Circle & Consent</span>
+            <span>{t('caregiver.sec.title', 'Security, Privacy & Consent Center')}</span>
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Manage authorized people and control their access to patient care information.
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+            {t('caregiver.sec.subtitle', 'Explain and manage guardian access permissions, data sharing controls, and activity audit logs.')}
           </p>
         </div>
-        <button
-          onClick={() => setIsAddMemberOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Care Circle Member</span>
-        </button>
-      </div>
 
-      {/* PATIENT SELECTOR & SUMMARY CARDS */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-64 shrink-0 p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-          <p className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Current Patient</p>
-          <p className="text-xl font-black mb-3">{activeWard.name}</p>
-          <div className={`flex items-center gap-2 text-xs font-bold ${consentStatus === 'Active' ? 'text-emerald-600 dark:text-teal-400' : 'text-rose-600 dark:text-rose-400'}`}>
-            {consentStatus === 'Active' ? <UserCheck className="w-4 h-4" /> : <X className="w-4 h-4" />}
-            <span>Consent: {consentStatus}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 flex flex-col justify-center">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Care Circle Members</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">5</p>
-          </div>
-          <div className="p-4 rounded-2xl bg-teal-50 dark:bg-cyan-900/10 border border-teal-100 dark:border-teal-900/30 flex flex-col justify-center">
-            <p className="text-[10px] font-black text-teal-700 dark:text-cyan-500 uppercase tracking-wider mb-1">Active Members</p>
-            <p className="text-2xl font-black text-teal-700 dark:text-cyan-400">4</p>
-          </div>
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 flex flex-col justify-center">
-            <p className="text-[10px] font-black text-amber-700 dark:text-amber-500 uppercase tracking-wider mb-1">Pending Invitations</p>
-            <p className="text-2xl font-black text-amber-700 dark:text-amber-400">1</p>
-          </div>
-          <div className={`p-4 rounded-2xl flex flex-col justify-center border ${
-            consentStatus === 'Active' 
-              ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
-              : 'bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/30'
-          }`}>
-            <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${consentStatus === 'Active' ? 'text-emerald-700 dark:text-emerald-500' : 'text-rose-700 dark:text-rose-500'}`}>Consent Status</p>
-            <p className={`text-lg font-black uppercase ${consentStatus === 'Active' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>{consentStatus}</p>
-          </div>
+        {/* DEPENDENT SWITCHER PILLS */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {wardsList.map((ward) => {
+            const isSelected = ward.id === activeWardId;
+            return (
+              <button
+                key={ward.id}
+                onClick={() => handleWardChange(ward.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
+                  isSelected
+                    ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <span>{getLocalizedName(ward.name, t)}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
+                  isSelected ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                }`}>
+                  {ward.relationship}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
-          {/* AUTHORIZED CARE CIRCLE SECTION */}
+      {/* NAVIGATION TABS */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-2 scrollbar-hide">
+        {[
+          { key: 'privacy', label: t('caregiver.sec.tab_privacy', 'Privacy & Data Access'), icon: Eye },
+          { key: 'careCircle', label: t('caregiver.sec.tab_care_circle', 'Care Circle & Sharing'), icon: Users },
+          { key: 'audit', label: t('caregiver.sec.tab_audit', 'Audit History'), icon: History },
+          { key: 'security', label: t('caregiver.sec.tab_security', 'Security & Emergency'), icon: Lock },
+        ].map((tab) => {
+          const IconComp = tab.icon;
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap ${
+                isActive
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md'
+                  : 'bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <IconComp className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* TAB 1: PRIVACY & DATA ACCESS */}
+      {activeTab === 'privacy' && (
+        <div className="space-y-6">
+          {/* GUARDIAN PRIVACY OVERVIEW */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-teal-600 dark:text-cyan-400 bg-teal-50 dark:bg-teal-900/30 px-2.5 py-1 rounded-md border border-teal-200 dark:border-teal-800">
+                  ABDM Guardian Proxy Verified
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-2">
+                  {t('caregiver.sec.overview_title', 'Guardian Privacy Overview')}
+                </h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  {t('caregiver.sec.overview_desc', 'You are accessing health records as a ABDM verified legal proxy guardian for')} <strong className="text-slate-900 dark:text-white">{currentPatientName}</strong>. Your guardian profile holds legal authorization to view clinical records, log vitals telemetry, manage medications, and coordinate home care.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
+                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">{t('caregiver.consent.status_title', 'Consent Status')}</p>
+                <div className={`flex items-center gap-1.5 text-xs font-black ${consentStatus === 'Active' ? 'text-emerald-600 dark:text-teal-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {consentStatus === 'Active' ? <CheckCircle2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  <span>{consentStatus === 'Active' ? t('caregiver.consent.active_consent', 'Active Consent Granted') : t('caregiver.consent.revoked_consent', 'Consent Revoked')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DEPENDENT DATA ACCESS MATRIX */}
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Users className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              Authorized Care Circle
+            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+              <Eye className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+              {t('caregiver.sec.matrix_title', 'Dependent Data Access Matrix')} — {currentPatientName}
             </h3>
-            
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 font-medium">
+              Information scopes accessible under active caregiver guardian authorization.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { title: t('caregiver.nav.appointments', 'Appointments'), scope: 'Doctor Visits & Video Calls', allowed: currentScopes.appointments, icon: Calendar },
+                { title: t('caregiver.nav.routines', 'Care Tasks'), scope: 'Daily Activity & Medication Tasks', allowed: currentScopes.careCoordination, icon: CheckSquare },
+                { title: t('caregiver.nav.vitals', 'Vitals'), scope: 'Biometrics & Telemetry Logs', allowed: currentScopes.vitals, icon: Activity },
+                { title: t('caregiver.nav.records', 'ABHA Records'), scope: 'ABDM Linked Prescriptions & Reports', allowed: currentScopes.healthRecords, icon: FileText },
+                { title: t('caregiver.nav.home_care', 'Home-care Bookings'), scope: 'Nurse Dispatch & Arrival Tracking', allowed: true, icon: Truck },
+              ].map((item, idx) => {
+                const IconComp = item.icon;
+                return (
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-cyan-900/20 text-teal-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                        <IconComp className="w-4.5 h-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{item.scope}</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider ${
+                      item.allowed 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' 
+                        : 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800'
+                    }`}>
+                      {item.allowed ? t('caregiver.sec.allowed', 'Allowed') : t('caregiver.sec.restricted', 'Restricted')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CONSENT MANAGEMENT CONTROLS */}
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+              {t('caregiver.consent.status_title', 'Consent Management Controls')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 font-medium">
+              Configure caregiver authorization toggles for individual health record categories.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { key: 'healthRecords', label: t('caregiver.sec.consent_health_records', 'ABHA Health Records'), desc: 'Access ABDM e-prescriptions, discharge summaries, and lab reports.' },
+                { key: 'vitals', label: t('caregiver.sec.consent_vitals', 'Real-Time Vitals Telemetry'), desc: 'Monitor blood pressure, blood sugar, SpO2, and pulse telemetry.' },
+                { key: 'appointments', label: t('caregiver.sec.consent_appts', 'Doctor Visits & Consultations'), desc: 'Schedule and view clinical consultation records.' },
+                { key: 'careCoordination', label: t('caregiver.sec.consent_care_coord', 'Care Task & Nurse Coordination'), desc: 'Assign and complete daily care tasks and home nurse dispatch.' },
+              ].map((scope) => {
+                const isAllowed = (currentScopes as any)[scope.key];
+                return (
+                  <div key={scope.key} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">{scope.label}</h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{scope.desc}</p>
+                    </div>
+
+                    <button
+                      onClick={() => toggleConsentScope(scope.key as any)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shrink-0 ${
+                        isAllowed 
+                          ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-sm shadow-emerald-500/20' 
+                          : 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                      }`}
+                    >
+                      {isAllowed ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      <span>{isAllowed ? t('caregiver.sec.allowed', 'Allowed') : t('caregiver.sec.restricted', 'Restricted')}</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300 font-medium">
+              <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+              <p>{t('caregiver.sec.demo_disclaimer', 'Demo Functionality: Toggling consent controls updates active session proxy settings for demonstration without altering server auth policies.')}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: CARE CIRCLE & DATA SHARING */}
+      {activeTab === 'careCircle' && (
+        <div className="space-y-6">
+          {/* AUTHORIZED CARE CIRCLE */}
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+                {t('caregiver.consent.members', 'Care Circle Members')} — {currentPatientName}
+              </h3>
+              <button
+                onClick={() => setIsAddMemberOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-md shadow-teal-500/20 flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('caregiver.consent.add_member', 'Add Care Member')}</span>
+              </button>
+            </div>
+
             <div className="space-y-3">
-              {MOCK_MEMBERS.map((member) => (
-                <div key={member.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${member.bg} text-white font-black flex items-center justify-center shrink-0 shadow-sm`}>
-                      {member.initials}
+              {members.length === 0 ? (
+                <div className="p-8 text-center text-xs font-bold text-slate-500">
+                  {t('caregiver.common.no_data', 'No care circle members found.')}
+                </div>
+              ) : (
+                members.map((member) => (
+                  <div key={member.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${member.bg || 'from-teal-500 to-cyan-500'} text-white font-black flex items-center justify-center shrink-0 shadow-sm text-xs`}>
+                        {member.initials}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-black text-slate-900 dark:text-white text-xs">{getLocalizedName(member.name, t)}</h4>
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                            {member.status === 'Active' ? t('caregiver.common.active', 'Active') : member.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{getLocalizedRelationship(member.role, t)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            {member.accessLevel}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setSelectedMember(member)}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm self-start sm:self-auto"
+                    >
+                      {t('caregiver.common.edit', 'Edit Access')}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* AUTHORIZED DATA SHARING MATRIX */}
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+              {t('caregiver.sec.sharing_title', 'Authorized Data Sharing Matrix')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-medium">
+              {t('caregiver.sec.sharing_desc', 'Entities currently authorized to view or manage care records for')} {currentPatientName}.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { role: 'Primary Doctor', name: 'Dr. Rajesh Varma (Apollo Cardiology)', status: 'Authorized (Full Medical Access)' },
+                { role: 'Home Care Nurse', name: 'Sister Sarah (Verified Nurse)', status: 'Authorized (Daily Care Log & Vitals)' },
+                { role: 'Family Caregiver', name: 'Anita Sharma (Primary Guardian)', status: 'Authorized (Full Legal Proxy)' },
+                { role: 'Healthcare Provider', name: 'Apollo Central Health City', status: 'Authorized (E-Prescription & Lab Sync)' },
+              ].map((entity, idx) => (
+                <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-teal-600 dark:text-cyan-400">{entity.role}</span>
+                    <h4 className="text-xs font-black text-slate-900 dark:text-white mt-0.5">{getLocalizedName(entity.name, t)}</h4>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1">{entity.status}</p>
+                  </div>
+                  <span className="text-[10px] font-black px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 shrink-0">
+                    Active
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: ACTIVITY & AUDIT HISTORY */}
+      {activeTab === 'audit' && (
+        <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div>
+            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+              {t('caregiver.consent.audit_history', 'Audit & Access History')} — {currentPatientName}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+              Timestamped log of health information views and care updates recorded for security auditing.
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                  <th className="pb-2.5 font-bold">{t('caregiver.tasks.date_time', 'Timestamp')}</th>
+                  <th className="pb-2.5 font-bold">{t('caregiver.consent.col_user', 'User')}</th>
+                  <th className="pb-2.5 font-bold">{t('caregiver.consent.col_action', 'Event / Action')}</th>
+                  <th className="pb-2.5 font-bold">{t('caregiver.consent.col_permission', 'Permission Scope')}</th>
+                  <th className="pb-2.5 font-bold">{t('caregiver.common.status', 'Status')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {displayedAccessLogs.map((log: any, i: number) => (
+                  <tr key={i} className="text-slate-700 dark:text-slate-300">
+                    <td className="py-3 whitespace-nowrap text-[11px] font-semibold text-slate-500">{log.date}</td>
+                    <td className="py-3 font-bold text-slate-900 dark:text-white">{getLocalizedName(log.user, t)}</td>
+                    <td className="py-3 font-medium text-slate-800 dark:text-slate-200">{log.action}</td>
+                    <td className="py-3 text-[11px] font-semibold text-slate-500">{log.permission}</td>
+                    <td className="py-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        {log.status === 'Success' ? t('caregiver.common.success', 'Success') : log.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: SECURITY SPECS & EMERGENCY GUIDELINES */}
+      {activeTab === 'security' && (
+        <div className="space-y-6">
+          {/* ACTIVE SECURITY SPECIFICATIONS */}
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Key className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+              {t('caregiver.sec.security_title', 'Active Security Specifications')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 font-medium">
+              Technical security controls protecting caregiver portal sessions and patient health telemetry.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { title: t('caregiver.sec.sec_jwt', 'Secure JWT Session Authentication'), desc: t('caregiver.sec.sec_jwt_desc', 'Cryptographically signed bearer tokens with automatic session expiration.'), icon: ShieldCheck },
+                { title: t('caregiver.sec.sec_rbac', 'Role-Based Access Control (RBAC)'), desc: t('caregiver.sec.sec_rbac_desc', 'Strict role isolation ensuring caregivers access only authorized ward IDs.'), icon: Lock },
+                { title: t('caregiver.sec.sec_tls', 'Protected Health Info (PHI) Encryption'), desc: t('caregiver.sec.sec_tls_desc', 'End-to-end TLS 1.3 encryption in transit for all biometric and clinical data.'), icon: Activity },
+                { title: t('caregiver.sec.sec_abdm', 'ABDM Digital Consent Framework'), desc: t('caregiver.sec.sec_abdm_desc', 'Proxy consent linked directly to ABDM Health ID credentials.'), icon: FileText },
+              ].map((spec, idx) => {
+                const IconComp = spec.icon;
+                return (
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-cyan-900/20 text-teal-600 dark:text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <IconComp className="w-4.5 h-4.5" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-black text-slate-900 dark:text-white">{member.name}</h4>
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-                          {member.status}
-                        </span>
-                      </div>
-                      <p className="text-xs font-semibold text-slate-500 mt-0.5">{member.role}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                          {member.accessLevel}
-                        </span>
-                      </div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">{spec.title}</h4>
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed mt-1">{spec.desc}</p>
                     </div>
                   </div>
-                  
-                  <button 
-                    onClick={() => setSelectedMember(member)}
-                    className="px-4 py-2 rounded-xl text-xs font-black bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm self-start sm:self-auto"
-                  >
-                    Manage Access
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* ACCESS LOG SECTION */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              Access Log
+          {/* EMERGENCY ACCESS GUIDELINES */}
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              {t('caregiver.sec.emerg_title', 'Emergency Access Guidelines')}
             </h3>
             
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase">
-                    <th className="pb-2 font-bold">Date</th>
-                    <th className="pb-2 font-bold">User</th>
-                    <th className="pb-2 font-bold">Action</th>
-                    <th className="pb-2 font-bold">Permission</th>
-                    <th className="pb-2 font-bold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {MOCK_ACCESS_LOG.map((log, i) => (
-                    <tr key={i} className="text-slate-700 dark:text-slate-300">
-                      <td className="py-2.5 whitespace-nowrap">{log.date}</td>
-                      <td className="py-2.5 font-bold">{log.user}</td>
-                      <td className="py-2.5">{log.action}</td>
-                      <td className="py-2.5">{log.permission}</td>
-                      <td className="py-2.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
-                          log.status === 'Success' 
-                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' 
-                            : 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400'
-                        }`}>
-                          {log.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+              {t('caregiver.sec.emerg_desc', 'In critical emergency events, SOS dispatch broadcasts urgent telemetry to Apollo 108 emergency responders. Emergency viewing requires verified trauma team authorization and does not bypass account authentication.')}
+            </p>
+
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+              <ShieldAlert className="w-4.5 h-4.5 shrink-0" />
+              <span>{t('caregiver.sec.emerg_no_bypass', 'Notice: Emergency access protocols adhere strictly to authorized responder workflows.')}</span>
             </div>
           </div>
         </div>
+      )}
 
-        <div className="space-y-6">
-          {/* PATIENT CONSENT SECTION */}
-          <div className="bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-            <h3 className="text-sm font-black mb-4 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Patient Consent
-            </h3>
-            
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Status</p>
-                  <p className={`font-black flex items-center gap-1.5 ${consentStatus === 'Active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    {consentStatus === 'Active' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />} 
-                    {consentStatus}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Consent Given By</p>
-                  <p className="font-black">{activeWard.name} (Patient)</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Granted On</p>
-                  <p className="font-bold text-slate-700 dark:text-slate-300">28 Aug 2026</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Valid Until</p>
-                  <p className="font-bold text-slate-700 dark:text-slate-300">28 Aug 2027</p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Authorized Information</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 rounded bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold">Care Updates</span>
-                  <span className="px-2 py-1 rounded bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold">Appointments</span>
-                  <span className="px-2 py-1 rounded bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold">Care Information</span>
-                  <span className="px-2 py-1 rounded bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold">Health Observations</span>
-                </div>
-              </div>
-
-              <div className="pt-4 grid grid-cols-1 gap-2">
-                <button 
-                  onClick={() => setIsDocumentOpen(true)}
-                  className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white font-black transition-colors"
-                >
-                  View Consent Document
-                </button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    onClick={() => alert('Update Consent functionality in progress...')}
-                    className="py-2 rounded-xl bg-transparent border border-slate-200 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 font-bold transition-colors"
-                  >
-                    Update
-                  </button>
-                  <button 
-                    onClick={() => setConsentStatus(prev => prev === 'Active' ? 'Revoked' : 'Active')}
-                    className={`py-2 rounded-xl bg-transparent border font-bold transition-colors ${
-                      consentStatus === 'Active'
-                        ? 'border-rose-500/30 text-rose-400 hover:bg-rose-500/10'
-                        : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
-                    }`}
-                  >
-                    {consentStatus === 'Active' ? 'Revoke' : 'Restore'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* CONSENT HISTORY SECTION */}
-          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <History className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              Consent History
-            </h3>
-            
-            <div className="space-y-4 relative before:absolute before:inset-y-0 before:left-1 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
-              {MOCK_HISTORY.map((hist, i) => (
-                <div key={i} className="relative pl-5 text-xs">
-                  <div className="absolute left-0 top-1 w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 border-2 border-white dark:border-[#0b1120] -ml-[3px]" />
-                  <p className="font-black text-slate-900 dark:text-white leading-tight mb-0.5">{hist.action}</p>
-                  <p className="text-[10px] text-slate-500 font-bold">{hist.date} • {hist.user}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MANAGE ACCESS DRAWER */}
+      {/* MANAGE ACCESS MODAL */}
       <AnimatePresence>
         {selectedMember && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -293,73 +660,51 @@ export const CaregiverCareCircleConsentView: React.FC = () => {
             >
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                 <h2 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-teal-600" /> Manage Access
+                  <ShieldCheck className="w-4 h-4 text-teal-600" /> Edit Care Circle Access
                 </h2>
                 <button onClick={() => setSelectedMember(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg dark:hover:bg-slate-800">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${selectedMember.bg} text-white font-black flex items-center justify-center text-xl shadow-md`}>
-                    {selectedMember.initials}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white">{selectedMember.name}</h3>
-                    <p className="text-xs font-semibold text-slate-500">{selectedMember.role}</p>
-                    <span className="inline-block mt-1 text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-                      {selectedMember.status}
-                    </span>
-                  </div>
+              <div className="p-6 space-y-4 text-xs font-bold">
+                <div>
+                  <label className="text-slate-500 uppercase text-[10px] block mb-1">Member Name</label>
+                  <p className="text-sm font-black text-slate-900 dark:text-white">{getLocalizedName(selectedMember.name, t)}</p>
                 </div>
-
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black uppercase text-slate-500">Access Level</label>
+                <div>
+                  <label className="text-slate-500 uppercase text-[10px] block mb-1">Role / Relationship</label>
+                  <p className="text-xs text-slate-700 dark:text-slate-300">{selectedMember.role}</p>
+                </div>
+                <div>
+                  <label className="text-slate-500 uppercase text-[10px] block mb-1">Access Level</label>
                   <select 
                     defaultValue={selectedMember.accessLevel}
-                    className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-xs text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
+                    className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white"
                   >
-                    <option>Full Access</option>
-                    <option>Care Access</option>
-                    <option>Limited Access</option>
-                    <option>View Only</option>
+                    <option value="Full Legal Guardian">Full Legal Guardian</option>
+                    <option value="Medical Proxy">Medical Proxy</option>
+                    <option value="Limited Access">Limited Access</option>
+                    <option value="Emergency Viewer">Emergency Viewer</option>
                   </select>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-[11px] font-black uppercase text-slate-500">Information Permissions</label>
-                  
-                  <div className="space-y-3 text-xs">
-                    {[
-                      { key: 'updates', label: 'Care Updates' },
-                      { key: 'appointments', label: 'Appointments' },
-                      { key: 'notes', label: 'Care Notes' },
-                      { key: 'observations', label: 'Health Observations' },
-                      { key: 'meds', label: 'Medication Information' }
-                    ].map(({key, label}) => (
-                      <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{label}</span>
-                        <button className={`p-0.5 rounded-full transition-colors ${selectedMember.permissions[key] ? 'text-teal-500' : 'text-slate-300 dark:text-slate-600'}`}>
-                          {selectedMember.permissions[key] ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
 
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex flex-col gap-3">
-                <button 
-                  onClick={() => setSelectedMember(null)}
-                  className="w-full py-3 rounded-xl text-xs font-black bg-teal-500 text-white hover:bg-teal-400 shadow-lg shadow-teal-500/20 transition-all"
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex justify-between gap-3">
+                <button
+                  onClick={() => handleRemoveMember(selectedMember.id)}
+                  className="px-4 py-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400 font-black text-xs"
                 >
-                  Save Permissions
+                  {t('caregiver.consent.remove_member', 'Remove Member')}
                 </button>
-                <button 
-                  className="w-full py-3 rounded-xl text-xs font-black text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 dark:bg-transparent dark:border-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/10 transition-colors"
+                <button
+                  onClick={() => {
+                    showToast('Access permissions updated.');
+                    setSelectedMember(null);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md shadow-teal-500/20"
                 >
-                  Remove Member
+                  {t('caregiver.common.save', 'Save')}
                 </button>
               </div>
             </motion.div>
@@ -370,156 +715,92 @@ export const CaregiverCareCircleConsentView: React.FC = () => {
       {/* ADD MEMBER MODAL */}
       <AnimatePresence>
         {isAddMemberOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsAddMemberOpen(false)} />
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative z-10 w-full max-w-md bg-white dark:bg-[#0b1120] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col"
+              className="relative z-10 w-full max-w-lg bg-white dark:bg-[#0b1120] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]"
             >
               <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-                  <span>Add Care Circle Member</span>
+                  <Users className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
+                  <span>{t('caregiver.consent.modal_title', 'Add Member to Care Circle')}</span>
                 </h3>
                 <button onClick={() => setIsAddMemberOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
-              <div className="p-5 space-y-4 text-xs">
-                <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Full Name</label>
-                  <input
-                    type="text"
-                    value={newMember.name}
-                    onChange={(e) => setNewMember({...newMember, name: e.target.value})}
-                    placeholder="e.g. Ramesh Kumar"
-                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold focus:outline-none focus:border-teal-500 transition-all text-slate-900 dark:text-white"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 overflow-y-auto">
+                <form id="add-member-form" onSubmit={handleAddMember} className="space-y-4 text-xs">
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Relationship / Role</label>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">{t('caregiver.consent.full_name', 'Full Name')}</label>
                     <input
                       type="text"
-                      value={newMember.role}
-                      onChange={(e) => setNewMember({...newMember, role: e.target.value})}
-                      placeholder="e.g. Son, Nurse"
-                      className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold focus:outline-none focus:border-teal-500 transition-all text-slate-900 dark:text-white"
+                      required
+                      value={newMember.name}
+                      onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                      placeholder="e.g. Dr. Rajesh Sharma"
+                      className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
                     />
                   </div>
-                  <div>
-                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Access Level</label>
-                    <select
-                      value={newMember.accessLevel}
-                      onChange={(e) => setNewMember({...newMember, accessLevel: e.target.value})}
-                      className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold focus:outline-none focus:border-teal-500 transition-all text-slate-900 dark:text-white"
-                    >
-                      <option>Care Access</option>
-                      <option>Limited Access</option>
-                      <option>View Only</option>
-                    </select>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">{t('caregiver.wards.relationship', 'Relationship / Role')}</label>
+                      <input
+                        type="text"
+                        value={newMember.role}
+                        onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
+                        placeholder="e.g. Family Caregiver"
+                        className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">{t('caregiver.consent.access_level', 'Access Level')}</label>
+                      <select
+                        value={newMember.accessLevel}
+                        onChange={(e) => setNewMember({ ...newMember, accessLevel: e.target.value })}
+                        className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                      >
+                        <option value="Full Legal Guardian">Full Legal Guardian</option>
+                        <option value="Medical Proxy">Medical Proxy</option>
+                        <option value="Limited Access">Limited Access</option>
+                        <option value="Emergency Viewer">Emergency Viewer</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">Email / Phone</label>
-                  <input
-                    type="text"
-                    value={newMember.email}
-                    onChange={(e) => setNewMember({...newMember, email: e.target.value})}
-                    placeholder="Contact details for invitation..."
-                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold focus:outline-none focus:border-teal-500 transition-all text-slate-900 dark:text-white"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <p className="text-[10px] font-bold text-slate-500 mb-2">They will receive an invitation link to join the Care Circle. You can manage their specific information permissions after they accept.</p>
-                </div>
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">{t('caregiver.consent.email_address', 'Email Address')}</label>
+                    <input
+                      type="email"
+                      value={newMember.email}
+                      onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                      placeholder="e.g. rajesh@example.com"
+                      className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                    />
+                  </div>
+                </form>
               </div>
 
               <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 rounded-b-3xl flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddMemberOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors"
                 >
-                  Cancel
+                  {t('caregiver.common.cancel', 'Cancel')}
                 </button>
                 <button
-                  onClick={() => setIsAddMemberOpen(false)}
-                  className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2"
+                  form="add-member-form"
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black shadow-lg shadow-teal-500/20 transition-all"
                 >
-                  Send Invitation
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* CONSENT DOCUMENT MODAL */}
-      <AnimatePresence>
-        {isDocumentOpen && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsDocumentOpen(false)} />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative z-10 w-full max-w-lg bg-white dark:bg-[#0b1120] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col"
-            >
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
-                  <span>Consent Document</span>
-                </h3>
-                <button onClick={() => setIsDocumentOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="w-full h-72 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 p-6 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium space-y-4">
-                  <div className="text-center border-b border-slate-200 dark:border-slate-700 pb-4 mb-4">
-                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Medical Information Release</h4>
-                    <p className="text-[10px] text-slate-500 mt-1">Signed Consent Agreement • 28 Aug 2026</p>
-                  </div>
-                  <p>
-                    I, <strong>{activeWard.name}</strong>, hereby authorize my designated primary caregiver, <strong>Anita Sharma</strong>, and other authorized members of my Care Circle to access, view, and manage my personal health information as configured within the MediCare platform.
-                  </p>
-                  <p>
-                    This consent includes, but is not limited to:
-                  </p>
-                  <ul className="list-disc pl-5 space-y-1 font-bold">
-                    <li>Medical history and current treatments</li>
-                    <li>Medication schedules and adherence logs</li>
-                    <li>Clinical observations and daily care notes</li>
-                    <li>Upcoming and past medical appointments</li>
-                  </ul>
-                  <p>
-                    I understand that this consent will remain active until <strong>28 Aug 2027</strong> unless revoked earlier. I reserve the right to revoke or modify these permissions at any time through the caregiver dashboard or by contacting support.
-                  </p>
-                  <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex justify-between items-end">
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">E-Signature</p>
-                      <p className="font-black text-slate-900 dark:text-white italic">{activeWard.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Date</p>
-                      <p className="font-black text-slate-900 dark:text-white">28 Aug 2026</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={() => setIsDocumentOpen(false)}
-                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-black transition-colors"
-                >
-                  Close Viewer
+                  {t('caregiver.consent.send_invitation', 'Send Invitation')}
                 </button>
               </div>
             </motion.div>

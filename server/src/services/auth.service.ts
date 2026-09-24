@@ -435,15 +435,20 @@ export class AuthService {
     // 4. Generate JWT
     const token = this.generateToken({ id: user.id, email: user.email, role: user.role });
 
-    // Determine relevant profile
-    const profile =
-      user.patient ||
-      user.doctor ||
-      user.nurse ||
-      user.pharmacist ||
-      user.caregiver ||
-      user.insuranceProvider ||
-      null;
+    // Determine relevant profile strictly based on user role
+    const getProfileByRole = (u: typeof user) => {
+      switch (u.role) {
+        case Role.DOCTOR: return u.doctor;
+        case Role.PATIENT: return u.patient;
+        case Role.NURSE: return u.nurse;
+        case Role.PHARMACIST: return u.pharmacist;
+        case Role.CAREGIVER: return u.caregiver;
+        case Role.INSURANCE_PROVIDER: return u.insuranceProvider;
+        default: return u.patient || u.doctor || u.nurse || u.pharmacist || u.caregiver || u.insuranceProvider || null;
+      }
+    };
+
+    const profile = getProfileByRole(user);
 
     return {
       user: {
@@ -483,13 +488,13 @@ export class AuthService {
     }
 
     const profile =
-      user.patient ||
-      user.doctor ||
-      user.nurse ||
-      user.pharmacist ||
-      user.caregiver ||
-      user.insuranceProvider ||
-      null;
+      user.role === Role.DOCTOR ? user.doctor :
+      user.role === Role.PATIENT ? user.patient :
+      user.role === Role.NURSE ? user.nurse :
+      user.role === Role.PHARMACIST ? user.pharmacist :
+      user.role === Role.CAREGIVER ? user.caregiver :
+      user.role === Role.INSURANCE_PROVIDER ? user.insuranceProvider :
+      (user.patient || user.doctor || user.nurse || user.pharmacist || user.caregiver || user.insuranceProvider || null);
 
     return {
       id: user.id,

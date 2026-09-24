@@ -447,8 +447,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 onClick={() => setSelectedVitalMetric(m.id as any)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden ${
                   isSelected
-                    ? `bg-slate-100 dark:bg-[#1a1f33] ${m.activeBorder} shadow-[0_0_12px_rgba(0,0,0,0.5)]`
-                    : 'bg-white dark:bg-[#15192b] border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:bg-[#1a1f33]'
+                    ? `bg-[#1a1f33] ${m.activeBorder} ring-2 ring-indigo-500/40 shadow-[0_0_15px_rgba(0,0,0,0.5)]`
+                    : 'bg-[#15192b] border-slate-700/50 hover:bg-[#1a1f33]'
                 }`}
               >
                 <div className={`absolute -top-4 -left-4 w-32 h-32 ${m.glow} blur-2xl pointer-events-none rounded-full transition-opacity duration-500 ${isSelected ? 'opacity-100' : 'opacity-50'}`}></div>
@@ -458,10 +458,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     <m.icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block leading-tight">{m.label}</span>
+                    <span className="text-[11px] font-medium text-slate-300 block leading-tight">{m.label}</span>
                     <div className="flex items-baseline gap-1 mt-0">
-                      <span className="font-sans font-bold text-xl text-slate-900 dark:text-white leading-tight">{m.val}</span>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{m.unit}</span>
+                      <span className="font-sans font-bold text-xl text-white leading-tight">{m.val}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{m.unit}</span>
                     </div>
                   </div>
                 </div>

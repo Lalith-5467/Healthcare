@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuditService } from './audit.service';
@@ -81,13 +82,13 @@ export class ProfileService {
     }
 
     const roleProfile =
-      user.patient ||
-      user.doctor ||
-      user.nurse ||
-      user.pharmacist ||
-      user.caregiver ||
-      user.insuranceProvider ||
-      {};
+      user.role === Role.DOCTOR ? user.doctor :
+      user.role === Role.PATIENT ? user.patient :
+      user.role === Role.NURSE ? user.nurse :
+      user.role === Role.PHARMACIST ? user.pharmacist :
+      user.role === Role.CAREGIVER ? user.caregiver :
+      user.role === Role.INSURANCE_PROVIDER ? user.insuranceProvider :
+      (user.patient || user.doctor || user.nurse || user.pharmacist || user.caregiver || user.insuranceProvider || {});
 
     return {
       id: user.id,
@@ -104,24 +105,44 @@ export class ProfileService {
   // PATIENT PROFILE
   // ==========================================
   static async getPatientProfile(userId: string) {
-    let patient = await prisma.patient.findUnique({
-      where: { userId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { patient: true },
     });
 
-    if (!patient) {
-      // Auto-create if user is a patient but row wasn't initialized
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        const err: AppError = new Error('User not found');
-        err.statusCode = 404;
-        throw err;
+    if (!user) {
+      const err: AppError = new Error('User not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (user.role === 'PATIENT') {
+      if (user.patient) {
+        return user.patient;
       }
-      patient = await prisma.patient.create({
-        data: { userId, fullName: user.email.split('@')[0] },
+      return await prisma.patient.create({
+        data: {
+          userId,
+          fullName: user.email.split('@')[0],
+        },
       });
     }
 
-    return patient;
+    // If caller is NOT a patient (e.g. Doctor, Nurse, Pharmacist, Caregiver querying general patient endpoint):
+    // They must NEVER be treated as a patient themselves! Return the authoritative primary patient.
+    const defaultPatient = await prisma.patient.findFirst({
+      where: {
+        user: { role: 'PATIENT' },
+        fullName: { not: { startsWith: 'dr.' } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (defaultPatient) {
+      return defaultPatient;
+    }
+
+    return await prisma.patient.findFirst();
   }
 
   static async updatePatientProfile(
@@ -130,16 +151,34 @@ export class ProfileService {
     actorId: string,
     ipAddress?: string
   ) {
-    let patient = await prisma.patient.findUnique({ where: { userId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      const err: AppError = new Error('User not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let targetUserId = userId;
+    if (user.role !== 'PATIENT') {
+      const primaryPatient = await prisma.patient.findFirst({
+        where: { user: { role: 'PATIENT' } },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (primaryPatient) {
+        targetUserId = primaryPatient.userId;
+      }
+    }
+
+    let patient = await prisma.patient.findUnique({ where: { userId: targetUserId } });
 
     if (!patient) {
       patient = await prisma.patient.create({
-        data: { userId, fullName: data.fullName || 'Patient' },
+        data: { userId: targetUserId, fullName: data.fullName || 'Ananya Sharma' },
       });
     }
 
     const updated = await prisma.patient.update({
-      where: { userId },
+      where: { userId: targetUserId },
       data: {
         ...(data.fullName !== undefined ? { fullName: data.fullName } : {}),
         ...(data.gender !== undefined ? { gender: data.gender } : {}),

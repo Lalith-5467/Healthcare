@@ -67,3 +67,87 @@ export const logVitalController = async (
     next(error);
   }
 };
+
+export const getCareCircleController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : '';
+    const data = await CaregiverService.getCareCircle(req.user!.id, req.user!.role, patientId);
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addCareCircleMemberController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await CaregiverService.addCareCircleMember(req.user!.id, req.user!.role, req.body);
+    res.status(201).json({ success: true, message: 'Care Circle member added', data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const removeCareCircleMemberController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const targetCaregiverId = Array.isArray(req.params.targetCaregiverId) ? req.params.targetCaregiverId[0] : req.params.targetCaregiverId;
+    const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : (req.body.patientId || '');
+    const data = await CaregiverService.removeCareCircleMember(req.user!.id, req.user!.role, patientId, targetCaregiverId);
+    res.status(200).json({ success: true, message: 'Care Circle member removed', data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const toggleConsentStatusController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId, status } = req.body;
+    const data = await CaregiverService.toggleConsentStatus(req.user!.id, req.user!.role, patientId, status);
+    res.status(200).json({ success: true, message: data.message, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addDependentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await CaregiverService.addDependent(req.user!.id, req.user!.role, req.body);
+    res.status(201).json({ success: true, message: 'Dependent ward added successfully', data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const removeDependentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const patientId = Array.isArray(req.params.patientId) ? req.params.patientId[0] : req.params.patientId;
+    const data = await CaregiverService.removeDependent(req.user!.id, req.user!.role, patientId);
+    res.status(200).json({ success: true, message: data.message, data });
+  } catch (error) {
+    next(error);
+  }
+};
+

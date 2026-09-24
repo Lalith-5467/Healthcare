@@ -9,12 +9,15 @@ import {
   X
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName, getLocalizedRelationship } from '../../../utils/caregiverDataTranslator';
 
 interface CaregiverProfileViewProps {
   user?: { name: string; email: string; phone?: string; role?: string };
 }
 
 export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user }) => {
+  const { t } = useLanguage();
   const { wards } = useCaregiverWorkflow();
   const [isEditing, setIsEditing] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -69,10 +72,10 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <UserCheck className="w-6 h-6 text-teal-600 dark:text-cyan-400" />
-            <span>Caregiver Profile</span>
+            <span>{t('caregiver.profile.title', 'Caregiver Profile')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Manage your personal, professional, and caregiver identity information.
+            {t('caregiver.profile.subtitle', 'Manage your primary guardian profile, contact details, and certifications.')}
           </p>
         </div>
         {!isEditing && (
@@ -80,7 +83,7 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
             onClick={() => setIsEditing(true)}
             className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-teal-500/20 self-start md:self-auto"
           >
-            Edit Profile
+            {t('caregiver.profile.edit_btn', 'Edit Profile')}
           </button>
         )}
       </div>
@@ -100,40 +103,40 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                   {name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-base font-black leading-tight text-slate-900 dark:text-white">{name}</h3>
+                  <h3 className="text-base font-black leading-tight text-slate-900 dark:text-white">{getLocalizedName(name, t)}</h3>
                   <p className="text-xs text-teal-600 dark:text-teal-300 font-bold flex items-center gap-1 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5" /> ABDM Verified Caregiver
+                    <ShieldCheck className="w-3.5 h-3.5" /> {t('caregiver.profile.abdm_verified', 'ABDM Verified Caregiver')}
                   </p>
                 </div>
               </div>
 
-              <span className="text-[10px] font-mono font-black px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1">
+              <span className="text-[10px] font-mono font-black px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1 uppercase">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                ACTIVE
+                {t('caregiver.common.active', 'Active')}
               </span>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 space-y-3 text-xs backdrop-blur-sm">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Caregiver ID</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('caregiver.profile.id_label', 'Caregiver ID')}</span>
                 <span className="font-mono font-black text-teal-700 dark:text-cyan-300">CG-8421-9902</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Caregiver Type</span>
-                <span className="font-bold text-slate-900 dark:text-white">Family Caregiver</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('caregiver.profile.type_label', 'Caregiver Type')}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{t('caregiver.profile.family_caregiver', 'Family Caregiver')}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Relationship</span>
-                <span className="font-bold text-slate-900 dark:text-white">Daughter</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('caregiver.profile.relationship_label', 'Relationship')}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{t('caregiver.common.daughter', 'Daughter')}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Assigned Dependents</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('caregiver.profile.assigned_dependents', 'Assigned Dependents')}</span>
                 <span className="font-bold text-teal-600 dark:text-teal-400">{wards.length}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700/60">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Verification</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('caregiver.profile.verification_label', 'Verification')}</span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('caregiver.profile.verified', 'Verified')}
                 </span>
               </div>
             </div>
@@ -143,28 +146,28 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
           <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-              <span>Verification & Account</span>
+              <span>{t('caregiver.profile.sec_verification', 'Verification & Account')}</span>
             </h3>
             <div className="space-y-3 text-xs">
               <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                <span className="font-bold text-slate-600 dark:text-slate-400">ABDM Caregiver ID</span>
+                <span className="font-bold text-slate-600 dark:text-slate-400">{t('caregiver.profile.abdm_id', 'ABDM Caregiver ID')}</span>
                 <span className="font-black text-slate-900 dark:text-white font-mono">CG-8421-9902@abdm</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                <span className="font-bold text-slate-600 dark:text-slate-400">Identity Verification</span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Verified</span>
+                <span className="font-bold text-slate-600 dark:text-slate-400">{t('caregiver.profile.identity_verif', 'Identity Verification')}</span>
+                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {t('caregiver.profile.verified', 'Verified')}</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                <span className="font-bold text-slate-600 dark:text-slate-400">KYC Status</span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Complete</span>
+                <span className="font-bold text-slate-600 dark:text-slate-400">{t('caregiver.profile.kyc_status', 'KYC Status')}</span>
+                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {t('caregiver.profile.complete', 'Complete')}</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
-                <span className="font-bold text-slate-600 dark:text-slate-400">Account Status</span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Active</span>
+                <span className="font-bold text-slate-600 dark:text-slate-400">{t('caregiver.profile.account_status', 'Account Status')}</span>
+                <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> {t('caregiver.common.active', 'Active')}</span>
               </div>
               <div className="pt-2 flex justify-between items-center text-[10px] text-slate-500 font-bold px-2">
-                <span>Profile Created: 15 Jan 2026</span>
-                <span>Last Updated: 28 Aug 2026</span>
+                <span>{t('caregiver.profile.created_at', 'Profile Created:')} {t('caregiver.profile.created_val', '15 Jan 2026')}</span>
+                <span>{t('caregiver.profile.updated_at', 'Last Updated:')} {t('caregiver.profile.updated_val', '28 Aug 2026')}</span>
               </div>
             </div>
           </div>
@@ -177,28 +180,28 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
             {/* PERSONAL INFORMATION */}
             <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 uppercase tracking-wider">
-                Personal Information
+                {t('caregiver.profile.sec_personal', 'Personal Information')}
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Full Legal Name</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.legal_name', 'Full Legal Name')}</label>
                   {isEditing ? (
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{name}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{getLocalizedName(name, t)}</p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Preferred Name</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.pref_name', 'Preferred Name')}</label>
                   {isEditing ? (
                     <input type="text" value={preferredName} onChange={(e) => setPreferredName(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{preferredName}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{getLocalizedName(preferredName, t)}</p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Date of Birth</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.dob', 'Date of Birth')}</label>
                   {isEditing ? (
                     <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
@@ -206,7 +209,7 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Phone Number</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.phone', 'Phone Number')}</label>
                   {isEditing ? (
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
@@ -214,7 +217,7 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-500 block mb-1">Email Address</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.email', 'Email Address')}</label>
                   {isEditing ? (
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
@@ -222,27 +225,33 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-500 block mb-1">Address</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.address', 'Address')}</label>
                   {isEditing ? (
                     <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{address}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">
+                      {address.includes('Shanti Apartments') ? t('caregiver.profile.address_val', 'Flat 4B, Shanti Apartments') : address}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">City</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.city', 'City')}</label>
                   {isEditing ? (
                     <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{city}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">
+                      {city.toLowerCase() === 'bangalore' ? t('caregiver.profile.city_val', 'Bangalore') : city}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">State</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.state', 'State')}</label>
                   {isEditing ? (
                     <input type="text" value={state} onChange={(e) => setState(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{state}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">
+                      {state.toLowerCase() === 'karnataka' ? t('caregiver.profile.state_val', 'Karnataka') : state}
+                    </p>
                   )}
                 </div>
               </div>
@@ -251,36 +260,36 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
             {/* CAREGIVER INFORMATION */}
             <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 uppercase tracking-wider flex items-center gap-2">
-                <HeartHandshake className="w-4 h-4 text-teal-500" /> Caregiver Information
+                <HeartHandshake className="w-4 h-4 text-teal-500" /> {t('caregiver.profile.sec_caregiver_info', 'Caregiver Information')}
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Caregiver Type</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.type_label', 'Caregiver Type')}</label>
                   <div className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-black text-slate-900 dark:text-white opacity-80 cursor-not-allowed">
-                    Family Caregiver
+                    {t('caregiver.profile.family_caregiver', 'Family Caregiver')}
                   </div>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Relationship</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.relationship_label', 'Relationship')}</label>
                   <div className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-black text-slate-900 dark:text-white opacity-80 cursor-not-allowed">
-                    Daughter
+                    {t('caregiver.common.daughter', 'Daughter')}
                   </div>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Assigned Dependents</label>
-                  <div className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-black text-slate-900 dark:text-white opacity-80 cursor-not-allowed">
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.assigned_dependents', 'Assigned Dependents')}</label>
+                  <div className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-black text-teal-600 dark:text-teal-400 opacity-80 cursor-not-allowed">
                     {wards.length}
                   </div>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Primary Caregiver</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.primary_caregiver', 'Primary Caregiver')}</label>
                   <div className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-black text-emerald-600 dark:text-emerald-400 opacity-80 cursor-not-allowed">
-                    Yes
+                    {t('caregiver.common.yes', 'Yes')}
                   </div>
                 </div>
                 <div className="sm:col-span-2 pt-2 text-[10px] text-slate-500 font-bold">
-                  Note: Professional fields (Qualification, Registration Number) are not applicable for Family Caregivers.
+                  {t('caregiver.profile.prof_note', 'Note: Professional fields (Qualification, Registration Number) are not applicable for Family Caregivers.')}
                 </div>
               </div>
             </div>
@@ -288,28 +297,28 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
             {/* EMERGENCY CONTACT */}
             <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-sm font-black text-slate-900 dark:text-white mb-2 uppercase tracking-wider">
-                Emergency Contact
+                {t('caregiver.profile.sec_emerg_contact', 'Emergency Contact')}
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Contact Name</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.emerg_name', 'Contact Name')}</label>
                   {isEditing ? (
                     <input type="text" value={emergName} onChange={(e) => setEmergName(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{emergName}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{getLocalizedName(emergName, t)}</p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Relationship</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.relationship_label', 'Relationship')}</label>
                   {isEditing ? (
                     <input type="text" value={emergRel} onChange={(e) => setEmergRel(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
-                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{emergRel}</p>
+                    <p className="h-10 px-3.5 flex items-center rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-transparent font-black text-slate-900 dark:text-white">{getLocalizedRelationship(emergRel, t)}</p>
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Phone Number</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.phone', 'Phone Number')}</label>
                   {isEditing ? (
                     <input type="tel" value={emergPhone} onChange={(e) => setEmergPhone(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
@@ -317,7 +326,7 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                   )}
                 </div>
                 <div>
-                  <label className="font-bold text-slate-500 block mb-1">Alternate Phone</label>
+                  <label className="font-bold text-slate-500 block mb-1">{t('caregiver.profile.alt_phone', 'Alternate Phone')}</label>
                   {isEditing ? (
                     <input type="tel" value={emergAltPhone} onChange={(e) => setEmergAltPhone(e.target.value)} className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
                   ) : (
@@ -342,8 +351,8 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white dark:bg-[#0b1120] shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 flex items-center justify-between gap-8 min-w-[320px] sm:min-w-[400px]"
           >
             <div>
-              <p className="text-sm font-black text-slate-900 dark:text-white">Edit Profile</p>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">You have unsaved changes.</p>
+              <p className="text-sm font-black text-slate-900 dark:text-white">{t('caregiver.profile.edit_btn', 'Edit Profile')}</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">{t('caregiver.preferences.unsaved_desc', 'You have unsaved changes.')}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button 
@@ -351,14 +360,14 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
                 onClick={handleCancel}
                 className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex items-center gap-1"
               >
-                <X className="w-4 h-4" /> Cancel
+                <X className="w-4 h-4" /> {t('caregiver.common.cancel', 'Cancel')}
               </button>
               <button 
                 type="submit"
                 form="profile-form"
                 className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2"
               >
-                <Save className="w-4 h-4" /> Save Profile
+                <Save className="w-4 h-4" /> {t('caregiver.profile.save_changes', 'Save Profile')}
               </button>
             </div>
           </motion.div>
@@ -368,3 +377,4 @@ export const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ user
     </div>
   );
 };
+

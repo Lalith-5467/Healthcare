@@ -54,3 +54,18 @@ export const deleteNotificationController = async (
     next(error);
   }
 };
+
+export const generateSpeechController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { text, language } = req.body;
+    const { MurfService } = await import('../services/murf.service');
+    const data = await MurfService.generateSpeech({ text, language });
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+};

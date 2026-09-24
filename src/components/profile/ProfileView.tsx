@@ -44,36 +44,54 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 
+  const isInvalidPatientName = (name?: string): boolean => {
+    if (!name) return true;
+    const lower = name.toLowerCase().trim();
+    return (
+      lower === 'patient' ||
+      lower.startsWith('dr.') ||
+      lower.startsWith('dr ') ||
+      lower.includes('doctor') ||
+      lower.includes('arjun') ||
+      lower.includes('pharmacist') ||
+      lower.includes('r.ph') ||
+      lower.includes('suresh nair') ||
+      lower.includes('nurse') ||
+      lower.includes('admin') ||
+      lower.includes('caregiver')
+    );
+  };
+
   const resolvePatientName = (u?: any, dbName?: string): string => {
-    if (dbName && dbName.trim() && !dbName.includes('Pharmacist') && !dbName.includes('R.Ph') && !dbName.includes('Suresh Nair')) {
+    if (dbName && dbName.trim() && !isInvalidPatientName(dbName)) {
       return dbName.trim();
     }
     try {
       const custom = localStorage.getItem('patient_user_name');
-      if (custom && custom.trim() && !custom.includes('Pharmacist') && !custom.includes('R.Ph') && !custom.includes('Suresh Nair')) {
+      if (custom && custom.trim() && !isInvalidPatientName(custom)) {
         return custom.trim();
       }
       const prof = localStorage.getItem('user_profile_data');
       if (prof) {
         const parsed = JSON.parse(prof);
-        if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+        if (parsed?.name && !isInvalidPatientName(parsed.name)) {
           return parsed.name.trim();
         }
       }
       const appUser = localStorage.getItem('app_user');
       if (appUser) {
         const parsed = JSON.parse(appUser);
-        if (parsed?.name && !parsed.name.includes('Pharmacist') && !parsed.name.includes('R.Ph') && !parsed.name.includes('Suresh Nair') && parsed.name !== 'Patient') {
+        if (parsed?.name && !isInvalidPatientName(parsed.name)) {
           return parsed.name.trim();
         }
       }
     } catch {}
 
-    if (u?.name && u.name !== 'Patient' && !u.name.includes('Pharmacist') && !u.name.includes('R.Ph') && !u.name.includes('Suresh Nair')) {
+    if (u?.name && !isInvalidPatientName(u.name)) {
       return u.name.trim();
     }
 
-    return 'Lalith Velarasi';
+    return 'Ananya Sharma';
   };
 
   // Profile Form Data state initialized with user prop or session data

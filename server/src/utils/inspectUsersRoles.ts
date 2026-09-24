@@ -6,7 +6,7 @@ async function main() {
   });
   console.log('=== NURSES IN DATABASE ===');
   for (const n of nurses) {
-    console.log(`NurseId: ${n.id} | UserId: ${n.userId} | Email: ${n.user?.email} | Name: ${n.fullName} | Spec: ${n.specialization}`);
+    console.log(`NurseId: ${n.id} | UserId: ${n.userId} | Email: ${n.user?.email} | Name: ${n.fullName} | Dept: ${n.department}`);
   }
   
   const patients = await prisma.patient.findMany({

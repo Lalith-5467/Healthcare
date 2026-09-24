@@ -53,6 +53,7 @@ router.use('/prescriptions', prescriptionRoutes);
 
 // Registered Pharmacy Network APIs
 router.use('/pharmacies', pharmacyRoutes);
+router.use('/pharmacy', pharmacyRoutes);
 
 // Pharmacy Order Routing APIs
 router.use('/pharmacy-orders', pharmacyOrderRoutes);

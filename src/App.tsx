@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from './components/theme/ThemeProvider';
+import { LanguageProvider } from './context/LanguageContext';
 import { GlobalToastManager } from './components/common/GlobalToastManager';
 import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/landing/Header';
@@ -31,6 +32,7 @@ import { authApi } from './services/dhrApis';
 import { clearAuthToken } from './services/apiClient';
 import { socketService } from './services/socketService';
 import { showGlobalToast } from './components/common/GlobalToastManager';
+import { GlobalNotificationListener } from './components/common/GlobalNotificationListener';
 
 const NAV_MAP: Record<string, string> = {
   'family-connect': 'family',
@@ -73,6 +75,7 @@ const NAV_MAP: Record<string, string> = {
   'insights': 'report-insights',
   'report-insights': 'report-insights',
   'nurse-booking': 'nurse-booking',
+  'caregiver-booking': 'caregiver-booking',
   'janitor-booking': 'janitor-booking',
   'security': 'security-privacy',
   'security-privacy': 'security-privacy'
@@ -179,6 +182,7 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
     if (nav === 'diet-plan') return '/user/diet-plans';
     if (nav === 'report-insights') return '/user/insights';
     if (nav === 'nurse-booking') return '/user/nurse-booking';
+    if (nav === 'caregiver-booking') return '/user/caregiver-booking';
     if (nav === 'janitor-booking') return '/user/janitor-booking';
     if (nav === 'security-privacy') return '/user/security';
     return `/user/${nav}`;
@@ -235,6 +239,37 @@ const getInitialAppState = () => {
   if (!token || !userData) {
     loggedIn = false;
     userData = null;
+  }
+
+  // Enforce portal-role isolation so sessions from one portal do not leak into another portal
+  if (isPharmacistPath && userData && userData.role !== 'Pharmacist') {
+    userData = {
+      name: 'Suresh Nair, R.Ph',
+      email: 'pharmacist@health.com',
+      role: 'Pharmacist',
+      abhaId: 'RPH-TN-2018-994',
+    };
+  } else if (isDoctorPath && userData && userData.role !== 'Doctor') {
+    userData = {
+      name: 'Dr. Arjun Kumar',
+      email: 'dr.arjun.kumar@apollocentral.in',
+      role: 'Doctor',
+    };
+  } else if (isNursePath && userData && userData.role !== 'Nurse') {
+    userData = {
+      name: 'Sister Priya Nair',
+      email: 'nurse@health.com',
+      role: 'Nurse',
+    };
+  } else if (isUserPath && userData && userData.role !== 'Patient') {
+    userData = {
+      name: 'Ananya Sharma',
+      email: 'ananya@health.com',
+      role: 'Patient',
+      abhaId: '91-9482-1102-4821',
+      bloodGroup: 'B+',
+      age: 29
+    };
   }
 
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
@@ -343,6 +378,14 @@ export const App: React.FC = () => {
             const u = res.data;
             const profile: any = u.profile || {};
             const normalizedRole = normalizeRole(u.role);
+            const pathLower = window.location.pathname.toLowerCase();
+            if (pathLower.startsWith('/pharmacist') && normalizedRole !== 'Pharmacist') return;
+            if (pathLower.startsWith('/doctor') && normalizedRole !== 'Doctor') return;
+            if (pathLower.startsWith('/nurse') && normalizedRole !== 'Nurse') return;
+            if (pathLower.startsWith('/caregiver') && normalizedRole !== 'Caregiver') return;
+            if (pathLower.startsWith('/insurance') && normalizedRole !== 'Insurance') return;
+            if (pathLower.startsWith('/user') && normalizedRole !== 'Patient') return;
+
             const refreshedUser = {
               id: u.id,
               profileId: profile.id,
@@ -626,185 +669,186 @@ export const App: React.FC = () => {
   const themeKey = currentPage === 'dashboard' ? 'theme-dashboard' : (currentPage === 'login' || currentPage === 'register') ? 'theme-auth' : 'theme-landing';
 
   return (
-    <ThemeProvider key={themeKey} storageKey={themeKey}>
-      <GlobalToastManager />
-      <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
-        
-        {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
-        {showHeaderAndFooter && (
-          <Header 
-            onNavigate={handleNavigate} 
-            isLoggedIn={isLoggedIn}
-            userName={user?.name}
-            onLogout={handleLogout}
-          />
-        )}
-
-        {/* DEDICATED PAGES OR LANDING PAGE */}
-        {currentPage === 'about' ? (
-          <AboutUsPage 
-            onNavigateHome={() => handleNavigate('home')}
-            onStartJourney={handleOpenAuth}
-            onExploreFeatures={() => handleNavigate('features')}
-          />
-        ) : currentPage === 'login' ? (
-          window.location.pathname.toLowerCase().startsWith('/admin') ? (
-            <AdminLoginPage
-              onNavigateHome={() => handleNavigate('home')}
-              onNavigate={handleNavigate}
-              onSuccessLogin={(userData) => handleSuccessLogin(userData as any)}
+    <LanguageProvider>
+      <ThemeProvider key={themeKey} storageKey={themeKey}>
+        <GlobalToastManager />
+        <GlobalNotificationListener activeRole={activeRole} />
+        <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
+          
+          {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+          {showHeaderAndFooter && (
+            <Header 
+              onNavigate={handleNavigate} 
+              isLoggedIn={isLoggedIn}
+              userName={user?.name}
+              onLogout={handleLogout}
             />
-          ) : (
-            <LoginPage 
+          )}
+
+          {/* DEDICATED PAGES OR LANDING PAGE */}
+          {currentPage === 'about' ? (
+            <AboutUsPage 
+              onNavigateHome={() => handleNavigate('home')}
+              onStartJourney={handleOpenAuth}
+              onExploreFeatures={() => handleNavigate('features')}
+            />
+          ) : currentPage === 'login' ? (
+            window.location.pathname.toLowerCase().startsWith('/admin') ? (
+              <AdminLoginPage
+                onNavigateHome={() => handleNavigate('home')}
+                onNavigate={handleNavigate}
+                onSuccessLogin={(userData) => handleSuccessLogin(userData as any)}
+              />
+            ) : (
+              <LoginPage 
+                initialRole={selectedAuthRole}
+                onNavigateHome={() => handleNavigate('home')}
+                onNavigate={handleNavigate}
+                onSuccessLogin={handleSuccessLogin}
+              />
+            )
+          ) : currentPage === 'register' ? (
+            <RegisterPage 
               initialRole={selectedAuthRole}
               onNavigateHome={() => handleNavigate('home')}
               onNavigate={handleNavigate}
               onSuccessLogin={handleSuccessLogin}
             />
-          )
-        ) : currentPage === 'register' ? (
-          <RegisterPage 
-            initialRole={selectedAuthRole}
-            onNavigateHome={() => handleNavigate('home')}
-            onNavigate={handleNavigate}
-            onSuccessLogin={handleSuccessLogin}
-          />
-        ) : currentPage === 'dashboard' ? (
-          (() => {
-            const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
-            if (currentPortal === 'admin') {
-              return (
-                <AdminDashboardPage 
-                  user={user as any || undefined} 
-                  initialNavId={initialNavId}
-                  onLogout={handleLogout} 
-                  onNavigate={handleNavigate}
-                />
-              );
-            }
-            if (currentPortal === 'pharmacist') {
-              return (
-                <PharmacistDashboardPage
-                  user={user || undefined}
-                  initialNavId={initialNavId}
-                  onLogout={handleLogout}
-                  onNavigate={handleNavigate}
-                />
-              );
-            }
-            if (currentPortal === 'doctor') {
-              return (
-                <DoctorDashboardPage 
-                  user={user as any || undefined} 
-                  initialNavId={initialNavId}
-                  onLogout={handleLogout}
-                  onNavigate={handleNavigate}
-                />
-              );
-            }
-            if (currentPortal === 'nurse') {
-              return (
-                <LanguageProvider>
+          ) : currentPage === 'dashboard' ? (
+            (() => {
+              const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
+              if (currentPortal === 'admin') {
+                return (
+                  <AdminDashboardPage 
+                    user={user as any || undefined} 
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout} 
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
+              if (currentPortal === 'pharmacist') {
+                return (
+                  <PharmacistDashboardPage
+                    user={user || undefined}
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout}
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
+              if (currentPortal === 'doctor') {
+                return (
+                  <DoctorDashboardPage 
+                    user={user as any || undefined} 
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout}
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
+              if (currentPortal === 'nurse') {
+                return (
                   <NurseDashboardPage 
                     user={user as any || undefined} 
                     initialNavId={initialNavId}
                     onLogout={handleLogout}
                     onNavigate={handleNavigate}
                   />
-                </LanguageProvider>
-              );
-            }
-            if (currentPortal === 'insurance') {
+                );
+              }
+              if (currentPortal === 'insurance') {
+                return (
+                  <InsuranceDashboardPage 
+                    user={user as any || undefined} 
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout}
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
+              if (currentPortal === 'caregiver') {
+                return (
+                  <CaregiverDashboardPage 
+                    user={user as any || undefined} 
+                    initialNavId={initialNavId}
+                    onLogout={handleLogout} 
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
               return (
-                <InsuranceDashboardPage 
-                  user={user as any || undefined} 
+                <DashboardPage
+                  user={user as any || undefined}
                   initialNavId={initialNavId}
                   onLogout={handleLogout}
                   onNavigate={handleNavigate}
+                  onOpenEmergencyModal={() => setEmergencyModalOpen(true)}
+                  onOpenAbhaModal={() => setAbhaModalOpen(true)}
                 />
               );
-            }
-            if (currentPortal === 'caregiver') {
-              return (
-                <CaregiverDashboardPage 
-                  user={user as any || undefined} 
-                  initialNavId={initialNavId}
-                  onLogout={handleLogout} 
-                  onNavigate={handleNavigate}
-                />
-              );
-            }
-            return (
-              <DashboardPage
-                user={user as any || undefined}
-                initialNavId={initialNavId}
-                onLogout={handleLogout}
-                onNavigate={handleNavigate}
-                onOpenEmergencyModal={() => setEmergencyModalOpen(true)}
-                onOpenAbhaModal={() => setAbhaModalOpen(true)}
+            })()
+          ) : (
+            <main>
+              {/* HERO SECTION */}
+              <Hero 
+                onStartJourney={() => handleNavigate('dashboard')} 
+                onSeeHowItWorks={() => handleNavigate('about')} 
               />
-            );
-          })()
-        ) : (
-          <main>
-            {/* HERO SECTION */}
-            <Hero 
-              onStartJourney={() => handleNavigate('dashboard')} 
-              onSeeHowItWorks={() => handleNavigate('about')} 
-            />
 
-            {/* ABOUT US PREVIEW */}
-            <AboutHospital 
-              onLearnMore={() => handleNavigate('about')} 
-            />
+              {/* ABOUT US PREVIEW */}
+              <AboutHospital 
+                onLearnMore={() => handleNavigate('about')} 
+              />
 
-            {/* FEATURES SECTION */}
-            <FeaturesSection 
-              onExploreFeature={() => handleNavigate('abha')} 
-            />
+              {/* FEATURES SECTION */}
+              <FeaturesSection 
+                onExploreFeature={() => handleNavigate('abha')} 
+              />
 
-            {/* MEET OUR DOCTORS */}
-            <DoctorSection 
-              onOpenDoctorPortal={() => handleNavigate('register')} 
-            />
+              {/* MEET OUR DOCTORS */}
+              <DoctorSection 
+                onOpenDoctorPortal={() => handleNavigate('register')} 
+              />
 
-            {/* ABHA DIGITAL HEALTH CONNECTION */}
-            <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
+              {/* ABHA DIGITAL HEALTH CONNECTION */}
+              <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
 
-            {/* HEALTHCARE PARTNER NETWORKS LOGOLOOP */}
-            <PartnerLoopSection />
+              {/* HEALTHCARE PARTNER NETWORKS LOGOLOOP */}
+              <PartnerLoopSection />
 
-            {/* FINAL HIGH-CONVERSION CTA */}
-            <FinalCTA 
-              onStartJourney={() => handleNavigate('register')} 
-              onExploreFeatures={() => handleNavigate('features')} 
-            />
-          </main>
-        )}
+              {/* FINAL HIGH-CONVERSION CTA */}
+              <FinalCTA 
+                onStartJourney={() => handleNavigate('register')} 
+                onExploreFeatures={() => handleNavigate('features')} 
+              />
+            </main>
+          )}
 
-        {/* FOOTER (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
-        {showHeaderAndFooter && <Footer onNavigate={handleNavigate} />}
+          {/* FOOTER (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
+          {showHeaderAndFooter && <Footer onNavigate={handleNavigate} />}
 
-        {/* MODALS */}
-        <ABHAModal 
-          isOpen={abhaModalOpen} 
-          onClose={() => setAbhaModalOpen(false)} 
-        />
-        <ConsentModal 
-          isOpen={consentModalOpen} 
-          onClose={() => setConsentModalOpen(false)} 
-        />
-        <EmergencyQRModal 
-          isOpen={emergencyModalOpen} 
-          onClose={() => setEmergencyModalOpen(false)} 
-          user={user || undefined}
-        />
-        <AuthModal 
-          isOpen={authModalOpen} 
-          onClose={() => setAuthModalOpen(false)} 
-        />
-      </div>
-    </ThemeProvider>
+          {/* MODALS */}
+          <ABHAModal 
+            isOpen={abhaModalOpen} 
+            onClose={() => setAbhaModalOpen(false)} 
+          />
+          <ConsentModal 
+            isOpen={consentModalOpen} 
+            onClose={() => setConsentModalOpen(false)} 
+          />
+          <EmergencyQRModal 
+            isOpen={emergencyModalOpen} 
+            onClose={() => setEmergencyModalOpen(false)} 
+            user={user || undefined}
+          />
+          <AuthModal 
+            isOpen={authModalOpen} 
+            onClose={() => setAuthModalOpen(false)} 
+          />
+        </div>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 

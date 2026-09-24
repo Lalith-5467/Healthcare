@@ -3,6 +3,7 @@ import { AppError } from '../middleware/errorHandler';
 import { AuthUser } from '../@types/express';
 import { AuditService } from './audit.service';
 import { PharmacyService } from './pharmacy.service';
+import { CaregiverService } from './caregiver.service';
 import { emitOrderStatusUpdate } from '../socket';
 
 const OrderStatus = {
@@ -350,12 +351,18 @@ export class PharmacyOrderService {
       throw err;
     }
 
-    // 2. Patient ownership validation
-    if (user.role === Role.PATIENT && prescription.patient.userId !== user.id) {
-      const err: AppError = new Error('Access denied: You can only order for your own prescription');
-      err.statusCode = 403;
-      throw err;
+    // 2. Patient / Caregiver / Clinician ownership validation
+    if (user.role === Role.PATIENT) {
+      const ownPat = await prisma.patient.findUnique({ where: { userId: user.id } });
+      if (prescription.patient.userId !== user.id && (!ownPat || ownPat.id !== prescription.patientId)) {
+        const err: AppError = new Error('Access denied: You can only order for your own prescription');
+        err.statusCode = 403;
+        throw err;
+      }
+    } else if (user.role === Role.CAREGIVER) {
+      await CaregiverService.validateCaregiverAccess(user.id, user.role as any, prescription.patientId);
     }
+    // Doctors, Nurses, and Admins are permitted to route confirmed prescriptions to pharmacies on behalf of patients
 
     // 3. Status validation: MUST be in CONFIRMED status
     if (prescription.status !== PrescriptionStatus.CONFIRMED) {

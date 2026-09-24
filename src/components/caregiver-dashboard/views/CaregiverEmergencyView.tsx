@@ -15,8 +15,11 @@ import {
   X
 } from 'lucide-react';
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 export const CaregiverEmergencyView: React.FC = () => {
+  const { t } = useLanguage();
   const { wards, activeWard, setActiveWardId, alerts, triggerSOS, resolveSOS } = useCaregiverWorkflow();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -55,10 +58,10 @@ export const CaregiverEmergencyView: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <AlertOctagon className="w-6 h-6 text-rose-600" />
-            <span>Emergency SOS & Rapid Dispatch Center</span>
+            <span>{t('caregiver.emergency.title', 'SOS Emergency & Safety Rings')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Direct 108 ambulance dispatch, GPS geofence breaches, fall detection telemetry, and family alerts.
+            {t('caregiver.emergency.subtitle', 'Monitor location safety, active geofence boundaries, and dispatch emergency SOS.')}
           </p>
         </div>
 
@@ -74,7 +77,7 @@ export const CaregiverEmergencyView: React.FC = () => {
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400'
               }`}
             >
-              {ward.name}
+              {getLocalizedName(ward.name, t)}
             </button>
           ))}
         </div>
@@ -84,13 +87,13 @@ export const CaregiverEmergencyView: React.FC = () => {
       <div className="rounded-3xl bg-gradient-to-r from-rose-950/90 via-rose-900/80 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-rose-600/40 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-300 text-xs font-black uppercase">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-rose-400" /> Rapid Dispatch Ready
+            <Radio className="w-3.5 h-3.5 animate-pulse text-rose-400" /> {t('caregiver.emergency.rapid_dispatch', 'Rapid Dispatch Ready')}
           </div>
           <h2 className="text-2xl font-black">
-            Emergency Panic Button for {activeWard.name}
+            {t('caregiver.emergency.panic_title', 'Emergency Panic Button for')} {getLocalizedName(activeWard.name, t)}
           </h2>
           <p className="text-xs text-rose-200/90 max-w-xl leading-relaxed">
-            Pressing this button will instantly dispatch an emergency ambulance to <span className="font-bold text-white">{activeWard.currentLocation}</span>, transmit critical medical records to the nearest trauma team, and notify all verified family contacts.
+            {t('caregiver.emergency.panic_desc', 'Pressing this button will instantly dispatch an emergency ambulance to')} <span className="font-bold text-white">{activeWard.currentLocation}</span>, {t('caregiver.emergency.panic_desc_tail', 'transmit critical medical records to the nearest trauma team, and notify all verified family contacts.')}
           </p>
         </div>
 
@@ -99,7 +102,7 @@ export const CaregiverEmergencyView: React.FC = () => {
           className="w-40 h-40 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-black text-base shadow-2xl shadow-rose-600/60 border-4 border-rose-400/40 flex flex-col items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shrink-0 animate-pulse"
         >
           <AlertOctagon className="w-10 h-10" />
-          <span>TRIGGER SOS</span>
+          <span>{t('caregiver.emergency.trigger_btn', 'TRIGGER SOS')}</span>
         </button>
       </div>
 
@@ -111,10 +114,10 @@ export const CaregiverEmergencyView: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <MapPin className="w-4 h-4 text-rose-500" />
-              <span>Real-Time Geofence Radar: {activeWard.name}</span>
+              <span>{t('caregiver.emergency.radar_title', 'Real-Time Geofence Radar:')} {getLocalizedName(activeWard.name, t)}</span>
             </h3>
             <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
-              {activeWard.geofenceStatus}
+              {t('caregiver.emergency.inside_safe', activeWard.geofenceStatus)}
             </span>
           </div>
 
@@ -123,10 +126,10 @@ export const CaregiverEmergencyView: React.FC = () => {
             
             <div className="flex justify-between items-center text-xs font-bold relative z-10">
               <span className="bg-slate-900/80 px-2.5 py-1 rounded-lg backdrop-blur-xs flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> GPS Live Broadcast
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> {t('caregiver.emergency.gps_live', 'GPS Live Broadcast')}
               </span>
               <span className="bg-slate-900/80 px-2.5 py-1 rounded-lg backdrop-blur-xs text-slate-300">
-                Safe Zone Radius: 500m
+                {t('caregiver.emergency.safe_radius', 'Safe Zone Radius: 500m')}
               </span>
             </div>
 
@@ -135,12 +138,12 @@ export const CaregiverEmergencyView: React.FC = () => {
                 <MapPin className="w-6 h-6 text-teal-300" />
               </div>
               <p className="font-black text-sm text-white">{activeWard.currentLocation}</p>
-              <p className="text-[10px] text-slate-400">Last Telemetry Ping: {activeWard.lastLocationUpdate}</p>
+              <p className="text-[10px] text-slate-400">{t('caregiver.emergency.last_ring', 'Last Telemetry Ping:')} {activeWard.lastLocationUpdate}</p>
             </div>
 
             <div className="flex justify-between items-center text-[10px] text-slate-400 relative z-10">
-              <span>Sensor: Apple Watch Series 9 Health Ring</span>
-              <span>Cellular Triangulation: Optimal</span>
+              <span>{t('caregiver.emergency.sensor_info', 'Sensor: Apple Watch Series 9 Health Ring')}</span>
+              <span>{t('caregiver.emergency.triangulation', 'Cellular Triangulation: Optimal')}</span>
             </div>
           </div>
         </div>
@@ -149,7 +152,7 @@ export const CaregiverEmergencyView: React.FC = () => {
         <div className="p-6 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Users className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-            <span>Emergency Responders & Family Ring</span>
+            <span>{t('caregiver.emergency.responders_title', 'Emergency Responders & Family Ring')}</span>
           </h3>
 
           <div className="space-y-2.5 text-xs">
@@ -159,12 +162,12 @@ export const CaregiverEmergencyView: React.FC = () => {
                   108
                 </div>
                 <div>
-                  <p className="font-black text-slate-900 dark:text-white">Apollo Emergency Trauma Hotline</p>
-                  <p className="text-[11px] text-slate-500">24x7 Ambulance & Paramedic Unit</p>
+                  <p className="font-black text-slate-900 dark:text-white">{t('caregiver.emergency.hotline_name', 'Apollo Emergency Trauma Hotline')}</p>
+                  <p className="text-[11px] text-slate-500">{t('caregiver.emergency.hotline_desc', '24x7 Ambulance & Paramedic Unit')}</p>
                 </div>
               </div>
               <a href="tel:108" className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> Call 108
+                <Phone className="w-3.5 h-3.5" /> {t('caregiver.emergency.call_108', 'Call 108')}
               </a>
             </div>
 
@@ -174,12 +177,12 @@ export const CaregiverEmergencyView: React.FC = () => {
                   Dr
                 </div>
                 <div>
-                  <p className="font-black text-slate-900 dark:text-white">{activeWard.primaryDoctor.name}</p>
+                  <p className="font-black text-slate-900 dark:text-white">{getLocalizedName(activeWard.primaryDoctor.name, t)}</p>
                   <p className="text-[11px] text-slate-500">{activeWard.primaryDoctor.specialty} • {activeWard.primaryDoctor.hospital}</p>
                 </div>
               </div>
               <a href={`tel:${activeWard.primaryDoctor.phone}`} className="px-3 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> Call Doctor
+                <Phone className="w-3.5 h-3.5" /> {t('caregiver.emergency.call_doctor', 'Call Doctor')}
               </a>
             </div>
 
@@ -189,12 +192,12 @@ export const CaregiverEmergencyView: React.FC = () => {
                   CG
                 </div>
                 <div>
-                  <p className="font-black text-slate-900 dark:text-white">Anita Sharma (Primary Caregiver)</p>
-                  <p className="text-[11px] text-slate-500">Verified Legal Guardian • +91 98765 11223</p>
+                  <p className="font-black text-slate-900 dark:text-white">{getLocalizedName('Anita Sharma', t)} ({t('caregiver.profile.primary_caregiver', 'Primary Caregiver')})</p>
+                  <p className="text-[11px] text-slate-500">{t('caregiver.emergency.guardian_desc', 'Verified Legal Guardian')} • +91 98765 11223</p>
                 </div>
               </div>
               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-teal-50 dark:bg-cyan-950/40 text-teal-700 dark:text-cyan-300">
-                Primary
+                {t('caregiver.emergency.primary', 'Primary')}
               </span>
             </div>
           </div>
@@ -205,12 +208,12 @@ export const CaregiverEmergencyView: React.FC = () => {
       <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
           <Clock className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
-          <span>Emergency Broadcast Audit Log</span>
+          <span>{t('caregiver.emergency.audit_log_title', 'Emergency Broadcast Audit Log')}</span>
         </h3>
 
         {alerts.length === 0 ? (
           <div className="p-6 text-center text-xs text-slate-400 font-bold">
-            No emergency alerts triggered. All family members are safe in designated zones.
+            {t('caregiver.emergency.no_alerts', 'No emergency alerts triggered. All family members are safe in designated zones.')}
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -278,7 +281,7 @@ export const CaregiverEmergencyView: React.FC = () => {
                   Confirm Emergency SOS Dispatch
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Choose the nature of the emergency for {activeWard.name}:
+                  Choose the nature of the emergency for {getLocalizedName(activeWard.name, t)}:
                 </p>
               </div>
 

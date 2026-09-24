@@ -234,10 +234,16 @@ export const insuranceApi = {
 
 export const caregiverApi = {
   getWards: () => apiClient.get<any[]>('/caregiver/wards'),
+  addDependent: (data: any) => apiClient.post<any[]>('/caregiver/dependents', data),
+  removeDependent: (patientId: string) => apiClient.delete<any>(`/caregiver/dependents/${patientId}`),
   getTasks: (patientId?: string) => apiClient.get<any[]>(patientId ? `/caregiver/tasks?patientId=${patientId}` : '/caregiver/tasks'),
   createTask: (data: any) => apiClient.post('/caregiver/tasks', data),
   updateTask: (id: string, data: { status?: string; notes?: string }) => apiClient.patch(`/caregiver/tasks/${id}`, data),
   logVital: (data: any) => apiClient.post('/caregiver/vitals', data),
+  getCareCircle: (patientId: string) => apiClient.get<any>(`/caregiver/care-circle?patientId=${patientId}`),
+  addCareCircleMember: (data: any) => apiClient.post<any>('/caregiver/care-circle/members', data),
+  removeCareCircleMember: (patientId: string, targetCaregiverId: string) => apiClient.delete<any>(`/caregiver/care-circle/members/${targetCaregiverId}?patientId=${patientId}`),
+  toggleConsentStatus: (patientId: string, status: 'Active' | 'Revoked') => apiClient.patch<any>('/caregiver/consent/status', { patientId, status }),
 };
 
 export const prescriptionApi = {

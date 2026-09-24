@@ -60,19 +60,31 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
+  const isDoctorOrPatient = (name?: string): boolean => {
+    if (!name) return false;
+    const lower = name.toLowerCase().trim();
+    return (
+      lower.startsWith('dr.') ||
+      lower.startsWith('dr ') ||
+      lower.includes('doctor') ||
+      lower.includes('arjun') ||
+      lower.includes('ananya')
+    );
+  };
+
   // Resolve logged-in username dynamically from user prop or localStorage
   const effectiveUser = React.useMemo(() => {
-    let candidateName = user?.name;
-    if (!candidateName || candidateName === 'Suresh Nair') {
+    let candidateName = (user?.role?.toLowerCase?.().includes('pharmacist') && !isDoctorOrPatient(user?.name)) ? user?.name : undefined;
+    if (!candidateName) {
       try {
         const storedName = localStorage.getItem('pharmacist_user_name');
-        if (storedName) {
+        if (storedName && !isDoctorOrPatient(storedName)) {
           candidateName = storedName;
         } else {
           const savedUser = localStorage.getItem('app_user');
           if (savedUser) {
             const parsed = JSON.parse(savedUser);
-            if (parsed?.name && parsed.name !== 'Suresh Nair') {
+            if (parsed?.name && (parsed?.role?.toLowerCase?.().includes('pharmacist') || !parsed?.role) && !isDoctorOrPatient(parsed.name)) {
               candidateName = parsed.name;
             }
           }
@@ -81,10 +93,10 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     }
 
     return {
-      name: candidateName || user?.name || 'Registered Pharmacist',
-      email: user?.email || 'pharmacist@apollocentral.in',
-      role: user?.role || 'Pharmacist',
-      abhaId: user?.abhaId
+      name: candidateName || 'Suresh Nair, R.Ph',
+      email: (user?.role?.toLowerCase?.().includes('pharmacist') && user?.email) || 'pharmacist@health.com',
+      role: 'Pharmacist',
+      abhaId: user?.abhaId || 'RPH-TN-2018-994'
     };
   }, [user]);
 

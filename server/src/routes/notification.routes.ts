@@ -5,9 +5,13 @@ import {
   markNotificationReadController,
   markAllNotificationsReadController,
   deleteNotificationController,
+  generateSpeechController,
 } from '../controllers/notification.controller';
 
 const router = Router();
+
+// Speech generation endpoint (public utility for voice notifications)
+router.post('/speech', generateSpeechController);
 
 router.use(authenticate);
 
