@@ -20,7 +20,10 @@ export const NurseOverviewView: React.FC<NurseOverviewViewProps> = ({ onNavigate
   const pendingRequests = bookings.filter(b => b.status === 'Pending');
   const completedVisits = bookings.filter(b => b.status === 'Completed');
 
-  const nurseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Shwathy';
+  const baseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse';
+  const nurseName = (baseName !== 'Nurse' && !baseName.includes('Senior RN')) 
+    ? `${baseName}, Senior RN` 
+    : baseName;
 
   return (
     <div className="space-y-4 pb-16 px-5 font-sans select-none w-full max-w-7xl mx-auto">

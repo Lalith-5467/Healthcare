@@ -28,7 +28,10 @@ export const NurseSidebar: React.FC<NurseSidebarProps> = ({ activeNav, onNavigat
   const pendingRequestsCount = bookings.filter(b => b.status === 'Pending').length;
   const activeCareCount = bookings.filter(b => b.status === 'Accepted' || b.status === 'On the Way' || b.status === 'Arrived' || b.status === 'Care in Progress').length;
 
-  const nurseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Sarah Jenkins';
+  const baseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse';
+  const nurseName = (baseName !== 'Nurse' && !baseName.includes('Senior RN')) 
+    ? `${baseName}, Senior RN` 
+    : baseName;
 
   const NAV_ITEMS: Array<{
     id?: string;

@@ -61,33 +61,14 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
-  // Fetch authenticated nurse identity from backend (authoritative source)
-  const [authenticatedNurse, setAuthenticatedNurse] = React.useState<{ name: string; email: string } | null>(null);
-
-  React.useEffect(() => {
-    authApi.getCurrentUser()
-      .then((res) => {
-        if (res && res.data) {
-          const u = res.data;
-          const profile: any = u.profile || {};
-          // Only accept the result if the authenticated user is actually a nurse
-          const role = (u.role || '').toUpperCase();
-          if (role === 'NURSE') {
-            const name = profile.fullName || profile.name || u.email.split('@')[0];
-            setAuthenticatedNurse({ name, email: u.email });
-          }
-        }
-      })
-      .catch(() => {
-        // Backend call failed — fall back to the user prop silently
-      });
-  }, []);
-
-  // Use backend-verified nurse identity; fall back to user prop if not yet resolved
-  const resolvedNurse = authenticatedNurse || user;
-  const nurseName = resolvedNurse?.name
+  // Use user prop passed down from App.tsx
+  const resolvedNurse = user || { name: 'Nurse', email: '' };
+  const baseName = resolvedNurse?.name
     ? (resolvedNurse.name.startsWith('Nurse') ? resolvedNurse.name : `Nurse ${resolvedNurse.name}`)
     : 'Nurse';
+  const nurseName = (baseName !== 'Nurse' && !baseName.includes('Senior RN')) 
+    ? `${baseName}, Senior RN` 
+    : baseName;
 
   const renderActiveView = () => {
     switch (activeNav) {
@@ -217,10 +198,10 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
             type="button"
             onClick={onLogout}
             className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
-            title={t('nav.logout', 'Logout')}
+            title={t('nav.log_out', 'Log Out')}
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('nav.logout', 'Logout')}</span>
+            <span className="hidden sm:inline">{t('nav.log_out', 'Log Out')}</span>
           </button>
         </div>
       </header>

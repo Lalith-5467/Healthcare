@@ -24,8 +24,13 @@ interface NurseProfileViewProps {
 
 export const NurseProfileView: React.FC<NurseProfileViewProps> = ({ user }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const baseName = user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse';
+  const nurseName = (baseName !== 'Nurse' && !baseName.includes('Senior RN')) 
+    ? `${baseName}, Senior RN` 
+    : baseName;
+
   const [profile, setProfile] = useState({
-    name: user?.name ? (user.name.startsWith('Nurse') ? user.name : `Nurse ${user.name}`) : 'Nurse Sarah Jenkins',
+    name: nurseName,
     designation: 'Senior Registered Nurse (RN) • Critical Care Specialist',
     licenseNo: 'RN-TN-2024-88492',
     hospital: 'Apollo Central Health City, Chennai',

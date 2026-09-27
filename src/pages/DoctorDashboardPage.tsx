@@ -69,7 +69,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
-  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Dr. Sarah Jenkins';
+  const doctorName = user?.name ? (user.name.startsWith('Dr') ? user.name : `Dr. ${user.name}`) : 'Doctor';
 
   const handleScanSuccess = (patientId: string) => {
     setScannedPatientId(patientId);

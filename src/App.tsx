@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalToastManager } from './components/common/GlobalToastManager';
-import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/landing/Header';
 import { Hero } from './components/landing/Hero';
 import { AboutHospital } from './components/landing/AboutHospital';
@@ -241,36 +240,7 @@ const getInitialAppState = () => {
     userData = null;
   }
 
-  // Enforce portal-role isolation so sessions from one portal do not leak into another portal
-  if (isPharmacistPath && userData && userData.role !== 'Pharmacist') {
-    userData = {
-      name: 'Suresh Nair, R.Ph',
-      email: 'pharmacist@health.com',
-      role: 'Pharmacist',
-      abhaId: 'RPH-TN-2018-994',
-    };
-  } else if (isDoctorPath && userData && userData.role !== 'Doctor') {
-    userData = {
-      name: 'Dr. Arjun Kumar',
-      email: 'dr.arjun.kumar@apollocentral.in',
-      role: 'Doctor',
-    };
-  } else if (isNursePath && userData && userData.role !== 'Nurse') {
-    userData = {
-      name: 'Sister Priya Nair',
-      email: 'nurse@health.com',
-      role: 'Nurse',
-    };
-  } else if (isUserPath && userData && userData.role !== 'Patient') {
-    userData = {
-      name: 'Ananya Sharma',
-      email: 'ananya@health.com',
-      role: 'Patient',
-      abhaId: '91-9482-1102-4821',
-      bloodGroup: 'B+',
-      age: 29
-    };
-  }
+  // Role isolation block removed to prevent hardcoded mock identities from overriding actual logged-in users.
 
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
   let nav = target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard';
@@ -386,10 +356,19 @@ export const App: React.FC = () => {
             if (pathLower.startsWith('/insurance') && normalizedRole !== 'Insurance') return;
             if (pathLower.startsWith('/user') && normalizedRole !== 'Patient') return;
 
+            const savedUserRaw = localStorage.getItem('app_user');
+            let savedName = undefined;
+            if (savedUserRaw) {
+              try {
+                const parsed = JSON.parse(savedUserRaw);
+                savedName = parsed.name;
+              } catch {}
+            }
+
             const refreshedUser = {
               id: u.id,
               profileId: profile.id,
-              name: profile.fullName || profile.providerName || u.email.split('@')[0],
+              name: savedName || u.name || profile.fullName || profile.providerName || u.email.split('@')[0],
               email: u.email,
               role: normalizedRole,
               abhaId: u.abhaId || profile.abhaId,
