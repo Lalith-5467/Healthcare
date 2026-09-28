@@ -6,6 +6,7 @@ import {
   FileText, Lock, Cpu, Activity, Eye, Crosshair, Sun, Moon, AlertCircle
 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
+import { runOpticalOcr } from '../../utils/ocrService';
 
 interface ScannerModalProps {
   isOpen: boolean;
@@ -57,17 +58,19 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   isOpen, onClose, onCapture, onSwitchToUpload,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const [phase, setPhase] = useState<ScanPhase>('prompt');
-  const [scannerState, setScannerState] = useState<'idle' | 'permission_required' | 'scanning' | 'processing' | 'success' | 'error'>('idle');
+  const [phase, setPhase] = useState<ScanPhase>('scanning');
+  const [scannerState, setScannerState] = useState<'idle' | 'permission_required' | 'scanning' | 'processing' | 'success' | 'error'>('scanning');
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   const [cameraGranted, setCameraGranted] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [detectedFields, setDetectedFields] = useState<string[]>([]);
   const [confidence, setConfidence] = useState(0);
+  const [isAbdmVerified, setIsAbdmVerified] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [revealedMeds, setRevealedMeds] = useState(0);
   const [activeDocType, setActiveDocType] = useState<'prescription' | 'lab_report'>('prescription');
-  const [scanStatusMsg, setScanStatusMsg] = useState('Initializing...');
+  const [scanStatusMsg, setScanStatusMsg] = useState('Position document within frame');
   const [preset] = useState(() => DEMO_PRESETS[Math.floor(Math.random() * DEMO_PRESETS.length)]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -84,16 +87,86 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     timeoutsRef.current = [];
   };
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current.getTracks().forEach(t => {
+        try { t.stop(); } catch { /* ignore */ }
+      });
       streamRef.current = null;
     }
-  };
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setCameraGranted(false);
+  }, []);
 
-  // ── reset on close ────────────────────────────────────────────────────────
+  // ── start live camera ─────────────────────────────────────────────────────
+  const startLiveCamera = useCallback(async () => {
+    stopCamera();
+    setErrorMessage('');
+    setScanStatusMsg('Initializing optical camera...');
+    try {
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          }
+        });
+      } catch {
+        // Fallback for laptops/webcams without environment camera
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+
+      streamRef.current = stream;
+      setCameraGranted(true);
+      setPhase('scanning');
+      setScannerState('scanning');
+      setScanProgress(0);
+      setConfidence(0);
+      setDetectedFields([]);
+      setScanStatusMsg('Position medical document within frame');
+      console.log('[Scanner] camera initialized');
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.muted = true;
+        try {
+          await videoRef.current.play();
+          console.log('[Scanner] video ready');
+        } catch (playErr) {
+          console.warn('[Scanner] video play error:', playErr);
+        }
+      }
+    } catch (err: any) {
+      console.error('[Scanner] camera access error:', err);
+      setCameraGranted(false);
+      setPhase('scanning');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setErrorMessage('Camera access is required to scan a document.');
+      } else {
+        setErrorMessage('No camera was detected.');
+      }
+      setScannerState('error');
+    }
+  }, [stopCamera]);
+
+  // ── reset on open / close ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setPhase('scanning');
+      setScannerState('scanning');
+      setResultImage(null);
+      setErrorMessage('');
+      setScanProgress(0);
+      setDetectedFields([]);
+      setConfidence(0);
+      setIsAbdmVerified(false);
+      startLiveCamera();
+    } else {
       clearAllTimers();
       stopCamera();
       setPhase('prompt');
@@ -103,37 +176,38 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       setScanProgress(0);
       setDetectedFields([]);
       setConfidence(0);
-      setRevealedMeds(0);
+      setIsAbdmVerified(false);
     }
-  }, [isOpen]);
+  }, [isOpen, startLiveCamera, stopCamera]);
 
-  // ── file / gallery select ─────────────────────────────────────────────────
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const reader = new FileReader();
-      reader.onload = ev => { if (ev.target?.result) onCapture(ev.target.result as string); };
-      reader.readAsDataURL(e.target.files[0]);
+  // ── video ref stream attachment listener ──────────────────────────────────
+  useEffect(() => {
+    if (videoRef.current && streamRef.current && videoRef.current.srcObject !== streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.setAttribute('playsinline', 'true');
+      videoRef.current.muted = true;
+      videoRef.current.play().then(() => {
+        console.log('[Scanner] video ready');
+      }).catch(err => console.warn('[Scanner] video play error:', err));
     }
-  };
+  }, [cameraGranted, scannerState, phase]);
 
-  // ── start live camera ─────────────────────────────────────────────────────
-  const startLiveCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-      });
-      streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
-      setCameraGranted(true);
-      setPhase('scanning');
-      setScannerState('scanning');
-    } catch {
-      // No camera - go to demo mode
-      setCameraGranted(false);
-      setPhase('scanning');
-      setScannerState('scanning');
-    }
-  };
+  // ── camera frame guidance hint cycling ────────────────────────────────────
+  useEffect(() => {
+    if (scannerState !== 'scanning' || !cameraGranted) return;
+    const tips = [
+      'Position medical document within frame',
+      'Move closer to the prescription for clear text',
+      'Hold the camera steady and improve lighting',
+      'Position the full prescription inside the frame',
+    ];
+    let idx = 0;
+    const tipInterval = setInterval(() => {
+      idx = (idx + 1) % tips.length;
+      setScanStatusMsg(tips[idx]);
+    }, 3500);
+    return () => clearInterval(tipInterval);
+  }, [scannerState, cameraGranted]);
 
   // ── build canvas prescription image ──────────────────────────────────────
   const buildCanvas = (): string => {
@@ -200,110 +274,172 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   // ── capture live video frame ──────────────────────────────────────────────
   const captureVideoFrame = (): string | null => {
     if (!videoRef.current) return null;
+    const v = videoRef.current;
+    const w = v.videoWidth || 0;
+    const h = v.videoHeight || 0;
+    if (w === 0 || h === 0) {
+      console.warn('[Scanner] video dimensions invalid:', w, h);
+      return null;
+    }
+
     try {
-      const v = videoRef.current;
+      // The viewfinder is fixed at 3:4 aspect ratio.
+      // Crop the document region visible to the user with a 15% safety margin
+      // so no prescription text around the border is cut off.
+      const targetRatio = 3 / 4;
+      const videoRatio = w / h;
+
+      let sx = 0;
+      let sy = 0;
+      let sw = w;
+      let sh = h;
+
+      if (videoRatio > targetRatio * 1.05) {
+        // Landscape stream (e.g. 1920x1080)
+        const visibleW = h * targetRatio;
+        sw = Math.min(w, Math.round(visibleW * 1.15));
+        sx = Math.max(0, Math.round((w - sw) / 2));
+        sh = h;
+        sy = 0;
+      } else if (videoRatio < targetRatio * 0.95) {
+        // Narrow portrait stream
+        const visibleH = w / targetRatio;
+        sh = Math.min(h, Math.round(visibleH * 1.15));
+        sy = Math.max(0, Math.round((h - sh) / 2));
+        sw = w;
+        sx = 0;
+      }
+
+      // Upscale high-resolution canvas if needed (minimum width 1600px)
+      let scale = 1;
+      if (sw < 1600) {
+        scale = Math.min(2.5, 1800 / sw);
+      }
+      const targetW = Math.round(sw * scale);
+      const targetH = Math.round(sh * scale);
+
       const canvas = document.createElement('canvas');
-      canvas.width = v.videoWidth || 1280; canvas.height = v.videoHeight || 720;
+      canvas.width = targetW;
+      canvas.height = targetH;
       const ctx = canvas.getContext('2d');
-      if (ctx) { ctx.drawImage(v, 0, 0, canvas.width, canvas.height); return canvas.toDataURL('image/jpeg', 0.95); }
-    } catch { /* fallback */ }
-    return null;
+      if (!ctx) return null;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(v, sx, sy, sw, sh, 0, 0, targetW, targetH);
+
+      return canvas.toDataURL('image/jpeg', 0.95);
+    } catch (e) {
+      console.error('[Scanner] capture frame error:', e);
+      return null;
+    }
   };
 
-  // ── main scan pipeline ────────────────────────────────────────────────────
-  const startScan = useCallback(() => {
-    setPhase('scanning');
-    setScannerState('scanning');
-    setScanProgress(0);
-    setDetectedFields([]);
-    setConfidence(0);
-    setRevealedMeds(0);
-    setScanStatusMsg('Initializing optical sensors...');
+  // ── process captured document through Tesseract OCR & NLP ─────────────────
+  const processCapturedDocument = async (imageSource: string) => {
+    setScannerState('processing');
+    setScanProgress(10);
+    setScanStatusMsg('Running AI OCR & extracting prescription metrics...');
 
-    const addTimeout = (fn: () => void, ms: number) => {
-      const id = setTimeout(fn, ms);
-      timeoutsRef.current.push(id);
-    };
+    try {
+      const result = await runOpticalOcr(imageSource, (prog, msg) => {
+        setScanProgress(prog);
+        if (msg) setScanStatusMsg(msg);
+      });
 
-    // Progress bar ticker
-    let prog = 0;
-    intervalRef.current = setInterval(() => {
-      prog = Math.min(prog + Math.random() * 5 + 2, 95);
-      setScanProgress(Math.round(prog));
-      setConfidence(parseFloat((prog * 0.998).toFixed(1)));
-      if (prog >= 80) {
-        setScannerState('processing');
-        setScanStatusMsg('Running AI OCR & extracting health metrics...');
+      if (!result.text || result.text.trim().length === 0) {
+        setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
+        setScannerState('error');
+        return;
       }
-    }, 80);
 
-    // Status messages
-    addTimeout(() => setScanStatusMsg('Detecting document boundaries...'), 400);
-    addTimeout(() => setScanStatusMsg('Document locked — parsing fields...'), 900);
-    addTimeout(() => setScanStatusMsg('Neural OCR processing medicines...'), 1400);
+      if (result.fields.length === 0 && result.confidence < 25) {
+        setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
+        setScannerState('error');
+        return;
+      }
 
-    // Field reveal
-    const fields: [number, string][] = [
-      [300, 'Hospital Name'], [550, 'Patient Identity'], [750, 'ABHA ID Verified'],
-      [950, 'Doctor Info'], [1100, 'Medicine #1'], [1250, 'Medicine #2'],
-      [1380, 'Medicine #3'], [1480, 'Follow-Up Date'], [1580, 'Physician Signature'],
-    ];
-    fields.forEach(([ms, f]) => addTimeout(() => setDetectedFields(prev => [...prev, f]), ms));
-
-    // Medicine reveal
-    preset.medicines.forEach((_, i) => addTimeout(() => setRevealedMeds(i + 1), 1100 + i * 150));
-
-    // Complete
-    addTimeout(() => {
-      clearAllTimers();
+      setDetectedFields(result.fields);
+      setConfidence(result.confidence);
+      setIsAbdmVerified(result.isAbdmCompliant);
       setScanProgress(100);
-      setConfidence(99.8);
       setScanStatusMsg('✓ Extraction complete');
-      setPhase('done');
-
-      const result = cameraGranted ? (captureVideoFrame() ?? buildCanvas()) : buildCanvas();
-      setResultImage(result);
       setScannerState('success');
-    }, 2000);
-  }, [preset, cameraGranted]);
+      setPhase('done');
+      stopCamera();
+    } catch (err: any) {
+      console.error('[OCR] processing failed:', err);
+      setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
+      setScannerState('error');
+    }
+  };
 
-  const handleCaptureDocument = () => {
-    clearAllTimers();
-    const result = cameraGranted ? (captureVideoFrame() ?? buildCanvas()) : buildCanvas();
-    setResultImage(result);
-    setScanProgress(100);
-    setConfidence(99.8);
-    setScanStatusMsg('✓ Capture complete');
-    setPhase('done');
-    setScannerState('success');
-    stopCamera();
+  // ── handle capture document click ─────────────────────────────────────────
+  const handleCaptureDocument = async () => {
+    console.log('[Scanner] capture started');
+    setScanStatusMsg('Capturing document...');
+
+    let capturedDataUrl: string | null = null;
+    if (cameraGranted && videoRef.current) {
+      capturedDataUrl = captureVideoFrame();
+    } else {
+      capturedDataUrl = buildCanvas();
+    }
+
+    if (!capturedDataUrl) {
+      setErrorMessage('Unable to capture the document. Please try again.');
+      setScannerState('error');
+      return;
+    }
+
+    console.log('[Scanner] captured image created');
+    setResultImage(capturedDataUrl);
+    setScanStatusMsg('✓ Capture complete — Starting OCR...');
+
+    await processCapturedDocument(capturedDataUrl);
+  };
+
+  // ── file / gallery select ─────────────────────────────────────────────────
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        if (ev.target?.result) {
+          const dataUrl = ev.target.result as string;
+          setResultImage(dataUrl);
+          setPhase('scanning');
+          setScanStatusMsg('✓ Capture complete — Starting OCR...');
+          await processCapturedDocument(dataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleResetScanner = () => {
     clearAllTimers();
     stopCamera();
-    setPhase('prompt');
-    setScannerState('idle');
     setResultImage(null);
-    setCameraGranted(false);
+    setErrorMessage('');
     setScanProgress(0);
     setDetectedFields([]);
     setConfidence(0);
-    setRevealedMeds(0);
+    setIsAbdmVerified(false);
+    startLiveCamera();
   };
 
-  // ── If camera already granted and we enter scanning phase, auto-start ─────
   const handleStartCamera = async () => {
     await startLiveCamera();
-    // pipeline starts after state settles
   };
 
-  // ── triggered when phase switches to 'scanning' from camera path ──────────
-  useEffect(() => {
-    if (phase === 'scanning' && !intervalRef.current && scanProgress === 0) {
-      startScan();
-    }
-  }, [phase, startScan]);
+  const startScan = async () => {
+    const demoCanvas = buildCanvas();
+    setResultImage(demoCanvas);
+    setPhase('scanning');
+    setScanStatusMsg('✓ Demo document loaded — Starting OCR...');
+    await processCapturedDocument(demoCanvas);
+  };
 
   const renderViewfinderContent = () => {
     switch (scannerState) {
@@ -345,7 +481,23 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             {flashOn && <div className="absolute inset-0 z-30 pointer-events-none bg-yellow-200/5" />}
 
             {cameraGranted ? (
-              <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+              <video
+                ref={(node) => {
+                  videoRef.current = node;
+                  if (node && streamRef.current && node.srcObject !== streamRef.current) {
+                    node.srcObject = streamRef.current;
+                    node.setAttribute('playsinline', 'true');
+                    node.muted = true;
+                    node.play().then(() => {
+                      console.log('[Scanner] video ready');
+                    }).catch(err => console.warn('[Scanner] video play error:', err));
+                  }
+                }}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover rounded-xl"
+              />
             ) : (
               <div 
                 className="absolute inset-0 rounded-xl overflow-hidden" 
@@ -450,7 +602,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             </div>
 
             {/* Capture Button Overlay (if camera is active, allow manual capture) */}
-            {cameraGranted && (
+            {cameraGranted && scannerState === 'scanning' && (
               <div className="absolute bottom-4 left-0 right-0 flex justify-center z-40">
                 <button
                   type="button"
@@ -534,7 +686,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             <div className="space-y-1">
               <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-200">Unable to scan document</h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
-                Please reposition the document and try again.
+                {errorMessage || 'Please reposition the document and try again.'}
               </p>
             </div>
             <div className="flex gap-2">
@@ -542,7 +694,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 type="button"
                 onClick={() => {
                   setScannerState('scanning');
-                  startScan();
+                  startLiveCamera();
                 }}
                 className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
               >
@@ -573,8 +725,23 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             <span className="text-xs font-black tracking-wide text-slate-900">Live OCR Extraction</span>
           </div>
           {scannerState === 'scanning' && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-700 border border-emerald-500/20 bg-emerald-500/10">
+              READY
+            </span>
+          )}
+          {scannerState === 'processing' && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-teal-700 border border-teal-500/20 bg-teal-500/10 animate-pulse">
               PROCESSING
+            </span>
+          )}
+          {scannerState === 'success' && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-700 border border-emerald-500/20 bg-emerald-500/10">
+              COMPLETE
+            </span>
+          )}
+          {scannerState === 'error' && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-rose-700 border border-rose-500/20 bg-rose-500/10">
+              ERROR
             </span>
           )}
         </div>
@@ -594,13 +761,27 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <div className="space-y-2 flex-1">
           <div className="text-[10px] font-black uppercase tracking-wide text-slate-500">Detected Fields</div>
           <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
-            {detectedFields.length === 0 ? (
+            {scannerState === 'processing' ? (
+              <div className="space-y-1.5 py-2">
+                <div className="flex items-center gap-2 text-xs text-teal-700 font-mono animate-pulse">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#00a896] shrink-0" />
+                  <span className="line-clamp-1">{scanStatusMsg || 'Extracting prescription fields...'}</span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-mono">
+                  Optical OCR & medical entity parser active...
+                </div>
+              </div>
+            ) : detectedFields.length === 0 ? (
               <p className="text-xs text-slate-400 italic font-mono">Awaiting scan initiation...</p>
             ) : (
               detectedFields.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-slate-800 font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{f}</span>
+                <div key={i} className="flex items-start gap-2 text-xs text-slate-800 font-medium">
+                  {f.startsWith('Notice:') ? (
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                  )}
+                  <span className={f.startsWith('Notice:') ? 'text-amber-700 text-[11px]' : ''}>{f}</span>
                 </div>
               ))
             )}
@@ -611,11 +792,20 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <div className="space-y-2 pt-4 border-t border-slate-100">
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">Confidence Score</span>
-            <span className="font-bold text-emerald-600">{confidence > 0 ? `${confidence}%` : '—'}</span>
+            <span className={`font-bold ${confidence === 0 ? 'text-slate-400' : confidence < 50 ? 'text-amber-600' : 'text-emerald-600'}`}>
+              {confidence > 0 ? (confidence < 50 ? `${confidence}% (Low)` : `${confidence}%`) : '—'}
+            </span>
           </div>
+          {confidence > 0 && confidence < 50 && (
+            <div className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 font-sans">
+              Low confidence — please capture a clearer prescription.
+            </div>
+          )}
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">ABDM Compliant</span>
-            <span className="font-bold text-[#00a896]">{confidence > 50 ? 'VERIFIED' : 'PENDING'}</span>
+            <span className={`font-bold ${scannerState === 'success' ? (isAbdmVerified ? 'text-[#00a896]' : 'text-slate-500') : 'text-slate-400'}`}>
+              {scannerState === 'success' ? (isAbdmVerified ? 'VERIFIED' : 'NOT DETECTED') : 'PENDING'}
+            </span>
           </div>
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">Processing Engine</span>
@@ -657,11 +847,11 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           <div className="hidden sm:block">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-900 tracking-wide">AI Optical Medical Scanner</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-700 border border-emerald-500/30 bg-emerald-50 animate-pulse">
-                {phase === 'scanning' ? 'PROCESSING' : 'LIVE OCR HUD'}
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold text-emerald-700 border border-emerald-500/30 bg-emerald-50">
+                {scannerState === 'processing' ? 'PROCESSING' : scannerState === 'success' ? 'COMPLETE' : 'READY'}
               </span>
             </div>
-            <p className="text-[10px] text-slate-500 font-mono">{phase === 'scanning' ? scanStatusMsg : 'Auto-edge detection • ABDM compliant'}</p>
+            <p className="text-[10px] text-slate-500 font-mono">{scannerState === 'scanning' || scannerState === 'processing' ? scanStatusMsg : 'Auto-edge detection • ABDM compliant'}</p>
           </div>
         </div>
 
@@ -880,22 +1070,22 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           {/* Main scan button */}
           <button
             type="button"
-            onClick={phase === 'prompt' ? () => startScan() : undefined}
-            disabled={phase === 'scanning'}
+            onClick={scannerState === 'scanning' ? handleCaptureDocument : (scannerState === 'success' && resultImage ? () => onCapture(resultImage) : handleCaptureDocument)}
+            disabled={scannerState === 'processing'}
             className="relative p-1.5 rounded-full transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:cursor-wait disabled:opacity-80"
-            aria-label="Start Scan"
+            aria-label="Capture Document"
           >
             <motion.div
               className="rounded-full border-2 flex items-center justify-center p-1.5 w-16 h-16 border-teal-500/40 bg-teal-50"
-              animate={phase === 'scanning' ? { boxShadow: ['0 0 0px #00a89620', '0 0 20px #00a89650', '0 0 0px #00a89620'] } : {}}
+              animate={scannerState === 'processing' ? { boxShadow: ['0 0 0px #00a89620', '0 0 20px #00a89650', '0 0 0px #00a89620'] } : {}}
               transition={{ duration: 1, repeat: Infinity }}
             >
               <div className="w-full h-full rounded-full flex items-center justify-center text-white shadow-md bg-[#00a896] hover:bg-[#00897b] transition-colors">
-                {phase === 'scanning' ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Scan className="w-6 h-6" />}
+                {scannerState === 'processing' ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Scan className="w-6 h-6" />}
               </div>
             </motion.div>
             <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 whitespace-nowrap">
-              {phase === 'scanning' ? 'Scanning...' : 'Start Scan'}
+              {scannerState === 'processing' ? 'Processing...' : (scannerState === 'success' ? 'Review Document' : 'Capture')}
             </span>
           </button>
 

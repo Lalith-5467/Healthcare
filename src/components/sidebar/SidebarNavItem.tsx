@@ -125,7 +125,9 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
                   <span className={`w-1 h-1 rounded-full animate-pulse ${
                     item.badge === 'New' ? 'bg-emerald-500' : 'bg-teal-500'
                   }`} />
-                  <span>{item.badge}</span>
+                  <span>
+                    {item.badge === 'New' ? t('badge.new', 'New') : item.badge === '1 Due' ? t('badge.due', '1 Due') : item.badge}
+                  </span>
                 </span>
               )}
 
@@ -170,7 +172,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
           <span>{translatedLabel}</span>
           {item.badge && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold bg-teal-500/30 text-cyan-300 rounded-md">
-              {item.badge}
+              {item.badge === 'New' ? t('badge.new', 'New') : item.badge === '1 Due' ? t('badge.due', '1 Due') : item.badge}
             </span>
           )}
         </div>

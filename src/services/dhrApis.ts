@@ -273,6 +273,7 @@ export const notificationApi = {
   markAsRead: (id: string) => apiClient.patch<NotificationEntity>(`/notifications/${id}/read`),
   markAllAsRead: () => apiClient.patch('/notifications/read-all'),
   deleteNotification: (id: string) => apiClient.delete(`/notifications/${id}`),
+  clearAllNotifications: () => apiClient.delete('/notifications/clear-all'),
 };
 
 export const dashboardApi = {

@@ -120,6 +120,24 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [heartRate, setHeartRate] = useState('');
   const [temperature, setTemperature] = useState('');
 
+  // Email Verification OTP States (Step 2)
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+  const [otpPreviewNotice, setOtpPreviewNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let timer: any;
+    if (otpCountdown > 0) {
+      timer = setInterval(() => {
+        setOtpCountdown((c) => c - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
   // Caregiver Specific States
   const [caregiverType, setCaregiverType] = useState('');
   const [caregiverGovId, setCaregiverGovId] = useState('');
@@ -261,39 +279,393 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     return { value: roundedBmi, label, badgeColor };
   })();
 
-  // Patient Step 1 -> Step 2 Advancement
-  const handleProceedToStep2 = () => {
-    if (!fullName.trim()) {
-      setErrorMsg('Full Name is required in Step 1.');
-      return;
+  // 6-digit OTP input boxes refs and handlers
+  const otpInputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleOtpBoxChange = (index: number, val: string) => {
+    const digit = val.replace(/[^0-9]/g, '').slice(-1);
+    const current = (otpCode || '').padEnd(6, ' ').split('').slice(0, 6);
+    current[index] = digit || ' ';
+    const combined = current.join('').trimEnd();
+    setOtpCode(combined);
+    clearError();
+
+    // auto-focus next input if digit entered
+    if (digit && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
     }
-    if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
-      setErrorMsg('Please enter a valid 10-digit Phone Number.');
-      return;
-    }
-    if (dob && new Date(dob) > new Date()) {
-      setErrorMsg('Date of birth cannot be in the future.');
-      return;
-    }
-    setErrorMsg('');
-    setPatientRegStep(2);
   };
 
-  // Patient Step 2 -> Step 3 Advancement
-  const handleProceedToStep3 = () => {
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if ((!otpCode[index] || otpCode[index] === ' ') && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (otpCode && otpCode.trim().length === 6) {
+        handleVerifyOtp();
+      } else {
+        showError('Please enter all 6 digits of the verification code.');
+      }
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (pasted) {
+      setOtpCode(pasted);
+      clearError();
+      const nextIndex = Math.min(pasted.length, 5);
+      otpInputRefs.current[nextIndex]?.focus();
+    }
+  };
+
+  // Keyboard Enter-key navigation ref and handler for Patient Registration
+  const patientFormRef = React.useRef<HTMLDivElement>(null);
+
+  const focusNavElement = (navKey: string) => {
+    if (!patientFormRef.current) return;
+    const targetEl = patientFormRef.current.querySelector<HTMLElement>(`[data-nav="${navKey}"]`);
+    if (targetEl && !targetEl.hasAttribute('disabled')) {
+      targetEl.focus();
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  const handlePatientKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Enter') return;
+
+    const target = e.target as HTMLElement;
+    if (!target) return;
+
+    const tagName = target.tagName.toLowerCase();
+
+    // 1. Textarea: allow normal newline behavior
+    if (tagName === 'textarea') {
+      return;
+    }
+
+    // 2. Buttons: allow normal execution on Enter
+    if (tagName === 'button') {
+      return;
+    }
+
+    // 3. OTP inputs: managed separately by handleOtpKeyDown
+    if (target.getAttribute('data-otp-input') === 'true') {
+      return;
+    }
+
+    const currentNav = target.getAttribute('data-nav');
+
+    // Prevent default form submission on inputs
+    e.preventDefault();
+
+    // -------------------------------------------------------------
+    // STEP 1 ENTER NAVIGATION
+    // -------------------------------------------------------------
+    if (patientRegStep === 1) {
+      if (currentNav === 'email') {
+        if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+          showError('Please enter a valid email address.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('password');
+        return;
+      }
+
+      if (currentNav === 'password') {
+        if (!password || password.length < 8) {
+          showError('Password must be at least 8 characters long.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('confirmPassword');
+        return;
+      }
+
+      if (currentNav === 'confirmPassword') {
+        if (!confirmPassword) {
+          showError('Please confirm your password.');
+          target.focus();
+          return;
+        }
+        if (password !== confirmPassword) {
+          showError('Passwords do not match. Please verify.');
+          target.focus();
+          return;
+        }
+        clearError();
+
+        // Move to OTP verification area
+        if (isEmailVerified) {
+          focusNavElement('continueStep1');
+        } else if (isOtpSent && otpInputRefs.current[0]) {
+          otpInputRefs.current[0].focus();
+          otpInputRefs.current[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          focusNavElement('sendOtp');
+        }
+        return;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // STEP 2 ENTER NAVIGATION
+    // -------------------------------------------------------------
+    if (patientRegStep === 2) {
+      if (currentNav === 'fullName') {
+        if (!fullName.trim() || fullName.trim().length < 2) {
+          showError('Please enter your full name (minimum 2 characters).');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('dob');
+        return;
+      }
+
+      if (currentNav === 'dob') {
+        if (!dob) {
+          showError('Please enter your date of birth.');
+          target.focus();
+          return;
+        }
+        if (new Date(dob) > new Date()) {
+          showError('Date of birth cannot be in the future.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('gender');
+        return;
+      }
+
+      if (currentNav === 'gender') {
+        if (!gender || gender === 'Select Gender') {
+          showError('Please select your gender.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('phone');
+        return;
+      }
+
+      if (currentNav === 'phone') {
+        if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
+          showError('Please enter a valid 10-digit mobile number.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('emergencyContactPhone');
+        return;
+      }
+
+      if (currentNav === 'emergencyContactPhone') {
+        if (!emergencyContactPhone.trim() || emergencyContactPhone.replace(/[^0-9]/g, '').length < 10) {
+          showError('Please enter a valid 10-digit emergency contact number.');
+          target.focus();
+          return;
+        }
+        clearError();
+        focusNavElement('bloodGroup');
+        return;
+      }
+
+      if (currentNav === 'bloodGroup') {
+        clearError();
+        focusNavElement('allergies');
+        return;
+      }
+
+      if (currentNav === 'allergies') {
+        clearError();
+        focusNavElement('familyPhone');
+        return;
+      }
+
+      if (currentNav === 'familyPhone') {
+        clearError();
+        focusNavElement('address');
+        return;
+      }
+
+      if (currentNav === 'address') {
+        clearError();
+        focusNavElement('abhaId');
+        return;
+      }
+
+      if (currentNav === 'abhaId') {
+        clearError();
+        focusNavElement('continueStep2');
+        return;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // STEP 3 ENTER NAVIGATION
+    // -------------------------------------------------------------
+    if (patientRegStep === 3) {
+      if (currentNav === 'weightKg') {
+        clearError();
+        focusNavElement('heightCm');
+        return;
+      }
+
+      if (currentNav === 'heightCm') {
+        // Skip BMI (auto-calculated and read-only) -> move to Blood Pressure
+        clearError();
+        focusNavElement('systolicBp');
+        return;
+      }
+
+      if (currentNav === 'systolicBp') {
+        clearError();
+        focusNavElement('diastolicBp');
+        return;
+      }
+
+      if (currentNav === 'diastolicBp') {
+        clearError();
+        focusNavElement('heartRate');
+        return;
+      }
+
+      if (currentNav === 'heartRate') {
+        clearError();
+        focusNavElement('temperature');
+        return;
+      }
+
+      if (currentNav === 'temperature') {
+        // Move focus to Create MediCare Account button without submitting automatically
+        clearError();
+        focusNavElement('createAccount');
+        return;
+      }
+    }
+
+    // Fallback: If current field did not match a specific rule, use DOM order
+    if (patientFormRef.current) {
+      const candidates = Array.from(
+        patientFormRef.current.querySelectorAll<HTMLElement>(
+          'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]):not([readonly]), [data-nav]'
+        )
+      ).filter(el => {
+        if (el.tagName.toLowerCase() === 'button' && !el.getAttribute('data-nav')) return false;
+        return true;
+      });
+
+      const idx = candidates.indexOf(target);
+      if (idx !== -1 && idx < candidates.length - 1) {
+        const next = candidates[idx + 1];
+        next.focus();
+        next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  };
+
+  // Email OTP Handlers for Step 1
+  const handleSendOtp = async () => {
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setErrorMsg('Please enter a valid email address.');
+      showError('Please enter a valid email address first.');
+      return;
+    }
+    setOtpLoading(true);
+    clearError();
+    try {
+      const res = await authApi.sendOtp(email.trim());
+      setIsOtpSent(true);
+      setOtpCountdown(60);
+      if (res.data?.previewCode) {
+        setOtpPreviewNotice(`Verification Code: ${res.data.previewCode}`);
+      }
+      showGlobalToast(`Verification code sent to ${email.trim()}`, 'success');
+      setTimeout(() => {
+        otpInputRefs.current[0]?.focus();
+      }, 100);
+    } catch (err: any) {
+      showError(err?.message || 'Unable to send verification code. Please try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpCode || otpCode.trim().length !== 6) {
+      showError('Please enter the full 6-digit verification code.');
+      return;
+    }
+    setOtpLoading(true);
+    clearError();
+    try {
+      await authApi.verifyOtp(email.trim(), otpCode.trim());
+      setIsEmailVerified(true);
+      setOtpPreviewNotice(null);
+      showGlobalToast('✓ Email verified successfully!', 'success');
+    } catch (err: any) {
+      showError(err?.message || 'Invalid or expired verification code.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // Step 1 (Account & Verification) -> Step 2 (Personal Info) Advancement
+  const handleProceedToStep2 = () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      showError('Please enter a valid email address.');
       return;
     }
     if (!password || password.length < 8) {
-      setErrorMsg('Password must be at least 8 characters long.');
+      showError('Password must be at least 8 characters long.');
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match. Please verify.');
+      showError('Passwords do not match. Please verify.');
       return;
     }
-    setErrorMsg('');
+    if (!isEmailVerified) {
+      showError('Please verify your email address using the 6-digit OTP before continuing.');
+      return;
+    }
+    clearError();
+    setPatientRegStep(2);
+  };
+
+  // Step 2 (Personal Info) -> Step 3 (Medical Info) Advancement
+  const handleProceedToStep3 = () => {
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      showError('Please enter your full name (minimum 2 characters).');
+      return;
+    }
+    if (!dob) {
+      showError('Please enter your date of birth.');
+      return;
+    }
+    if (dob && new Date(dob) > new Date()) {
+      showError('Date of birth cannot be in the future.');
+      return;
+    }
+    if (!gender || gender === 'Select Gender') {
+      showError('Please select your gender.');
+      return;
+    }
+    if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
+      showError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (!emergencyContactPhone.trim() || emergencyContactPhone.replace(/[^0-9]/g, '').length < 10) {
+      showError('Please enter a valid 10-digit emergency contact number.');
+      return;
+    }
+    clearError();
     setPatientRegStep(3);
   };
 
@@ -374,6 +746,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
 
     if (mode === 'register') {
+      if (role === 'patient') {
+        if (patientRegStep === 1) {
+          handleProceedToStep2();
+          return;
+        }
+        if (patientRegStep === 2) {
+          handleProceedToStep3();
+          return;
+        }
+        if (!isEmailVerified) {
+          showError('Please verify your email address using the 6-digit OTP.');
+          return;
+        }
+      }
       if (password !== confirmPassword) {
         showError('Passwords do not match. Please check again.');
         return;
@@ -431,9 +817,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           fullName: fullName.trim() || undefined,
           phoneNumber: phone.trim() || undefined,
           abhaId: abhaId.trim() || undefined,
-          gender: gender || undefined,
+          gender: (gender && gender !== 'Select Gender') ? gender : undefined,
           dateOfBirth: dob || undefined,
-          bloodGroup: bloodGroup || undefined,
+          bloodGroup: (bloodGroup && bloodGroup !== 'Select Blood Group') ? bloodGroup.trim() : undefined,
+          blood_group: (bloodGroup && bloodGroup !== 'Select Blood Group') ? bloodGroup.trim() : undefined,
           address: address.trim() || undefined,
           emergencyContactName: emergencyContactName.trim() || undefined,
           emergencyContactPhone: emergencyContactPhone.trim() || familyPhone.trim() || undefined,
@@ -569,40 +956,36 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </motion.button>
       </div>
 
-      {/* MAIN DUAL-COLUMN CARD (58-60% FORM, 40-42% INFO PANEL) */}
-      <div className="mx-auto w-full max-w-4xl lg:max-w-5xl relative z-10 pt-8 sm:pt-4">
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px] transition-all">
+      {/* MAIN DUAL-COLUMN CARD (45/55 SPLIT) */}
+      <div className="mx-auto w-full max-w-6xl xl:max-w-7xl relative z-10 pt-4 sm:pt-6">
+        <div className="rounded-3xl bg-white border border-slate-200/90 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px] transition-all">
           
-          {/* COLUMN 1: HERO / HEALTHCARE INFORMATION PANEL (40-42%) */}
-          <motion.div 
-            layout
-            key={`hero-${mode}`}
-            initial={{ opacity: 0, x: mode === 'login' ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
-            className={`p-7 lg:p-9 text-white flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#071933] to-[#040e1e] border-slate-700/60 ${
-              mode === 'login' 
-                ? 'lg:col-span-5 lg:order-1 border-r' 
-                : 'lg:col-span-5 lg:order-2 border-l'
-            }`}
+          {/* COLUMN 1: LEFT MEDICARE BRANDING & STATIC VISUAL PANEL (45%) */}
+          <div 
+            className="p-7 sm:p-9 lg:p-10 text-white flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#061B33] to-[#040e1e] border-slate-800 lg:col-span-5 lg:order-1 border-r border-slate-800/80"
           >
             {/* AMBIENT MESH OVERLAYS */}
-            <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-600/15 via-teal-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-blue-600/15 via-teal-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
             {/* TOP BRANDING & HEADLINE */}
             <div className="relative z-10 space-y-4">
               <div className="flex items-center justify-between">
                 <Logo showBadge variant="dark" />
-                <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
-                  ABDM Verified
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
+                    ABDM Verified
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 rounded-full border border-blue-400/30 font-mono shadow-xs">
+                    ABDM Ready
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-1.5 pt-1">
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight leading-tight text-white">
                   {mode === 'login' 
-                    ? 'Data Service for Medical Ecosystem' 
+                    ? 'Unified Healthcare & ABHA Ecosystem' 
                     : 'Join the Unified Healthcare Network'}
                 </h2>
                 <p className="text-xs text-slate-300 leading-relaxed font-normal">
@@ -612,55 +995,52 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </p>
               </div>
 
-              {/* HEALTHCARE IMAGE / MEDIA CONTAINER (PRESERVES EXISTING ASSETS) */}
+              {/* HEALTHCARE STATIC IMAGE CONTAINER (STATIC VISUAL - NO CAROUSEL / SLIDERS) */}
               <div className="py-1">
                 <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-lg bg-slate-950">
                   <img 
-                    src={
-                      role === 'doctor'
-                        ? 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=800&auto=format&fit=crop&q=85'
-                        : role === 'nurse'
-                        ? 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&auto=format&fit=crop&q=85'
-                        : role === 'pharmacist'
-                        ? 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=85'
-                        : role === 'insurance'
-                        ? 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=85'
-                        : role === 'caregiver'
-                        ? 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&auto=format&fit=crop&q=85'
-                        : 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=85'
-                    } 
-                    alt={role}
-                    className="w-full h-36 object-cover object-center"
+                    src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=85" 
+                    alt="MediCare Digital Health Ecosystem"
+                    className="w-full h-40 object-cover object-center"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
                   
-                  <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-xs font-bold text-white">
-                    <span className="capitalize text-[11px] bg-slate-900/90 px-2 py-0.5 rounded-md border border-white/10">{role} Portal</span>
-                    <span className="text-[10px] font-mono text-teal-300">ABDM Ready</span>
+                  <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs font-bold text-white">
+                    <span className="text-[11px] bg-slate-900/90 px-2.5 py-1 rounded-md border border-white/10 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                      <span>MediCare Smart Network</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-teal-300">ABDM Compliant</span>
                   </div>
                 </div>
               </div>
 
               {/* 3 COMPACT BENEFIT TILES */}
               <div className="space-y-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
                   <div>
                     <h5 className="text-xs font-bold text-white">Personal Health Records</h5>
                     <p className="text-[11px] text-slate-300">Live vitals & health records</p>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
                   <div>
                     <h5 className="text-xs font-bold text-white">Secure Health Data</h5>
                     <p className="text-[11px] text-slate-300">Protected digital health information</p>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                  <Activity className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Activity className="w-4 h-4" />
+                  </div>
                   <div>
                     <h5 className="text-xs font-bold text-white">24×7 Emergency Network</h5>
                     <p className="text-[11px] text-slate-300">Emergency healthcare support</p>
@@ -677,8 +1057,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setMode(mode === 'login' ? 'register' : 'login');
-                  setErrorMsg('');
+                  const newMode = mode === 'login' ? 'register' : 'login';
+                  setMode(newMode);
+                  clearError();
+                  if (onNavigate) onNavigate(newMode);
                 }}
                 className="mt-1.5 text-xs font-bold text-teal-300 hover:text-teal-200 hover:underline inline-flex items-center gap-1.5 cursor-pointer"
               >
@@ -686,31 +1068,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
-          </motion.div>
+          </div>
 
-          {/* COLUMN 2: INTERACTIVE FORM PANEL (58-60%) */}
-          <motion.div 
-            layout
-            key={`form-${mode}`}
-            initial={{ opacity: 0, x: mode === 'login' ? 20 : -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
-            className={`p-7 sm:p-9 flex flex-col justify-between bg-white text-slate-900 ${
-              mode === 'login' 
-                ? 'lg:col-span-7 lg:order-2' 
-                : 'lg:col-span-7 lg:order-1'
-            }`}
+          {/* COLUMN 2: INTERACTIVE FORM PANEL (55%) */}
+          <div 
+            className="p-7 sm:p-9 lg:p-10 flex flex-col justify-between bg-white text-slate-900 lg:col-span-7 lg:order-2 overflow-y-auto max-h-[92vh] lg:max-h-none"
           >
             <div>
               {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) */}
               <div className="p-1 rounded-xl bg-slate-100 border border-slate-200 flex items-center mb-6 relative">
                 <button
                   type="button"
-                  onClick={() => { setMode('login'); setErrorMsg(''); }}
+                  onClick={() => { 
+                    setMode('login'); 
+                    clearError(); 
+                    if (onNavigate) onNavigate('login');
+                  }}
                   className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
                     mode === 'login'
                       ? 'bg-[#00a896] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'bg-transparent text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
@@ -719,11 +1096,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => { setMode('register'); setErrorMsg(''); }}
+                  onClick={() => { 
+                    setMode('register'); 
+                    clearError(); 
+                    if (onNavigate) onNavigate('register');
+                  }}
                   className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
                     mode === 'register'
                       ? 'bg-[#00a896] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'bg-transparent text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <UserPlus className="w-3.5 h-3.5" />
@@ -808,474 +1189,690 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* =========================================================================
-                      PATIENT 3-STEP REGISTRATION WIZARD
+                      PATIENT 3-STEP REGISTRATION WIZARD (REORGANIZED 3 STEPS)
+                      STEP 1: Account & Email Verification
+                      STEP 2: Personal Information (2-Column Layout)
+                      STEP 3: Medical Information & Vitals Summary
                       ========================================================================= */}
                   {mode === 'register' && role === 'patient' && (
-                    <div className="space-y-5">
-                      {/* 3-STEP PROGRESS STEPPER */}
-                      <div className="mb-6 pb-1">
-                        {/* Desktop Stepper */}
-                        <div className="hidden sm:flex items-center justify-between relative">
-                          {/* Step 1 */}
-                          <div className="flex items-center gap-2.5 z-10 bg-white pr-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    <div ref={patientFormRef} onKeyDown={handlePatientKeyDown} className="flex flex-col md:flex-row gap-6 lg:gap-8 items-start pt-1">
+                      
+                      {/* VERTICAL STEPPER RAIL (BESIDE THE FORM) */}
+                      <div className="w-full md:w-52 lg:w-60 shrink-0 pb-4 md:pb-0 border-b md:border-b-0 md:border-r border-slate-200/90 md:pr-5">
+                        <div className="flex flex-row md:flex-col justify-between md:justify-start gap-2 md:gap-0 relative">
+                          
+                          {/* STEP 1: ACCOUNT & VERIFICATION */}
+                          <div className="flex items-start gap-3 relative z-10">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep > 1 
-                                ? 'bg-emerald-500 text-white' 
+                                ? 'bg-teal-600 text-white shadow-sm' 
                                 : patientRegStep === 1 
-                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/15 shadow-sm' 
+                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/20 shadow-sm' 
                                 : 'bg-slate-100 text-slate-400 border border-slate-200'
                             }`}>
-                              {patientRegStep > 1 ? <Check className="w-4 h-4 stroke-[2.5]" /> : '1'}
+                              {patientRegStep > 1 ? <Check className="w-4 h-4 stroke-[3]" /> : '01'}
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Step 1</p>
-                              <p className={`text-xs font-semibold ${patientRegStep === 1 ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>Basic Information</p>
+                            <div className="hidden sm:block">
+                              <p className={`text-[10px] uppercase font-black tracking-wider ${
+                                patientRegStep === 1 ? 'text-[#00a896]' : patientRegStep > 1 ? 'text-teal-700' : 'text-slate-400'
+                              }`}>01</p>
+                              <p className={`text-xs font-bold leading-tight ${
+                                patientRegStep === 1 ? 'text-slate-900' : patientRegStep > 1 ? 'text-slate-700' : 'text-slate-400'
+                              }`}>Account & Verification</p>
+                              <p className="text-[11px] text-slate-400 hidden lg:block leading-tight mt-0.5">
+                                Create your secure account & verify email
+                              </p>
                             </div>
                           </div>
 
-                          {/* Divider Line 1-2 */}
-                          <div className="flex-1 h-0.5 bg-slate-100 relative mx-2">
-                            <div className={`h-full transition-all duration-300 ${patientRegStep >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                          {/* VERTICAL CONNECTOR 1 -> 2 */}
+                          <div className="hidden md:block w-0.5 h-12 ml-4 my-1 transition-all duration-300">
+                            <div className={`w-full h-full ${patientRegStep > 1 ? 'bg-teal-500' : 'bg-slate-200'}`} />
                           </div>
 
-                          {/* Step 2 */}
-                          <div className="flex items-center gap-2.5 z-10 bg-white px-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                          {/* STEP 2: PERSONAL INFORMATION */}
+                          <div className="flex items-start gap-3 relative z-10 md:mt-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep > 2 
-                                ? 'bg-emerald-500 text-white' 
+                                ? 'bg-teal-600 text-white shadow-sm' 
                                 : patientRegStep === 2 
-                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/15 shadow-sm' 
+                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/20 shadow-sm' 
                                 : 'bg-slate-100 text-slate-400 border border-slate-200'
                             }`}>
-                              {patientRegStep > 2 ? <Check className="w-4 h-4 stroke-[2.5]" /> : '2'}
+                              {patientRegStep > 2 ? <Check className="w-4 h-4 stroke-[3]" /> : '02'}
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Step 2</p>
-                              <p className={`text-xs font-semibold ${patientRegStep === 2 ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>Account</p>
+                            <div className="hidden sm:block">
+                              <p className={`text-[10px] uppercase font-black tracking-wider ${
+                                patientRegStep === 2 ? 'text-[#00a896]' : patientRegStep > 2 ? 'text-teal-700' : 'text-slate-400'
+                              }`}>02</p>
+                              <p className={`text-xs font-bold leading-tight ${
+                                patientRegStep === 2 ? 'text-slate-900' : patientRegStep > 2 ? 'text-slate-700' : 'text-slate-400'
+                              }`}>Personal Information</p>
+                              <p className="text-[11px] text-slate-400 hidden lg:block leading-tight mt-0.5">
+                                Tell us about yourself
+                              </p>
                             </div>
                           </div>
 
-                          {/* Divider Line 2-3 */}
-                          <div className="flex-1 h-0.5 bg-slate-100 relative mx-2">
-                            <div className={`h-full transition-all duration-300 ${patientRegStep >= 3 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                          {/* VERTICAL CONNECTOR 2 -> 3 */}
+                          <div className="hidden md:block w-0.5 h-12 ml-4 my-1 transition-all duration-300">
+                            <div className={`w-full h-full ${patientRegStep > 2 ? 'bg-teal-500' : 'bg-slate-200'}`} />
                           </div>
 
-                          {/* Step 3 */}
-                          <div className="flex items-center gap-2.5 z-10 bg-white pl-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                          {/* STEP 3: MEDICAL INFORMATION */}
+                          <div className="flex items-start gap-3 relative z-10 md:mt-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep === 3 
-                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/15 shadow-sm' 
+                                ? 'bg-[#00a896] text-white ring-4 ring-teal-500/20 shadow-sm' 
                                 : 'bg-slate-100 text-slate-400 border border-slate-200'
                             }`}>
-                              3
+                              03
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Step 3</p>
-                              <p className={`text-xs font-semibold ${patientRegStep === 3 ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>Health Info</p>
+                            <div className="hidden sm:block">
+                              <p className={`text-[10px] uppercase font-black tracking-wider ${
+                                patientRegStep === 3 ? 'text-[#00a896]' : 'text-slate-400'
+                              }`}>03</p>
+                              <p className={`text-xs font-bold leading-tight ${
+                                patientRegStep === 3 ? 'text-slate-900' : 'text-slate-400'
+                              }`}>Medical Information</p>
+                              <p className="text-[11px] text-slate-400 hidden lg:block leading-tight mt-0.5">
+                                Add your health & vital information
+                              </p>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Mobile Stepper */}
-                        <div className="sm:hidden space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-[#00a896]">Step {patientRegStep} of 3</span>
-                            <span className="font-semibold text-slate-700">
-                              {patientRegStep === 1 ? 'Basic Information' : patientRegStep === 2 ? 'Account' : 'Health Information'}
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div 
-                              className="bg-gradient-to-r from-[#00a896] to-teal-500 h-full transition-all duration-300 rounded-full"
-                              style={{ width: `${(patientRegStep / 3) * 100}%` }}
-                            />
-                          </div>
                         </div>
                       </div>
 
-                      {/* -------------------------------------------------------------
-                          STEP 1: BASIC INFORMATION
-                          ------------------------------------------------------------- */}
-                      {patientRegStep === 1 && (
-                        <div className="space-y-4">
-                          {/* ROW 1: FULL NAME & PRIMARY PHONE */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* CURRENT STEP FORM FIELDS */}
+                      <div className="flex-1 min-w-0 w-full space-y-4">
+                        
+                        {/* -------------------------------------------------------------
+                            STEP 1: ACCOUNT & EMAIL VERIFICATION
+                            ------------------------------------------------------------- */}
+                        {patientRegStep === 1 && (
+                          <div className="space-y-4">
+                            <div className="pb-1">
+                              <h4 className="text-base font-bold text-slate-900">Account & Email Verification</h4>
+                              <p className="text-xs text-slate-500">Create your secure MediCare credentials and verify your email.</p>
+                            </div>
+
+                            {/* EMAIL ADDRESS */}
                             <div>
-                              <label className={labelClass}>Full Name <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type="text"
-                                  required
-                                  placeholder="e.g. Lalith Patel"
-                                  value={fullName}
-                                  onChange={(e) => setFullName(e.target.value)}
-                                  className={inputWithIconClass}
-                                />
+                              <label className={labelClass}>Email Address <span className="text-rose-500">*</span></label>
+                              <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                  <input
+                                    data-nav="email"
+                                    type="email"
+                                    required
+                                    placeholder="e.g. user@medicare.health"
+                                    value={email}
+                                    onChange={(e) => {
+                                      setEmail(e.target.value);
+                                      if (isEmailVerified) setIsEmailVerified(false);
+                                      clearError();
+                                    }}
+                                    className={inputWithIconClass}
+                                  />
+                                </div>
+                                <button
+                                  data-nav="sendOtp"
+                                  type="button"
+                                  onClick={handleSendOtp}
+                                  disabled={otpLoading || otpCountdown > 0 || isEmailVerified}
+                                  className="px-4 h-12 rounded-xl text-xs font-bold bg-[#00a896] hover:bg-teal-600 text-white shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {otpLoading ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : otpCountdown > 0 ? (
+                                    `Resend in ${otpCountdown}s`
+                                  ) : isEmailVerified ? (
+                                    'Verified'
+                                  ) : isOtpSent ? (
+                                    'Resend Code'
+                                  ) : (
+                                    'Send OTP'
+                                  )}
+                                </button>
                               </div>
                             </div>
 
-                            <div>
-                              <label className={labelClass}>Phone Number <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type="tel"
-                                  required
-                                  placeholder="+91 98765 43210"
-                                  value={phone}
-                                  onChange={(e) => setPhone(e.target.value)}
-                                  className={inputWithIconClass}
-                                />
+                            {/* PASSWORD & CONFIRM PASSWORD */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
+                              <div>
+                                <label className={labelClass}>Password <span className="text-rose-500">*</span></label>
+                                <div className="relative">
+                                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                  <input
+                                    data-nav="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    placeholder="••••••••••••"
+                                    value={password}
+                                    onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                                    className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
+                                  />
+                                  <button
+                                    tabIndex={-1}
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                  >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                  </button>
+                                </div>
+
+                                {/* PASSWORD STRENGTH METER */}
+                                {password && (
+                                  <div className="pt-2 space-y-1">
+                                    <div className="flex items-center justify-between text-[10px] font-bold">
+                                      <span className="text-slate-500 font-mono">Strength:</span>
+                                      <span className={`${strength.score >= 75 ? 'text-teal-600' : 'text-amber-500'} font-mono`}>
+                                        {strength.label}
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                      <div 
+                                        className={`h-full transition-all duration-300 ${strength.color}`} 
+                                        style={{ width: `${strength.score}%` }} 
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div>
+                                <label className={labelClass}>Confirm Password <span className="text-rose-500">*</span></label>
+                                <div className="relative">
+                                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                  <input
+                                    data-nav="confirmPassword"
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    placeholder="••••••••••••"
+                                    value={confirmPassword}
+                                    onChange={(e) => { setConfirmPassword(e.target.value); clearError(); }}
+                                    className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
+                                  />
+                                  <button
+                                    tabIndex={-1}
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                  >
+                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* ROW 2: DOB & GENDER */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className={labelClass}>Date of Birth <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type="date"
-                                  required
-                                  max={maxDobDate}
-                                  value={dob}
-                                  onChange={(e) => handleDobChange(e.target.value)}
-                                  className={inputWithIconClass}
-                                />
+                            {/* EMAIL OTP VERIFICATION SECTION */}
+                            <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                  <ShieldCheck className="w-4 h-4 text-[#00a896]" />
+                                  <span>Email Verification</span>
+                                </span>
+                                {isEmailVerified ? (
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center gap-1">
+                                    <Check className="w-3 h-3 stroke-[3]" />
+                                    <span>Verified</span>
+                                  </span>
+                                ) : isOtpSent ? (
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-200">
+                                    Code Dispatched
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] text-slate-400">
+                                    Verification Required
+                                  </span>
+                                )}
                               </div>
-                              {age ? (
-                                <p className="text-[11px] text-slate-500 mt-1 font-medium">
-                                  Age: <span className="text-slate-800 font-bold">{age} years</span> (Automatically calculated from date of birth)
-                                </p>
-                              ) : (
-                                <p className="text-[11px] text-slate-400 mt-1">Age will automatically calculate from your birth date</p>
+
+                              <p className="text-xs text-slate-500">
+                                {isOtpSent 
+                                  ? "We've sent a 6-digit verification code to your email address." 
+                                  : "Click 'Send OTP' above to receive your 6-digit security code."}
+                              </p>
+
+                              {/* OTP SIMULATION PREVIEW NOTICE */}
+                              {otpPreviewNotice && (
+                                <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-medium flex items-center justify-between">
+                                  <span className="font-mono font-bold">{otpPreviewNotice}</span>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setOtpPreviewNotice(null)} 
+                                    className="text-teal-600 hover:text-teal-900 font-bold ml-2 cursor-pointer"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* 6-DIGIT OTP BOXES: [ _ ] [ _ ] [ _ ] [ _ ] [ _ ] [ _ ] */}
+                              {!isEmailVerified && (
+                                <div className="space-y-3 pt-1">
+                                  <div className="flex items-center justify-center gap-2 sm:gap-2.5" onPaste={handleOtpPaste}>
+                                    {[0, 1, 2, 3, 4, 5].map((index) => {
+                                      const char = otpCode[index] && otpCode[index] !== ' ' ? otpCode[index] : '';
+                                      return (
+                                        <input
+                                          key={index}
+                                          ref={(el) => (otpInputRefs.current[index] = el)}
+                                          data-nav={`otp-${index}`}
+                                          data-otp-input="true"
+                                          type="text"
+                                          inputMode="numeric"
+                                          maxLength={1}
+                                          value={char}
+                                          disabled={!isOtpSent || isEmailVerified}
+                                          onChange={(e) => handleOtpBoxChange(index, e.target.value)}
+                                          onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                          className="w-10 sm:w-12 h-12 text-center text-lg font-black text-slate-900 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/20 transition-all font-mono disabled:bg-slate-100 disabled:cursor-not-allowed shadow-xs"
+                                        />
+                                      );
+                                    })}
+                                  </div>
+
+                                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
+                                    <button
+                                      data-nav="verifyOtp"
+                                      type="button"
+                                      onClick={handleVerifyOtp}
+                                      disabled={otpLoading || !otpCode || otpCode.trim().length !== 6 || isEmailVerified}
+                                      className="w-full sm:w-auto px-5 h-10 rounded-xl text-xs font-bold bg-[#00a896] hover:bg-teal-600 text-white shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      {otpLoading ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                      ) : (
+                                        <>
+                                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                          <span>Verify Email</span>
+                                        </>
+                                      )}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={handleSendOtp}
+                                      disabled={otpLoading || otpCountdown > 0 || isEmailVerified}
+                                      className="text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+                                    >
+                                      {otpCountdown > 0 ? `Resend code in ${otpCountdown}s` : 'Resend Code'}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* SUCCESS STATE */}
+                              {isEmailVerified && (
+                                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                                  <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                                  <span>✓ Email verified successfully</span>
+                                </div>
                               )}
                             </div>
 
-                            <div>
-                              <label className={labelClass}>Gender <span className="text-rose-500">*</span></label>
-                              <select
-                                required
-                                value={gender}
-                                onChange={(e) => setGender(e.target.value)}
-                                className={`${inputClass} ${!gender ? 'text-slate-400' : 'font-medium text-slate-800'}`}
+                            {/* STEP 1 ACTION: CONTINUE */}
+                            <div className="pt-2 space-y-2">
+                              <motion.button
+                                data-nav="continueStep1"
+                                whileHover={isEmailVerified ? { scale: 1.01 } : {}}
+                                whileTap={isEmailVerified ? { scale: 0.99 } : {}}
+                                type="button"
+                                disabled={!isEmailVerified}
+                                onClick={handleProceedToStep2}
+                                className="w-full h-12 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer border border-teal-400/20 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                <option value="" disabled hidden>Select Gender</option>
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                                <option value="Prefer not to say">Prefer not to say</option>
-                              </select>
+                                <span>Continue to Personal Information</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </motion.button>
+                              
+                              {!isEmailVerified && (
+                                <p className="text-[11px] text-center text-slate-400">
+                                  Please verify your email using the 6-digit OTP code before continuing.
+                                </p>
+                              )}
                             </div>
                           </div>
+                        )}
 
-                          {/* ROW 3: EMERGENCY CONTACT & FAMILY NUMBER */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className={labelClass}>Emergency Contact Phone <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <PhoneCall className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type="tel"
-                                  required
-                                  placeholder="+91 98765 11223"
-                                  value={emergencyContactPhone}
-                                  onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                                  className={inputWithIconClass}
-                                />
-                              </div>
+                        {/* -------------------------------------------------------------
+                            STEP 2: PERSONAL INFORMATION (CLEAN 2-COLUMN LAYOUT)
+                            ------------------------------------------------------------- */}
+                        {patientRegStep === 2 && (
+                          <div className="space-y-4">
+                            <div className="pb-1">
+                              <h4 className="text-base font-bold text-slate-900">Personal Information</h4>
+                              <p className="text-xs text-slate-500">Tell us a little about yourself to create your health profile.</p>
                             </div>
 
-                            <div>
-                              <label className={labelClass}>Family Connected Number <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
-                              <div className="relative">
-                                <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type="tel"
-                                  placeholder="+91 98765 44332"
-                                  value={familyPhone}
-                                  onChange={(e) => setFamilyPhone(e.target.value)}
-                                  className={inputWithIconClass}
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* ROW 4: RESIDENTIAL ADDRESS */}
-                          <div>
-                            <label className={labelClass}>Residential Address</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. Flat 402, Green Meadows, Bengaluru, Karnataka"
-                              value={address}
-                              onChange={(e) => setAddress(e.target.value)}
-                              className={inputClass}
-                            />
-                          </div>
-
-                          {/* ROW 5: ABHA ID (OPTIONAL) */}
-                          <div>
-                            <label className={labelClass}>ABHA Health ID <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
-                            <div className="relative">
-                              <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                              <input
-                                type="text"
-                                placeholder="e.g. 14-XXXX-XXXX-8921"
-                                value={abhaId}
-                                onChange={(e) => setAbhaId(e.target.value)}
-                                className={`${inputWithIconClass} font-mono`}
-                              />
-                            </div>
-                          </div>
-
-                          {/* STEP 1 ACTION: CONTINUE */}
-                          <div className="pt-2">
-                            <motion.button
-                              whileHover={{ scale: 1.01 }}
-                              whileTap={{ scale: 0.99 }}
-                              type="button"
-                              onClick={handleProceedToStep2}
-                              className="w-full h-12 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer border border-teal-400/20"
-                            >
-                              <span>Continue to Account</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* -------------------------------------------------------------
-                          STEP 2: ACCOUNT & VERIFICATION
-                          ------------------------------------------------------------- */}
-                      {patientRegStep === 2 && (
-                        <div className="space-y-4">
-                          <div className="pb-1">
-                            <h4 className="text-base font-bold text-slate-900">Account & Verification</h4>
-                            <p className="text-xs text-slate-500">Secure your MediCare account with your email and password.</p>
-                          </div>
-
-                          {/* EMAIL */}
-                          <div>
-                            <label className={labelClass}>Email Address <span className="text-rose-500">*</span></label>
-                            <div className="relative">
-                              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                              <input
-                                type="email"
-                                required
-                                placeholder="e.g. user@medicare.health"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className={inputWithIconClass}
-                              />
-                            </div>
-                          </div>
-
-                          {/* PASSWORD & CONFIRM PASSWORD */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                            <div>
-                              <label className={labelClass}>Password <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type={showPassword ? 'text' : 'password'}
-                                  required
-                                  placeholder="••••••••••••"
-                                  value={password}
-                                  onChange={(e) => setPassword(e.target.value)}
-                                  className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                >
-                                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                              </div>
-
-                              {/* PASSWORD STRENGTH */}
-                              {password && (
-                                <div className="pt-2 space-y-1">
-                                  <div className="flex items-center justify-between text-[10px] font-bold">
-                                    <span className="text-slate-500 font-mono">Strength:</span>
-                                    <span className={`${strength.score >= 75 ? 'text-teal-600' : 'text-amber-500'} font-mono`}>
-                                      {strength.label}
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div 
-                                      className={`h-full transition-all duration-300 ${strength.color}`} 
-                                      style={{ width: `${strength.score}%` }} 
+                            {/* 2-COLUMN GRID (LEFT: Full Name, DOB, Gender, Mobile, Emergency | RIGHT: Blood Group, Allergies, Family Number, Address, ABHA ID) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                              
+                              {/* LEFT COLUMN */}
+                              <div className="space-y-3.5">
+                                {/* FULL NAME */}
+                                <div>
+                                  <label className={labelClass}>Full Name <span className="text-rose-500">*</span></label>
+                                  <div className="relative">
+                                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="fullName"
+                                      type="text"
+                                      required
+                                      placeholder="e.g. Lalith Patel"
+                                      value={fullName}
+                                      onChange={(e) => { setFullName(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
                                     />
                                   </div>
                                 </div>
-                              )}
-                            </div>
 
-                            <div>
-                              <label className={labelClass}>Confirm Password <span className="text-rose-500">*</span></label>
-                              <div className="relative">
-                                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                <input
-                                  type={showConfirmPassword ? 'text' : 'password'}
-                                  required
-                                  placeholder="••••••••••••"
-                                  value={confirmPassword}
-                                  onChange={(e) => setConfirmPassword(e.target.value)}
-                                  className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                >
-                                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* STEP 2 ACTIONS */}
-                          <div className="grid grid-cols-2 gap-3.5 pt-3">
-                            <button
-                              type="button"
-                              onClick={() => { setErrorMsg(''); setPatientRegStep(1); }}
-                              className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                              <ArrowLeft className="w-4 h-4" />
-                              <span>Back</span>
-                            </button>
-
-                            <motion.button
-                              whileHover={{ scale: 1.01 }}
-                              whileTap={{ scale: 0.99 }}
-                              type="button"
-                              onClick={handleProceedToStep3}
-                              className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20"
-                            >
-                              <span>Continue to Health Info</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* -------------------------------------------------------------
-                          STEP 3: HEALTH INFORMATION
-                          ------------------------------------------------------------- */}
-                      {patientRegStep === 3 && (
-                        <div className="space-y-5">
-                          <div className="pb-1">
-                            <h4 className="text-base font-bold text-slate-900">Health Information</h4>
-                            <p className="text-xs text-slate-500">Add your basic health measurements.</p>
-                          </div>
-
-                          {/* SECTION 1: BODY MEASUREMENTS */}
-                          <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3.5">
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                              <Scale className="w-4 h-4 text-[#00a896]" />
-                              <span>Body Measurements</span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                              <div>
-                                <label className={labelClass}>Weight (kg)</label>
-                                <div className="relative">
-                                  <Scale className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                  <input
-                                    type="number"
-                                    min="20"
-                                    max="300"
-                                    step="0.1"
-                                    placeholder="e.g. 65"
-                                    value={weightKg}
-                                    onChange={(e) => setWeightKg(e.target.value)}
-                                    className={inputWithIconClass}
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <label className={labelClass}>Height (cm)</label>
-                                <div className="relative">
-                                  <Ruler className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                  <input
-                                    type="number"
-                                    min="50"
-                                    max="250"
-                                    step="0.5"
-                                    placeholder="e.g. 170"
-                                    value={heightCm}
-                                    onChange={(e) => setHeightCm(e.target.value)}
-                                    className={inputWithIconClass}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* DYNAMIC READ-ONLY BMI DISPLAY */}
-                            <div className="p-3 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-[#00a896]" />
+                                {/* DATE OF BIRTH */}
                                 <div>
-                                  <p className="text-xs font-bold text-slate-800">Body Mass Index (BMI)</p>
-                                  <p className="text-[11px] text-slate-400">Automatically calculated</p>
+                                  <label className={labelClass}>Date of Birth <span className="text-rose-500">*</span></label>
+                                  <div className="relative">
+                                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="dob"
+                                      type="date"
+                                      required
+                                      max={maxDobDate}
+                                      value={dob}
+                                      onChange={(e) => handleDobChange(e.target.value)}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                  {age ? (
+                                    <p className="text-[11px] text-slate-500 mt-1 font-medium">
+                                      Age: <span className="text-slate-800 font-bold">{age} years</span>
+                                    </p>
+                                  ) : (
+                                    <p className="text-[11px] text-slate-400 mt-1">Calculated automatically</p>
+                                  )}
+                                </div>
+
+                                {/* GENDER */}
+                                <div>
+                                  <label className={labelClass}>Gender <span className="text-rose-500">*</span></label>
+                                  <select
+                                    data-nav="gender"
+                                    required
+                                    value={gender}
+                                    onChange={(e) => { setGender(e.target.value); clearError(); }}
+                                    className={`${inputClass} ${!gender || gender === 'Select Gender' ? 'text-slate-400' : 'font-medium text-slate-800'}`}
+                                  >
+                                    <option value="" disabled hidden>Select Gender</option>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                  </select>
+                                </div>
+
+                                {/* MOBILE NUMBER */}
+                                <div>
+                                  <label className={labelClass}>Mobile Number <span className="text-rose-500">*</span></label>
+                                  <div className="relative">
+                                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="phone"
+                                      type="tel"
+                                      required
+                                      placeholder="+91 98765 43210"
+                                      value={phone}
+                                      onChange={(e) => { setPhone(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* EMERGENCY CONTACT NUMBER */}
+                                <div>
+                                  <label className={labelClass}>Emergency Contact Number <span className="text-rose-500">*</span></label>
+                                  <div className="relative">
+                                    <PhoneCall className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="emergencyContactPhone"
+                                      type="tel"
+                                      required
+                                      placeholder="+91 98765 11223"
+                                      value={emergencyContactPhone}
+                                      onChange={(e) => { setEmergencyContactPhone(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-slate-900 font-mono">
-                                  {bmiInfo.value ? bmiInfo.value : '—'}
-                                </span>
-                                <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${bmiInfo.badgeColor}`}>
-                                  {bmiInfo.label}
-                                </span>
+                              {/* RIGHT COLUMN */}
+                              <div className="space-y-3.5">
+                                {/* BLOOD GROUP */}
+                                <div>
+                                  <label className={labelClass}>Blood Group</label>
+                                  <select
+                                    data-nav="bloodGroup"
+                                    value={bloodGroup}
+                                    onChange={(e) => {
+                                      setBloodGroup(e.target.value);
+                                      clearError();
+                                    }}
+                                    className={`${inputClass} ${!bloodGroup || bloodGroup === 'Select Blood Group' ? 'text-slate-400' : 'font-bold text-[#00a896]'}`}
+                                  >
+                                    <option value="" disabled hidden>Select Blood Group</option>
+                                    <option value="">Select Blood Group</option>
+                                    {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
+                                      <option key={bg} value={bg}>{bg}</option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                {/* ALLERGIES */}
+                                <div>
+                                  <label className={labelClass}>Allergies</label>
+                                  <input
+                                    data-nav="allergies"
+                                    type="text"
+                                    placeholder="Enter known allergies (e.g. Penicillin, Asthma)"
+                                    value={allergies}
+                                    onChange={(e) => { setAllergies(e.target.value); clearError(); }}
+                                    className={inputClass}
+                                  />
+                                </div>
+
+                                {/* FAMILY CONNECTED NUMBER */}
+                                <div>
+                                  <label className={labelClass}>Family Connected Number <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
+                                  <div className="relative">
+                                    <Users className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="familyPhone"
+                                      type="tel"
+                                      placeholder="+91 98765 44332"
+                                      value={familyPhone}
+                                      onChange={(e) => { setFamilyPhone(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* RESIDENTIAL ADDRESS */}
+                                <div>
+                                  <label className={labelClass}>Residential Address</label>
+                                  <input
+                                    data-nav="address"
+                                    type="text"
+                                    placeholder="Flat 402, Green Meadows, Bengaluru, Karnataka"
+                                    value={address}
+                                    onChange={(e) => { setAddress(e.target.value); clearError(); }}
+                                    className={inputClass}
+                                  />
+                                </div>
+
+                                {/* ABHA HEALTH ID */}
+                                <div>
+                                  <label className={labelClass}>ABHA Health ID <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
+                                  <div className="relative">
+                                    <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="abhaId"
+                                      type="text"
+                                      placeholder="e.g. 14-XXXX-XXXX-8921"
+                                      value={abhaId}
+                                      onChange={(e) => { setAbhaId(e.target.value); clearError(); }}
+                                      className={`${inputWithIconClass} font-mono`}
+                                    />
+                                  </div>
+                                </div>
                               </div>
+
+                            </div>
+
+                            {/* STEP 2 ACTIONS */}
+                            <div className="grid grid-cols-2 gap-3.5 pt-3">
+                              <button
+                                type="button"
+                                onClick={() => { clearError(); setPatientRegStep(1); }}
+                                className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <ArrowLeft className="w-4 h-4" />
+                                <span>Back</span>
+                              </button>
+
+                              <motion.button
+                                data-nav="continueStep2"
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                type="button"
+                                onClick={handleProceedToStep3}
+                                className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20"
+                              >
+                                <span>Continue to Medical Information</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </motion.button>
                             </div>
                           </div>
+                        )}
 
-                          {/* SECTION 2: VITAL SIGNS */}
-                          <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3.5">
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                              <HeartPulse className="w-4 h-4 text-[#00a896]" />
-                              <span>Vital Signs</span>
+                        {/* -------------------------------------------------------------
+                            STEP 3: MEDICAL INFORMATION & FINAL SUBMISSION
+                            ------------------------------------------------------------- */}
+                        {patientRegStep === 3 && (
+                          <div className="space-y-4">
+                            <div className="pb-1">
+                              <h4 className="text-base font-bold text-slate-900">Medical Information</h4>
+                              <p className="text-xs text-slate-500">Add your current health measurements to complete your health profile.</p>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                              <div>
-                                <label className={labelClass}>Blood Pressure (Systolic / Diastolic)</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <input
-                                    type="number"
-                                    min="60"
-                                    max="220"
-                                    placeholder="120 (Sys)"
-                                    value={systolicBp}
-                                    onChange={(e) => setSystolicBp(e.target.value)}
-                                    className={inputClass}
-                                  />
-                                  <input
-                                    type="number"
-                                    min="40"
-                                    max="140"
-                                    placeholder="80 (Dia)"
-                                    value={diastolicBp}
-                                    onChange={(e) => setDiastolicBp(e.target.value)}
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <p className="text-[10px] text-slate-400 mt-1">Standard mmHg</p>
+                            {/* SECTION 1: BODY MEASUREMENTS */}
+                            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3.5">
+                              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                                <Scale className="w-4 h-4 text-[#00a896]" />
+                                <span>Body Measurements</span>
                               </div>
 
-                              <div>
-                                <label className={labelClass}>Heart Rate & Temp</label>
-                                <div className="grid grid-cols-2 gap-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                  <label className={labelClass}>Weight (kg)</label>
                                   <div className="relative">
+                                    <Scale className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                     <input
+                                      data-nav="weightKg"
+                                      type="number"
+                                      min="20"
+                                      max="300"
+                                      step="0.1"
+                                      placeholder="e.g. 65"
+                                      value={weightKg}
+                                      onChange={(e) => { setWeightKg(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className={labelClass}>Height (cm)</label>
+                                  <div className="relative">
+                                    <Ruler className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="heightCm"
+                                      type="number"
+                                      min="50"
+                                      max="250"
+                                      step="0.5"
+                                      placeholder="e.g. 170"
+                                      value={heightCm}
+                                      onChange={(e) => { setHeightCm(e.target.value); clearError(); }}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* DYNAMIC READ-ONLY BMI DISPLAY */}
+                              <div className="p-3 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Activity className="w-4 h-4 text-[#00a896]" />
+                                  <div>
+                                    <p className="text-xs font-bold text-slate-800">Body Mass Index (BMI)</p>
+                                    <p className="text-[11px] text-slate-400">Calculated automatically</p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-slate-900 font-mono">
+                                    {bmiInfo.value ? bmiInfo.value : '—'}
+                                  </span>
+                                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${bmiInfo.badgeColor}`}>
+                                    {bmiInfo.label}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* SECTION 2: VITAL SIGNS */}
+                            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3.5">
+                              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                                <HeartPulse className="w-4 h-4 text-[#00a896]" />
+                                <span>Vital Signs</span>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                  <label className={labelClass}>Blood Pressure (mmHg)</label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                      data-nav="systolicBp"
+                                      type="number"
+                                      min="60"
+                                      max="220"
+                                      placeholder="120 (Sys)"
+                                      value={systolicBp}
+                                      onChange={(e) => setSystolicBp(e.target.value)}
+                                      className={inputClass}
+                                    />
+                                    <input
+                                      data-nav="diastolicBp"
+                                      type="number"
+                                      min="40"
+                                      max="140"
+                                      placeholder="80 (Dia)"
+                                      value={diastolicBp}
+                                      onChange={(e) => setDiastolicBp(e.target.value)}
+                                      className={inputClass}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className={labelClass}>Heart Rate & Temp</label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                      data-nav="heartRate"
                                       type="number"
                                       min="40"
                                       max="200"
@@ -1284,9 +1881,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                       onChange={(e) => setHeartRate(e.target.value)}
                                       className={inputClass}
                                     />
-                                  </div>
-                                  <div className="relative">
                                     <input
+                                      data-nav="temperature"
                                       type="number"
                                       step="0.1"
                                       min="90"
@@ -1298,84 +1894,91 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                     />
                                   </div>
                                 </div>
-                                <p className="text-[10px] text-slate-400 mt-1">BPM & Body Temp</p>
                               </div>
                             </div>
-                          </div>
 
-                          {/* SECTION 3: BLOOD GROUP & NOTES */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className={labelClass}>Blood Group <span className="text-rose-500">*</span></label>
-                              <select
-                                required
-                                value={bloodGroup}
-                                onChange={(e) => setBloodGroup(e.target.value)}
-                                className={`${inputClass} ${bloodGroup ? 'font-bold text-[#00a896]' : 'text-slate-400'}`}
+                            {/* REGISTRATION READINESS SUMMARY */}
+                            <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2">
+                              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Registration Summary</p>
+                              
+                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                <span className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                  <span>Account & Credentials</span>
+                                </span>
+                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                  ✓ Email verified ({email})
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                <span className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                  <span>Personal Information</span>
+                                </span>
+                                <span className="text-[11px] font-bold text-slate-700 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                                  ✓ Completed ({fullName || 'Profile Details'})
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                <span className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-[#00a896]" />
+                                  <span>Medical Information</span>
+                                </span>
+                                <span className="text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                                  ✓ Completed
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* TERMS CHECKBOX */}
+                            <div className="pt-1">
+                              <label className="flex items-start gap-2.5 cursor-pointer text-xs font-medium text-slate-600">
+                                <input
+                                  type="checkbox"
+                                  checked={agreedTerms}
+                                  onChange={(e) => { setAgreedTerms(e.target.checked); clearError(); }}
+                                  className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 mt-0.5 cursor-pointer"
+                                />
+                                <span className="leading-snug">
+                                  I agree to MediCare’s <span className="text-[#00a896] font-bold">Terms of Service</span> & <span className="text-[#00a896] font-bold">ABDM Healthcare Protocol</span>.
+                                </span>
+                              </label>
+                            </div>
+
+                            {/* STEP 3 ACTIONS */}
+                            <div className="grid grid-cols-2 gap-3.5 pt-2">
+                              <button
+                                type="button"
+                                onClick={() => { clearError(); setPatientRegStep(2); }}
+                                className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                               >
-                                {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                                  <option key={bg} value={bg}>{bg}</option>
-                                ))}
-                              </select>
+                                <ArrowLeft className="w-4 h-4" />
+                                <span>Back</span>
+                              </button>
+
+                              <motion.button
+                                data-nav="createAccount"
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                type="submit"
+                                disabled={loading}
+                                className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20 disabled:opacity-50"
+                              >
+                                {loading ? (
+                                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <span>Create MediCare Account</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                  </>
+                                )}
+                              </motion.button>
                             </div>
-
-                            <div>
-                              <label className={labelClass}>Allergies / Conditions <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
-                              <input
-                                type="text"
-                                placeholder="e.g. Penicillin, Asthma"
-                                value={allergies}
-                                onChange={(e) => setAllergies(e.target.value)}
-                                className={inputClass}
-                              />
-                            </div>
                           </div>
-
-                          {/* TERMS CHECKBOX */}
-                          <div className="pt-1">
-                            <label className="flex items-start gap-2.5 cursor-pointer text-xs font-medium text-slate-600">
-                              <input
-                                type="checkbox"
-                                checked={agreedTerms}
-                                onChange={(e) => setAgreedTerms(e.target.checked)}
-                                className="w-4 h-4 rounded text-[#00a896] focus:ring-[#00a896] border-slate-300 mt-0.5 cursor-pointer"
-                              />
-                              <span className="leading-snug">
-                                I agree to MediCare’s <span className="text-[#00a896] font-bold">Terms of Service</span> & <span className="text-[#00a896] font-bold">ABDM Healthcare Protocol</span>.
-                              </span>
-                            </label>
-                          </div>
-
-                          {/* STEP 3 ACTIONS */}
-                          <div className="grid grid-cols-2 gap-3.5 pt-2">
-                            <button
-                              type="button"
-                              onClick={() => { setErrorMsg(''); setPatientRegStep(2); }}
-                              className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                              <ArrowLeft className="w-4 h-4" />
-                              <span>Back</span>
-                            </button>
-
-                            <motion.button
-                              whileHover={{ scale: 1.01 }}
-                              whileTap={{ scale: 0.99 }}
-                              type="submit"
-                              disabled={loading}
-                              className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20 disabled:opacity-50"
-                            >
-                              {loading ? (
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <>
-                                  <span>Complete Registration</span>
-                                  <Check className="w-4 h-4 stroke-[2.5]" />
-                                </>
-                              )}
-                            </motion.button>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -2305,22 +2908,24 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
 
             {/* SWITCH MODE FOOTER PROMPT */}
-            <div className="pt-5 border-t border-slate-200 dark:border-slate-800 text-center mt-5">
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+            <div className="pt-5 border-t border-slate-200 text-center mt-5">
+              <p className="text-xs text-slate-600 font-medium">
                 {mode === 'login' ? "Don't have a MediCare account yet? " : "Already registered with MediCare? "}
                 <button
                   type="button"
                   onClick={() => {
-                    setMode(mode === 'login' ? 'register' : 'login');
-                    setErrorMsg('');
+                    const newMode = mode === 'login' ? 'register' : 'login';
+                    setMode(newMode);
+                    clearError();
+                    if (onNavigate) onNavigate(newMode);
                   }}
-                  className="font-black text-[#00a896] dark:text-cyan-400 hover:underline cursor-pointer ml-1"
+                  className="font-black text-[#00a896] hover:underline cursor-pointer ml-1"
                 >
                   {mode === 'login' ? 'Register Now' : 'Sign In'}
                 </button>
               </p>
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

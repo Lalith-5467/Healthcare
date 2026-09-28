@@ -25,18 +25,18 @@ export const NearbyHospitalsCard: React.FC<NearbyHospitalsCardProps> = ({ onNavi
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('nav.hospitals', 'Nearby Hospitals')}
             </h3>
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">12 Empanelled Facilities</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">{t('hospitals_card.facilities', '12 Empanelled Facilities')}</span>
           </div>
         </div>
 
         <span className="px-3 py-1 text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 rounded-full border border-cyan-500/30 font-mono flex items-center gap-1">
           <MapPin className="w-3.5 h-3.5" />
-          <span>Live Location</span>
+          <span>{t('hospitals_card.live_location', 'Live Location')}</span>
         </span>
       </div>
 
       <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">
-        Find empanelled cashless hospitals, emergency trauma bays, and specialist clinics in your area.
+        {t('hospitals_card.description', 'Find empanelled cashless hospitals, emergency trauma bays, and specialist clinics in your area.')}
       </p>
 
       {/* FOOTER LINK */}
@@ -49,7 +49,7 @@ export const NearbyHospitalsCard: React.FC<NearbyHospitalsCardProps> = ({ onNavi
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">24x7 Bays Open</span>
+        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">{t('hospitals_card.bays_open', '24x7 Bays Open')}</span>
       </div>
     </motion.div>
   );

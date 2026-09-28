@@ -180,7 +180,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             whileTap={{ scale: 0.95 }}
             onClick={handleTogglePopover}
             className="relative p-2 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800/90 transition-all shadow-md cursor-pointer flex items-center justify-center"
-            title="Notifications"
+            title={t('header.notifications', 'Notifications')}
           >
             <Bell className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
             {unreadCount > 0 && (
@@ -212,7 +212,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           />
           <div className="hidden sm:flex flex-col text-left min-w-0">
             <span className="text-xs font-black text-slate-900 dark:text-white leading-tight truncate">{effectiveDisplayName}</span>
-            <span className="text-[10px] font-extrabold text-[#00a896] dark:text-cyan-300 leading-tight font-mono truncate">Patient Profile</span>
+            <span className="text-[10px] font-extrabold text-[#00a896] dark:text-cyan-300 leading-tight font-mono truncate">{t('header.patient_profile', 'Patient Profile')}</span>
           </div>
         </motion.button>
 
@@ -223,7 +223,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           whileTap={{ scale: 0.95 }}
           onClick={onLogout}
           className="relative p-2 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-rose-500 dark:text-rose-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all shadow-md cursor-pointer flex items-center justify-center shrink-0"
-          title="Logout"
+          title={t('header.logout', 'Logout')}
         >
           <LogOut className="w-4 h-4" />
         </motion.button>

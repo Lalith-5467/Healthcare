@@ -1,12 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Lightbulb } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface HealthInsightCardProps {
   onNavigate: (id: string) => void;
 }
 
 export const HealthInsightCard: React.FC<HealthInsightCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -24,19 +27,19 @@ export const HealthInsightCard: React.FC<HealthInsightCardProps> = ({ onNavigate
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Today's AI Health Insight
+                {t('insight.title', "Today's AI Health Insight")}
               </h3>
-              <span className="text-xs font-bold text-amber-700 dark:text-amber-300 font-mono">Personalized Biometric Analysis</span>
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-300 font-mono">{t('insight.subtitle', 'Personalized Biometric Analysis')}</span>
             </div>
           </div>
           <span className="px-3 py-1 text-[10px] font-black uppercase bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full border border-purple-500/30 flex items-center gap-1.5 font-mono shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Smart Tip</span>
+            <span>{t('insight.smart_tip', 'AI Smart Tip')}</span>
           </span>
         </div>
 
         <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-100 leading-relaxed max-w-xl font-medium">
-          "You're doing great! Your sleep quality improved by <strong className="text-emerald-700 dark:text-emerald-300 font-black">8%</strong> this week, and your resting heart rate remains optimal at 72 BPM. Maintain your evening hydration routine."
+          "{t('insight.tip_text', "You're doing great! Your sleep quality improved by 8% this week, and your resting heart rate remains optimal at 72 BPM. Maintain your evening hydration routine.")}"
         </p>
       </div>
 
@@ -45,11 +48,11 @@ export const HealthInsightCard: React.FC<HealthInsightCardProps> = ({ onNavigate
           onClick={() => onNavigate('analytics')}
           className="inline-flex items-center gap-2 text-xs font-extrabold text-[#00a896] dark:text-cyan-300 hover:underline transition-colors cursor-pointer group/btn"
         >
-          <span>View Health Analytics</span>
+          <span>{t('insight.view_analytics', 'View Health Analytics')}</span>
           <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </button>
 
-        <span className="text-[11px] text-slate-600 dark:text-slate-300 font-bold">Updated 2h ago</span>
+        <span className="text-[11px] text-slate-600 dark:text-slate-300 font-bold">{t('insight.updated_time', 'Updated 2h ago')}</span>
       </div>
     </motion.div>
   );

@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Scan, Camera, Upload, ShieldCheck, CheckCircle2, User, Building2, 
   Stethoscope, FileText, Clock, AlertCircle, ArrowLeft, Send, Sparkles, Check,
   XCircle, ArrowRight, Eye, RefreshCw
 } from 'lucide-react';
+import jsQR from 'jsqr';
 import { healthShareApi, type ValidateQRResponse } from '../../../services/healthShareApi';
 import { socketService } from '../../../services/socketService';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -24,6 +25,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
   const [stage, setStage] = useState<ScanStage>('SCANNING');
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualToken, setManualToken] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
@@ -45,6 +47,452 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
   const [requestStatus, setRequestStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const isProcessingRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const cameraSessionIdRef = useRef(0);
+  const lastScannedTokenRef = useRef<string | null>(null);
+  const lastScanTimestampRef = useRef<number>(0);
+  const animFrameIdRef = useRef<number | null>(null);
+
+  const barcodeDetectorRef = useRef<any>(null);
+
+  // Keep a stable ref for translation helper
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  // Initialize BarcodeDetector once if available in the browser
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      try {
+        barcodeDetectorRef.current = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+      } catch {
+        barcodeDetectorRef.current = null;
+      }
+    }
+  }, []);
+
+  // Stop camera tracks cleanly and invalidate any pending initialization
+  const stopCamera = useCallback(() => {
+    cameraSessionIdRef.current++;
+
+    if (animFrameIdRef.current) {
+      cancelAnimationFrame(animFrameIdRef.current);
+      animFrameIdRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {
+          /* ignore */
+        }
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  // Request camera and initialize video stream with session-guarded concurrency and device-aware constraints
+  const startCamera = useCallback(async () => {
+    const sessionId = ++cameraSessionIdRef.current;
+    setCameraError(null);
+    setErrorMessage(null);
+
+    // 1. Verify Secure Context (WebRTC mediaDevices requires HTTPS or localhost)
+    if (
+      typeof window !== 'undefined' &&
+      !window.isSecureContext &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1'
+    ) {
+      const msg = tRef.current(
+        "doctor.scan.insecure_context",
+        "Camera access requires a secure connection (HTTPS or localhost). Please open this app via http://localhost:3000."
+      );
+      setCameraError(msg);
+      setErrorMessage(msg);
+      setIsCameraActive(false);
+      return;
+    }
+
+    // 2. Verify mediaDevices support
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
+    ) {
+      const msg = tRef.current(
+        "doctor.scan.unsupported_browser",
+        "Camera scanning is not supported by this browser. Please use Chrome, Edge, or Firefox."
+      );
+      setCameraError(msg);
+      setErrorMessage(msg);
+      setIsCameraActive(false);
+      return;
+    }
+
+    // Stop any existing stream before creating a new one
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => {
+        try {
+          t.stop();
+        } catch {
+          /* ignore */
+        }
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    try {
+      // 3. Fast permission pre-check if Permissions API is supported
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const perm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          if (sessionId !== cameraSessionIdRef.current || !isMountedRef.current) return;
+          if (perm.state === 'denied') {
+            const msg = tRef.current(
+              "doctor.scan.permission_denied",
+              "Camera permission was denied. Please allow camera access in your browser site settings and try again."
+            );
+            setCameraError(msg);
+            setErrorMessage(msg);
+            setIsCameraActive(false);
+            return;
+          }
+        } catch {
+          // Permissions API query for camera is not supported on all browsers; proceed to getUserMedia
+        }
+      }
+
+      // 4. Device-aware constraint selection
+      const isMobile =
+        typeof navigator !== 'undefined' &&
+        /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+      let stream: MediaStream | null = null;
+
+      if (isMobile) {
+        // Mobile device: Prefer rear environment camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            audio: false,
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
+      } else {
+        // Desktop / Laptop (e.g. Integrated Camera):
+        // On laptops, requesting { facingMode: { ideal: "environment" } } can cause Windows Media Foundation
+        // to fail with NotFoundError. Request standard video constraints directly:
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            audio: false,
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
+      }
+
+      // Check if session was superseded or component unmounted during getUserMedia
+      if (sessionId !== cameraSessionIdRef.current || !isMountedRef.current) {
+        if (stream) {
+          stream.getTracks().forEach((t) => {
+            try {
+              t.stop();
+            } catch {
+              /* ignore */
+            }
+          });
+        }
+        return;
+      }
+
+      streamRef.current = stream;
+
+      // 5. Attach stream to video element and handle playback lifecycle
+      if (videoRef.current) {
+        const video = videoRef.current;
+        video.srcObject = stream;
+        video.playsInline = true;
+        video.autoplay = true;
+        video.muted = true;
+
+        const startPlayback = async () => {
+          if (sessionId !== cameraSessionIdRef.current || !isMountedRef.current) return;
+          try {
+            await video.play();
+          } catch (playErr: any) {
+            if (playErr.name !== 'AbortError') {
+              console.warn('[QR] Video play warning:', playErr);
+            }
+          }
+        };
+
+        if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          startPlayback();
+        } else {
+          video.onloadedmetadata = () => {
+            startPlayback();
+          };
+        }
+      }
+
+      setIsCameraActive(true);
+      setCameraError(null);
+      setErrorMessage(null);
+      console.log("[QR] scanner initialized successfully");
+    } catch (err: any) {
+      if (sessionId !== cameraSessionIdRef.current || !isMountedRef.current) return;
+
+      console.error('[QR] Camera access error:', err);
+
+      let friendlyMsg = tRef.current("doctor.scan.camera_unknown", "Unable to start the camera. Please try again.");
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        friendlyMsg = tRef.current(
+          "doctor.scan.permission_denied",
+          "Camera permission was denied. Please allow camera access in your browser site settings and try again."
+        );
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        friendlyMsg = tRef.current(
+          "doctor.scan.camera_in_use",
+          "The camera is currently being used by another application (e.g. Teams, Zoom, WhatsApp, or Windows Camera). Please close it and click Retry Camera."
+        );
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        let hasCameraDevice = false;
+        try {
+          if (navigator.mediaDevices?.enumerateDevices) {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            hasCameraDevice = devices.some((d) => d.kind === 'videoinput');
+          }
+        } catch {
+          // ignore
+        }
+
+        if (hasCameraDevice) {
+          friendlyMsg = tRef.current(
+            "doctor.scan.camera_shutter_closed",
+            "Camera hardware was detected, but the video stream could not be started. Check if your laptop privacy shutter (slider) is closed or disabled in Windows settings."
+          );
+        } else {
+          friendlyMsg = tRef.current("doctor.scan.no_camera", "No camera was detected on this device. Please connect a webcam and try again.");
+        }
+      } else if (err.name === 'OverconstrainedError') {
+        friendlyMsg = tRef.current(
+          "doctor.scan.camera_constrained",
+          "The requested camera resolution is not supported by your camera hardware. Please click Retry Camera."
+        );
+      }
+
+      setCameraError(friendlyMsg);
+      setErrorMessage(friendlyMsg);
+      setIsCameraActive(false);
+    }
+  }, []);
+
+  // Extract Zero-PHI temporary secure token or reference from decoded QR
+  const cleanAndExtractToken = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (!trimmed) return '';
+
+    // 1. JSON payload e.g. {"token": "MED-QR-..."}
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed.token) return String(parsed.token).trim();
+        if (parsed.qrToken) return String(parsed.qrToken).trim();
+        if (parsed.id) return String(parsed.id).trim();
+        if (parsed.abhaId) return String(parsed.abhaId).trim();
+      } catch {
+        // Not valid JSON, continue with string extraction
+      }
+    }
+
+    // 2. URL with query parameter e.g. https://domain.com/share?token=MED-QR-...
+    try {
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        const url = new URL(trimmed);
+        const urlToken = url.searchParams.get('token') || url.searchParams.get('qr') || url.searchParams.get('t');
+        if (urlToken) return urlToken.trim();
+      }
+    } catch {
+      // Not a valid URL
+    }
+
+    // 3. Regex for MED-QR pattern
+    const medMatch = trimmed.match(/MED-QR-[A-Za-z0-9-]+/i);
+    if (medMatch) {
+      return medMatch[0].toUpperCase();
+    }
+
+    return trimmed;
+  };
+
+  // Lifecycle: start camera when entering SCANNING stage, stop when leaving
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    if (stage === 'SCANNING') {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+
+    return () => {
+      isMountedRef.current = false;
+      stopCamera();
+    };
+  }, [stage, startCamera, stopCamera]);
+
+  // Continuous QR detection loop
+  useEffect(() => {
+    if (stage !== 'SCANNING' || !isCameraActive) {
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+        animFrameIdRef.current = null;
+      }
+      return;
+    }
+
+    let isScanningLoopActive = true;
+    let lastScanTick = 0;
+    let frameLogCounter = 0;
+
+    const scanTick = async () => {
+      if (!isScanningLoopActive || stage !== 'SCANNING') return;
+
+      const now = performance.now();
+      // Throttle detection to ~8 times per second (every 120ms) for high performance and low CPU
+      if (now - lastScanTick > 120) {
+        lastScanTick = now;
+
+        const video = videoRef.current;
+        if (
+          video &&
+          video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+          video.videoWidth > 0 &&
+          video.videoHeight > 0 &&
+          !isProcessingRef.current &&
+          !isScanning
+        ) {
+          if (frameLogCounter % 8 === 0) {
+            console.log("[QR] scanning frame");
+          }
+          frameLogCounter++;
+
+          let detectedRaw: string | null = null;
+
+          // 1. Try native BarcodeDetector first if supported
+          if (barcodeDetectorRef.current) {
+            try {
+              const barcodes = await barcodeDetectorRef.current.detect(video);
+              if (barcodes?.length > 0 && barcodes[0].rawValue) {
+                detectedRaw = barcodes[0].rawValue;
+              }
+            } catch {
+              // BarcodeDetector error, fall through to jsQR
+            }
+          }
+
+          // 2. Pure JS QR decoding using jsQR on the full frame
+          if (!detectedRaw) {
+            try {
+              if (!canvasRef.current) {
+                canvasRef.current = document.createElement('canvas');
+              }
+              const canvas = canvasRef.current;
+              const vWidth = video.videoWidth;
+              const vHeight = video.videoHeight;
+
+              canvas.width = vWidth;
+              canvas.height = vHeight;
+
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              if (ctx) {
+                ctx.drawImage(video, 0, 0, vWidth, vHeight);
+                const imageData = ctx.getImageData(0, 0, vWidth, vHeight);
+                const qr = jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: 'attemptBoth',
+                });
+                if (qr && qr.data && qr.data.trim()) {
+                  detectedRaw = qr.data;
+                } else if (vWidth > 400 && vHeight > 400) {
+                  // Focused center area fallback (where user holds QR in the viewport)
+                  const cropSize = Math.floor(Math.min(vWidth, vHeight) * 0.65);
+                  const cropX = Math.floor((vWidth - cropSize) / 2);
+                  const cropY = Math.floor((vHeight - cropSize) / 2);
+                  const cropData = ctx.getImageData(cropX, cropY, cropSize, cropSize);
+                  const cropQr = jsQR(cropData.data, cropSize, cropSize, {
+                    inversionAttempts: 'attemptBoth',
+                  });
+                  if (cropQr && cropQr.data && cropQr.data.trim()) {
+                    detectedRaw = cropQr.data;
+                  }
+                }
+              }
+            } catch {
+              // Frame decoding error - ignore and continue scanning
+            }
+          }
+
+          if (detectedRaw && !isProcessingRef.current) {
+            console.log("[QR] decoded value:", detectedRaw);
+            const token = cleanAndExtractToken(detectedRaw);
+            const timeSinceLast = now - lastScanTimestampRef.current;
+            // Prevent duplicate triggers of the exact same token within 5 seconds if an error happened
+            if (token && (token !== lastScannedTokenRef.current || timeSinceLast > 5000)) {
+              lastScannedTokenRef.current = token;
+              lastScanTimestampRef.current = now;
+              isProcessingRef.current = true;
+              stopCamera();
+              handleValidateToken(token);
+              return;
+            }
+          }
+        }
+      }
+
+      if (isScanningLoopActive) {
+        animFrameIdRef.current = requestAnimationFrame(scanTick);
+      }
+    };
+
+    animFrameIdRef.current = requestAnimationFrame(scanTick);
+
+    return () => {
+      isScanningLoopActive = false;
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+        animFrameIdRef.current = null;
+      }
+    };
+  }, [stage, isCameraActive, isScanning, stopCamera]);
 
   // Real-time Socket.IO approval listener + Fallback Polling
   useEffect(() => {
@@ -131,11 +579,15 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         setSelectedScopes(data.availableScopes);
       }
       setStage('ACCESS_REQUEST');
+      stopCamera();
     } catch (err: any) {
       setErrorMessage(err.message || 'Invalid or expired QR token. Please verify and try again.');
+      isProcessingRef.current = false;
     } finally {
       setIsScanning(false);
-      setIsCameraActive(false);
+      if (stage === 'SCANNING') {
+        isProcessingRef.current = false;
+      }
     }
   };
 
@@ -148,7 +600,57 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
     } catch (e: any) {
       setErrorMessage(e.message || 'Could not validate test patient QR token');
       setIsScanning(false);
+      isProcessingRef.current = false;
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    setErrorMessage(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (!ctx) {
+            setIsScanning(false);
+            setErrorMessage('Could not process the uploaded image.');
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const qr = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'attemptBoth',
+          });
+
+          if (qr && qr.data && qr.data.trim()) {
+            const token = cleanAndExtractToken(qr.data);
+            handleValidateToken(token);
+          } else {
+            setIsScanning(false);
+            setErrorMessage('No readable QR code found in the uploaded image. Please ensure the QR is clear or enter the token manually.');
+          }
+        } catch {
+          setIsScanning(false);
+          setErrorMessage('Failed to decode QR code from the uploaded image.');
+        }
+      };
+      img.onerror = () => {
+        setIsScanning(false);
+        setErrorMessage('Failed to read image file.');
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleToggleScope = (scope: string) => {
@@ -185,13 +687,16 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
   };
 
   const handleResetScanner = () => {
+    isProcessingRef.current = false;
+    lastScannedTokenRef.current = null;
     setStage('SCANNING');
     setValidationData(null);
     setManualToken('');
     setErrorMessage(null);
-    setIsCameraActive(false);
+    setCameraError(null);
     setRequestStatus('PENDING');
     setSubmittedRequestId(null);
+    startCamera();
   };
 
   const handleOpenPatient360 = () => {
@@ -222,24 +727,35 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
           >
             {/* Security Indicator */}
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-3 py-1.5 rounded-full text-xs font-bold border border-teal-200 dark:border-teal-800/50">
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-3 py-1.5 rounded-full text-xs font-bold border border-teal-200 dark:border-teal-800/50">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
               <span>{t("doctor.scan.zero_phi", "Zero-PHI Encrypted QR")}</span>
             </div>
 
             {/* Scanner Viewport */}
             <div className="aspect-square sm:aspect-video bg-slate-950 relative flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900 via-slate-900 to-black"></div>
+              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900 via-slate-900 to-black pointer-events-none"></div>
+
+              {/* Live Camera Video Feed */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                  isCameraActive && !cameraError ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+              />
 
               {/* Target Frame */}
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72">
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 pointer-events-none z-10">
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-teal-400 rounded-tl-xl"></div>
                 <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-teal-400 rounded-tr-xl"></div>
                 <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-teal-400 rounded-bl-xl"></div>
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-teal-400 rounded-br-xl"></div>
 
                 {/* Laser scan animation */}
-                {(isScanning || isCameraActive) && (
+                {(isScanning || (isCameraActive && !cameraError)) && (
                   <motion.div
                     animate={{ top: ['0%', '100%', '0%'] }}
                     transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }}
@@ -248,14 +764,43 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                 )}
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                  <Scan
-                    className={`w-14 h-14 ${
-                      isCameraActive ? 'text-teal-400' : 'text-white/25'
-                    } ${isScanning || isCameraActive ? 'animate-pulse' : ''}`}
-                  />
-                  <p className="text-xs font-bold text-slate-300 mt-3">
-                    {t("doctor.scan.point_camera", "Point camera at the patient's MediCare Health QR")}
-                  </p>
+                  {cameraError ? (
+                    <div className="flex flex-col items-center justify-center max-w-xs text-center p-3 pointer-events-auto">
+                      <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mb-2.5 border border-rose-500/30">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs font-bold text-rose-200 mb-3">
+                        {cameraError}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCameraError(null);
+                          setErrorMessage(null);
+                          startCamera();
+                        }}
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        {t("doctor.scan.retry_camera", "Retry Camera")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {!isCameraActive && (
+                        <Scan
+                          className={`w-14 h-14 ${
+                            isScanning ? 'text-teal-400 animate-pulse' : 'text-white/25'
+                          }`}
+                        />
+                      )}
+                      <p className="text-xs font-bold text-slate-300 mt-auto mb-2 bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                        {isCameraActive
+                          ? t("doctor.scan.point_camera", "Point camera at the patient's MediCare Health QR")
+                          : t("doctor.scan.camera_off", "Camera is off. Click below to start scanning.")}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -273,8 +818,16 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   type="button"
-                  onClick={() => setIsCameraActive(true)}
-                  disabled={isScanning || isCameraActive}
+                  onClick={() => {
+                    if (isCameraActive) {
+                      stopCamera();
+                    } else {
+                      setCameraError(null);
+                      setErrorMessage(null);
+                      startCamera();
+                    }
+                  }}
+                  disabled={isScanning}
                   className={`flex-1 py-3 font-black rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer ${
                     isCameraActive
                       ? 'bg-teal-500/10 text-teal-600 border border-teal-500/30'
@@ -288,7 +841,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={() => handleDemoScan()}
+                  onChange={handleFileUpload}
                   accept="image/*"
                   className="hidden"
                 />

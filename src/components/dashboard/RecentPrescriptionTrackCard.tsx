@@ -143,7 +143,7 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
           <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <span>{t('card.prescription_details', 'Prescription Details')}:</span>
             <span className="font-extrabold text-slate-900 dark:text-white">
-              {latestPrescription.medicines.length} {t('meds.title', 'prescribed formulations')}
+              {latestPrescription.medicines.length} {t('presc.formulations', 'prescribed formulations')}
             </span>
           </div>
           <div className="text-xs text-slate-600 dark:text-slate-400 font-mono line-clamp-1">
@@ -151,7 +151,7 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
           </div>
           {linkedOrder && (
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Connected Pharmacy Order: <strong className="text-[#00a896] dark:text-cyan-300">#{linkedOrder.id}</strong> • Fulfillment Method: <strong>{linkedOrder.deliveryMethod}</strong>
+              {t('presc.connected_order', 'Connected Pharmacy Order')}: <strong className="text-[#00a896] dark:text-cyan-300">#{linkedOrder.id}</strong> • {t('presc.fulfillment_method', 'Fulfillment Method')}: <strong>{linkedOrder.deliveryMethod}</strong>
             </p>
           )}
         </div>

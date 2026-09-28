@@ -1,5 +1,6 @@
 import React from 'react';
 import { Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SidebarHeaderProps {
   isCollapsed: boolean;
@@ -12,11 +13,13 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   onToggleCollapse,
   onNavigateHome
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="p-3.5 flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800/60 relative shrink-0">
       <button
         onClick={onNavigateHome}
-        title="Go to Home"
+        title={t('goToHome', 'Go to Home')}
         className="flex items-center gap-2.5 overflow-hidden select-none text-left cursor-pointer group hover:opacity-90 transition-opacity"
       >
         {/* ECG ACTIVITY ICON WITH TEAL BACKGROUND */}
@@ -31,7 +34,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
               Medi<span className="text-[#00a896]">Care</span>
             </span>
             <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 tracking-wider leading-tight uppercase font-mono mt-0.5">
-              HEALTHCARE & MEDICAL
+              {t('healthcareAndMedical', 'HEALTHCARE & MEDICAL')}
             </span>
           </div>
         )}
@@ -40,9 +43,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       {/* TOGGLE BUTTON */}
       <button
         onClick={onToggleCollapse}
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={isCollapsed ? t('expandSidebar', 'Expand sidebar') : t('collapseSidebar', 'Collapse sidebar')}
         className="hidden md:flex p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 transition-colors shrink-0 cursor-pointer"
-        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={isCollapsed ? t('expandSidebar', 'Expand sidebar') : t('collapseSidebar', 'Collapse sidebar')}
       >
         {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>

@@ -15,6 +15,7 @@ export interface RegisterDTO {
   gender?: string;
   dateOfBirth?: string;
   bloodGroup?: string;
+  blood_group?: string;
   address?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
@@ -270,7 +271,7 @@ export class AuthService {
               fullName: name,
               gender: data.gender || null,
               dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-              bloodGroup: data.bloodGroup || null,
+              bloodGroup: data.bloodGroup || (data as any).blood_group || null,
               address: data.address || null,
               emergencyContactName: data.emergencyContactName || null,
               emergencyContactPhone: data.emergencyContactPhone || null,

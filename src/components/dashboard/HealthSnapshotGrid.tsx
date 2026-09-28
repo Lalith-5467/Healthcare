@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Activity, Moon, Footprints, Scale, Gauge, TrendingUp, TrendingDown } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 /* Mini sparkline SVG — 5 data points, accent-colored */
 const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
@@ -21,94 +22,96 @@ const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
   );
 };
 
-const metrics = [
-  {
-    id: 'heart',
-    label: 'Heart Rate',
-    value: '72 BPM',
-    status: 'Normal',
-    trend: '↓ 2% yesterday',
-    isUp: false,
-    icon: Heart,
-    accent: '#f43f5e',
-    accentBg: 'rgba(244,63,94,.1)',
-    accentBorder: 'rgba(244,63,94,.2)',
-    badgeClr: '#be123c',
-    badgeBg: 'rgba(244,63,94,.08)',
-  },
-  {
-    id: 'bp',
-    label: 'Blood Pressure',
-    value: '120/80',
-    status: 'Optimal',
-    trend: '120/80 mmHg',
-    isUp: true,
-    icon: Activity,
-    accent: '#06b6d4',
-    accentBg: 'rgba(6,182,212,.1)',
-    accentBorder: 'rgba(6,182,212,.2)',
-    badgeClr: '#0e7490',
-    badgeBg: 'rgba(6,182,212,.08)',
-  },
-  {
-    id: 'sleep',
-    label: 'Sleep Duration',
-    value: '7h 42m',
-    status: 'Restful',
-    trend: '↑ 8% this week',
-    isUp: true,
-    icon: Moon,
-    accent: '#818cf8',
-    accentBg: 'rgba(129,140,248,.1)',
-    accentBorder: 'rgba(129,140,248,.2)',
-    badgeClr: '#4338ca',
-    badgeBg: 'rgba(129,140,248,.08)',
-  },
-  {
-    id: 'steps',
-    label: 'Daily Steps',
-    value: '6,842',
-    status: 'Goal: 10k',
-    trend: '68% completed',
-    isUp: true,
-    icon: Footprints,
-    accent: '#10b981',
-    accentBg: 'rgba(16,185,129,.1)',
-    accentBorder: 'rgba(16,185,129,.2)',
-    badgeClr: '#065f46',
-    badgeBg: 'rgba(16,185,129,.08)',
-  },
-  {
-    id: 'weight',
-    label: 'Body Weight',
-    value: '72 kg',
-    status: 'Stable',
-    trend: 'No change',
-    isUp: true,
-    icon: Scale,
-    accent: '#14b8a6',
-    accentBg: 'rgba(20,184,166,.1)',
-    accentBorder: 'rgba(20,184,166,.2)',
-    badgeClr: '#0f766e',
-    badgeBg: 'rgba(20,184,166,.08)',
-  },
-  {
-    id: 'bmi',
-    label: 'Body Mass Index',
-    value: '23.8',
-    status: 'Healthy',
-    trend: 'Ideal range',
-    isUp: true,
-    icon: Gauge,
-    accent: '#a855f7',
-    accentBg: 'rgba(168,85,247,.1)',
-    accentBorder: 'rgba(168,85,247,.2)',
-    badgeClr: '#7e22ce',
-    badgeBg: 'rgba(168,85,247,.08)',
-  },
-];
-
 export const HealthSnapshotGrid: React.FC = () => {
+  const { t } = useLanguage();
+
+  const metrics = [
+    {
+      id: 'heart',
+      label: t('snapshot.heart_rate', 'Heart Rate'),
+      value: '72 BPM',
+      status: t('snapshot.status_normal', 'Normal'),
+      trend: t('snapshot.trend_yesterday', '↓ 2% yesterday'),
+      isUp: false,
+      icon: Heart,
+      accent: '#f43f5e',
+      accentBg: 'rgba(244,63,94,.1)',
+      accentBorder: 'rgba(244,63,94,.2)',
+      badgeClr: '#be123c',
+      badgeBg: 'rgba(244,63,94,.08)',
+    },
+    {
+      id: 'bp',
+      label: t('snapshot.blood_pressure', 'Blood Pressure'),
+      value: '120/80',
+      status: t('snapshot.status_optimal', 'Optimal'),
+      trend: '120/80 mmHg',
+      isUp: true,
+      icon: Activity,
+      accent: '#06b6d4',
+      accentBg: 'rgba(6,182,212,.1)',
+      accentBorder: 'rgba(6,182,212,.2)',
+      badgeClr: '#0e7490',
+      badgeBg: 'rgba(6,182,212,.08)',
+    },
+    {
+      id: 'sleep',
+      label: t('snapshot.sleep_duration', 'Sleep Duration'),
+      value: '7h 42m',
+      status: t('snapshot.status_restful', 'Restful'),
+      trend: t('snapshot.trend_sleep', '↑ 8% this week'),
+      isUp: true,
+      icon: Moon,
+      accent: '#818cf8',
+      accentBg: 'rgba(129,140,248,.1)',
+      accentBorder: 'rgba(129,140,248,.2)',
+      badgeClr: '#4338ca',
+      badgeBg: 'rgba(129,140,248,.08)',
+    },
+    {
+      id: 'steps',
+      label: t('snapshot.daily_steps', 'Daily Steps'),
+      value: '6,842',
+      status: t('snapshot.status_goal', 'Goal: 10k'),
+      trend: t('snapshot.trend_steps', '68% completed'),
+      isUp: true,
+      icon: Footprints,
+      accent: '#10b981',
+      accentBg: 'rgba(16,185,129,.1)',
+      accentBorder: 'rgba(16,185,129,.2)',
+      badgeClr: '#065f46',
+      badgeBg: 'rgba(16,185,129,.08)',
+    },
+    {
+      id: 'weight',
+      label: t('snapshot.body_weight', 'Body Weight'),
+      value: '72 kg',
+      status: t('snapshot.status_stable', 'Stable'),
+      trend: t('snapshot.trend_weight', 'No change'),
+      isUp: true,
+      icon: Scale,
+      accent: '#14b8a6',
+      accentBg: 'rgba(20,184,166,.1)',
+      accentBorder: 'rgba(20,184,166,.2)',
+      badgeClr: '#0f766e',
+      badgeBg: 'rgba(20,184,166,.08)',
+    },
+    {
+      id: 'bmi',
+      label: t('snapshot.bmi', 'Body Mass Index'),
+      value: '23.8',
+      status: t('snapshot.status_healthy', 'Healthy'),
+      trend: t('snapshot.trend_bmi', 'Ideal range'),
+      isUp: true,
+      icon: Gauge,
+      accent: '#a855f7',
+      accentBg: 'rgba(168,85,247,.1)',
+      accentBorder: 'rgba(168,85,247,.2)',
+      badgeClr: '#7e22ce',
+      badgeBg: 'rgba(168,85,247,.08)',
+    },
+  ];
+
   return (
     <div
       className="p-6 rounded-3xl space-y-4 font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50/20 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-teal-500/10 dark:border-teal-500/10 shadow-[0_4px_24px_rgba(20,184,166,0.06),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
@@ -120,10 +123,10 @@ export const HealthSnapshotGrid: React.FC = () => {
       <div className="flex items-center justify-between relative z-10">
         <div>
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Today's Health Biometrics
+            {t('snapshot.title', "Today's Health Biometrics")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Real-time vitals, sleep & physical activity snapshot.
+            {t('snapshot.subtitle', 'Real-time vitals, sleep & physical activity snapshot.')}
           </p>
         </div>
       </div>

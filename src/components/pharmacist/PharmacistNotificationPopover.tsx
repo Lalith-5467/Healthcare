@@ -117,22 +117,31 @@ export const PharmacistNotificationPopover: React.FC<PharmacistNotificationPopov
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleClearAll = () => {
-    notificationApi.markAllAsRead().catch(() => {});
-    setNotifications([]);
-    window.dispatchEvent(new Event('notifications_updated'));
+  const handleClearAll = async () => {
+    try {
+      if (filter === 'unread') {
+        const unreadNotifs = notifications.filter((n) => !n.isRead);
+        await Promise.all(unreadNotifs.map((n) => notificationApi.deleteNotification(n.id)));
+        setNotifications((prev) => prev.filter((n) => n.isRead));
+      } else {
+        await notificationApi.clearAllNotifications();
+        setNotifications([]);
+      }
+      window.dispatchEvent(new Event('notifications_updated'));
+    } catch (err) {
+      console.error('Failed to clear notifications', err);
+    }
   };
 
   const handleRemoveSingle = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await notificationApi.deleteNotification(id);
-    } catch {
-      notificationApi.markAsRead(id).catch(() => {});
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      window.dispatchEvent(new Event('notifications_updated'));
+    } catch (err) {
+      console.error('Failed to delete notification', err);
     }
-    const updated = notifications.filter((n) => n.id !== id);
-    setNotifications(updated);
-    window.dispatchEvent(new Event('notifications_updated'));
   };
 
   const handleActionClick = (notif: PharmacistNotificationItem) => {

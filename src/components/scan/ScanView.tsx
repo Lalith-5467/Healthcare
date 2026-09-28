@@ -93,6 +93,13 @@ export const ScanView: React.FC<ScanViewProps> = ({
     }
   }, []);
 
+  // Auto-open scanner modal when directly landing on /user/scan
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/user/scan')) {
+      setScannerOpen(true);
+    }
+  }, []);
+
   // Helper to persist records
   const updateRecords = (newRecords: MedicalRecordItem[]) => {
     setRecords(newRecords);

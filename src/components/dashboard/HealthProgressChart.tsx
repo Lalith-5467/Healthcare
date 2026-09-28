@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const HealthProgressChart: React.FC = () => {
+  const { t } = useLanguage();
   const [timeframe, setTimeframe] = useState<'7d' | '30d'>('7d');
   const [activeMetric, setActiveMetric] = useState<'steps' | 'sleep' | 'heart'>('steps');
 
   const data7d = [
-    { label: 'Mon', steps: 7200, sleep: 7.2, heart: 74 },
-    { label: 'Tue', steps: 8400, sleep: 8.0, heart: 72 },
-    { label: 'Wed', steps: 6500, sleep: 6.8, heart: 75 },
-    { label: 'Thu', steps: 9100, sleep: 7.5, heart: 70 },
-    { label: 'Fri', steps: 7800, sleep: 7.8, heart: 71 },
-    { label: 'Sat', steps: 10200, sleep: 8.2, heart: 68 },
-    { label: 'Sun', steps: 6842, sleep: 7.7, heart: 72 }
+    { label: t('chart.mon', 'Mon'), steps: 7200, sleep: 7.2, heart: 74 },
+    { label: t('chart.tue', 'Tue'), steps: 8400, sleep: 8.0, heart: 72 },
+    { label: t('chart.wed', 'Wed'), steps: 6500, sleep: 6.8, heart: 75 },
+    { label: t('chart.thu', 'Thu'), steps: 9100, sleep: 7.5, heart: 70 },
+    { label: t('chart.fri', 'Fri'), steps: 7800, sleep: 7.8, heart: 71 },
+    { label: t('chart.sat', 'Sat'), steps: 10200, sleep: 8.2, heart: 68 },
+    { label: t('chart.sun', 'Sun'), steps: 6842, sleep: 7.7, heart: 72 }
   ];
 
   const maxVal = activeMetric === 'steps' ? 12000 : activeMetric === 'sleep' ? 10 : 100;
@@ -32,11 +34,11 @@ export const HealthProgressChart: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Health Progress Analytics
+              {t('chart.title', 'Health Progress Analytics')}
             </h3>
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>+12% average activity</span>
+              <span>{t('chart.subtitle', '+12% average activity')}</span>
             </span>
           </div>
         </div>
@@ -48,19 +50,19 @@ export const HealthProgressChart: React.FC = () => {
               onClick={() => setActiveMetric('steps')}
               className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${activeMetric === 'steps' ? 'bg-indigo-600 text-white shadow-sm font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              Steps
+              {t('chart.steps', 'Steps')}
             </button>
             <button
               onClick={() => setActiveMetric('sleep')}
               className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${activeMetric === 'sleep' ? 'bg-indigo-600 text-white shadow-sm font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              Sleep
+              {t('chart.sleep', 'Sleep')}
             </button>
             <button
               onClick={() => setActiveMetric('heart')}
               className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${activeMetric === 'heart' ? 'bg-indigo-600 text-white shadow-sm font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              Heart
+              {t('chart.heart', 'Heart')}
             </button>
           </div>
 
@@ -90,7 +92,7 @@ export const HealthProgressChart: React.FC = () => {
             <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
               {/* HOVER TOOLTIP */}
               <div className="absolute -top-9 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-[10px] font-extrabold shadow-2xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-nowrap">
-                {d.label}: {val} {activeMetric === 'steps' ? 'steps' : activeMetric === 'sleep' ? 'hrs' : 'BPM'}
+                {d.label}: {val} {activeMetric === 'steps' ? t('chart.steps', 'steps') : activeMetric === 'sleep' ? 'hrs' : 'BPM'}
               </div>
 
               {/* BAR GRAPH STICK */}

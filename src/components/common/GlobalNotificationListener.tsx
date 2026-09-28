@@ -3,12 +3,14 @@ import { Volume2, VolumeX, Sparkles, X } from 'lucide-react';
 import { socketService } from '../../services/socketService';
 import { globalNotificationService, type GlobalNotification } from '../../services/globalNotificationService';
 import { notificationVoiceService } from '../../services/notificationVoiceService';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface GlobalNotificationListenerProps {
   activeRole?: string;
 }
 
 export const GlobalNotificationListener: React.FC<GlobalNotificationListenerProps> = ({ activeRole = 'Patient' }) => {
+  const { t } = useLanguage();
   const [voiceBannerVisible, setVoiceBannerVisible] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
@@ -105,10 +107,10 @@ export const GlobalNotificationListener: React.FC<GlobalNotificationListenerProp
       </div>
       <div className="flex-1 text-xs">
         <p className="font-semibold text-slate-100 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-teal-400 inline" /> Voice Announcements Ready
+          <Sparkles className="w-3.5 h-3.5 text-teal-400 inline" /> {t('voice.banner_title', 'Voice Announcements Ready')}
         </p>
         <p className="text-slate-400 text-[11px] mt-0.5">
-          Click enable to allow voice alerts for new appointments, orders & bookings.
+          {t('voice.banner_desc', 'Click enable to allow voice alerts for new appointments, orders & bookings.')}
         </p>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
@@ -116,12 +118,12 @@ export const GlobalNotificationListener: React.FC<GlobalNotificationListenerProp
           onClick={handleEnableAudio}
           className="px-3 py-1.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-bold text-[11px] rounded-lg shadow-sm hover:brightness-110 active:scale-95 transition"
         >
-          Enable
+          {t('voice.enable', 'Enable')}
         </button>
         <button
           onClick={handleDismissBanner}
           className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
-          title="Dismiss"
+          title={t('voice.dismiss', 'Dismiss')}
         >
           <X className="w-4 h-4" />
         </button>

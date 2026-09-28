@@ -5,6 +5,7 @@ import {
   markNotificationReadController,
   markAllNotificationsReadController,
   deleteNotificationController,
+  clearAllNotificationsController,
   generateSpeechController,
 } from '../controllers/notification.controller';
 
@@ -18,6 +19,8 @@ router.use(authenticate);
 router.get('/', getNotificationsController);
 router.patch('/read-all', markAllNotificationsReadController);
 router.patch('/:id/read', markNotificationReadController);
+router.delete('/clear-all', clearAllNotificationsController);
+router.delete('/', clearAllNotificationsController);
 router.delete('/:id', deleteNotificationController);
 
 export default router;

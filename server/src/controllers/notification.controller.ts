@@ -55,6 +55,19 @@ export const deleteNotificationController = async (
   }
 };
 
+export const clearAllNotificationsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await NotificationService.deleteAllNotifications(req.user!.id);
+    res.status(200).json({ success: true, message: 'All notifications cleared', data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const generateSpeechController = async (
   req: Request,
   res: Response,

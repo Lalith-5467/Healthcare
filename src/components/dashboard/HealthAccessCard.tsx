@@ -52,7 +52,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   const handleCopy = () => {
     navigator.clipboard.writeText(abhaId);
     setCopied(true);
-    if (onToast) onToast('✓ ABHA Health ID copied to clipboard!');
+    if (onToast) onToast(t('access.copied_toast', '✓ ABHA Health ID copied to clipboard!'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -82,7 +82,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
                 {t('card.my_health_qr', 'My Health QR')}
               </h3>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
-                ABDM Digital Health Vault
+                {t('access.vault_title', 'ABDM Digital Health Vault')}
               </span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             onClick={() => setModalOpen(true)}
             className="p-1.5 bg-white dark:bg-slate-900 rounded-2xl border shadow-md cursor-pointer shrink-0 relative overflow-hidden group/qr"
             style={{ borderColor: 'rgba(20,184,166,.2)' }}
-            title="Click to view & scan full size QR Pass"
+            title={t('card.qr_click_view', 'Click to view & scan full size QR Pass')}
           >
             <motion.div
               animate={{ y: [-36, 36, -36] }}
@@ -127,7 +127,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
           {[
             { icon: ShieldCheck, label: t('card.consent', 'Consents'), color: '#059669', bg: 'rgba(16,185,129,.1)', onClick: () => setRequestsModalOpen(true) },
             { icon: CheckCircle2, label: t('card.verified', 'Verified'), color: '#0891b2', bg: 'rgba(6,182,212,.1)', onClick: () => setModalOpen(true) },
-            { icon: Copy, label: 'Copy ABHA', color: '#7c3aed', bg: 'rgba(124,58,237,.1)', onClick: handleCopy },
+            { icon: Copy, label: t('access.copy_abha', 'Copy ABHA'), color: '#7c3aed', bg: 'rgba(124,58,237,.1)', onClick: handleCopy },
           ].map(({ icon: IconComp, label, color, bg, onClick }) => (
             <button 
               key={label} 

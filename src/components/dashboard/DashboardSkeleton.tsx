@@ -1,7 +1,9 @@
 import React from 'react';
 import { Activity, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const DashboardSkeleton: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <div className="space-y-6 p-2 font-sans relative min-h-[500px]">
       {/* TOP SLEEK ACCENT LOADING BAR */}
@@ -20,7 +22,7 @@ export const DashboardSkeleton: React.FC = () => {
         </div>
         <div className="hidden md:flex items-center gap-2 text-xs font-extrabold text-[#00a896] dark:text-cyan-400 bg-teal-500/10 border border-teal-500/20 px-3.5 py-1.5 rounded-xl animate-pulse font-mono">
           <ShieldCheck className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-          <span>ABDM Encrypted Vault</span>
+          <span>{t('records.vault_badge', 'ABDM Encrypted Vault')}</span>
         </div>
       </div>
 

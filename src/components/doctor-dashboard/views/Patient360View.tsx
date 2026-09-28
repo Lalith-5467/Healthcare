@@ -200,6 +200,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
   }
 
   const patient = authData?.patient;
+  const displayedBloodGroup = patient?.bloodGroup || (patient as any)?.blood_group || (patient as any)?.bloodType || 'Unknown';
   const scopes = authData?.session?.approvedScopes || [];
   const hasScope = (name: string) => scopes.some(s => s.toLowerCase() === name.toLowerCase());
 
@@ -253,7 +254,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               <span>•</span>
               <span>{t(`doctor.patients.${patient.gender.toLowerCase()}`, patient.gender)}</span>
               <span>•</span>
-              <span className="text-rose-400 font-mono">{t("doctor.p360.blood_group", "Blood:")} {patient.bloodGroup}</span>
+              <span className="text-rose-400 font-mono">{t("doctor.p360.blood_group", "Blood:")} {displayedBloodGroup}</span>
               {patient.abhaId && (
                 <>
                   <span>•</span>
@@ -334,7 +335,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-400">{t("doctor.p360.blood_group", "Blood Group")}</span>
-                <span className="font-mono font-bold text-rose-600 dark:text-rose-400">{patient.bloodGroup}</span>
+                <span className="font-mono font-bold text-rose-600 dark:text-rose-400">{displayedBloodGroup}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-400">{t("doctor.p360.emergency_contact", "Emergency Contact")}</span>

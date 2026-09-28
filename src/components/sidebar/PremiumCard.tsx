@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PremiumCardProps {
   isCollapsed: boolean;
@@ -11,6 +12,8 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   isCollapsed,
   onOpenPremiumModal
 }) => {
+  const { t } = useLanguage();
+
   if (isCollapsed) {
     return (
       <div className="px-2 py-2 flex justify-center relative group/tooltip shrink-0">
@@ -18,14 +21,14 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
           whileHover={{ scale: 1.1, rotate: 5 }}
           whileTap={{ scale: 0.95 }}
           onClick={onOpenPremiumModal}
-          aria-label="Go Premium"
+          aria-label={t('premium.badge', 'Premium Health ✨')}
           className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-200/50 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all shadow-sm cursor-pointer"
         >
           <Crown className="w-4 h-4 text-purple-500 dark:text-purple-400" />
         </motion.button>
 
         <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900 text-purple-200 text-xs font-bold shadow-2xl border border-purple-500/30 whitespace-nowrap opacity-0 pointer-events-none group-hover/tooltip:opacity-100 group-hover/tooltip:pointer-events-auto transition-opacity duration-150 z-50">
-          Premium Health ✨
+          {t('premium.badge', 'Premium Health ✨')}
         </div>
       </div>
     );
@@ -46,24 +49,24 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 drop-shadow-sm" />
           <h4 className="text-[14px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-blue-600 dark:from-purple-300 dark:to-cyan-300 tracking-tight leading-tight">
-            Premium Care
+            {t('premium.title', 'Premium Care')}
           </h4>
         </div>
 
         <p className="text-[9px] text-slate-600 dark:text-slate-300/90 leading-snug font-medium">
-          Get advanced health insights, priority support & more.
+          {t('premium.desc', 'Get advanced health insights, priority support & more.')}
         </p>
 
         {/* COMPACT BENEFITS */}
         <ul className="text-[9px] text-slate-700 dark:text-slate-300 font-medium space-y-1.5 mb-1.5">
           <li className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Advanced Health Insights
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> {t('premium.benefit1', 'Advanced Health Insights')}
           </li>
           <li className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Detailed Health Reports
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> {t('premium.benefit2', 'Detailed Health Reports')}
           </li>
           <li className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> Priority Support
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400 drop-shadow-sm" /> {t('premium.benefit3', 'Priority Support')}
           </li>
         </ul>
 
@@ -78,7 +81,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-700 ease-in-out pointer-events-none" />
           
           <Crown className="w-3 h-3 text-amber-300 drop-shadow-md relative z-10" />
-          <span className="tracking-wide relative z-10 drop-shadow-sm">Explore Premium</span>
+          <span className="tracking-wide relative z-10 drop-shadow-sm">{t('premium.explore', 'Explore Premium')}</span>
         </motion.button>
       </div>
     </motion.div>

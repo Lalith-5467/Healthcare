@@ -131,18 +131,27 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleClearAll = () => {
-    notificationApi.markAllAsRead().catch(() => {});
-    setNotifications([]);
-    window.dispatchEvent(new Event('notifications_updated'));
+  const handleClearAll = async () => {
+    try {
+      if (filter === 'unread') {
+        const unreadNotifs = notifications.filter((n) => !n.isRead);
+        await Promise.all(unreadNotifs.map((n) => notificationApi.deleteNotification(n.id)));
+        setNotifications((prev) => prev.filter((n) => n.isRead));
+      } else {
+        await notificationApi.clearAllNotifications();
+        setNotifications([]);
+      }
+      window.dispatchEvent(new Event('notifications_updated'));
+    } catch (err) {
+      console.error('Failed to clear notifications', err);
+    }
   };
 
   const handleRemoveSingle = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await notificationApi.deleteNotification(id);
-      const updated = notifications.filter((n) => n.id !== id);
-      setNotifications(updated);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
       window.dispatchEvent(new Event('notifications_updated'));
     } catch (err) {
       console.error('Failed to delete notification', err);
@@ -194,9 +203,9 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                   <Bell className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Notifications</h3>
+                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{t('header.notifications_title', 'Notifications')}</h3>
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">
-                    {unreadCount > 0 ? `${unreadCount} unread alert${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+                    {unreadCount > 0 ? `${unreadCount} ${t('notif_pop.unread', 'unread')}` : t('notif_pop.all_caught_up', 'All caught up!')}
                   </p>
                 </div>
               </div>
@@ -220,7 +229,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  All ({notifications.length})
+                  {t('notif_pop.all', 'All')} ({notifications.length})
                 </button>
                 <button
                   onClick={() => setFilter('unread')}
@@ -230,7 +239,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  Unread ({unreadCount})
+                  {t('notif_pop.unread', 'Unread')} ({unreadCount})
                 </button>
               </div>
 
@@ -238,7 +247,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
-                    title="Mark all as read"
+                    title={t('notif_pop.mark_all_read', 'Mark all as read')}
                     className="p-1.5 rounded-lg text-[#00a896] dark:text-cyan-400 hover:bg-teal-500/10 cursor-pointer"
                   >
                     <CheckCheck className="w-4 h-4" />
@@ -247,7 +256,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 {notifications.length > 0 && (
                   <button
                     onClick={handleClearAll}
-                    title="Clear all"
+                    title={t('notif_pop.clear_all', 'Clear all')}
                     className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -261,8 +270,8 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
               {filteredNotifs.length === 0 ? (
                 <div className="py-8 text-center space-y-2">
                   <CheckCircle2 className="w-8 h-8 text-teal-500/40 mx-auto" />
-                  <p className="text-slate-600 dark:text-slate-400 font-bold">No notifications to show</p>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400">You're all up to date with your health updates.</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-bold">{t('notif_pop.no_notifications', 'No notifications to show')}</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400">{t('notif_pop.up_to_date', "You're all up to date with your health updates.")}</p>
                 </div>
               ) : (
                 filteredNotifs.map((notif) => {
@@ -310,14 +319,14 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                               e.stopPropagation();
                               notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
                             }}
-                          title="Play voice announcement"
+                          title={t('notif_pop.play_voice', 'Play voice announcement')}
                           className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 hover:scale-110 transition-all cursor-pointer"
                         >
                           <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                         </button>
                         <button
                           onClick={(e) => handleRemoveSingle(notif.id, e)}
-                          title="Dismiss notification"
+                          title={t('notif_pop.dismiss', 'Dismiss notification')}
                           className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-opacity cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -338,7 +347,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 }}
                 className="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#00a896] hover:text-white dark:hover:bg-[#00a896] text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>View All Notifications & Reminders</span>
+                <span>{t('notif_pop.view_all_reminders', 'View All Notifications & Reminders')}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             </div>

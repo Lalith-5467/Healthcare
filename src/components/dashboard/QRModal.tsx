@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, ShieldCheck, Download, Sparkles, UserCheck, RefreshCw, AlertCircle, Clock } from 'lucide-react';
 import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 import { healthShareApi } from '../../services/healthShareApi';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface QRModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const QRModal: React.FC<QRModalProps> = ({
   abhaId = '91-8472-9104-5821@abdm',
   userName = 'Ananya Sharma'
 }) => {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -114,7 +116,7 @@ export const QRModal: React.FC<QRModalProps> = ({
                 onClose();
               }}
               className="absolute top-4 right-4 p-2.5 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer z-50 shadow-xs"
-              aria-label="Close QR Modal"
+              aria-label={t('requests.close', 'Close modal')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -123,7 +125,7 @@ export const QRModal: React.FC<QRModalProps> = ({
           <div className="space-y-2 relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/15 text-[#00a896] dark:text-cyan-300 text-[10px] font-extrabold uppercase border border-teal-500/30">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Official Patient Health QR</span>
+              <span>{t('qr.official_title', 'Official Patient Health QR')}</span>
             </div>
             
             <div className="pt-1">
@@ -142,7 +144,7 @@ export const QRModal: React.FC<QRModalProps> = ({
           <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 rounded-xl">
              <p className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5">
                <UserCheck className="w-4 h-4" />
-               Show this QR to your doctor to request temporary access
+               {t('qr.doctor_instructions', 'Show this QR to your doctor to request temporary access')}
              </p>
           </div>
 
@@ -181,7 +183,7 @@ export const QRModal: React.FC<QRModalProps> = ({
 
           <div className="text-center mt-[-10px]">
             <p className="text-[10px] text-slate-500 font-medium">
-              Secure Temporary Token • Auto-expires in {timeLeft}
+              {t('qr.temporary_token', 'Secure Temporary Token • Auto-expires in {{time}}').replace('{{time}}', timeLeft)}
             </p>
           </div>
 
@@ -189,12 +191,12 @@ export const QRModal: React.FC<QRModalProps> = ({
           <div className="flex items-center justify-center gap-4 text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-800/70 py-2 px-4 rounded-2xl border border-slate-200 dark:border-slate-700">
             <span className="flex items-center gap-1">
               <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Zero-PHI Encoded</span>
+              <span>{t('qr.zero_phi', 'Zero-PHI Encoded')}</span>
             </span>
             <span>•</span>
             <span className="flex items-center gap-1 text-[#00a896] dark:text-cyan-300">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Temporary Share</span>
+              <span>{t('qr.temporary_share', 'Temporary Share')}</span>
             </span>
           </div>
 
@@ -211,12 +213,12 @@ export const QRModal: React.FC<QRModalProps> = ({
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-500" />
-                  <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{t('qr.copied', 'Copied!')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4" />
-                  <span>Copy Token</span>
+                  <span>{t('qr.copy_token', 'Copy Token')}</span>
                 </>
               )}
             </button>
@@ -231,12 +233,12 @@ export const QRModal: React.FC<QRModalProps> = ({
               {downloaded ? (
                 <>
                   <Check className="w-4 h-4" />
-                  <span>Saved!</span>
+                  <span>{t('qr.saved', 'Saved!')}</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Save QR Pass</span>
+                  <span>{t('qr.save_pass', 'Save QR Pass')}</span>
                 </>
               )}
             </button>
@@ -249,7 +251,7 @@ export const QRModal: React.FC<QRModalProps> = ({
               className="w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>Regenerate Secure QR</span>
+              <span>{t('qr.regenerate', 'Regenerate Secure QR')}</span>
             </button>
           </div>
         </motion.div>

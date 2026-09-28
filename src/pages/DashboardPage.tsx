@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Menu, Home } from 'lucide-react';
 import { Sidebar, MobileSidebar, PremiumModal } from '../components/sidebar';
 import { showGlobalToast } from '../components/common/GlobalToastManager';
+import { useLanguage } from '../context/LanguageContext';
 import {
   DashboardHeader,
   DashboardStatsGrid,
@@ -89,6 +90,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
   onOpenEmergencyModal,
   onOpenAbhaModal
 }) => {
+  const { t } = useLanguage();
   const [activeNavId, setActiveNavId] = useState<string>(initialNavId);
 
   useEffect(() => {
@@ -180,7 +182,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
         payload.event?.includes('request_created')
       ) {
         setAccessRequestsModalOpen(true);
-        showToast('🚨 Doctor Access Request received! Please review consent.', 'info');
+        showToast(t('toast.doctorAccessReq', '🚨 Doctor Access Request received! Please review consent.'), 'info');
       }
     });
 
@@ -265,45 +267,45 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
     } else if (targetId === 'abha') {
       onOpenAbhaModal();
     } else if (targetId === 'profile') {
-      showToast('Switched to My Health Profile');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.profile', 'My Health Profile')));
     } else if (targetId === 'records') {
-      showToast('Switched to Medical Records');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.records', 'Medical Records')));
     } else if (targetId === 'scan') {
-      showToast('Switched to Scan & Upload');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.scan', 'Scan & Upload')));
     } else if (targetId === 'appointments') {
-      showToast('Switched to Appointments');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.appointments', 'Appointments')));
     } else if (targetId === 'medicines') {
-      showToast('Switched to Medicines');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.medicines', 'Medicines')));
     } else if (targetId === 'pharmacy') {
-      showToast('Switched to Pharmacy Tracking');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.pharmacy', 'Pharmacy Tracking')));
     } else if (targetId === 'consultation') {
-      showToast('Switched to Video Consultation');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.consultation', 'Video Consultation')));
     } else if (targetId === 'reminders' || targetId === 'notifications') {
-      showToast('Switched to Reminders & Notifications');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.reminders', 'Reminders & Notifications')));
     } else if (targetId === 'analytics' || targetId === 'health-analytics') {
-      showToast('Switched to Health Analytics');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.analytics', 'Health Analytics')));
     } else if (targetId === 'family' || targetId === 'family-connect') {
-      showToast('Switched to Family Connect');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.family', 'Family Connect')));
     } else if (targetId === 'checkup' || targetId === 'health-checkup') {
-      showToast('Switched to Health Check-Up');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.checkup', 'Health Check-Up')));
     } else if (targetId === 'dashboard') {
-      showToast('Switched to Dashboard Overview');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.dashboard', 'Dashboard Overview')));
     } else if (targetId === 'lab-test') {
-      showToast('Switched to Lab Test & Diagnostics');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.labtest', 'Lab Test & Diagnostics')));
     } else if (targetId === 'diet-plan') {
-      showToast('Switched to Diet & Nutrient Plans');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.diet', 'Diet & Nutrient Plans')));
     } else if (targetId === 'report-insights') {
-      showToast('Switched to Report Insights & AI');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.insights', 'Report Insights & AI')));
     } else if (targetId === 'nurse-booking') {
-      showToast('Switched to In-Home Nurse Booking');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.nurse', 'In-Home Nurse Booking')));
     } else if (targetId === 'caregiver-booking') {
-      showToast('Switched to Caregiver / Home Care Booking');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.caregiver', 'Caregiver / Home Care Booking')));
     } else if (targetId === 'janitor-booking') {
-      showToast('Switched to Janitor Booking');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.janitor', 'Janitor Booking')));
     } else if (targetId === 'security-privacy') {
-      showToast('Switched to Security & Privacy');
+      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.security', 'Security & Privacy')));
     } else {
-      showToast(`Selected ${targetId} module`);
+      showToast(t('toast.selectedModule', 'Selected {{module}} module').replace('{{module}}', targetId));
     }
   };
 
@@ -343,19 +345,19 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
             <button
               onClick={() => setMobileSidebarOpen(true)}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer border border-slate-200 dark:border-slate-700"
-              aria-label="Open Sidebar Navigation"
+              aria-label={t('mobile.openSidebar', 'Open Sidebar Navigation')}
             >
               <Menu className="w-5 h-5" />
             </button>
-            <span className="text-xs font-extrabold text-slate-900 dark:text-white">Healthcare Menu</span>
+            <span className="text-xs font-extrabold text-slate-900 dark:text-white">{t('mobile.healthcareMenu', 'Healthcare Menu')}</span>
           </div>
           <button
             onClick={() => handleSelectNav('home')}
             className="px-2.5 py-1 text-[10px] font-black bg-teal-500/10 dark:bg-[#00a896]/20 text-[#00a896] dark:text-cyan-300 rounded-full border border-teal-500/30 font-sans hover:bg-[#00a896] hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
-            title="Go to Home"
+            title={t('goToHome', 'Go to Home')}
           >
             <Home className="w-3 h-3" />
-            <span>Home</span>
+            <span>{t('nav.home', 'Home')}</span>
           </button>
         </div>
 
