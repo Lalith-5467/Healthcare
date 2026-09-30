@@ -865,9 +865,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           setAuthToken(token);
           safeLocalStorageSet('token', token);
           safeLocalStorageSet('auth_token', token);
+          const authoritativeRole = userRoleDisplayMap[user.role] || userRoleDisplayMap[user.role?.toLowerCase?.()] || user.role || 'Patient';
+          if (user.role === 'PATIENT' || authoritativeRole === 'Patient') {
+            safeLocalStorageSet('patient_token', token);
+          } else if (user.role === 'DOCTOR' || authoritativeRole === 'Doctor') {
+            safeLocalStorageSet('doctor_token', token);
+          }
 
           const profile: any = user.profile || {};
-          const authoritativeRole = userRoleDisplayMap[user.role] || userRoleDisplayMap[user.role?.toLowerCase?.()] || user.role || 'Patient';
           const resolvedUserData = {
             id: user.id,
             profileId: profile.id,

@@ -9,12 +9,14 @@ import { useLanguage } from '../../context/LanguageContext';
 interface HealthAccessCardProps {
   abhaId?: string;
   userName?: string;
+  patientId?: string;
   onToast?: (msg: string) => void;
 }
 
 export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   abhaId = '91-8472-9104-5821@abdm',
   userName,
+  patientId,
   onToast
 }) => {
   const { t } = useLanguage();
@@ -172,6 +174,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         onClose={() => setModalOpen(false)}
         abhaId={abhaId}
         userName={effectivePatientName}
+        patientId={patientId}
       />
 
       <PatientAccessRequestsModal

@@ -339,6 +339,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         onClose={() => setQrModalOpen(false)}
         abhaId={profileData.patientId}
         userName={profileData.name}
+        patientId={(profileData as any)?.id || profileData.patientId}
       />
 
       {/* EDIT PROFILE SLIDE-IN DRAWER */}

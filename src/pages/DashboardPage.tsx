@@ -499,6 +499,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
               <HealthAccessCard
                 abhaId={effectiveUser.abhaId}
                 userName={effectiveUser.name}
+                patientId={(effectiveUser as any)?.id || (effectiveUser as any)?.profileId}
                 onToast={showToast}
               />
             </section>

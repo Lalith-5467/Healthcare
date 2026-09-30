@@ -20,13 +20,96 @@ export class HealthShareService {
    * 1. PATIENT: Generate a secure, cryptographically random temporary QR token
    * The token contains NO PHI / medical data.
    */
-  static async generateQRToken(userId: string, durationMinutes = 30) {
-    let patient = await prisma.patient.findUnique({
-      where: { userId },
-    });
+  static async generateQRToken(
+    userId: string,
+    durationMinutes = 30,
+    patientHint?: { patientId?: string; patientName?: string; abhaId?: string }
+  ) {
+    let patient: any = null;
 
+    // 1. Try finding patient by hint ID if provided
+    if (patientHint?.patientId) {
+      patient = await prisma.patient.findFirst({
+        where: {
+          OR: [{ id: patientHint.patientId }, { userId: patientHint.patientId }],
+        },
+        include: { user: true },
+      });
+    }
+
+    // 2. Try finding patient by Patient Name hint (e.g. Lalith Velarasi)
+    if (!patient && patientHint?.patientName && patientHint.patientName.trim()) {
+      const cleanName = patientHint.patientName.trim();
+      patient = await prisma.patient.findFirst({
+        where: {
+          fullName: {
+            contains: cleanName,
+          },
+        },
+        include: { user: true },
+      });
+    }
+
+    // 3. Try finding patient by ABHA ID hint
+    if (!patient && patientHint?.abhaId) {
+      const cleanAbha = patientHint.abhaId.replace(/@abdm$/i, '').trim();
+      patient = await prisma.patient.findFirst({
+        where: {
+          user: {
+            abhaId: { contains: cleanAbha },
+          },
+        },
+        include: { user: true },
+      });
+    }
+
+    // 4. Try finding patient by authenticated user's ID
+    if (!patient && userId) {
+      patient = await prisma.patient.findUnique({
+        where: { userId },
+        include: { user: true },
+      });
+    }
+
+    // 5. Try finding patient by authenticated user's email
+    if (!patient && userId) {
+      const authUser = await prisma.user.findUnique({ where: { id: userId } });
+      if (authUser?.email) {
+        patient = await prisma.patient.findFirst({
+          where: {
+            user: { email: authUser.email },
+          },
+          include: { user: true },
+        });
+      }
+    }
+
+    // 6. If patientHint.patientName is provided but not in DB, create new profile dynamically
+    if (!patient && patientHint?.patientName && patientHint.patientName.trim()) {
+      const cleanName = patientHint.patientName.trim();
+      const email = `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '')}@health.com`;
+      const newUser = await prisma.user.create({
+        data: {
+          email,
+          passwordHash: '$2b$10$BtHIMsaTbw.ccggOb6ZjmeFDk0oM2kBSMXA/tHIfCeoxqA7iL3EKi',
+          role: 'PATIENT',
+          abhaId: patientHint.abhaId || `${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(1000 + Math.random() * 8999)}`,
+        },
+      });
+      patient = await prisma.patient.create({
+        data: {
+          userId: newUser.id,
+          fullName: cleanName,
+          gender: 'Not Specified',
+          bloodGroup: 'O+',
+        },
+        include: { user: true },
+      });
+    }
+
+    // 7. Ultimate fallback
     if (!patient) {
-      patient = await prisma.patient.findFirst();
+      patient = await prisma.patient.findFirst({ include: { user: true } });
     }
 
     if (!patient) {

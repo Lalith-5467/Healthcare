@@ -8,7 +8,12 @@ export const generateQRTokenController = async (
 ): Promise<void> => {
   try {
     const durationMinutes = req.body.durationMinutes ? Number(req.body.durationMinutes) : 30;
-    const data = await HealthShareService.generateQRToken(req.user!.id, durationMinutes);
+    const { patientId, patientName, userName, abhaId } = req.body;
+    const data = await HealthShareService.generateQRToken(req.user?.id || '', durationMinutes, {
+      patientId,
+      patientName: patientName || userName,
+      abhaId,
+    });
 
     res.status(200).json({
       success: true,

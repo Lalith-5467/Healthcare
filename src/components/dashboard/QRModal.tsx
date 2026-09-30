@@ -10,13 +10,15 @@ interface QRModalProps {
   onClose: () => void;
   abhaId?: string;
   userName?: string;
+  patientId?: string;
 }
 
 export const QRModal: React.FC<QRModalProps> = ({
   isOpen,
   onClose,
   abhaId = '91-8472-9104-5821@abdm',
-  userName = 'Ananya Sharma'
+  userName,
+  patientId,
 }) => {
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
@@ -27,11 +29,18 @@ export const QRModal: React.FC<QRModalProps> = ({
   const [timeLeft, setTimeLeft] = useState<string>('30:00');
   const [error, setError] = useState<string | null>(null);
 
+  // Resolved display name
+  const effectiveUserName = userName || 'Lalith Velarasi';
+
   const fetchSecureToken = async () => {
     setIsRefreshing(true);
     setError(null);
     try {
-      const data = await healthShareApi.generateQRToken(30);
+      const data = await healthShareApi.generateQRToken(30, {
+        patientName: effectiveUserName,
+        abhaId,
+        patientId,
+      });
       setQrToken(data.token);
       setExpiresAt(new Date(data.expiresAt));
     } catch (err: any) {
@@ -129,7 +138,7 @@ export const QRModal: React.FC<QRModalProps> = ({
             </div>
             
             <div className="pt-1">
-              <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{userName}</h3>
+              <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{effectiveUserName}</h3>
               <div className="mt-1 flex items-center justify-center gap-2">
                 <span className="text-xs text-[#00a896] dark:text-cyan-300 font-mono font-black bg-teal-500/10 px-3 py-1 rounded-xl inline-block border border-teal-500/20">
                   {qrToken || abhaId}

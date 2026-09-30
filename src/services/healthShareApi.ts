@@ -97,8 +97,14 @@ export interface Patient360AuthorizedData {
 
 export const healthShareApi = {
   // 1. Patient generates secure temporary QR token
-  generateQRToken: async (durationMinutes = 30): Promise<QRTokenResponse> => {
-    const res = await apiClient.post<QRTokenResponse>('/health-share/generate-qr', { durationMinutes });
+  generateQRToken: async (
+    durationMinutes = 30,
+    patientHint?: { patientName?: string; abhaId?: string; patientId?: string }
+  ): Promise<QRTokenResponse> => {
+    const res = await apiClient.post<QRTokenResponse>('/health-share/generate-qr', {
+      durationMinutes,
+      ...patientHint,
+    });
     return res.data;
   },
 
