@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Share2, Volume2, VolumeX, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Volume2, VolumeX, Loader2, AlertCircle, ExternalLink, Play } from 'lucide-react';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -47,19 +47,18 @@ const deriveCategoryAndIcon = (title: string = '') => {
 export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) => {
   const [muted, setMuted] = useState(true);
   const [videos, setVideos] = useState<VideoMetadata[]>(FALLBACK_VIDEOS);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Instant mount: start immediately with curated videos without spinning delay
   const [error, setError] = useState<string | null>(null);
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const { language } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
 
+  // Background fetch of latest videos
   useEffect(() => {
     let isMounted = true;
     const fetchVideos = async () => {
       try {
-        setLoading(true);
-        setError(null);
         const response = await api.get('/health-videos') as any;
         const videoList = response.data?.videos || response.videos || (Array.isArray(response) ? response : []);
         if (isMounted) {
@@ -76,61 +75,54 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) =
               };
             });
             setVideos(mapped);
-          } else {
-            setVideos(FALLBACK_VIDEOS);
           }
         }
       } catch (err: any) {
-        console.warn("Backend video fetch fallback to curated shorts:", err);
-        if (isMounted) {
-          setVideos(FALLBACK_VIDEOS);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+        console.warn('Silent fallback to cached shorts:', err);
       }
     };
     fetchVideos();
     return () => { isMounted = false; };
   }, [language]);
 
+  // Observer to track which short is currently centered in viewport
   useEffect(() => {
-    if (loading || videos.length === 0) return;
+    if (videos.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = Number(entry.target.getAttribute('data-index'));
-          const iframe = iframeRefs.current[index];
-          if (!iframe || !iframe.contentWindow) return;
-
           if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute('data-index'));
             setActiveVideoIndex(index);
-            // Play video
-            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+            const iframe = iframeRefs.current[index];
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+            }
           } else {
-            // Pause video
-            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), '*');
+            const index = Number(entry.target.getAttribute('data-index'));
+            const iframe = iframeRefs.current[index];
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), '*');
+            }
           }
         });
       },
-      { threshold: 0.6 }
+      { threshold: 0.5 }
     );
 
     const elements = containerRef.current?.querySelectorAll('.video-container');
     elements?.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [loading, videos.length]);
+  }, [videos.length]);
 
-  // Update mute state for all iframes when toggled
+  // Update mute state for all active iframes when toggled
   useEffect(() => {
     iframeRefs.current.forEach(iframe => {
       if (iframe && iframe.contentWindow) {
-        if (muted) {
-          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute' }), '*');
-        } else {
-          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
-        }
+        const cmd = muted ? 'mute' : 'unMute';
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: cmd }), '*');
       }
     });
   }, [muted]);
@@ -147,7 +139,7 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) =
       {/* Close button */}
       <button 
         onClick={onClose}
-        className="absolute top-6 right-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
+        className="absolute top-6 right-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer border border-white/10"
       >
         <X className="w-6 h-6" />
       </button>
@@ -156,9 +148,9 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) =
       {videos.length > 0 && !loading && !error && (
         <button 
           onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
-          className="absolute top-6 left-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
+          className="absolute top-6 left-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer border border-white/10"
         >
-          {muted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+          {muted ? <VolumeX className="w-6 h-6 text-amber-400" /> : <Volume2 className="w-6 h-6 text-emerald-400" />}
         </button>
       )}
 
@@ -192,91 +184,117 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) =
           <div ref={containerRef} className="w-full max-w-md h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar relative bg-black">
             
             {/* Educational Banner */}
-            <div className="absolute top-20 left-4 right-4 z-50 text-center">
-              <div className="inline-block px-4 py-2 bg-black/60 border border-white/20 backdrop-blur-md rounded-2xl">
+            <div className="absolute top-20 left-4 right-4 z-40 text-center pointer-events-none">
+              <div className="inline-block px-4 py-1.5 bg-black/60 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg">
                 <p className="text-[11px] font-bold text-white/90">
                   {language === 'ta' 
-                    ? 'உங்கள் சிகிச்சைத் திட்டத்திற்கேற்ப தனிப்பயனாக்கப்பட்டது'
-                    : 'Personalized for your care plan'}
+                    ? '✨ உங்கள் சிகிச்சைத் திட்டத்திற்கேற்ப தனிப்பயனாக்கப்பட்டது' 
+                    : '✨ Personalized for your care plan'}
                 </p>
               </div>
             </div>
 
-            {videos.map((video, index) => (
-              <div 
-                key={video.id + index} 
-                data-index={index}
-                className="video-container w-full h-full snap-start snap-always relative flex justify-center items-center bg-black overflow-hidden"
-              >
-                {/* YouTube Embed without controls/downloads */}
-                <iframe 
-                  ref={el => { iframeRefs.current[index] = el; }}
-                  className="w-[170%] h-[170%] max-w-none pointer-events-none object-cover"
-                  src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&autoplay=${index === 0 ? 1 : 0}&loop=1&controls=0&modestbranding=1&rel=0&playsinline=1&mute=${muted ? '1' : '0'}&playlist=${video.id}`}
-                  title={video.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+            {videos.map((video, index) => {
+              // VIRTUAL WINDOWING: Only mount iframe for active video ± 1 neighbor
+              const isNearActive = Math.abs(index - activeVideoIndex) <= 1;
 
-                {/* Overlay to prevent clicks/downloads on iframe and capture scroll/clicks */}
-                <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/10 via-transparent to-black/90 pointer-events-auto" onClick={() => setMuted(!muted)}>
-                  
-                  {/* Overlay Text */}
-                  <div className="absolute bottom-12 left-4 right-16">
-                    <h3 className="text-lg font-black mb-1 line-clamp-2 text-white drop-shadow-md">{video.title}</h3>
-                    <p className="text-xs font-bold text-cyan-400 mb-3 drop-shadow">@{video.channelTitle}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className="px-3 py-1.5 bg-black/40 border border-white/10 backdrop-blur-md rounded-xl text-xs font-bold flex items-center gap-1">
-                        {video.icon} {video.category}
-                      </span>
-                    </div>
-
-                    {(video.category === "Nattu Maruthuvam" || video.category === "Natural Herbs") && (
-                      <div className="p-3 bg-amber-900/40 border border-amber-500/30 rounded-xl backdrop-blur-md">
-                        <p className="text-[10px] font-bold text-amber-200/90 leading-tight">
-                          ⚠️ {t_disclaimer}
-                        </p>
+              return (
+                <div 
+                  key={video.id + index} 
+                  data-index={index}
+                  className="video-container w-full h-full snap-start snap-always relative flex justify-center items-center bg-black overflow-hidden"
+                >
+                  {isNearActive ? (
+                    /* Active/Neighboring YouTube Player — Mounted Lazy & Ultra-Fast */
+                    <iframe 
+                      ref={el => { iframeRefs.current[index] = el; }}
+                      className="w-[170%] h-[170%] max-w-none pointer-events-none object-cover transition-opacity duration-300"
+                      src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&autoplay=${index === activeVideoIndex ? 1 : 0}&loop=1&controls=0&modestbranding=1&rel=0&playsinline=1&mute=${muted ? '1' : '0'}&playlist=${video.id}`}
+                      title={video.title}
+                      loading="lazy"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    /* Lightweight Poster Placeholder for far-away items — 0 Network Overhead */
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 overflow-hidden">
+                      <img 
+                        src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`} 
+                        alt={video.title} 
+                        className="w-full h-full object-cover opacity-50 filter blur-[1px] scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                          <Play className="w-6 h-6 text-white/80 translate-x-0.5" />
+                        </div>
                       </div>
-                    )}
-
-                    {/* Watch on YouTube Link */}
-                    <a 
-                      href={`https://www.youtube.com/shorts/${video.id}`} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold text-white/70 hover:text-white transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="w-3 h-3" /> {t_watchOnYouTube}
-                    </a>
-                  </div>
-
-                  {/* Engagement Buttons (Right Side) */}
-                  <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
-                        <Heart className="w-5 h-5 text-white" />
-                      </button>
                     </div>
+                  )}
+
+                  {/* Touch/Click Overlay */}
+                  <div 
+                    className="absolute inset-0 z-10 bg-gradient-to-b from-black/20 via-transparent to-black/90 pointer-events-auto cursor-pointer" 
+                    onClick={() => setMuted(!muted)}
+                  >
                     
-                    <div className="flex flex-col items-center gap-1">
-                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
-                        <MessageCircle className="w-5 h-5 text-white" />
-                      </button>
+                    {/* Overlay Text */}
+                    <div className="absolute bottom-12 left-4 right-16">
+                      <h3 className="text-lg font-black mb-1 line-clamp-2 text-white drop-shadow-md">{video.title}</h3>
+                      <p className="text-xs font-bold text-cyan-400 mb-3 drop-shadow">@{video.channelTitle}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <span className="px-3 py-1.5 bg-black/40 border border-white/10 backdrop-blur-md rounded-xl text-xs font-bold flex items-center gap-1">
+                          {video.icon} {video.category}
+                        </span>
+                      </div>
+
+                      {(video.category === "Nattu Maruthuvam" || video.category === "Natural Herbs") && (
+                        <div className="p-3 bg-amber-900/40 border border-amber-500/30 rounded-xl backdrop-blur-md">
+                          <p className="text-[10px] font-bold text-amber-200/90 leading-tight">
+                            ⚠️ {t_disclaimer}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Watch on YouTube Link */}
+                      <a 
+                        href={`https://www.youtube.com/shorts/${video.id}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-3 text-[11px] font-bold text-white/70 hover:text-white transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> {t_watchOnYouTube}
+                      </a>
                     </div>
 
-                    <div className="flex flex-col items-center gap-1">
-                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
-                        <Share2 className="w-5 h-5 text-white" />
-                      </button>
+                    {/* Engagement Buttons (Right Side) */}
+                    <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                          <Heart className="w-5 h-5 text-white" />
+                        </button>
+                      </div>
+                      
+                      <div className="flex flex-col items-center gap-1">
+                        <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                          <MessageCircle className="w-5 h-5 text-white" />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col items-center gap-1">
+                        <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                          <Share2 className="w-5 h-5 text-white" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-              </div>
-            ))}
+                </div>
+              );
+            })}
 
           </div>
         )}
