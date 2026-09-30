@@ -125,7 +125,7 @@ export const NurseOverviewView: React.FC<NurseOverviewViewProps> = ({ onNavigate
                 {activePatients.map((b) => (
                   <div
                     key={b.id}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-rose-500/30 transition-all"
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-rose-500/30 transition-all"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black flex items-center justify-center text-sm">

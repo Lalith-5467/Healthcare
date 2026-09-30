@@ -414,7 +414,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
             <button
               onClick={prevSlide}
               aria-label="Previous Doctor"
-              className="w-9 h-9 rounded-full bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-400 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
+              className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-400 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
@@ -438,7 +438,7 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
             <button
               onClick={nextSlide}
               aria-label="Next Doctor"
-              className="w-9 h-9 rounded-full bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-400 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
+              className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#00a896] dark:hover:text-cyan-400 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
             >
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>

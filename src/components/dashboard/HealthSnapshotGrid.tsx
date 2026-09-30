@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Activity, Moon, Footprints, Scale, Gauge, TrendingUp, TrendingDown } from 'lucide-react';
+import { Heart, Activity, Moon, Footprints, Scale, Gauge, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { vitalApi, type VitalEntity } from '../../services/dhrApis';
 
 /* Mini sparkline SVG — 5 data points, accent-colored */
 const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
@@ -21,94 +22,122 @@ const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
   );
 };
 
-const metrics = [
-  {
-    id: 'heart',
-    label: 'Heart Rate',
-    value: '72 BPM',
-    status: 'Normal',
-    trend: '↓ 2% yesterday',
-    isUp: false,
-    icon: Heart,
-    accent: '#f43f5e',
-    accentBg: 'rgba(244,63,94,.1)',
-    accentBorder: 'rgba(244,63,94,.2)',
-    badgeClr: '#be123c',
-    badgeBg: 'rgba(244,63,94,.08)',
-  },
-  {
-    id: 'bp',
-    label: 'Blood Pressure',
-    value: '120/80',
-    status: 'Optimal',
-    trend: '120/80 mmHg',
-    isUp: true,
-    icon: Activity,
-    accent: '#06b6d4',
-    accentBg: 'rgba(6,182,212,.1)',
-    accentBorder: 'rgba(6,182,212,.2)',
-    badgeClr: '#0e7490',
-    badgeBg: 'rgba(6,182,212,.08)',
-  },
-  {
-    id: 'sleep',
-    label: 'Sleep Duration',
-    value: '7h 42m',
-    status: 'Restful',
-    trend: '↑ 8% this week',
-    isUp: true,
-    icon: Moon,
-    accent: '#818cf8',
-    accentBg: 'rgba(129,140,248,.1)',
-    accentBorder: 'rgba(129,140,248,.2)',
-    badgeClr: '#4338ca',
-    badgeBg: 'rgba(129,140,248,.08)',
-  },
-  {
-    id: 'steps',
-    label: 'Daily Steps',
-    value: '6,842',
-    status: 'Goal: 10k',
-    trend: '68% completed',
-    isUp: true,
-    icon: Footprints,
-    accent: '#10b981',
-    accentBg: 'rgba(16,185,129,.1)',
-    accentBorder: 'rgba(16,185,129,.2)',
-    badgeClr: '#065f46',
-    badgeBg: 'rgba(16,185,129,.08)',
-  },
-  {
-    id: 'weight',
-    label: 'Body Weight',
-    value: '72 kg',
-    status: 'Stable',
-    trend: 'No change',
-    isUp: true,
-    icon: Scale,
-    accent: '#14b8a6',
-    accentBg: 'rgba(20,184,166,.1)',
-    accentBorder: 'rgba(20,184,166,.2)',
-    badgeClr: '#0f766e',
-    badgeBg: 'rgba(20,184,166,.08)',
-  },
-  {
-    id: 'bmi',
-    label: 'Body Mass Index',
-    value: '23.8',
-    status: 'Healthy',
-    trend: 'Ideal range',
-    isUp: true,
-    icon: Gauge,
-    accent: '#a855f7',
-    accentBg: 'rgba(168,85,247,.1)',
-    accentBorder: 'rgba(168,85,247,.2)',
-    badgeClr: '#7e22ce',
-    badgeBg: 'rgba(168,85,247,.08)',
-  },
-];
-
 export const HealthSnapshotGrid: React.FC = () => {
+  const [vitalsList, setVitalsList] = useState<VitalEntity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVitals = async () => {
+      try {
+        setIsLoading(true);
+        const res = await vitalApi.getVitals();
+        if (isMounted) {
+          const data = res?.data ?? res ?? [];
+          setVitalsList(Array.isArray(data) ? data : []);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.message || 'Failed to load vitals');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchVitals();
+    return () => { isMounted = false; };
+  }, []);
+
+  const latestVital = vitalsList.length > 0 ? vitalsList[0] : null;
+
+  const metrics = useMemo(() => [
+    {
+      id: 'heart',
+      label: 'Heart Rate',
+      value: latestVital?.heartRate ? `${latestVital.heartRate} BPM` : '-- / --',
+      status: latestVital?.heartRate ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: false,
+      icon: Heart,
+      accent: '#f43f5e',
+      accentBg: 'rgba(244,63,94,.1)',
+      accentBorder: 'rgba(244,63,94,.2)',
+      badgeClr: '#be123c',
+      badgeBg: 'rgba(244,63,94,.08)',
+    },
+    {
+      id: 'bp',
+      label: 'Blood Pressure',
+      value: (latestVital?.systolicBp && latestVital?.diastolicBp) ? `${latestVital.systolicBp}/${latestVital.diastolicBp}` : '-- / --',
+      status: (latestVital?.systolicBp && latestVital?.diastolicBp) ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: true,
+      icon: Activity,
+      accent: '#06b6d4',
+      accentBg: 'rgba(6,182,212,.1)',
+      accentBorder: 'rgba(6,182,212,.2)',
+      badgeClr: '#0e7490',
+      badgeBg: 'rgba(6,182,212,.08)',
+    },
+    {
+      id: 'spo2',
+      label: 'SpO2',
+      value: latestVital?.oxygenSaturation ? `${latestVital.oxygenSaturation}%` : '-- / --',
+      status: latestVital?.oxygenSaturation ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: true,
+      icon: Moon,
+      accent: '#818cf8',
+      accentBg: 'rgba(129,140,248,.1)',
+      accentBorder: 'rgba(129,140,248,.2)',
+      badgeClr: '#4338ca',
+      badgeBg: 'rgba(129,140,248,.08)',
+    },
+    {
+      id: 'temp',
+      label: 'Temperature',
+      value: latestVital?.temperature ? `${latestVital.temperature}°` : '-- / --',
+      status: latestVital?.temperature ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: true,
+      icon: Gauge,
+      accent: '#10b981',
+      accentBg: 'rgba(16,185,129,.1)',
+      accentBorder: 'rgba(16,185,129,.2)',
+      badgeClr: '#065f46',
+      badgeBg: 'rgba(16,185,129,.08)',
+    },
+    {
+      id: 'weight',
+      label: 'Body Weight',
+      value: latestVital?.weightKg ? `${latestVital.weightKg} kg` : '-- / --',
+      status: latestVital?.weightKg ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: true,
+      icon: Scale,
+      accent: '#14b8a6',
+      accentBg: 'rgba(20,184,166,.1)',
+      accentBorder: 'rgba(20,184,166,.2)',
+      badgeClr: '#0f766e',
+      badgeBg: 'rgba(20,184,166,.08)',
+    },
+    {
+      id: 'sugar',
+      label: 'Blood Sugar',
+      value: latestVital?.bloodSugar ? `${latestVital.bloodSugar} mg/dL` : '-- / --',
+      status: latestVital?.bloodSugar ? 'Recorded' : 'No Data',
+      trend: 'Latest reading',
+      isUp: true,
+      icon: Gauge,
+      accent: '#a855f7',
+      accentBg: 'rgba(168,85,247,.1)',
+      accentBorder: 'rgba(168,85,247,.2)',
+      badgeClr: '#7e22ce',
+      badgeBg: 'rgba(168,85,247,.08)',
+    },
+  ], [latestVital]);
+
   return (
     <div
       className="p-6 rounded-3xl space-y-4 font-sans relative overflow-hidden bg-gradient-to-br from-slate-50 via-teal-50/20 to-white dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 border-[1.5px] border-teal-500/10 dark:border-teal-500/10 shadow-[0_4px_24px_rgba(20,184,166,0.06),_0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
@@ -123,10 +152,19 @@ export const HealthSnapshotGrid: React.FC = () => {
             Today's Health Biometrics
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Real-time vitals, sleep & physical activity snapshot.
+            Real-time vitals snapshot.
           </p>
         </div>
+        {isLoading && (
+          <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+        )}
       </div>
+      
+      {error && (
+        <div className="relative z-10 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 relative z-10">
         {metrics.map((m, idx) => {
@@ -144,7 +182,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 boxShadow: `0 2px 10px rgba(0,0,0,.04), 0 0 0 0 ${m.accent}`
               }}
             >
-              {/* Top: circular icon + status badge */}
               <div className="flex items-center justify-between gap-1">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: m.accentBg, border: `1px solid ${m.accentBorder}` }}>
@@ -156,7 +193,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 </span>
               </div>
 
-              {/* Label + value */}
               <div className="min-w-0">
                 <span className="text-[10px] font-bold text-slate-500 block truncate">{m.label}</span>
                 <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight block mt-0.5 truncate"
@@ -165,7 +201,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 </span>
               </div>
 
-              {/* Footer: sparkline + trend */}
               <div className="flex items-center justify-between gap-1 pt-1.5 min-w-0"
                 style={{ borderTop: `1px solid ${m.accentBorder}` }}>
                 <div className="flex items-center gap-1 text-[10px] font-bold min-w-0 truncate"

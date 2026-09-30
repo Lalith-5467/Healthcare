@@ -230,7 +230,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                 className={`p-5 rounded-[22px] border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between relative shadow-sm h-full min-h-[145px] ${
                   isActive
                     ? `bg-white dark:bg-slate-800/95 border-2 ${cat.activeRing} shadow-2xl backdrop-blur-xl scale-[1.02]`
-                    : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-850 backdrop-blur-md opacity-85 hover:opacity-100'
+                    : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 backdrop-blur-md opacity-85 hover:opacity-100'
                 }`}
               >
                 {/* ACTIVE TAB ACCENT GRADIENT GLOW */}

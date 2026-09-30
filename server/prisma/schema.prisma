@@ -135,30 +135,32 @@ model Patient {
   address               String?   @db.Text
   emergencyContactName  String?
   emergencyContactPhone String?
-  familyPhone          String?
-  heightCm             Float?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  familyPhone           String?
+  heightCm              Float?
+  healthTopics PatientHealthTopic[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // Clinical Relations
-  appointments         Appointment[]
-  prescriptions        Prescription[]
-  medicalRecords       MedicalRecord[]
-  vitals               Vital[]
-  reminders            Reminder[]
-  pharmacyOrders       PharmacyOrder[]
-  careRequests         CareRequest[]
-  healthShareTokens    HealthShareToken[]
+  appointments          Appointment[]
+  prescriptions         Prescription[]
+  medicalRecords        MedicalRecord[]
+  vitals                Vital[]
+  reminders             Reminder[]
+  pharmacyOrders        PharmacyOrder[]
+  careRequests          CareRequest[]
+  healthShareTokens     HealthShareToken[]
   patientAccessRequests PatientAccessRequest[]
-  patientMedications   PatientMedication[]
-  doseLogs             DoseLog[]
-  caregiverTasks       CaregiverTask[]
-  insurancePolicies    InsurancePolicy[]
-  insuranceClaims      InsuranceClaim[]
+  patientMedications    PatientMedication[]
+  doseLogs              DoseLog[]
+  caregiverTasks        CaregiverTask[]
+  insurancePolicies     InsurancePolicy[]
+  insuranceClaims       InsuranceClaim[]
 
   // Linked Caregivers (M:N)
   caregivers    Caregiver[]    @relation("PatientCaregivers")
   consultations Consultation[]
+  dietMeals     DietMeal[]
 
   @@map("patients")
 }
@@ -179,11 +181,11 @@ model Doctor {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  appointments     Appointment[]
-  prescriptions    Prescription[]
-  medicalRecords   MedicalRecord[]
+  appointments          Appointment[]
+  prescriptions         Prescription[]
+  medicalRecords        MedicalRecord[]
   patientAccessRequests PatientAccessRequest[]
-  consultations    Consultation[]
+  consultations         Consultation[]
 
   @@map("doctors")
 }
@@ -199,7 +201,7 @@ model Nurse {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  careRequests  CareRequest[]
+  careRequests CareRequest[]
 
   @@map("nurses")
 }
@@ -248,7 +250,7 @@ model InsuranceProvider {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  policies       InsurancePolicy[]
+  policies InsurancePolicy[]
 
   @@map("insurance_providers")
 }
@@ -339,8 +341,8 @@ model Medicine {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  prescriptionItems PrescriptionItem[]
-  orderItems        PharmacyOrderItem[]
+  prescriptionItems  PrescriptionItem[]
+  orderItems         PharmacyOrderItem[]
   patientMedications PatientMedication[]
 
   @@map("medicines")
@@ -517,23 +519,23 @@ model PharmacyOrderItem {
 // ============================================================
 
 model CareRequest {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   patientId     String
-  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   nurseId       String?
-  nurse         Nurse?    @relation(fields: [nurseId], references: [id], onDelete: SetNull)
+  nurse         Nurse?   @relation(fields: [nurseId], references: [id], onDelete: SetNull)
   serviceType   String
   scheduledDate DateTime
   scheduledTime String
-  location      String    @db.Text
+  location      String   @db.Text
   distanceKm    String?
-  instructions  String?   @db.Text
-  status        String    @default("Pending")
+  instructions  String?  @db.Text
+  status        String   @default("Pending")
   otpPin        String?
   etaMinutes    Int?
-  notes         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([patientId])
   @@index([nurseId])
@@ -659,7 +661,7 @@ model PatientMedication {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  doseLogs        DoseLog[]
+  doseLogs DoseLog[]
 
   @@index([patientId])
   @@index([medicineId])
@@ -689,20 +691,20 @@ model DoseLog {
 // ============================================================
 
 model CaregiverTask {
-  id          String    @id @default(cuid())
-  caregiverId String
-  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
-  patientId   String
-  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  title       String
-  category    String    @default("Medication") // Medication, Vitals, Nutrition, Therapy, Exercise
+  id            String    @id @default(cuid())
+  caregiverId   String
+  caregiver     Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  patientId     String
+  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title         String
+  category      String    @default("Medication") // Medication, Vitals, Nutrition, Therapy, Exercise
   scheduledTime String
-  status      String    @default("Pending") // Pending, Completed, Skipped
-  completedAt DateTime?
-  priority    String    @default("Normal") // Normal, High, Urgent
-  notes       String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status        String    @default("Pending") // Pending, Completed, Skipped
+  completedAt   DateTime?
+  priority      String    @default("Normal") // Normal, High, Urgent
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([caregiverId])
   @@index([patientId])
@@ -714,23 +716,23 @@ model CaregiverTask {
 // ============================================================
 
 model InsurancePolicy {
-  id                String            @id @default(cuid())
-  insuranceId       String            @unique // e.g. INS-MC-2026-10245
+  id                String             @id @default(cuid())
+  insuranceId       String             @unique // e.g. INS-MC-2026-10245
   patientId         String
-  patient           Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient           Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
   providerId        String?
   provider          InsuranceProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
-  policyNumber      String            @unique
+  policyNumber      String             @unique
   policyName        String
-  policyStatus      String            @default("Active") // Active, Inactive, Expired
+  policyStatus      String             @default("Active") // Active, Inactive, Expired
   policyStartDate   DateTime
   policyEndDate     DateTime
-  coverageAmount    Decimal           @default(0.0) @db.Decimal(12, 2)
-  usedCoverage      Decimal           @default(0.0) @db.Decimal(12, 2)
-  remainingCoverage Decimal           @default(0.0) @db.Decimal(12, 2)
-  benefits          String?           @db.Text // JSON object of benefits
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  coverageAmount    Decimal            @default(0.0) @db.Decimal(12, 2)
+  usedCoverage      Decimal            @default(0.0) @db.Decimal(12, 2)
+  remainingCoverage Decimal            @default(0.0) @db.Decimal(12, 2)
+  benefits          String?            @db.Text // JSON object of benefits
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   claims            InsuranceClaim[]
   preAuthorizations PreAuthorization[]
@@ -741,26 +743,26 @@ model InsurancePolicy {
 }
 
 model InsuranceClaim {
-  id                  String           @id @default(cuid())
-  claimId             String           @unique // e.g. CLM-8891-2026
+  id                  String          @id @default(cuid())
+  claimId             String          @unique // e.g. CLM-8891-2026
   policyId            String
-  policy              InsurancePolicy  @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policy              InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
   patientId           String
-  patient             Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient             Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
   hospital            String
   treatment           String
   admissionDate       DateTime
   dischargeDate       DateTime
-  submittedAmount     Decimal          @default(0.0) @db.Decimal(12, 2)
-  approvedAmount      Decimal          @default(0.0) @db.Decimal(12, 2)
-  patientContribution Decimal          @default(0.0) @db.Decimal(12, 2)
-  status              String           @default("New") // New, Under Review, Approved, Partially Approved, Rejected, Settled
-  documents           String?          @db.Text // JSON array of document objects
-  timeline            String?          @db.Text // JSON array of timeline objects
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  submittedAmount     Decimal         @default(0.0) @db.Decimal(12, 2)
+  approvedAmount      Decimal         @default(0.0) @db.Decimal(12, 2)
+  patientContribution Decimal         @default(0.0) @db.Decimal(12, 2)
+  status              String          @default("New") // New, Under Review, Approved, Partially Approved, Rejected, Settled
+  documents           String?         @db.Text // JSON array of document objects
+  timeline            String?         @db.Text // JSON array of timeline objects
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
-  settlements         ClaimSettlement[]
+  settlements ClaimSettlement[]
 
   @@index([policyId])
   @@index([patientId])
@@ -768,40 +770,152 @@ model InsuranceClaim {
 }
 
 model PreAuthorization {
-  id                 String          @id @default(cuid())
-  preAuthId          String          @unique // e.g. PA-9901-2026
-  policyId           String
-  policy             InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
-  hospitalName       String
-  doctorName         String
-  procedure          String
-  estimatedCost      Decimal         @default(0.0) @db.Decimal(12, 2)
-  requestedAmount    Decimal         @default(0.0) @db.Decimal(12, 2)
-  status             String          @default("Pending") // Pending, Approved, Rejected, Need More Info
-  responseNotes      String?         @db.Text
-  submissionDate     DateTime        @default(now())
-  actionDate         DateTime?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  preAuthId       String          @unique // e.g. PA-9901-2026
+  policyId        String
+  policy          InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  hospitalName    String
+  doctorName      String
+  procedure       String
+  estimatedCost   Decimal         @default(0.0) @db.Decimal(12, 2)
+  requestedAmount Decimal         @default(0.0) @db.Decimal(12, 2)
+  status          String          @default("Pending") // Pending, Approved, Rejected, Need More Info
+  responseNotes   String?         @db.Text
+  submissionDate  DateTime        @default(now())
+  actionDate      DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([policyId])
   @@map("pre_authorizations")
 }
 
 model ClaimSettlement {
-  id                String         @id @default(cuid())
-  settlementId      String         @unique // e.g. STL-2026-001
-  claimId           String
-  claim             InsuranceClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  paymentMode       String         @default("NEFT / Direct Bank Transfer")
-  referenceNumber   String?
-  paidAmount        Decimal        @default(0.0) @db.Decimal(12, 2)
-  settlementDate    DateTime       @default(now())
-  status            String         @default("Processed") // Processed, In Transit, Failed
-  notes             String?        @db.Text
-  createdAt         DateTime       @default(now())
+  id              String         @id @default(cuid())
+  settlementId    String         @unique // e.g. STL-2026-001
+  claimId         String
+  claim           InsuranceClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  paymentMode     String         @default("NEFT / Direct Bank Transfer")
+  referenceNumber String?
+  paidAmount      Decimal        @default(0.0) @db.Decimal(12, 2)
+  settlementDate  DateTime       @default(now())
+  status          String         @default("Processed") // Processed, In Transit, Failed
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now())
 
   @@index([claimId])
   @@map("claim_settlements")
 }
 
+// ============================================================
+// 10. DIET & NUTRITION
+// ============================================================
+
+model DietMeal {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type      String
+  name      String
+  time      String
+  portion   String
+  cal       Int
+  pro       Int
+  carbs     Int
+  fat       Int
+  days      String   @db.Text // JSON string array of short days like ["Mon", "Tue"]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@map("diet_meals")
+}
+
+// ============================================================
+// 11. HEALTH VIDEOS (SUPER_ADMIN MANAGED)
+// ============================================================
+
+enum VideoStatus {
+  DISCOVERED
+  PENDING_REVIEW
+  APPROVED
+  DISABLED
+  DELETED
+}
+
+model HealthTopic {
+  id             String   @id @default(cuid())
+  topicKey       String   @unique
+  displayName    String
+  description    String?  @db.Text
+  searchKeywords String   @default("[]")
+  hashtags       String   @default("[]")
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  videos HealthVideoTopic[]
+  patientTopics PatientHealthTopic[]
+}
+
+model HealthVideo {
+  id              String      @id @default(cuid())
+  youtubeVideoId  String      @unique
+  title           String
+  description     String?     @db.Text
+  channelName     String?
+  durationSeconds Int         @default(0)
+  keywords        String      @default("[]")
+  hashtags        String      @default("[]")
+  status          VideoStatus @default(PENDING_REVIEW)
+  enabled         Boolean     @default(false)
+  displayOrder    Int         @default(0)
+  createdBy       String? // Admin userId who added it, or 'SYSTEM' if discovered
+  approvedBy      String? // Admin userId who approved it
+  approvedAt      DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  topics  HealthVideoTopic[]
+  history HealthVideoHistory[]
+}
+
+model HealthVideoTopic {
+  videoId String
+  topicId String
+  video   HealthVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  topic   HealthTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, topicId])
+}
+
+model HealthVideoHistory {
+  id            String      @id @default(cuid())
+  videoId       String
+  video         HealthVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  adminUserId   String
+  action        String
+  previousValue String?     @db.Text
+  newValue      String?     @db.Text
+  timestamp     DateTime    @default(now())
+  undoStatus    Boolean     @default(false)
+}
+
+model PatientHealthTopic {
+  id             String      @id @default(cuid())
+  patientId      String
+  healthTopicId  String
+  sourceType     String      @default("CLINICIAN_SELECTED")
+  sourceRecordId String?
+  assignedBy     String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  patient        Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  healthTopic    HealthTopic @relation(fields: [healthTopicId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, healthTopicId])
+  @@index([patientId])
+  @@index([healthTopicId])
+  @@map("patient_health_topics")
+}

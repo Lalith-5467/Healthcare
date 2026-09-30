@@ -13,6 +13,7 @@ import { AdminDashboardHomeView } from '../components/admin-dashboard/views/Admi
 import { AdminUserManagementView } from '../components/admin-dashboard/views/AdminUserManagementView';
 import { AdminRolesPermissionsView } from '../components/admin-dashboard/views/AdminRolesPermissionsView';
 import { SuperAdminManagementView } from '../components/admin-dashboard/views/SuperAdminManagementView';
+import { SuperAdminHealthVideoView } from '../components/admin-dashboard/views/SuperAdminHealthVideoView';
 import { AdminPatientManagementView } from '../components/admin-dashboard/views/AdminPatientManagementView';
 import { AdminStaffManagementView } from '../components/admin-dashboard/views/AdminStaffManagementView';
 import { AdminOperationsView } from '../components/admin-dashboard/views/AdminOperationsView';
@@ -136,6 +137,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         return <SuperAdminManagementView currentRole={currentRole} />;
       case 'roles-permissions':
         return <AdminRolesPermissionsView currentRole={currentRole} />;
+      case 'health-videos':
+        return <SuperAdminHealthVideoView currentRole={currentRole} />;
       case 'system-config':
       case 'security-audit':
       case 'backup-recovery':

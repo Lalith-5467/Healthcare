@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { VitalService } from '../services/vital.service';
+import { createVitalSchema } from '../utils/validators';
 
 export const getVitalsController = async (
   req: Request,
@@ -21,7 +22,8 @@ export const createVitalController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const data = await VitalService.createVital(req.user!.id, req.user!.role, req.body);
+    const validatedData = createVitalSchema.parse(req.body);
+    const data = await VitalService.createVital(req.user!.id, req.user!.role, validatedData);
     res.status(201).json({ success: true, message: 'Vital recorded successfully', data });
   } catch (error) {
     next(error);

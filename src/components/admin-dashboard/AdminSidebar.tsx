@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, UserCheck, Stethoscope, HeartPulse, Pill, 
   HeartHandshake, ShieldCheck, ShieldAlert, KeyRound, FileText, 
   ShoppingBag, Calendar, Activity, Bell, FileSpreadsheet, 
-  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock
+  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock, Video
 } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 
@@ -77,6 +77,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'admin-management', label: 'Admin Management', icon: Shield, superAdminOnly: true },
         { id: 'roles-permissions', label: 'Roles & Permissions', icon: KeyRound, superAdminOnly: true },
         { id: 'system-config', label: 'System Configuration', icon: Server, superAdminOnly: true },
+        { id: 'health-videos', label: 'Health Videos Admin', icon: Video, superAdminOnly: true },
         { id: 'security-audit', label: 'Security & Audit Radar', icon: ShieldAlert, superAdminOnly: true, badge: 'Alerts', badgeColor: 'bg-rose-500' },
         { id: 'backup-recovery', label: 'Backup & Recovery', icon: Database, superAdminOnly: true }
       ]

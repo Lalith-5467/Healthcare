@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -9,7 +9,8 @@ import {
   UserCheck, 
   Clock, 
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
+  Video
 } from 'lucide-react';
 import { useDoctorWorkflow } from '../../../utils/doctorWorkflowStorage';
 import { prescriptionApi } from '../../../services/dhrApis';
@@ -29,6 +30,22 @@ export const ClinicalNotesPrescriptionsView: React.FC = () => {
   const [newInstructions, setNewInstructions] = useState('');
   const [notesText, setNotesText] = useState(selectedPatient?.clinicalNotes || '');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Health Topics State
+  const [availableTopics, setAvailableTopics] = useState<any[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+
+  useEffect(() => {
+    prescriptionApi.getHealthTopics().then(res => {
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setAvailableTopics(res.data.data);
+      }
+    }).catch(err => console.error(err));
+  }, []);
+
+  const toggleTopic = (id: string) => {
+    setSelectedTopics(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
+  };
 
   const handleAddMed = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,12 +73,14 @@ export const ClinicalNotesPrescriptionsView: React.FC = () => {
           durationDays: 7,
           instructions: newInstructions || 'Take as prescribed',
         }
-      ]
+      ],
+      healthTopics: selectedTopics
     }).catch(() => {});
 
     setNewMedName('');
     setNewDose('');
     setNewInstructions('');
+    setSelectedTopics([]);
     setToastMsg(t("doctor.prescriptions.rx_success", "E-Prescription for {medName} generated and synced with Pharmacy!").replace("{medName}", newMedName));
     setTimeout(() => setToastMsg(null), 3000);
   };
@@ -179,6 +198,31 @@ export const ClinicalNotesPrescriptionsView: React.FC = () => {
                     onChange={(e) => setNewInstructions(e.target.value)}
                     className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold dark:text-white"
                   />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <label className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Video className="w-4 h-4 text-purple-500" />
+                  {t("doctor.prescriptions.health_topics_label", "Health Education Topics (Video Prescriptions)")}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTopics.map(topic => (
+                    <div
+                      key={topic.id}
+                      onClick={() => toggleTopic(topic.id)}
+                      className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold cursor-pointer transition-all ${
+                        selectedTopics.includes(topic.id)
+                          ? "bg-purple-500 text-white border-purple-500"
+                          : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-400"
+                      }`}
+                    >
+                      {topic.displayName}
+                    </div>
+                  ))}
+                  {availableTopics.length === 0 && (
+                    <span className="text-slate-400 text-xs italic">Loading topics...</span>
+                  )}
                 </div>
               </div>
 

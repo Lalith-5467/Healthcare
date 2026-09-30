@@ -195,7 +195,7 @@ export const SuperAdminManagementView: React.FC<SuperAdminManagementViewProps> =
 
       {/* 2. ADMIN ACCOUNTS TABLE */}
       <div className="bg-white dark:bg-slate-900/90 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-850/50">
+        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-800/50">
           <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-rose-500" />
             Active Administrator Credentials Roster
@@ -206,7 +206,7 @@ export const SuperAdminManagementView: React.FC<SuperAdminManagementViewProps> =
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400">
+              <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400">
                 <th className="py-4 px-5">Administrator</th>
                 <th className="py-4 px-4">Executive Role</th>
                 <th className="py-4 px-4">Department</th>

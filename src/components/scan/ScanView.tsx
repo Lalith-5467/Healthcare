@@ -467,7 +467,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
                   ? 'border-[#00a896] bg-teal-500/10 scale-[1.01]'
                   : fileError
                   ? 'border-rose-500/50 bg-rose-500/10'
-                  : 'border-slate-300 dark:border-slate-800 hover:border-purple-500/40 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850'
+                  : 'border-slate-300 dark:border-slate-800 hover:border-purple-500/40 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80'
               }`}
             >
               {/* UPLOADING PROGRESS OVERLAY */}

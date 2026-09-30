@@ -300,7 +300,7 @@ export const AdminUserManagementView: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/70 dark:bg-slate-850/50 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500">
+              <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500">
                 <th className="py-4 px-5">User Profile</th>
                 <th className="py-4 px-4">Role & ABHA</th>
                 <th className="py-4 px-4">Phone Number</th>
