@@ -18,7 +18,46 @@ export interface CreateVitalDTO {
 
 export class VitalService {
   /**
-   * Get vitals history for a patient
+   * Helper to verify if the user is authorized to access the given patient's vitals
+   */
+  private static async checkAuthorization(userId: string, role: Role, patientId: string): Promise<boolean> {
+    if (role === Role.PATIENT) {
+      const patient = await prisma.patient.findUnique({ where: { userId } });
+      return !!patient && patient.id === patientId;
+    }
+
+    if (role === Role.CAREGIVER) {
+      const caregiver = await prisma.caregiver.findUnique({ where: { userId } });
+      if (!caregiver) return false;
+      const linked = await prisma.patient.findFirst({
+        where: {
+          id: patientId,
+          caregivers: { some: { id: caregiver.id } }
+        }
+      });
+      return !!linked;
+    }
+
+    if (role === Role.DOCTOR) {
+      const doctor = await prisma.doctor.findUnique({ where: { userId } });
+      if (!doctor) return false;
+      const now = new Date();
+      const activeSession = await prisma.patientAccessRequest.findFirst({
+        where: {
+          patientId,
+          doctorId: doctor.id,
+          status: 'APPROVED',
+          expiresAt: { gt: now }
+        }
+      });
+      return !!activeSession;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Get vitals history for a patient (bounded to 6 months)
    */
   static async getVitals(userId: string, role: Role, patientIdQuery?: string) {
     let patientId = patientIdQuery;
@@ -26,27 +65,30 @@ export class VitalService {
     if (role === Role.PATIENT) {
       const patient = await prisma.patient.findUnique({ where: { userId } });
       if (!patient) throw new AppError('Patient profile not found', 404);
-      patientId = patient.id;
-    }
-
-    if (!patientId && role !== Role.PATIENT) {
-      // If doctor/nurse without specific patientId, return latest vitals recorded across patients
-      return prisma.vital.findMany({
-        include: {
-          patient: true,
-          recordedBy: { select: { id: true, email: true, role: true } },
-        },
-        orderBy: { recordedAt: 'desc' },
-        take: 50,
-      });
+      patientId = patient.id; // Override to strictly own ID
     }
 
     if (!patientId) {
-      throw new AppError('Patient ID is required', 400);
+      throw new AppError('patientId is required', 400);
     }
 
+    // Check authorization for Doctor/Caregiver
+    const isAuthorized = await this.checkAuthorization(userId, role, patientId);
+    if (!isAuthorized) {
+      throw new AppError('Forbidden: Not authorized to access this patient', 403);
+    }
+
+    // 6-month bound
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
     return prisma.vital.findMany({
-      where: { patientId },
+      where: { 
+        patientId,
+        recordedAt: {
+          gte: sixMonthsAgo
+        }
+      },
       include: {
         recordedBy: { select: { id: true, email: true, role: true } },
       },
@@ -63,10 +105,16 @@ export class VitalService {
     if (role === Role.PATIENT) {
       const patient = await prisma.patient.findUnique({ where: { userId } });
       if (!patient) throw new AppError('Patient profile not found', 404);
-      patientId = patient.id;
+      patientId = patient.id; // Force own ID
     }
 
-    if (!patientId) throw new AppError('Patient ID is required', 400);
+    if (!patientId) throw new AppError('patientId is required', 400);
+
+    // Verify Authorization for write
+    const isAuthorized = await this.checkAuthorization(userId, role, patientId);
+    if (!isAuthorized) {
+      throw new AppError('Forbidden: Not authorized to create vitals for this patient', 403);
+    }
 
     const vital = await prisma.vital.create({
       data: {
@@ -86,6 +134,11 @@ export class VitalService {
       include: {
         patient: true,
       },
+    });
+
+    // Run clinical alert detection asynchronously to not block response
+    import('./clinicalAlert.service').then(m => {
+      m.ClinicalAlertService.evaluateVital(vital).catch(console.error);
     });
 
     return vital;

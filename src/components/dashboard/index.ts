@@ -19,3 +19,5 @@ export * from './NearbyHospitalsCard';
 export * from './RecentActivityTimeline';
 export * from './DashboardSkeleton';
 export * from './QRModal';
+export * from './HealthShortsView';
+export * from './HealthShortsCard';

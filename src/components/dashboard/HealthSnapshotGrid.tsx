@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Activity, Moon, Footprints, Scale, Gauge, TrendingUp, TrendingDown } from 'lucide-react';
+import { Heart, Activity, Moon, Scale, Gauge, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { vitalApi, type VitalEntity } from '../../services/dhrApis';
 import { useLanguage } from '../../context/LanguageContext';
 
 /* Mini sparkline SVG — 5 data points, accent-colored */
@@ -24,14 +25,41 @@ const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
 
 export const HealthSnapshotGrid: React.FC = () => {
   const { t } = useLanguage();
+  const [vitalsList, setVitalsList] = useState<VitalEntity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const metrics = [
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVitals = async () => {
+      try {
+        setIsLoading(true);
+        const res = await vitalApi.getVitals();
+        if (isMounted) {
+          const data = res?.data ?? res ?? [];
+          setVitalsList(Array.isArray(data) ? data : []);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.message || 'Failed to load vitals');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchVitals();
+    return () => { isMounted = false; };
+  }, []);
+
+  const latestVital = vitalsList.length > 0 ? vitalsList[0] : null;
+
+  const metrics = useMemo(() => [
     {
       id: 'heart',
       label: t('snapshot.heart_rate', 'Heart Rate'),
-      value: '72 BPM',
-      status: t('snapshot.status_normal', 'Normal'),
-      trend: t('snapshot.trend_yesterday', '↓ 2% yesterday'),
+      value: latestVital?.heartRate ? `${latestVital.heartRate} BPM` : '-- / --',
+      status: latestVital?.heartRate ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: false,
       icon: Heart,
       accent: '#f43f5e',
@@ -43,9 +71,9 @@ export const HealthSnapshotGrid: React.FC = () => {
     {
       id: 'bp',
       label: t('snapshot.blood_pressure', 'Blood Pressure'),
-      value: '120/80',
-      status: t('snapshot.status_optimal', 'Optimal'),
-      trend: '120/80 mmHg',
+      value: (latestVital?.systolicBp && latestVital?.diastolicBp) ? `${latestVital.systolicBp}/${latestVital.diastolicBp}` : '-- / --',
+      status: (latestVital?.systolicBp && latestVital?.diastolicBp) ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Activity,
       accent: '#06b6d4',
@@ -55,11 +83,11 @@ export const HealthSnapshotGrid: React.FC = () => {
       badgeBg: 'rgba(6,182,212,.08)',
     },
     {
-      id: 'sleep',
-      label: t('snapshot.sleep_duration', 'Sleep Duration'),
-      value: '7h 42m',
-      status: t('snapshot.status_restful', 'Restful'),
-      trend: t('snapshot.trend_sleep', '↑ 8% this week'),
+      id: 'spo2',
+      label: t('snapshot.spo2', 'SpO2'),
+      value: latestVital?.oxygenSaturation ? `${latestVital.oxygenSaturation}%` : '-- / --',
+      status: latestVital?.oxygenSaturation ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Moon,
       accent: '#818cf8',
@@ -69,13 +97,13 @@ export const HealthSnapshotGrid: React.FC = () => {
       badgeBg: 'rgba(129,140,248,.08)',
     },
     {
-      id: 'steps',
-      label: t('snapshot.daily_steps', 'Daily Steps'),
-      value: '6,842',
-      status: t('snapshot.status_goal', 'Goal: 10k'),
-      trend: t('snapshot.trend_steps', '68% completed'),
+      id: 'temp',
+      label: t('snapshot.temperature', 'Temperature'),
+      value: latestVital?.temperature ? `${latestVital.temperature}°` : '-- / --',
+      status: latestVital?.temperature ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
-      icon: Footprints,
+      icon: Gauge,
       accent: '#10b981',
       accentBg: 'rgba(16,185,129,.1)',
       accentBorder: 'rgba(16,185,129,.2)',
@@ -85,9 +113,9 @@ export const HealthSnapshotGrid: React.FC = () => {
     {
       id: 'weight',
       label: t('snapshot.body_weight', 'Body Weight'),
-      value: '72 kg',
-      status: t('snapshot.status_stable', 'Stable'),
-      trend: t('snapshot.trend_weight', 'No change'),
+      value: latestVital?.weightKg ? `${latestVital.weightKg} kg` : '-- / --',
+      status: latestVital?.weightKg ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Scale,
       accent: '#14b8a6',
@@ -97,11 +125,11 @@ export const HealthSnapshotGrid: React.FC = () => {
       badgeBg: 'rgba(20,184,166,.08)',
     },
     {
-      id: 'bmi',
-      label: t('snapshot.bmi', 'Body Mass Index'),
-      value: '23.8',
-      status: t('snapshot.status_healthy', 'Healthy'),
-      trend: t('snapshot.trend_bmi', 'Ideal range'),
+      id: 'sugar',
+      label: t('snapshot.blood_sugar', 'Blood Sugar'),
+      value: latestVital?.bloodSugar ? `${latestVital.bloodSugar} mg/dL` : '-- / --',
+      status: latestVital?.bloodSugar ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Gauge,
       accent: '#a855f7',
@@ -110,7 +138,7 @@ export const HealthSnapshotGrid: React.FC = () => {
       badgeClr: '#7e22ce',
       badgeBg: 'rgba(168,85,247,.08)',
     },
-  ];
+  ], [latestVital, t]);
 
   return (
     <div
@@ -126,10 +154,19 @@ export const HealthSnapshotGrid: React.FC = () => {
             {t('snapshot.title', "Today's Health Biometrics")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            {t('snapshot.subtitle', 'Real-time vitals, sleep & physical activity snapshot.')}
+            {t('snapshot.subtitle', 'Real-time vitals snapshot.')}
           </p>
         </div>
+        {isLoading && (
+          <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />
+        )}
       </div>
+      
+      {error && (
+        <div className="relative z-10 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 relative z-10">
         {metrics.map((m, idx) => {
@@ -147,7 +184,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 boxShadow: `0 2px 10px rgba(0,0,0,.04), 0 0 0 0 ${m.accent}`
               }}
             >
-              {/* Top: circular icon + status badge */}
               <div className="flex items-center justify-between gap-1">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: m.accentBg, border: `1px solid ${m.accentBorder}` }}>
@@ -159,7 +195,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 </span>
               </div>
 
-              {/* Label + value */}
               <div className="min-w-0">
                 <span className="text-[10px] font-bold text-slate-500 block truncate">{m.label}</span>
                 <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight block mt-0.5 truncate"
@@ -168,7 +203,6 @@ export const HealthSnapshotGrid: React.FC = () => {
                 </span>
               </div>
 
-              {/* Footer: sparkline + trend */}
               <div className="flex items-center justify-between gap-1 pt-1.5 min-w-0"
                 style={{ borderTop: `1px solid ${m.accentBorder}` }}>
                 <div className="flex items-center gap-1 text-[10px] font-bold min-w-0 truncate"

@@ -1,0 +1,252 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Heart, MessageCircle, Share2, Volume2, VolumeX, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext';
+
+interface HealthShortsViewProps {
+  onClose: () => void;
+  patientHealthInfo?: string;
+}
+
+interface VideoMetadata {
+  id: string;
+  title: string;
+  channelTitle: string;
+  category: string;
+  icon: string;
+  duration: number;
+}
+
+export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) => {
+  const [muted, setMuted] = useState(true);
+  const [videos, setVideos] = useState<VideoMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
+  const { language } = useLanguage();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.get('/health-videos') as any;
+        const videoList = response.data?.videos || response.videos;
+        if (videoList && Array.isArray(videoList)) {
+          setVideos(videoList);
+        } else {
+          setVideos([]);
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch health videos", err);
+        setError(language === 'ta' ? "சுகாதார வீடியோக்கள் தற்போது கிடைக்கவில்லை. பிறகு முயற்சிக்கவும்." : "Health videos are temporarily unavailable. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVideos();
+  }, [language]);
+
+  useEffect(() => {
+    if (loading || videos.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = Number(entry.target.getAttribute('data-index'));
+          const iframe = iframeRefs.current[index];
+          if (!iframe || !iframe.contentWindow) return;
+
+          if (entry.isIntersecting) {
+            setActiveVideoIndex(index);
+            // Play video
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+          } else {
+            // Pause video
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), '*');
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    const elements = containerRef.current?.querySelectorAll('.video-container');
+    elements?.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [loading, videos.length]);
+
+  // Update mute state for all iframes when toggled
+  useEffect(() => {
+    iframeRefs.current.forEach(iframe => {
+      if (iframe && iframe.contentWindow) {
+        if (muted) {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute' }), '*');
+        } else {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
+        }
+      }
+    });
+  }, [muted]);
+
+  const t_disclaimer = language === 'ta' 
+    ? "கல்விக்கான ஆரோக்கிய உள்ளடக்கம் மட்டுமே. பாரம்பரிய நடைமுறைகள் அனைவருக்கும் பொருந்தாது. உங்கள் மருத்துவரின் ஆலோசனையைப் பின்பற்றவும்." 
+    : "Educational wellness content only. Traditional practices may not be suitable for everyone. Follow your doctor's medical advice.";
+
+  const t_watchOnYouTube = language === 'ta' ? "YouTube-ல் பார்க்கவும்" : "Watch on YouTube";
+  const t_empty = language === 'ta' ? "தற்போது பொருத்தமான சுகாதார குறும்படங்கள் கிடைக்கவில்லை." : "No suitable short health videos are available right now.";
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-zinc-950 text-white flex flex-col md:flex-row h-screen overflow-hidden">
+      {/* Close button */}
+      <button 
+        onClick={onClose}
+        className="absolute top-6 right-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      {/* Mute toggle */}
+      {videos.length > 0 && !loading && !error && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
+          className="absolute top-6 left-6 z-50 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
+        >
+          {muted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+        </button>
+      )}
+
+      <div className="flex-1 h-full flex justify-center items-center relative">
+        
+        {loading && (
+          <div className="flex flex-col items-center gap-4 text-cyan-500">
+            <Loader2 className="w-12 h-12 animate-spin" />
+            <p className="text-sm font-bold animate-pulse text-white">Loading Health Shorts...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="flex flex-col items-center gap-4 text-rose-400 p-6 text-center max-w-sm bg-zinc-900 rounded-3xl border border-zinc-800">
+            <AlertCircle className="w-12 h-12" />
+            <p className="text-sm font-bold text-white">{error}</p>
+            <button onClick={onClose} className="px-6 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-white hover:bg-zinc-700 mt-2">Close</button>
+          </div>
+        )}
+
+        {!loading && !error && videos.length === 0 && (
+          <div className="flex flex-col items-center gap-4 text-slate-400 p-6 text-center max-w-sm">
+            <AlertCircle className="w-12 h-12" />
+            <p className="text-sm font-bold">{t_empty}</p>
+            <button onClick={onClose} className="px-6 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-white hover:bg-zinc-700 mt-2">Go Back</button>
+          </div>
+        )}
+
+        {/* Scroll Container */}
+        {!loading && !error && videos.length > 0 && (
+          <div ref={containerRef} className="w-full max-w-md h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar relative bg-black">
+            
+            {/* Educational Banner */}
+            <div className="absolute top-20 left-4 right-4 z-50 text-center">
+              <div className="inline-block px-4 py-2 bg-black/60 border border-white/20 backdrop-blur-md rounded-2xl">
+                <p className="text-[11px] font-bold text-white/90">
+                  {language === 'ta' 
+                    ? 'உங்கள் சிகிச்சைத் திட்டத்திற்கேற்ப தனிப்பயனாக்கப்பட்டது'
+                    : 'Personalized for your care plan'}
+                </p>
+              </div>
+            </div>
+
+            {videos.map((video, index) => (
+              <div 
+                key={video.id + index} 
+                data-index={index}
+                className="video-container w-full h-full snap-start snap-always relative flex justify-center items-center bg-black overflow-hidden"
+              >
+                {/* YouTube Embed without controls/downloads */}
+                <iframe 
+                  ref={el => { iframeRefs.current[index] = el; }}
+                  className="w-[170%] h-[170%] max-w-none pointer-events-none object-cover"
+                  src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&autoplay=${index === 0 ? 1 : 0}&loop=1&controls=0&modestbranding=1&rel=0&playsinline=1&mute=${muted ? '1' : '0'}&playlist=${video.id}`}
+                  title={video.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+
+                {/* Overlay to prevent clicks/downloads on iframe and capture scroll/clicks */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/10 via-transparent to-black/90 pointer-events-auto" onClick={() => setMuted(!muted)}>
+                  
+                  {/* Overlay Text */}
+                  <div className="absolute bottom-12 left-4 right-16">
+                    <h3 className="text-lg font-black mb-1 line-clamp-2 text-white drop-shadow-md">{video.title}</h3>
+                    <p className="text-xs font-bold text-cyan-400 mb-3 drop-shadow">@{video.channelTitle}</p>
+                    
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className="px-3 py-1.5 bg-black/40 border border-white/10 backdrop-blur-md rounded-xl text-xs font-bold flex items-center gap-1">
+                        {video.icon} {video.category}
+                      </span>
+                    </div>
+
+                    {(video.category === "Nattu Maruthuvam" || video.category === "Natural Herbs") && (
+                      <div className="p-3 bg-amber-900/40 border border-amber-500/30 rounded-xl backdrop-blur-md">
+                        <p className="text-[10px] font-bold text-amber-200/90 leading-tight">
+                          ⚠️ {t_disclaimer}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Watch on YouTube Link */}
+                    <a 
+                      href={`https://www.youtube.com/shorts/${video.id}`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold text-white/70 hover:text-white transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="w-3 h-3" /> {t_watchOnYouTube}
+                    </a>
+                  </div>
+
+                  {/* Engagement Buttons (Right Side) */}
+                  <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                        <Heart className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-col items-center gap-1">
+                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                        <MessageCircle className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-1">
+                      <button className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                        <Share2 className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            ))}
+
+          </div>
+        )}
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}} />
+    </div>
+  );
+};

@@ -15,11 +15,11 @@ import {
 import { useCaregiverWorkflow } from '../../../utils/caregiverWorkflowStorage';
 import { useLanguage } from '../../../context/LanguageContext';
 import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
-import { DEMO_VITALS_BY_WARD, type DemoVitalReading } from '../../../mocks/caregiverVitalsMock';
+import { vitalApi, type VitalEntity } from '../../../services/dhrApis';
 
 /* Custom Responsive SVG Trend Chart Component */
 interface ChartSeries {
-  key: 'systolic' | 'diastolic' | 'bloodSugar' | 'spo2' | 'heartRate';
+  key: 'systolicBp' | 'diastolicBp' | 'bloodSugar' | 'oxygenSaturation' | 'heartRate';
   label: string;
   color: string;
 }
@@ -28,7 +28,7 @@ interface BiometricTrendChartProps {
   title: string;
   icon: React.ElementType;
   unit: string;
-  data: DemoVitalReading[];
+  data: VitalEntity[];
   series: ChartSeries[];
   accentColor: string;
   emptyText: string;
@@ -220,7 +220,7 @@ const BiometricTrendChart: React.FC<BiometricTrendChartProps> = ({
                 fill="currentColor"
                 className="text-slate-400"
               >
-                {d.date}
+                {new Date(d.recordedAt).toLocaleDateString()}
               </text>
             ))}
           </svg>
@@ -255,7 +255,31 @@ export const CaregiverVitalsView: React.FC = () => {
   const { wards, activeWard, setActiveWardId } = useCaregiverWorkflow();
   
   // Local state for mock vitals per ward
-  const [vitalsMap, setVitalsMap] = useState<Record<string, DemoVitalReading[]>>(DEMO_VITALS_BY_WARD);
+  const [vitalsMap, setVitalsMap] = useState<Record<string, VitalEntity[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!activeWard?.id) return;
+    let isMounted = true;
+    const fetchVitals = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await vitalApi.getVitals(activeWard.id);
+        if (isMounted) {
+          const data = res?.data ?? res ?? [];
+          setVitalsMap(prev => ({ ...prev, [activeWard.id]: Array.isArray(data) ? data : [] }));
+        }
+      } catch (err: any) {
+        if (isMounted) setError(err?.message || 'Failed to load vitals');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchVitals();
+    return () => { isMounted = false; };
+  }, [activeWard?.id]);
 
   // Date range filter state: '7d' | '30d' | 'all'
   const [dateRange, setDateRange] = useState<'7d' | '30d' | 'all'>('all');
@@ -264,11 +288,11 @@ export const CaregiverVitalsView: React.FC = () => {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Form states
-  const [systolic, setSystolic] = useState('125');
-  const [diastolic, setDiastolic] = useState('80');
+  const [systolicBp, setSystolic] = useState('125');
+  const [diastolicBp, setDiastolic] = useState('80');
   const [bloodSugar, setBloodSugar] = useState('110');
   const [sugarType, setSugarType] = useState<'Fasting' | 'Post-Meal' | 'Random'>('Fasting');
-  const [spo2, setSpo2] = useState('98');
+  const [oxygenSaturation, setSpo2] = useState('98');
   const [heartRate, setHeartRate] = useState('72');
   const [temperature, setTemperature] = useState('98.4');
   const [weight, setWeight] = useState('70');
@@ -308,16 +332,16 @@ export const CaregiverVitalsView: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newReading: DemoVitalReading = {
+    const newReading: VitalEntity = {
       id: `demo-vital-${Date.now()}`,
       date: 'Today',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       rawTimestamp: Date.now(),
-      systolic: systolic ? parseInt(systolic, 10) : undefined,
-      diastolic: diastolic ? parseInt(diastolic, 10) : undefined,
+      systolicBp: systolicBp ? parseInt(systolicBp, 10) : undefined,
+      diastolicBp: diastolicBp ? parseInt(diastolicBp, 10) : undefined,
       bloodSugar: bloodSugar ? parseInt(bloodSugar, 10) : undefined,
       sugarType,
-      spo2: spo2 ? parseInt(spo2, 10) : undefined,
+      oxygenSaturation: oxygenSaturation ? parseInt(oxygenSaturation, 10) : undefined,
       heartRate: heartRate ? parseInt(heartRate, 10) : undefined,
       temperature: temperature ? parseFloat(temperature) : undefined,
       weight: weight ? parseFloat(weight) : undefined,
@@ -408,7 +432,7 @@ export const CaregiverVitalsView: React.FC = () => {
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
               <Heart className="w-4 h-4 text-rose-500" /> {t('caregiver.vitals.col_bp', 'Blood Pressure')}
             </span>
-            {latest?.systolic ? (
+            {latest?.systolicBp ? (
               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
                 {t('caregiver.vitals.optimal', 'Optimal')}
               </span>
@@ -417,7 +441,7 @@ export const CaregiverVitalsView: React.FC = () => {
             )}
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-white">
-            {latest?.systolic && latest?.diastolic ? `${latest.systolic} / ${latest.diastolic}` : '-- / --'}
+            {latest?.systolicBp && latest?.diastolicBp ? `${latest.systolicBp} / ${latest.diastolicBp}` : '-- / --'}
           </p>
           <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} &lt; 130/85 mmHg</p>
         </div>
@@ -452,18 +476,18 @@ export const CaregiverVitalsView: React.FC = () => {
         <div className="p-5 rounded-3xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black uppercase text-slate-500 flex items-center gap-1.5">
-              <Wind className="w-4 h-4 text-sky-500" /> {t('caregiver.vitals.col_spo2', 'Oxygen (SpO2)')}
+              <Wind className="w-4 h-4 text-sky-500" /> {t('caregiver.vitals.col_oxygenSaturation', 'Oxygen (SpO2)')}
             </span>
-            {latest?.spo2 ? (
+            {latest?.oxygenSaturation ? (
               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
-                {latest.spo2}%
+                {latest.oxygenSaturation}%
               </span>
             ) : (
               <span className="text-[10px] font-bold text-slate-400">—</span>
             )}
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-white">
-            {latest?.spo2 ? `${latest.spo2}%` : '--'}
+            {latest?.oxygenSaturation ? `${latest.oxygenSaturation}%` : '--'}
           </p>
           <p className="text-[11px] text-slate-400 font-semibold">{t('caregiver.vitals.target', 'Target:')} 95 - 100%</p>
         </div>
@@ -564,8 +588,8 @@ export const CaregiverVitalsView: React.FC = () => {
               accentColor="#f43f5e"
               emptyText={t('caregiver.vitals.no_trend_data', 'No trend data available for this dependent.')}
               series={[
-                { key: 'systolic', label: 'Systolic', color: '#f43f5e' },
-                { key: 'diastolic', label: 'Diastolic', color: '#38bdf8' }
+                { key: 'systolicBp', label: 'Systolic', color: '#f43f5e' },
+                { key: 'diastolicBp', label: 'Diastolic', color: '#38bdf8' }
               ]}
             />
 
@@ -584,14 +608,14 @@ export const CaregiverVitalsView: React.FC = () => {
 
             {/* 3. SPO2 OXYGEN TREND */}
             <BiometricTrendChart
-              title={t('caregiver.vitals.col_spo2', 'Oxygen (SpO2)')}
+              title={t('caregiver.vitals.col_oxygenSaturation', 'Oxygen (SpO2)')}
               icon={Wind}
               unit="%"
               data={filteredTrendVitals}
               accentColor="#0ea5e9"
               emptyText={t('caregiver.vitals.no_trend_data', 'No trend data available for this dependent.')}
               series={[
-                { key: 'spo2', label: 'SpO2', color: '#0ea5e9' }
+                { key: 'oxygenSaturation', label: 'SpO2', color: '#0ea5e9' }
               ]}
             />
 
@@ -642,7 +666,7 @@ export const CaregiverVitalsView: React.FC = () => {
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_datetime', 'Date & Time')}</th>
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_bp', 'Blood Pressure')}</th>
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_glucose', 'Blood Glucose')}</th>
-                  <th className="pb-3 px-3">{t('caregiver.vitals.col_spo2', 'SpO2')}</th>
+                  <th className="pb-3 px-3">{t('caregiver.vitals.col_oxygenSaturation', 'SpO2')}</th>
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_pulse', 'Pulse')}</th>
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_notes', 'Notes')}</th>
                   <th className="pb-3 px-3">{t('caregiver.vitals.col_status', 'Status')}</th>
@@ -655,13 +679,13 @@ export const CaregiverVitalsView: React.FC = () => {
                       {v.date}, {v.time}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
-                      {v.systolic ? `${v.systolic}/${v.diastolic} mmHg` : '—'}
+                      {v.systolicBp ? `${v.systolicBp}/${v.diastolicBp} mmHg` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.bloodSugar ? `${v.bloodSugar} mg/dL (${v.sugarType})` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
-                      {v.spo2 ? `${v.spo2}%` : '—'}
+                      {v.oxygenSaturation ? `${v.oxygenSaturation}%` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.heartRate ? `${v.heartRate} bpm` : '—'}
@@ -711,7 +735,7 @@ export const CaregiverVitalsView: React.FC = () => {
                     <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Systolic BP (mmHg)</label>
                     <input
                       type="number"
-                      value={systolic}
+                      value={systolicBp}
                       onChange={(e) => setSystolic(e.target.value)}
                       placeholder="120"
                       className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white"
@@ -721,7 +745,7 @@ export const CaregiverVitalsView: React.FC = () => {
                     <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Diastolic BP (mmHg)</label>
                     <input
                       type="number"
-                      value={diastolic}
+                      value={diastolicBp}
                       onChange={(e) => setDiastolic(e.target.value)}
                       placeholder="80"
                       className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white"
@@ -759,7 +783,7 @@ export const CaregiverVitalsView: React.FC = () => {
                     <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">SpO2 Oxygen (%)</label>
                     <input
                       type="number"
-                      value={spo2}
+                      value={oxygenSaturation}
                       onChange={(e) => setSpo2(e.target.value)}
                       placeholder="98"
                       className="w-full h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white"

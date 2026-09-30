@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { api } from '../../../services/api';
 import { 
   Apple, ChevronRight, Search, History, Plus, AlertCircle, 
   Droplets, Target, Sparkles, RefreshCw, Edit2, Trash2, 
@@ -19,11 +20,13 @@ const patientInfo = {
 };
 
 const mockMeals = [
-  { id: 1, type: "Breakfast", name: "Oats Idli with Sambar", time: "08:30 AM", portion: "3 pieces, 1 bowl", cal: 320, pro: 12 },
-  { id: 2, type: "Morning Snack", name: "Mixed Fruit Bowl", time: "11:00 AM", portion: "1 medium bowl", cal: 150, pro: 2 },
-  { id: 3, type: "Lunch", name: "Brown Rice with Dal & Veggies", time: "01:30 PM", portion: "1 cup rice, 1 cup dal", cal: 450, pro: 18 },
-  { id: 4, type: "Evening Snack", name: "Roasted Makhana", time: "05:00 PM", portion: "1 small bowl", cal: 120, pro: 3 },
-  { id: 5, type: "Dinner", name: "Roti with Paneer Sabzi", time: "08:30 PM", portion: "2 rotis, 1 cup sabzi", cal: 400, pro: 16 }
+  { id: 1, type: "Breakfast", name: "Oats Idli with Sambar", time: "08:30 AM", portion: "3 pieces, 1 bowl", cal: 320, pro: 12, days: ['Monday', 'Wednesday', 'Friday'] },
+  { id: 6, type: "Breakfast", name: "Poha with Peanuts", time: "08:30 AM", portion: "1 bowl", cal: 280, pro: 8, days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'] },
+  { id: 2, type: "Morning Snack", name: "Mixed Fruit Bowl", time: "11:00 AM", portion: "1 medium bowl", cal: 150, pro: 2, days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+  { id: 3, type: "Lunch", name: "Brown Rice with Dal & Veggies", time: "01:30 PM", portion: "1 cup rice, 1 cup dal", cal: 450, pro: 18, days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+  { id: 4, type: "Evening Snack", name: "Roasted Makhana", time: "05:00 PM", portion: "1 small bowl", cal: 120, pro: 3, days: ['Monday', 'Wednesday', 'Friday'] },
+  { id: 7, type: "Evening Snack", name: "Sprouts Salad", time: "05:00 PM", portion: "1 bowl", cal: 110, pro: 5, days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'] },
+  { id: 5, type: "Dinner", name: "Roti with Paneer Sabzi", time: "08:30 PM", portion: "2 rotis, 1 cup sabzi", cal: 400, pro: 16, days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] }
 ];
 
 export function DietPlanView() {
@@ -32,6 +35,56 @@ export function DietPlanView() {
   const [activeTab, setActiveTab] = useState<TabType>('plan');
   const [activeDay, setActiveDay] = useState('Monday');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [meals, setMeals] = useState<any[]>([]);
+
+  // Calculate current week dates dynamically
+  const weekDates = React.useMemo(() => {
+    const today = new Date();
+    const currentDay = today.getDay() || 7; // Monday = 1, Sunday = 7
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - currentDay + 1);
+    
+    const dates = [];
+    const daysArr = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      dates.push({
+        day: daysArr[i],
+        date: d.getDate(),
+        month: monthNames[d.getMonth()]
+      });
+    }
+    return dates;
+  }, []);
+
+  useEffect(() => {
+    // Set active day to today automatically
+    const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    setActiveDay(todayName);
+    fetchMeals();
+  }, []);
+
+  const fetchMeals = async () => {
+    try {
+      const response = await api.get(`/diet/${patientInfo.id}/meals`);
+      if (response.data && response.data.length > 0) {
+        setMeals(response.data);
+      } else {
+        // Seed mock data if database is empty
+        for (const m of mockMeals) {
+           await api.post(`/diet/${patientInfo.id}/meals`, m);
+        }
+        const freshResponse = await api.get(`/diet/${patientInfo.id}/meals`);
+        setMeals(freshResponse.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch meals, falling back to mock", e);
+      setMeals(mockMeals);
+    }
+  };
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +100,8 @@ export function DietPlanView() {
   // Selection States
   const [selectedMealForSwap, setSelectedMealForSwap] = useState<any>(null);
   const [editingMeal, setEditingMeal] = useState<any>(null);
+  const [mealDays, setMealDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+  const [mealForm, setMealForm] = useState<any>({ type: 'Breakfast', time: '08:00 AM', name: '', portion: '', cal: '', pro: '', carbs: '50', fat: '15' });
 
   // Form States (Simplified for UI Demo)
   const [instructions, setInstructions] = useState({ timings: true, hydration: true, portions: false, track: true, review: false, share: true });
@@ -56,6 +111,67 @@ export function DietPlanView() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleOpenMealDrawer = (meal?: any) => {
+    setEditingMeal(meal || null);
+    if (meal) {
+      setMealForm({
+        type: meal.type,
+        time: meal.time,
+        name: meal.name,
+        portion: meal.portion,
+        cal: meal.cal,
+        pro: meal.pro,
+        carbs: meal.carbs || 50,
+        fat: meal.fat || 15
+      });
+      setMealDays(meal.days.map((d: string) => d.substring(0, 3)));
+    } else {
+      setMealForm({
+        type: 'Breakfast',
+        time: '08:00 AM',
+        name: '',
+        portion: '',
+        cal: '',
+        pro: '',
+        carbs: '50',
+        fat: '15'
+      });
+      setMealDays([activeDay.substring(0, 3)]);
+    }
+    setShowMealDrawer(true);
+  };
+
+  const handleSaveMeal = async () => {
+    const fullDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].filter(d => mealDays.includes(d.substring(0, 3)));
+    
+    try {
+      if (editingMeal) {
+        const response = await api.put(`/diet/${patientInfo.id}/meals/${editingMeal.id}`, { ...mealForm, days: fullDays });
+        setMeals(prev => prev.map(m => m.id === editingMeal.id ? response.data : m));
+        showToast("Meal updated");
+      } else {
+        const response = await api.post(`/diet/${patientInfo.id}/meals`, { ...mealForm, days: fullDays });
+        setMeals(prev => [...prev, response.data]);
+        showToast("Meal added");
+      }
+    } catch (e) {
+       console.error("Failed to save meal", e);
+       showToast("Failed to save meal (see console)");
+    }
+    setShowMealDrawer(false);
+  };
+
+  const handleDeleteMeal = async (id: string | number) => {
+    try {
+      await api.delete(`/diet/${patientInfo.id}/meals/${id}`);
+      setMeals(prev => prev.filter(m => m.id !== id));
+      showToast("Meal deleted");
+    } catch (e) {
+      console.error("Failed to delete meal", e);
+      showToast("Failed to delete meal (see console)");
+    }
   };
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -83,7 +199,7 @@ export function DietPlanView() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Eating Pattern</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20">
               <option>Regular meals</option>
               <option>Irregular meals</option>
               <option>Frequently skips meals</option>
@@ -91,7 +207,7 @@ export function DietPlanView() {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Activity Level</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Moderate">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Moderate">
               <option>Sedentary</option>
               <option>Light</option>
               <option>Moderate</option>
@@ -100,7 +216,7 @@ export function DietPlanView() {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Meal Frequency</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="4 meals">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="4 meals">
               <option>2 meals</option>
               <option>3 meals</option>
               <option>4 meals</option>
@@ -109,7 +225,7 @@ export function DietPlanView() {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Hydration Habit</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Moderate">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Moderate">
               <option>Low</option>
               <option>Moderate</option>
               <option>Good</option>
@@ -120,7 +236,7 @@ export function DietPlanView() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Food Preferences</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="South Indian">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="South Indian">
               <option>South Indian</option>
               <option>North Indian</option>
               <option>Indian</option>
@@ -130,7 +246,7 @@ export function DietPlanView() {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Dietary Restrictions</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Non-Vegetarian">
+            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Non-Vegetarian">
               <option>Vegetarian</option>
               <option>Non-Vegetarian</option>
               <option>Vegan</option>
@@ -154,7 +270,7 @@ export function DietPlanView() {
           <div className="space-y-4">
              <div>
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Primary Goal</label>
-              <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Balanced Nutrition">
+              <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="Balanced Nutrition">
                 <option>Balanced Nutrition</option>
                 <option>Weight Management</option>
                 <option>Improve Energy</option>
@@ -164,7 +280,7 @@ export function DietPlanView() {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Plan Duration</label>
-              <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="4 Weeks">
+              <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-cyan-500/20" defaultValue="4 Weeks">
                 <option>2 Weeks</option>
                 <option>4 Weeks</option>
                 <option>8 Weeks</option>
@@ -217,93 +333,108 @@ export function DietPlanView() {
   const renderMealPlanTab = () => (
     <div className="animate-in fade-in duration-500">
       
-      {/* AI Generate Prompt */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-3xl p-6 sm:p-8 mb-8 relative overflow-hidden shadow-lg border border-slate-800">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Sparkles className="w-48 h-48 text-cyan-400" />
+      {/* AI Generate Prompt Banner */}
+      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-6 sm:p-5 mb-8 relative overflow-hidden shadow-lg border border-slate-800 flex items-center justify-between">
+        <div className="absolute inset-0 bg-cyan-500/10 blur-xl rounded-full translate-y-1/2"></div>
+        <div className="relative z-10 w-full flex items-center justify-center gap-3 text-center">
+          <h2 className="text-xl sm:text-2xl font-medium text-slate-300 uppercase tracking-widest">
+            Healthcare Meal Plan <span className="text-slate-500 mx-2">|</span> <span className="text-white font-bold tracking-normal">AI Generation ✨</span>
+          </h2>
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-white mb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" /> 
-              AI-Assisted Plan Generation
-            </h2>
-            <p className="text-slate-400 font-medium max-w-2xl text-sm sm:text-base">
-              Instantly generate a highly personalized 7-day meal plan based on the patient's assessment, goals, and targets. You can deeply customize the draft before assigning.
-            </p>
-          </div>
-          <button onClick={() => setShowAIModal(true)} className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl text-sm font-black transition-colors shadow-[0_0_20px_rgba(6,182,212,0.3)] shrink-0 flex items-center gap-2">
-            Generate Draft with AI <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button onClick={() => setShowAIModal(true)} className="relative z-10 p-2 hover:bg-white/10 rounded-lg text-slate-300 transition-colors">
+          <Sparkles className="w-5 h-5" />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Main Planner */}
         <div className="xl:col-span-2 space-y-6">
           
-          {/* Day Tabs */}
-          <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 flex overflow-x-auto custom-scrollbar shadow-sm">
-            {days.map(day => (
+          {/* Day Tabs - Floating Pills */}
+          <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-4 px-1">
+            {weekDates.map(({ day, date }) => (
               <button
                 key={day}
                 onClick={() => setActiveDay(day)}
-                className={`flex-1 min-w-[100px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                className={`flex flex-col items-center justify-center min-w-[70px] h-20 rounded-2xl transition-all shadow-sm border ${
                   activeDay === day 
-                    ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow-md' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-300 dark:border-slate-600 shadow-md transform -translate-y-1' 
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:-translate-y-0.5'
                 }`}
               >
-                {day}
+                <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${activeDay === day ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400'}`}>
+                  {day.substring(0, 3)}
+                </span>
+                <span className={`text-xl font-black ${activeDay === day ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
+                  {date}
+                </span>
               </button>
             ))}
           </div>
 
+          <div className="mb-4 mt-2 px-1">
+             <h3 className="text-xl font-black text-slate-900 dark:text-white">
+               {activeDay}, {weekDates.find(d => d.day === activeDay)?.month} {weekDates.find(d => d.day === activeDay)?.date}
+             </h3>
+          </div>
+
           {/* Meals List */}
-          <div className="space-y-4">
-            {mockMeals.map((meal) => (
-              <div key={meal.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-4 sm:items-center group">
+          <div className="space-y-6">
+            {meals.filter(m => m.days.includes(activeDay)).map((meal) => (
+              <div key={meal.id} className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow group relative">
                 
-                <div className="flex-1 flex items-start gap-4">
-                   <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-slate-800 flex items-center justify-center border border-cyan-100 dark:border-slate-700 shrink-0">
-                    <Apple className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                <div className="flex justify-between items-start mb-4">
+                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                     {meal.type}
                    </div>
-                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-black uppercase tracking-widest text-slate-500">{meal.type}</span>
-                      <span className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></span>
-                      <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">{meal.time}</span>
-                    </div>
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight mb-1">{meal.name}</h4>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Portion: {meal.portion}</p>
+                   <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-0.5">
+                       <button onClick={() => { setSelectedMealForSwap(meal); setShowSwapDrawer(true); }} className="p-1.5 text-slate-400 hover:text-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors" title="Swap Food">
+                         <RefreshCw className="w-4 h-4" />
+                       </button>
+                       <button onClick={() => handleOpenMealDrawer(meal)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Edit Meal">
+                         <Edit2 className="w-4 h-4" />
+                       </button>
+                       <button onClick={() => handleDeleteMeal(meal.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Delete Meal">
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </div>
+                     <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                       {meal.cal} kcal
+                     </div>
                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 sm:gap-6 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800 sm:pl-6 shrink-0">
-                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Macros</span>
-                    <div className="flex items-center gap-3 text-sm font-bold">
-                      <span className="text-slate-700 dark:text-slate-200">{meal.cal} <span className="text-slate-400 text-xs">kcal</span></span>
-                      <span className="text-slate-700 dark:text-slate-200">{meal.pro} <span className="text-slate-400 text-xs">g pro</span></span>
-                    </div>
+                <div className="flex items-start gap-5">
+                   <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 shrink-0 shadow-inner text-3xl">
+                     {meal.type === 'Breakfast' ? '🥑' : meal.type === 'Lunch' ? '🥗' : meal.type.includes('Snack') ? '🍎' : '🍲'}
                    </div>
-                   
-                   <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity ml-auto">
-                      <button onClick={() => { setSelectedMealForSwap(meal); setShowSwapDrawer(true); }} className="p-2 text-slate-400 hover:text-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors tooltip-trigger" title="Swap Food">
-                        <RefreshCw className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => { setEditingMeal(meal); setShowMealDrawer(true); }} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors tooltip-trigger" title="Edit Meal">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors tooltip-trigger" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                   <div className="flex-1">
+                      <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-tight mb-1">{meal.name}</h4>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">{meal.portion}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-3">
+                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mr-2">
+                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                           {meal.time}
+                         </div>
+                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300">
+                           {meal.pro}g Protein
+                         </div>
+                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300">
+                           {meal.carbs || Math.round(meal.cal * 0.5 / 4)}g Carbs
+                         </div>
+                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300">
+                           {meal.fat || Math.round(meal.cal * 0.3 / 9)}g Fat
+                         </div>
+                      </div>
                    </div>
                 </div>
+
               </div>
             ))}
 
-            <button onClick={() => { setEditingMeal(null); setShowMealDrawer(true); }} className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:border-cyan-500 hover:text-cyan-500 dark:hover:border-cyan-500 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/10 transition-all flex items-center justify-center gap-2">
+            <button onClick={() => handleOpenMealDrawer()} className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:border-cyan-500 hover:text-cyan-500 dark:hover:border-cyan-500 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/10 transition-all flex items-center justify-center gap-2">
               <Plus className="w-5 h-5" /> Add Meal
             </button>
           </div>
@@ -312,40 +443,40 @@ export function DietPlanView() {
         {/* Sidebar: Recommendations & Limitations */}
         <div className="space-y-6">
            {/* RECOMMENDED FOODS */}
-           <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white mb-5 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Recommended Foods
+           <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6">
+              Recommended Foods
             </h3>
-            <div className="space-y-5">
+            <div className="flex flex-wrap gap-2.5">
               {[
-                { category: 'Protein', items: ['Dal', 'Paneer', 'Eggs', 'Fish', 'Legumes'] },
-                { category: 'Fruits', items: ['Apple', 'Orange', 'Banana', 'Papaya'] },
-                { category: 'Vegetables', items: ['Spinach', 'Carrot', 'Beans', 'Broccoli'] }
-              ].map(group => (
-                <div key={group.category}>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{group.category}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.items.map(f => (
-                      <span key={f} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer hover:border-cyan-500 hover:text-cyan-600 transition-colors flex items-center gap-1">
-                        <Plus className="w-3 h-3" /> {f}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                'Leafy Greens (Veg)', 'Berries (Fruit)', 'Nuts (Snack)', 
+                'Salmon (Omega-3)', 'Oats (Grains)', 'Greek Yogurt (Probiotic)'
+              ].map(f => (
+                <span key={f} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-default">
+                  {f}
+                </span>
               ))}
             </div>
-          </div>
+            
+            <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-8"></div>
 
-          {/* FOODS TO LIMIT */}
-          <div className="bg-rose-50/50 dark:bg-rose-900/10 p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30">
-            <h3 className="text-sm font-black uppercase tracking-widest text-rose-800 dark:text-rose-400 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-500" /> Foods to Limit
+            {/* FOODS TO LIMIT */}
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6">
+              Foods to Limit
             </h3>
-            <ul className="space-y-2 text-sm font-bold text-slate-700 dark:text-slate-300 list-disc pl-5 marker:text-rose-400">
-              <li>Highly processed foods</li>
-              <li>Excessively sugary foods</li>
-              <li>High-sodium foods</li>
-              <li>Sugary beverages</li>
+            <ul className="space-y-4">
+              {[
+                'Sugary Drinks',
+                'Red Meat',
+                'Processed Foods',
+                'High Sodium',
+                'Refined Grains'
+              ].map(item => (
+                <li key={item} className="flex justify-between items-center text-sm font-bold text-slate-700 dark:text-slate-300">
+                  {item}
+                  <X className="w-4 h-4 text-slate-400" />
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -413,7 +544,7 @@ export function DietPlanView() {
                     <span className="text-slate-600 dark:text-slate-300 uppercase tracking-wider">{macro.label}</span>
                     <span className="text-slate-900 dark:text-white">{macro.current} <span className="text-slate-400 font-medium">/ {macro.max} {macro.unit}</span></span>
                   </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200/50 dark:border-slate-200 dark:border-slate-700/50">
                     <motion.div 
                       initial={{ width: 0 }} animate={{ width: `${percent}%` }} transition={{ duration: 1, ease: "easeOut" }}
                       className={`h-full ${macro.color} rounded-full`}
@@ -434,7 +565,7 @@ export function DietPlanView() {
             <h2 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
               <History className="w-4 h-4 text-cyan-500" /> Patient Adherence & Progress
             </h2>
-            <select className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none">
+            <select className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none">
               <option>7 Days</option>
               <option>30 Days</option>
               <option>Custom</option>
@@ -480,17 +611,17 @@ export function DietPlanView() {
               <FileText className="w-4 h-4 text-cyan-500" /> Clinical Notes
             </h2>
             <textarea 
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-2xl p-4 outline-none focus:ring-2 focus:ring-cyan-500/20 resize-none h-32 mb-4" 
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-2xl p-4 outline-none focus:ring-2 focus:ring-cyan-500/20 resize-none h-32 mb-4" 
               placeholder="Enter clinical observations, adjustments, and dietetic notes here..."
             />
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Next Review</label>
-                <input type="date" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none" />
+                <input type="date" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Frequency</label>
-                <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none">
+                <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none">
                   <option>Weekly</option>
                   <option>Bi-Weekly</option>
                   <option>Monthly</option>
@@ -598,13 +729,16 @@ export function DietPlanView() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f1c] text-slate-900 dark:text-slate-200 pb-32">
       
       {/* TOAST */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.9 }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 rounded-2xl shadow-xl font-bold flex items-center gap-2 text-white bg-emerald-500">
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed bottom-24 right-8 z-[100] flex flex-col gap-2 pointer-events-none">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div initial={{ opacity: 0, x: 50, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 20, scale: 0.9 }} className="px-6 py-4 rounded-2xl shadow-2xl font-bold flex items-center gap-3 text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 pointer-events-auto border border-slate-800 dark:border-slate-200">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 dark:text-emerald-500" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <div className="max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         
@@ -637,7 +771,7 @@ export function DietPlanView() {
                 }}
                 onFocus={() => setShowSearchResults(searchQuery.length > 0)}
                 onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 outline-none text-sm font-medium focus:ring-2 focus:ring-cyan-500/20 w-48 sm:w-64 relative z-10" 
+                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 outline-none text-sm font-medium focus:ring-2 focus:ring-cyan-500/20 w-48 sm:w-64 relative z-10" 
               />
               
               {/* Search Results Dropdown */}
@@ -647,7 +781,7 @@ export function DietPlanView() {
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: 10 }} 
-                    className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
+                    className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
                   >
                     <div className="p-2">
                       <div 
@@ -708,7 +842,7 @@ export function DietPlanView() {
             <div>
               <h2 className="text-xl font-black text-white flex items-center gap-3">
                 {patientInfo.name}
-                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] uppercase tracking-widest rounded-md border border-slate-700">{patientInfo.id}</span>
+                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] uppercase tracking-widest rounded-md border border-slate-200 dark:border-slate-700">{patientInfo.id}</span>
               </h2>
               <div className="flex flex-wrap items-center gap-3 md:gap-5 text-sm font-medium mt-1">
                 <span className="flex items-center gap-1">Age: <strong className="text-white">{patientInfo.age}</strong></span>
@@ -778,13 +912,13 @@ export function DietPlanView() {
                 Last saved: <span className="text-slate-900 dark:text-white">Just now</span>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
-                <button className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                <button onClick={() => showToast("Draft Saved Successfully!")} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                   Save Draft
                 </button>
-                <button className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm hidden sm:block">
+                <button onClick={() => showToast("Opening Preview...")} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm hidden sm:block">
                   Preview Plan
                 </button>
-                <button className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+                <button onClick={() => showToast("Downloading PDF...")} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm flex items-center justify-center gap-2">
                   <Download className="w-4 h-4" /> Export PDF
                 </button>
                 <button onClick={() => setShowAssignModal(true)} className="px-8 py-2.5 bg-slate-900 dark:bg-cyan-600 text-white rounded-xl text-sm font-black hover:bg-slate-800 dark:hover:bg-cyan-500 transition-colors shadow-lg flex items-center justify-center gap-2">
@@ -814,25 +948,25 @@ export function DietPlanView() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nutrition Goal</label>
-                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none" defaultValue={patientInfo.goal}><option>Balanced Nutrition</option><option>Weight Management</option></select>
+                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none" defaultValue={patientInfo.goal}><option>Balanced Nutrition</option><option>Weight Management</option></select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Diet Type</label>
-                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none" defaultValue="South Indian"><option>South Indian</option><option>North Indian</option></select>
+                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none" defaultValue="South Indian"><option>South Indian</option><option>North Indian</option></select>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Target Cal</label>
-                    <input type="number" defaultValue={2000} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none" />
+                    <input type="number" defaultValue={2000} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Target Pro</label>
-                    <input type="number" defaultValue={75} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none" />
+                    <input type="number" defaultValue={75} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Frequency</label>
-                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none"><option>3 Meals</option><option>4 Meals</option><option>5 Meals</option></select>
+                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white outline-none"><option>3 Meals</option><option>4 Meals</option><option>5 Meals</option></select>
                   </div>
                 </div>
                 <div>
@@ -845,7 +979,7 @@ export function DietPlanView() {
               </div>
 
               <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
-                <button onClick={() => setShowAIModal(false)} className="flex-1 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">Cancel</button>
+                <button onClick={() => setShowAIModal(false)} className="flex-1 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">Cancel</button>
                 <button onClick={() => { setShowAIModal(false); showToast("AI Draft Generated Successfully!"); }} className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-black rounded-xl transition-colors shadow-md flex justify-center items-center gap-2"><Sparkles className="w-4 h-4"/> Generate Draft</button>
               </div>
             </motion.div>
@@ -853,12 +987,12 @@ export function DietPlanView() {
         )}
       </AnimatePresence>
 
-      {/* MEAL SWAP DRAWER */}
+      {/* MEAL SWAP MODAL */}
       <AnimatePresence>
         {showSwapDrawer && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSwapDrawer(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50" />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-50 border-l border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSwapDrawer(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col rounded-3xl overflow-hidden max-h-[90vh]">
               <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-cyan-50 dark:bg-cyan-900/10">
                 <div>
                   <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2"><RefreshCw className="w-5 h-5 text-cyan-500" /> Swap Food</h2>
@@ -874,7 +1008,7 @@ export function DietPlanView() {
                   { name: "Pongal + Sambar", portion: "1 cup, 1 bowl", cal: 350, pro: 9 },
                   { name: "Oats + Fruit", portion: "1 bowl", cal: 250, pro: 10 }
                 ].map((alt, i) => (
-                  <div key={i} className="p-4 border border-slate-200 dark:border-slate-700 rounded-2xl hover:border-cyan-500 dark:hover:border-cyan-500 hover:shadow-md transition-all cursor-pointer group flex justify-between items-center bg-white dark:bg-slate-800">
+                  <div key={i} className="p-4 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-2xl hover:border-cyan-500 dark:hover:border-cyan-500 hover:shadow-md transition-all cursor-pointer group flex justify-between items-center bg-white dark:bg-slate-800">
                     <div>
                       <h4 className="font-bold text-slate-900 dark:text-white">{alt.name}</h4>
                       <p className="text-xs font-medium text-slate-500 mb-2">{alt.portion}</p>
@@ -890,7 +1024,7 @@ export function DietPlanView() {
                 ))}
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
@@ -911,57 +1045,80 @@ export function DietPlanView() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Meal Type</label>
-                    <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-xl px-4 py-3 outline-none" defaultValue={editingMeal?.type || 'Breakfast'}>
+                    <select value={mealForm.type} onChange={(e) => setMealForm({...mealForm, type: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-xl px-4 py-3 outline-none">
                       <option>Breakfast</option><option>Morning Snack</option><option>Lunch</option><option>Evening Snack</option><option>Dinner</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Time</label>
-                    <input type="time" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-xl px-4 py-2.5 outline-none" defaultValue={editingMeal?.time ? editingMeal.time.substring(0, 5) : '08:00'} />
+                    <input type="time" value={mealForm.time.substring(0, 5)} onChange={(e) => setMealForm({...mealForm, time: e.target.value + ' AM'})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-xl px-4 py-2.5 outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Days</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                      <button
+                        key={day}
+                        onClick={() => {
+                          setMealDays(prev => 
+                            prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                          );
+                        }}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors ${
+                          mealDays.includes(day)
+                            ? 'bg-cyan-500 text-white border-cyan-500'
+                            : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-cyan-500'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Food Description</label>
-                  <textarea rows={2} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl p-4 outline-none resize-none" defaultValue={editingMeal?.name || ''} placeholder="e.g. Oats Idli with Sambar" />
+                  <textarea value={mealForm.name} onChange={(e) => setMealForm({...mealForm, name: e.target.value})} rows={2} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl p-4 outline-none resize-none" placeholder="e.g. Oats Idli with Sambar" />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Portion</label>
-                  <input type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl px-4 py-3 outline-none" defaultValue={editingMeal?.portion || ''} placeholder="e.g. 3 pieces, 1 cup" />
+                  <input type="text" value={mealForm.portion} onChange={(e) => setMealForm({...mealForm, portion: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl px-4 py-3 outline-none" placeholder="e.g. 3 pieces, 1 cup" />
                 </div>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-200 dark:border-slate-700 rounded-2xl">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3">Macronutrients</h4>
                   <div className="grid grid-cols-2 gap-3">
                      <div>
                       <label className="block text-xs font-bold text-amber-600 dark:text-amber-500 mb-1">Calories (kcal)</label>
-                      <input type="number" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" defaultValue={editingMeal?.cal || ''} />
+                      <input type="number" value={mealForm.cal} onChange={(e) => setMealForm({...mealForm, cal: e.target.value})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" />
                     </div>
                      <div>
                       <label className="block text-xs font-bold text-blue-600 dark:text-blue-500 mb-1">Protein (g)</label>
-                      <input type="number" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" defaultValue={editingMeal?.pro || ''} />
+                      <input type="number" value={mealForm.pro} onChange={(e) => setMealForm({...mealForm, pro: e.target.value})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" />
                     </div>
                      <div>
                       <label className="block text-xs font-bold text-emerald-600 dark:text-emerald-500 mb-1">Carbs (g)</label>
-                      <input type="number" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" defaultValue={editingMeal?.carbs || '50'} />
+                      <input type="number" value={mealForm.carbs} onChange={(e) => setMealForm({...mealForm, carbs: e.target.value})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" />
                     </div>
                      <div>
                       <label className="block text-xs font-bold text-rose-600 dark:text-rose-500 mb-1">Fat (g)</label>
-                      <input type="number" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" defaultValue={editingMeal?.fat || '15'} />
+                      <input type="number" value={mealForm.fat} onChange={(e) => setMealForm({...mealForm, fat: e.target.value})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl px-3 py-2 outline-none" />
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Notes</label>
-                  <textarea rows={2} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl p-4 outline-none resize-none" placeholder="Special prep instructions..." />
+                  <textarea rows={2} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white rounded-xl p-4 outline-none resize-none" placeholder="Special prep instructions..." />
                 </div>
               </div>
 
               <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
-                <button onClick={() => setShowMealDrawer(false)} className="flex-1 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold rounded-xl transition-colors text-slate-700 dark:text-slate-300">Cancel</button>
-                <button onClick={() => { setShowMealDrawer(false); showToast(editingMeal ? "Meal updated" : "Meal added"); }} className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl transition-colors shadow-md"><Save className="w-4 h-4 inline-block mr-2" /> Save Meal</button>
+                <button onClick={() => setShowMealDrawer(false)} className="flex-1 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-200 dark:border-slate-700 font-bold rounded-xl transition-colors text-slate-700 dark:text-slate-300">Cancel</button>
+                <button onClick={handleSaveMeal} className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl transition-colors shadow-md"><Save className="w-4 h-4 inline-block mr-2" /> Save Meal</button>
               </div>
             </motion.div>
           </div>
@@ -974,11 +1131,11 @@ export function DietPlanView() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAssignModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden p-8 text-center">
-              <div className="w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Send className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+              <div className="w-24 h-24 bg-gradient-to-tr from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-cyan-500/30">
+                <Send className="w-10 h-10 text-white translate-x-1 -translate-y-0.5" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">Assign Nutrition Plan</h2>
-              <p className="text-sm font-medium text-slate-500 mb-8">Review the nutrition plan before assigning it to the patient. They will receive a notification and the plan will be active immediately.</p>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Assign Plan to Patient?</h2>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-8 px-2">This will instantly notify <strong className="text-slate-700 dark:text-slate-300">{patientInfo.name}</strong> and update their mobile app with the new nutrition guidelines.</p>
               
               <div className="flex gap-3">
                 <button onClick={() => setShowAssignModal(false)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">Cancel</button>

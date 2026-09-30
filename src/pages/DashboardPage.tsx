@@ -24,7 +24,9 @@ import {
   FamilyConnectCard,
   NearbyHospitalsCard,
   RecentActivityTimeline,
-  DashboardSkeleton
+  DashboardSkeleton,
+  HealthShortsCard,
+  HealthShortsView
 } from '../components/dashboard';
 import { PatientAccessRequestsModal } from '../components/dashboard/PatientAccessRequestsModal';
 import { RecentPrescriptionTrackCard } from '../components/dashboard/RecentPrescriptionTrackCard';
@@ -103,6 +105,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [accessRequestsModalOpen, setAccessRequestsModalOpen] = useState(false);
+  const [showShorts, setShowShorts] = useState(false);
   const [dismissedRequestIds, setDismissedRequestIds] = useState<Set<string>>(new Set());
   const mainScrollRef = useRef<HTMLDivElement>(null);
 
@@ -453,7 +456,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
         ) : activeNavId === 'lab-test' ? (
           <LabTestView />
         ) : activeNavId === 'diet-plan' ? (
-          <DietPlanView />
+          <DietPlanView patientName={effectiveUser.name.split(' ')[0]} user={effectiveUser as any} />
         ) : activeNavId === 'report-insights' ? (
           <ReportInsightsView />
         ) : activeNavId === 'nurse-booking' ? (
@@ -498,6 +501,11 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
                 userName={effectiveUser.name}
                 onToast={showToast}
               />
+            </section>
+
+            {/* NEW: HEALTH SHORTS CARD */}
+            <section>
+              <HealthShortsCard onOpenShorts={() => setShowShorts(true)} />
             </section>
 
             {/* 4. TODAY'S FOCUS & UPCOMING APPOINTMENT */}
@@ -581,6 +589,12 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
         }}
         onToast={showToast}
       />
+
+      <AnimatePresence>
+        {showShorts && (
+          <HealthShortsView onClose={() => setShowShorts(false)} patientHealthInfo={effectiveUser.name} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

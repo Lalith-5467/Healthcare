@@ -19,6 +19,11 @@ import insuranceRoutes from './insurance.routes';
 import caregiverRoutes from './caregiver.routes';
 import consultationRoutes from './consultation.routes';
 import doctorDashboardRoutes from './doctorDashboard.routes';
+import nutritionRoutes from './nutrition.routes';
+import dietRoutes from './diet.routes';
+import videoRoutes from './video.routes';
+import adminHealthVideoRoutes from './adminHealthVideo.routes';
+import patientHealthTopicRoutes from './patientHealthTopic.routes';
 
 const router = Router();
 
@@ -44,6 +49,9 @@ router.use('/profile', profileRoutes);
 
 // Admin User Management APIs
 router.use('/admin', adminRoutes);
+
+// Admin Health Video APIs
+router.use('/admin/health', adminHealthVideoRoutes);
 
 // Medical Records APIs
 router.use('/medical-records', medicalRecordRoutes);
@@ -93,5 +101,22 @@ router.use('/consultations', consultationRoutes);
 
 // Doctor Dashboard APIs
 router.use('/doctor/dashboard', doctorDashboardRoutes);
+
+// Nutrition External Integration APIs
+router.use('/nutrition', nutritionRoutes);
+
+// Diet Meals APIs
+router.use('/diet', dietRoutes);
+
+// Health Videos APIs
+router.use('/health-videos', videoRoutes);
+
+// General Health Topics (public/authenticated read)
+import { getAllHealthTopics } from '../controllers/healthTopic.controller';
+import { authenticate } from '../middleware/auth.middleware';
+router.get('/health-topics', authenticate, getAllHealthTopics);
+
+// Patient Health Topics APIs
+router.use('/patients/:patientId/health-topics', patientHealthTopicRoutes);
 
 export default router;

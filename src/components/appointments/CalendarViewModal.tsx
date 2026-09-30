@@ -214,7 +214,7 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
 
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {selectedDayAppointments.length === 0 ? (
-              <div className="text-center py-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+              <div className="text-center py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">No consultations scheduled on this date.</p>
               </div>
             ) : (

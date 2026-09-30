@@ -23,6 +23,7 @@ export interface CreatePrescriptionInput {
   notes?: string;
   validUntil?: string | Date;
   items: PrescriptionItemInput[];
+  healthTopics?: string[];
 }
 
 export interface UpdatePrescriptionInput {
@@ -193,6 +194,40 @@ export class PrescriptionService {
           relatedModule: 'prescriptions',
         },
       });
+    }
+
+    // 6. Handle HealthTopics assignment if provided
+    if (data.healthTopics && data.healthTopics.length > 0) {
+      if (user.role === Role.PATIENT) {
+        throw new AppError('Patients cannot self-assign health topics', 403);
+      }
+      
+      for (const topicId of data.healthTopics) {
+        // Safe upsert logic
+        const existing = await prisma.patientHealthTopic.findUnique({
+          where: {
+            patientId_healthTopicId: {
+              patientId: targetPatientId,
+              healthTopicId: topicId
+            }
+          }
+        });
+        
+        if (!existing) {
+          const topic = await prisma.healthTopic.findUnique({ where: { id: topicId } });
+          if (topic && topic.enabled) {
+            await prisma.patientHealthTopic.create({
+              data: {
+                patientId: targetPatientId,
+                healthTopicId: topicId,
+                sourceType: 'CLINICIAN_SELECTED',
+                sourceRecordId: prescription.id,
+                assignedBy: user.id
+              }
+            });
+          }
+        }
+      }
     }
 
     return prescription;

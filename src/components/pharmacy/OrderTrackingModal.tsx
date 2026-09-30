@@ -406,7 +406,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           <div className="p-5 sm:p-6 overflow-y-auto space-y-5 custom-scrollbar">
             
             {/* ETA & SUMMARY CARD */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 block font-mono">
                   Estimated Delivery Time
@@ -469,7 +469,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
                           ? 'bg-teal-500/10 border-teal-500/30 ring-1 ring-teal-500/20 shadow-xs'
                           : step.done
                           ? 'bg-emerald-500/5 border-emerald-500/20'
-                          : 'bg-slate-50/50 dark:bg-slate-850/40 border-slate-100 dark:border-slate-800/60 opacity-60'
+                          : 'bg-slate-50/50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800/60 opacity-60'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -538,7 +538,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             </div>
 
             {/* PHARMACY & ADDRESS DETAILS */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#00a896] shrink-0" />
                 <span className="text-slate-500">Fulfilling Pharmacy:</span>
@@ -553,7 +553,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
             {/* PRESCRIBED FORMULATIONS LIST */}
             {orderItems && orderItems.length > 0 && (
-              <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/50 border border-slate-200/60 dark:border-slate-800 space-y-2 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2 text-xs">
                 <span className="text-[10px] font-black font-mono uppercase tracking-wider text-slate-400 block">
                   Prescribed Formulations ({orderItems.length})
                 </span>

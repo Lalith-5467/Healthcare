@@ -254,6 +254,7 @@ export const prescriptionApi = {
   getPrescriptionById: (id: string) => apiClient.get<PrescriptionEntity>(`/prescriptions/${id}`),
   createPrescription: (prescriptionData: any) => apiClient.post<PrescriptionEntity>('/prescriptions', prescriptionData),
   confirmPrescription: (id: string) => apiClient.patch<PrescriptionEntity>(`/prescriptions/${id}/confirm`, {}),
+  getHealthTopics: () => apiClient.get<{ success: boolean; data: any[] }>('/health-topics'),
 };
 
 export const pharmacyApi = {

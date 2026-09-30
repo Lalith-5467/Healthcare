@@ -44,7 +44,7 @@ export const PharmacySettingsView: React.FC<PharmacySettingsViewProps> = ({ user
     <div className="space-y-6 pb-16 font-sans select-none max-w-5xl mx-auto">
       
       {/* HEADER BANNER */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white border border-slate-800 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-800 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-[11px] font-black uppercase tracking-wider border border-teal-400/30 font-mono">
             <Building2 className="w-3.5 h-3.5" /> State Drug Controller & PCI Verified

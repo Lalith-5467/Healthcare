@@ -242,7 +242,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                 onFocus={() => setSearchFocused(true)}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search Prescriptions, Medicines, Drug Interactions, Patients..."
-                className="w-full pl-10 pr-9 py-2 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/20 transition-all shadow-2xs"
+                className="w-full pl-10 pr-9 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/20 transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
