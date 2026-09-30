@@ -103,9 +103,14 @@ export interface VitalEntity {
   oxygenSaturation?: number | null;
   temperature?: number | null;
   bloodSugar?: number | null;
+  sugarType?: string | null;
   weightKg?: number | null;
   notes?: string | null;
   recordedAt: string;
+  date?: string;
+  time?: string;
+  rawTimestamp?: number;
+  status?: string;
 }
 
 export interface ReminderEntity {

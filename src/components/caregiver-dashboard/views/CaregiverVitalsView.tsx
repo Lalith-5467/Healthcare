@@ -228,7 +228,9 @@ const BiometricTrendChart: React.FC<BiometricTrendChartProps> = ({
           {/* Interactive Tooltip Card */}
           {hoveredIdx !== null && validData[hoveredIdx] && (
             <div className="absolute top-2 right-2 bg-slate-900 text-white text-[10px] font-bold p-2.5 rounded-xl shadow-xl border border-slate-700 backdrop-blur-md pointer-events-none z-20 space-y-1">
-              <p className="text-teal-400 font-black">{validData[hoveredIdx].date}, {validData[hoveredIdx].time}</p>
+              <p className="text-teal-400 font-black">
+                {validData[hoveredIdx].date || (validData[hoveredIdx].recordedAt ? new Date(validData[hoveredIdx].recordedAt).toLocaleDateString() : 'Today')}, {validData[hoveredIdx].time || (validData[hoveredIdx].recordedAt ? new Date(validData[hoveredIdx].recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
+              </p>
               {series.map(s => (
                 <div key={`tt-${s.key}`} className="flex items-center justify-between gap-3">
                   <span className="text-slate-400">{s.label}:</span>
@@ -334,6 +336,8 @@ export const CaregiverVitalsView: React.FC = () => {
 
     const newReading: VitalEntity = {
       id: `demo-vital-${Date.now()}`,
+      patientId: activeWard.id,
+      recordedAt: new Date().toISOString(),
       date: 'Today',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       rawTimestamp: Date.now(),
@@ -344,7 +348,7 @@ export const CaregiverVitalsView: React.FC = () => {
       oxygenSaturation: oxygenSaturation ? parseInt(oxygenSaturation, 10) : undefined,
       heartRate: heartRate ? parseInt(heartRate, 10) : undefined,
       temperature: temperature ? parseFloat(temperature) : undefined,
-      weight: weight ? parseFloat(weight) : undefined,
+      weightKg: weight ? parseFloat(weight) : undefined,
       notes: notes || 'Caregiver observation logged.',
       status: 'normal'
     };
@@ -676,13 +680,13 @@ export const CaregiverVitalsView: React.FC = () => {
                 {currentVitals.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
                     <td className="py-3 px-3 font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      {v.date}, {v.time}
+                      {v.date || (v.recordedAt ? new Date(v.recordedAt).toLocaleDateString() : 'Today')}, {v.time || (v.recordedAt ? new Date(v.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.systolicBp ? `${v.systolicBp}/${v.diastolicBp} mmHg` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
-                      {v.bloodSugar ? `${v.bloodSugar} mg/dL (${v.sugarType})` : '—'}
+                      {v.bloodSugar ? `${v.bloodSugar} mg/dL${v.sugarType ? ` (${v.sugarType})` : ''}` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.oxygenSaturation ? `${v.oxygenSaturation}%` : '—'}
@@ -699,7 +703,7 @@ export const CaregiverVitalsView: React.FC = () => {
                         v.status === 'elevated' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' :
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
                       }`}>
-                        {v.status}
+                        {v.status || 'normal'}
                       </span>
                     </td>
                   </tr>

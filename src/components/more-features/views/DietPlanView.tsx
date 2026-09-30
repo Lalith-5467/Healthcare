@@ -29,7 +29,12 @@ const mockMeals = [
   { id: 5, type: "Dinner", name: "Roti with Paneer Sabzi", time: "08:30 PM", portion: "2 rotis, 1 cup sabzi", cal: 400, pro: 16, days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] }
 ];
 
-export function DietPlanView() {
+export interface DietPlanViewProps {
+  patientName?: string;
+  user?: any;
+}
+
+export function DietPlanView({ patientName, user }: DietPlanViewProps = {}) {
   // --- STATE ---
   type TabType = 'plan' | 'analysis' | 'history';
   const [activeTab, setActiveTab] = useState<TabType>('plan');
