@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import { 
   Grid, 
   Sparkles, 
@@ -49,6 +50,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
   user: _user,
   onNavigate
 }) => {
+  const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<'All' | 'Clinical Services' | 'AI & Diagnostics' | 'Security'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
@@ -233,14 +235,16 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
           {/* Left Text Content */}
           <div className="max-w-xl space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">More Healthcare Features</h1>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {t('more.title', 'More Healthcare Features')}
+              </h1>
               <span className="px-3 py-1.5 rounded-full bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 text-teal-700 dark:text-teal-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                 <Grid className="w-3.5 h-3.5" />
-                Healthcare Marketplace
+                {t('more.marketplace', 'Healthcare Marketplace')}
               </span>
             </div>
             <p className="text-slate-600 dark:text-slate-400 font-medium text-sm sm:text-base leading-relaxed max-w-lg">
-              Explore specialized clinical services, AI diagnostics, in-home care, and security controls — all in one place.
+              {t('more.subtitle', 'Explore specialized clinical services, AI diagnostics, in-home care, and security controls — all in one place.')}
             </p>
           </div>
 
@@ -250,7 +254,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
               onClick={() => onNavigate('dashboard')}
               className="px-5 py-2.5 rounded-full font-bold text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center gap-2 shadow-sm dark:shadow-none cursor-pointer z-20"
             >
-              <span>Back to Dashboard</span>
+              <span>{t('common.back_to_dashboard', 'Back to Dashboard')}</span>
             </button>
             
             {/* Abstract Graphic representing the Doctor/Services */}
@@ -277,17 +281,22 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
         
         {/* CATEGORY TABS */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto font-mono text-xs pl-2">
-          {['All', 'Clinical Services', 'AI & Diagnostics', 'Security'].map((cat) => (
+          {[
+            { id: 'All', label: t('common.all', 'All') },
+            { id: 'Clinical Services', label: t('more.clinical_services', 'Clinical Services') },
+            { id: 'AI & Diagnostics', label: t('more.ai_diagnostics', 'AI & Diagnostics') },
+            { id: 'Security', label: t('more.security', 'Security') }
+          ].map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat as any)}
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id as any)}
               className={`px-4 py-2 rounded-full font-bold transition-all cursor-pointer font-sans whitespace-nowrap ${
-                activeCategory === cat
+                activeCategory === cat.id
                   ? 'bg-[#00a896] text-white shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -298,7 +307,7 @@ export const MoreFeaturesView: React.FC<MoreFeaturesViewProps> = ({
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
-              placeholder="Search features (e.g. Lab, Janitor, Nurse)..."
+              placeholder={t('more.search_placeholder', 'Search features (e.g. Lab, Janitor, Nurse)...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder:text-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"

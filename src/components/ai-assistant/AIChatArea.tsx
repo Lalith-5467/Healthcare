@@ -16,6 +16,7 @@ import {
   Sparkles,
   Check
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import type { ChatMessage } from './aiAssistantData';
 
 interface AIChatAreaProps {
@@ -49,6 +50,7 @@ export const AIChatArea: React.FC<AIChatAreaProps> = ({
   onNavigateSOS,
   onNavigateHospitals,
 }) => {
+  const { t } = useLanguage();
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -75,10 +77,10 @@ export const AIChatArea: React.FC<AIChatAreaProps> = ({
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
-              <span>AI Health Companion</span>
+              <span>{t('ai.companion_title', 'AI Health Companion')}</span>
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             </h4>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">Verified ABDM AI Guidance • Safe & Private</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">{t('ai.companion_subtitle', 'Verified ABDM AI Guidance • Safe & Private')}</span>
           </div>
         </div>
 
@@ -109,16 +111,16 @@ export const AIChatArea: React.FC<AIChatAreaProps> = ({
               👋
             </div>
             <div className="space-y-1.5 max-w-md mx-auto">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Hi, I'm your AI Health Assistant 👋</h3>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{t('ai.welcome_heading', "Hi, I'm your AI Health Assistant 👋")}</h3>
               <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-medium">
-                I can help you understand your symptoms, explain medical terms, prepare questions for your doctor, and navigate your medicines and health records.
+                {t('ai.welcome_desc', 'I can help you understand your symptoms, explain medical terms, prepare questions for your doctor, and navigate your medicines and health records.')}
               </p>
             </div>
 
             {/* QUICK PROMPT CHIPS */}
             <div className="space-y-2.5 max-w-lg mx-auto text-left font-mono">
               <span className="text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider block text-center font-sans">
-                Try asking me:
+                {t('ai.try_asking', 'Try asking me:')}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px] font-sans">
                 <button
@@ -278,7 +280,7 @@ export const AIChatArea: React.FC<AIChatAreaProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask me anything about your health, symptoms, medicines..."
+            placeholder={t('ai.input_placeholder', 'Ask me anything about your health, symptoms, medicines...')}
             className="flex-1 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#00a896] font-sans font-medium text-xs shadow-inner"
           />
 
@@ -310,7 +312,7 @@ export const AIChatArea: React.FC<AIChatAreaProps> = ({
         </form>
 
         <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center font-mono font-medium">
-          ABDM Verified AI Companion. For medical emergencies, call 108 or use SOS.
+          {t('ai.emergency_note', 'ABDM Verified AI Companion. For medical emergencies, call 108 or use SOS.')}
         </p>
       </div>
     </div>

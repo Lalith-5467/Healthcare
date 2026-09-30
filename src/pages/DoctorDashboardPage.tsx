@@ -75,12 +75,14 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
 
   const handleScanSuccess = (patientId: string) => {
     setScannedPatientId(patientId);
+    setScannedPatientName(undefined);
     setPatient360Tab('summary');
     setActiveNav('patient-360');
   };
 
   const handleSelectPatient = (patientId: string) => {
     setScannedPatientId(patientId);
+    setScannedPatientName(undefined);
     setPatient360Tab('summary');
     setActiveNav('patient-360');
   };

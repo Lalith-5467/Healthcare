@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, FileText, Save, ArrowLeft } from 'lucide-react';
 import type { MedicalRecordItem } from '../records/recordsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface DocumentInfoFormProps {
   imageSrc: string | null;
@@ -19,6 +20,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
   onSave,
   isSaving,
 }) => {
+  const { t } = useLanguage();
   // OCR DEMO STATE
   const [ocrAnalyzing, setOcrAnalyzing] = useState(true);
 
@@ -84,7 +86,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
           className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border border-slate-300 dark:border-slate-700 shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Scan</span>
+          <span>{t('scan.back_scan', 'Back to Scan')}</span>
         </button>
       </div>
 
@@ -94,7 +96,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 font-mono">Document Preview</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 font-mono">{t('scan.doc_preview', 'Document Preview')}</span>
               <span className="text-[11px] font-extrabold text-[#00a896] dark:text-cyan-400 bg-teal-500/15 border border-teal-500/30 px-2.5 py-1 rounded-full font-sans">
                 {recordType}
               </span>
@@ -160,9 +162,9 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
         <div className="lg:col-span-7">
           <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
             <div>
-              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Document Information</h3>
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">{t('scan.doc_info', 'Document Information')}</h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
-                Fill or modify the fields below to ensure accurate indexing in your Medical Records database.
+                {t('scan.doc_info_sub', 'Fill or modify the fields below to ensure accurate indexing in your Medical Records database.')}
               </p>
             </div>
 
@@ -170,7 +172,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
               {/* DOCUMENT NAME */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                  Document Name <span className="text-rose-500">*</span>
+                  {t('scan.field_doc_name', 'Document Name')} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -186,7 +188,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                    Record Type <span className="text-rose-500">*</span>
+                    {t('scan.field_record_type', 'Record Type')} <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={recordType}
@@ -206,7 +208,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                    Date of Record <span className="text-rose-500">*</span>
+                    {t('scan.field_date', 'Date of Record')} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -222,7 +224,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                    Doctor / Consultant
+                    {t('scan.field_doctor', 'Doctor / Consultant')}
                   </label>
                   <input
                     type="text"
@@ -235,7 +237,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                    Hospital / Diagnostic Lab
+                    {t('scan.field_hospital', 'Hospital / Diagnostic Lab')}
                   </label>
                   <input
                     type="text"
@@ -250,7 +252,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
               {/* NOTES */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 font-mono">
-                  Clinical Notes / Key Remarks
+                  {t('scan.field_notes', 'Clinical Notes / Key Remarks')}
                 </label>
                 <textarea
                   rows={3}
@@ -269,7 +271,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
                 onClick={onBack}
                 className="px-5 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-sm font-bold transition-colors border border-slate-300 dark:border-slate-700 cursor-pointer"
               >
-                Back
+                {t('common.back', 'Back')}
               </button>
 
               <button
@@ -280,12 +282,12 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
                 {isSaving ? (
                   <>
                     <Sparkles className="w-5 h-5 animate-spin" />
-                    <span>Saving to Medical Records...</span>
+                    <span>{t('scan.saving_records', 'Saving to Medical Records...')}</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    <span>Save to Medical Records</span>
+                    <span>{t('scan.save_records', 'Save to Medical Records')}</span>
                   </>
                 )}
               </button>

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Pill, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface CurrentMedicinesSectionProps {
   onNavigate: (id: string) => void;
 }
 
 export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   const meds = [
     { id: 1, name: 'Medicine A (Amoxicillin)', dosage: '500 mg', freq: 'Twice daily after meals' },
     { id: 2, name: 'Medicine B (Metformin)', dosage: '10 mg', freq: 'Once daily after lunch' },
@@ -21,9 +23,11 @@ export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = (
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Current Medications
+              {t('profile.current_medicines', 'Current Medications')}
             </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">3 Active Prescriptions</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              3 {t('meds.active_prescriptions', 'Active Prescriptions')}
+            </span>
           </div>
         </div>
 
@@ -31,7 +35,7 @@ export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = (
           onClick={() => onNavigate('medicines')}
           className="text-xs font-bold text-[#00a896] hover:underline flex items-center gap-1 cursor-pointer"
         >
-          <span>View All Medicines</span>
+          <span>{t('profile.manage_medicines', 'View All Medicines')}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -58,7 +62,7 @@ export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = (
             </div>
 
             <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full shrink-0">
-              Active Prescribed
+              {t('status.active', 'Active Prescribed')}
             </span>
           </div>
         ))}
@@ -66,3 +70,4 @@ export const CurrentMedicinesSection: React.FC<CurrentMedicinesSectionProps> = (
     </div>
   );
 };
+

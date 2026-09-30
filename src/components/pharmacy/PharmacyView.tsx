@@ -36,6 +36,7 @@ import { CancelOrderModal } from './CancelOrderModal';
 import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT, DHR_STATUS_DISPLAY } from '../../services/pharmacyOrderApi';
 import { socketService } from '../../services/socketService';
 import { pharmacyApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -55,6 +56,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -265,9 +267,9 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Pharmacy Orders & Refill Hub"
-        subtitle="Manage your medicine refills and keep track of your pharmacy orders."
-        badgeText="Digital Refill Hub"
+        title={t('pharmacy.title', 'Pharmacy Orders & Refill Hub')}
+        subtitle={t('pharmacy.subtitle', 'Manage your medicine refills and keep track of your pharmacy orders.')}
+        badgeText={t('pharmacy.badge', 'Digital Refill Hub')}
         badgeIcon={<Truck className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
@@ -279,7 +281,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-extrabold text-xs border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Clock className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>Order History</span>
+              <span>{t('pharmacy.order_history', 'Order History')}</span>
             </button>
             <button
               onClick={() => {
@@ -289,7 +291,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Pill className="w-4 h-4" />
-              <span>New Refill</span>
+              <span>{t('pharmacy.new_refill', 'New Refill')}</span>
             </button>
           </div>
         }
@@ -299,20 +301,20 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Active Medicines</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.active_medicines', 'Active Medicines')}</span>
             <div className="p-2 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20">
               <Pill className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{activeStockCount}</span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">Tracked</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">{t('pharmacy.tracked', 'Tracked')}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-amber-500/30 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Low Stock Alert</span>
+            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">{t('pharmacy.low_stock_alert', 'Low Stock Alert')}</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
               <AlertCircle className="w-4 h-4" />
             </div>
@@ -325,27 +327,27 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Pending Orders</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.pending_orders', 'Pending Orders')}</span>
             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:teal-400 border border-teal-500/20">
               <Truck className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{pendingOrdersCount}</span>
-            <span className="text-[10px] text-teal-700 dark:text-teal-300 font-bold">In transit</span>
+            <span className="text-[10px] text-teal-700 dark:text-teal-300 font-bold">{t('pharmacy.in_transit', 'In transit')}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Completed Orders</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.completed_orders', 'Completed Orders')}</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">{completedOrdersCount}</span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">Delivered</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">{t('status.delivered', 'Delivered')}</span>
           </div>
         </div>
       </div>
@@ -358,24 +360,24 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-extrabold text-xs uppercase tracking-wider">
                 <AlertCircle className="w-4 h-4" />
-                <span>Medicine Running Low</span>
+                <span>{t('pharmacy.running_low', 'Medicine Running Low')}</span>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
-                Low Stock
+                {t('pharmacy.low_stock', 'Low Stock')}
               </span>
             </div>
 
             <div>
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">{lowStockItem.medicineName} ({lowStockItem.dosage})</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-                <strong className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">{lowStockItem.currentQuantity} tablets remaining</strong> • Estimated supply: <strong className="text-slate-900 dark:text-white font-extrabold">{lowStockItem.supplyDays} days</strong>
+                <strong className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">{lowStockItem.currentQuantity} {t('pharmacy.tablets_remaining', 'tablets remaining')}</strong> • {t('pharmacy.estimated_supply', 'Estimated supply')}: <strong className="text-slate-900 dark:text-white font-extrabold">{lowStockItem.supplyDays} {t('common.days', 'days')}</strong>
               </p>
             </div>
 
             {/* SUPPLY PROGRESS BAR */}
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between text-[11px] font-bold">
-                <span className="text-slate-600 dark:text-slate-400">Medicine Supply</span>
+                <span className="text-slate-600 dark:text-slate-400">{t('pharmacy.med_supply', 'Medicine Supply')}</span>
                 <span className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">20%</span>
               </div>
               <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -397,7 +399,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
             className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-slate-950 bg-amber-500 hover:bg-amber-400 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <Truck className="w-4 h-4" />
-            <span>Request Refill for {lowStockItem.medicineName}</span>
+            <span>{t('pharmacy.request_refill', 'Request Refill')}</span>
           </button>
         </div>
 
@@ -408,7 +410,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider">
                   <Truck className="w-4 h-4" />
-                  <span>Live Refill Order</span>
+                  <span>{t('pharmacy.live_refill', 'Live Refill Order')}</span>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                   activePendingOrder.status === 'PENDING'

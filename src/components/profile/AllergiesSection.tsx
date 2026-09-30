@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import type { AllergyItem } from './AddAllergyModal';
 import { AddAllergyModal } from './AddAllergyModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface AllergiesSectionProps {
   onToast: (msg: string) => void;
 }
 
 export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [allergies, setAllergies] = useState<AllergyItem[]>([
     { id: '1', name: 'Penicillin', severity: 'Moderate', reaction: 'Skin Rash & Hives', notes: 'Diagnosed 2018' },
     { id: '2', name: 'Peanuts', severity: 'Severe', reaction: 'Anaphylactic throat swelling', notes: 'Requires EpiPen' }
@@ -34,9 +36,11 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) =
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Allergies & Sensitivities
+                {t('profile.allergies_title', 'Allergies & Sensitivities')}
               </h3>
-              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{allergies.length} Recorded Allergies</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                {allergies.length} {t('profile.recorded_allergies', 'Recorded Allergies')}
+              </span>
             </div>
           </div>
 
@@ -45,18 +49,18 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) =
             className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Allergy</span>
+            <span>{t('profile.add_allergy', 'Add Allergy')}</span>
           </button>
         </div>
 
         {allergies.length === 0 ? (
           <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-slate-800 space-y-2">
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">No allergies recorded</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t('profile.no_allergies', 'No allergies recorded')}</p>
             <button
               onClick={() => setModalOpen(true)}
               className="px-3 py-1.5 text-xs font-bold text-[#00a896] hover:underline cursor-pointer"
             >
-              + Add Allergy Information
+              + {t('profile.add_allergy', 'Add Allergy')}
             </button>
           </div>
         ) : (

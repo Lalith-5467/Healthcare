@@ -1,21 +1,25 @@
 import React from 'react';
 import { Moon, Footprints, Flame, Droplets, Utensils, Smile } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const LifestyleWellnessGrid: React.FC = () => {
+  const { t } = useLanguage();
+
   const items = [
-    { label: 'Sleep Duration', value: '7h 42m', progress: 82, icon: Moon, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', bar: 'bg-indigo-500' },
-    { label: 'Daily Steps', value: '6,842', progress: 68, icon: Footprints, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', bar: 'bg-emerald-500' },
-    { label: 'Exercise', value: '42 min', progress: 84, icon: Flame, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', bar: 'bg-amber-500' },
-    { label: 'Hydration', value: '2.1 L', progress: 70, icon: Droplets, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', bar: 'bg-cyan-500' },
-    { label: 'Nutrition', value: 'Good', progress: 85, icon: Utensils, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20', bar: 'bg-teal-500' },
-    { label: 'Stress Level', value: 'Moderate', progress: 50, icon: Smile, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', bar: 'bg-purple-500' }
+    { label: t('profile.sleep_quality', 'Sleep Duration'), value: '7h 42m', progress: 82, icon: Moon, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', bar: 'bg-indigo-500' },
+    { label: t('snapshot.daily_steps', 'Daily Steps'), value: '6,842', progress: 68, icon: Footprints, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', bar: 'bg-emerald-500' },
+    { label: t('profile.activity_level', 'Exercise'), value: '42 min', progress: 84, icon: Flame, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', bar: 'bg-amber-500' },
+    { label: t('profile.water_intake', 'Hydration'), value: '2.1 L', progress: 70, icon: Droplets, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', bar: 'bg-cyan-500' },
+    { label: t('profile.diet_type', 'Nutrition'), value: t('score.status_good', 'Good'), progress: 85, icon: Utensils, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20', bar: 'bg-teal-500' },
+    { label: t('profile.lifestyle', 'Stress Level'), value: t('status.normal', 'Moderate'), progress: 50, icon: Smile, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', bar: 'bg-purple-500' }
   ];
 
   return (
     <div className="space-y-3">
       <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-        Lifestyle & Wellness
+        {t('profile.lifestyle', 'Lifestyle & Wellness')}
       </h2>
+
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {items.map((it, idx) => {

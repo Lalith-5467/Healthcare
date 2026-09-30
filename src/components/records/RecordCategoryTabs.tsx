@@ -1,29 +1,32 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecordCategoryTabsProps {
   selectedCategory: string;
   onSelectCategory: (cat: string) => void;
 }
 
-export const CATEGORIES = [
-  { id: 'All', label: 'All' },
-  { id: 'Lab Report', label: 'Lab Reports' },
-  { id: 'Prescription', label: 'Prescriptions' },
-  { id: 'Consultation', label: 'Consultations' },
-  { id: 'Imaging', label: 'Imaging' },
-  { id: 'Discharge', label: 'Discharge' },
-  { id: 'Vaccination', label: 'Vaccination' },
-  { id: 'Other', label: 'Other' }
-];
-
 export const RecordCategoryTabs: React.FC<RecordCategoryTabsProps> = ({
   selectedCategory,
   onSelectCategory
 }) => {
+  const { t } = useLanguage();
+
+  const categories = [
+    { id: 'All', label: t('records.all_categories', 'All') },
+    { id: 'Lab Report', label: t('records.lab_reports', 'Lab Reports') },
+    { id: 'Prescription', label: t('records.prescriptions', 'Prescriptions') },
+    { id: 'Consultation', label: t('records.consultations', 'Consultations') },
+    { id: 'Imaging', label: t('records.imaging', 'Imaging') },
+    { id: 'Discharge', label: t('records.discharge', 'Discharge') },
+    { id: 'Vaccination', label: t('records.vaccination', 'Vaccination') },
+    { id: 'Other', label: t('records.other', 'Other') }
+  ];
+
   return (
     <div className="w-full overflow-x-auto scrollbar-none pb-1">
       <div className="flex items-center gap-2 min-w-max">
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const isActive = selectedCategory === cat.id;
           return (
             <button
@@ -43,3 +46,4 @@ export const RecordCategoryTabs: React.FC<RecordCategoryTabsProps> = ({
     </div>
   );
 };
+

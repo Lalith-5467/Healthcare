@@ -252,6 +252,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       // Search filter
       if (searchQuery) {
+        const query = searchQuery.toLowerCase();
         const localizedName = getLocalizedName(apt.patientName, t);
         const matchesName = localizedName.toLowerCase().includes(query) || apt.patientName.toLowerCase().includes(query);
         const matchesId = apt.patientId.toLowerCase().includes(query);

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import { Settings } from 'lucide-react';
 import { CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import type {
   UserProfileSettings,
   AccountSettings,
@@ -59,6 +60,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsSectionKey>('account');
   const [searchQuery, setSearchQuery] = useState('');
@@ -254,9 +256,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Settings & Preferences"
-        subtitle="Manage your account, preferences, privacy and healthcare experience."
-        badgeText="Preference Center"
+        title={t('settings.title', 'Settings & Preferences')}
+        subtitle={t('settings.subtitle', 'Manage your account, preferences, privacy and healthcare experience.')}
+        badgeText={t('settings.badge', 'Preference Center')}
         badgeIcon={<Settings className="w-3.5 h-3.5" />}
       />
 

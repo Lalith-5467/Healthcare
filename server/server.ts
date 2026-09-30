@@ -2,6 +2,7 @@ import http from 'http';
 import app from './src/app';
 import { config } from './src/config/env';
 import { initSocketServer } from './src/socket';
+import { EmailService } from './src/services/email.service';
 
 const PORT = config.port || 5000;
 
@@ -16,4 +17,8 @@ httpServer.listen(PORT, () => {
   console.log(`  Realtime Socket.IO: Active`);
   console.log(`  Environment: ${config.nodeEnv}`);
   console.log(`=========================================`);
+
+  // Asynchronously verify and warm up the pooled SMTP transporter once at startup
+  EmailService.verifyConnection().catch(() => {});
 });
+

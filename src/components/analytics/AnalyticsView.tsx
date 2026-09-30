@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   BarChart3,
   Activity,
@@ -139,6 +140,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // GLOBAL DATE RANGE ('7 Days' | '30 Days' | '3 Months' | '6 Months' | '1 Year')
@@ -233,9 +235,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Health Analytics & Biometric Insights"
-        subtitle="Understand your health activity, trend analytics and biometrics in one place."
-        badgeText="Analytics Workspace"
+        title={t('analytics.title', 'Health Analytics & Biometric Insights')}
+        subtitle={t('analytics.subtitle', 'Understand your health activity, trend analytics and biometrics in one place.')}
+        badgeText={t('analytics.overview_tab', 'Analytics Workspace')}
         badgeIcon={<BarChart3 className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto font-sans">
@@ -259,7 +261,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               className="px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>Export Report</span>
+              <span>{t('analytics.export_report', 'Export Report')}</span>
             </button>
           </div>
         }
@@ -278,19 +280,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         <div className="space-y-4 text-center md:text-left flex-1 relative z-10">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
-            Personal Health Accuracy Report
+            {t('analytics.accuracy_report', 'Personal Health Accuracy Report')}
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Your health activity at a glance</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{t('analytics.activity_glance', 'Your health activity at a glance')}</h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed font-medium">
             Consolidated personal health metric score: Excellent, <strong className="text-[#00a896] dark:text-teal-400">1.2% higher</strong> than previous period
           </p>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
             <button onClick={() => onNavigate('dashboard')} className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer">
-              Actual ratings
+              {t('nav.dashboard', 'Actual ratings')}
             </button>
             <button onClick={() => onNavigate('records')} className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-md cursor-pointer">
-              More details
+              {t('records.title', 'More details')}
             </button>
           </div>
         </div>
@@ -327,8 +329,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
           <div className="space-y-0.5 pt-1">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block font-sans">
-              Total Health Score
+              {t('card.health_score', 'Total Health Score')}
             </span>
+
             <span className="text-[11px] font-bold text-[#00a896] dark:text-teal-400 inline-flex items-center gap-1">
               <ArrowUpRight className="w-3.5 h-3.5" />
               1.2% on previous period
@@ -341,7 +344,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-sans">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Medication Adherence</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{t('analytics.med_adherence', 'Medication Adherence')}</span>
             <Pill className="w-4 h-4 text-amber-500 dark:text-amber-400" />
           </div>
           <div className="flex items-baseline gap-2 relative z-10">
@@ -358,7 +361,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Appointments</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{t('nav.appointments', 'Appointments')}</span>
             <CalendarIcon className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -370,7 +373,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Medical Records</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{t('nav.records', 'Medical Records')}</span>
             <FileText className="w-4 h-4 text-purple-500 dark:text-purple-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -382,7 +385,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Consultations</span>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{t('nav.consultation', 'Consultations')}</span>
             <Video className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -403,16 +406,16 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               <div className="p-1.5 rounded-xl bg-indigo-500/20 text-indigo-400 shadow-inner">
                 <Activity className="w-4 h-4" />
               </div>
-              <h3 className="text-lg font-bold tracking-wide">Vitals Overview</h3>
+              <h3 className="text-lg font-bold tracking-wide">{t('analytics.vitals_overview', 'Vitals Overview')}</h3>
               <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#00a896]/10 text-[#00a896] border border-[#00a896]/30 flex items-center gap-1.5 shadow-sm uppercase tracking-wider backdrop-blur-sm">
                 <span className="relative flex w-1.5 h-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a896] opacity-75"></span>
                   <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-[#00a896] shadow-[0_0_8px_#00a896]"></span>
                 </span>
-                All systems normal
+                {t('analytics.systems_normal', 'All systems normal')}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">Track heart rate, blood pressure & vital metrics</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">{t('analytics.track_vitals_desc', 'Track heart rate, blood pressure & vital metrics')}</p>
           </div>
 
           {/* TIMEFRAME SELECTOR */}
@@ -434,11 +437,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         {/* METRIC TOGGLES GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           {[
-            { id: 'Heart Rate', label: 'Heart Rate', val: '72', unit: 'BPM', icon: Heart, iconBg: 'bg-rose-500/20', iconColor: 'text-rose-500', isNormal: true, sparkline: 'M0,10 L5,8 L10,12 L15,4 L20,10', activeBorder: 'border-rose-500', glow: 'bg-rose-500/10' },
-            { id: 'Blood Pressure', label: 'Blood Pressure', val: '120/80', unit: 'mmHg', icon: Activity, iconBg: 'bg-indigo-500/20', iconColor: 'text-indigo-400', isNormal: true, sparkline: 'M0,10 L5,5 L10,12 L15,8 L20,10', activeBorder: 'border-indigo-500', glow: 'bg-indigo-500/10' },
-            { id: 'Temperature', label: 'Temperature', val: '98.4', unit: '°F', icon: Thermometer, iconBg: 'bg-amber-500/20', iconColor: 'text-amber-500', isNormal: true, sparkline: 'M0,10 L5,10 L10,8 L15,11 L20,10', activeBorder: 'border-amber-500', glow: 'bg-amber-500/10' },
-            { id: 'SpO2', label: 'SpO₂ • Oxygen', val: '98', unit: '%', icon: Wind, iconBg: 'bg-blue-500/20', iconColor: 'text-blue-500', isNormal: true, sparkline: 'M0,10 L5,9 L10,10 L15,7 L20,10', activeBorder: 'border-blue-500', glow: 'bg-blue-500/10' },
-            { id: 'Weight', label: 'Body Weight', val: '68', unit: 'kg (-1.2)', icon: Scale, iconBg: 'bg-emerald-500/20', iconColor: 'text-emerald-500', isNormal: true, sparkline: 'M0,10 L5,12 L10,10 L15,14 L20,10', activeBorder: 'border-emerald-500', glow: 'bg-emerald-500/10' }
+            { id: 'Heart Rate', label: t('card.heart_rate', 'Heart Rate'), val: '72', unit: 'BPM', icon: Heart, iconBg: 'bg-rose-500/20', iconColor: 'text-rose-500', isNormal: true, sparkline: 'M0,10 L5,8 L10,12 L15,4 L20,10', activeBorder: 'border-rose-500', glow: 'bg-rose-500/10' },
+            { id: 'Blood Pressure', label: t('card.blood_pressure', 'Blood Pressure'), val: '120/80', unit: 'mmHg', icon: Activity, iconBg: 'bg-indigo-500/20', iconColor: 'text-indigo-400', isNormal: true, sparkline: 'M0,10 L5,5 L10,12 L15,8 L20,10', activeBorder: 'border-indigo-500', glow: 'bg-indigo-500/10' },
+            { id: 'Temperature', label: t('analytics.temperature', 'Temperature'), val: '98.4', unit: '°F', icon: Thermometer, iconBg: 'bg-amber-500/20', iconColor: 'text-amber-500', isNormal: true, sparkline: 'M0,10 L5,10 L10,8 L15,11 L20,10', activeBorder: 'border-amber-500', glow: 'bg-amber-500/10' },
+            { id: 'SpO2', label: t('card.blood_spo2', 'SpO₂ • Oxygen'), val: '98', unit: '%', icon: Wind, iconBg: 'bg-blue-500/20', iconColor: 'text-blue-500', isNormal: true, sparkline: 'M0,10 L5,9 L10,10 L15,7 L20,10', activeBorder: 'border-blue-500', glow: 'bg-blue-500/10' },
+            { id: 'Weight', label: t('analytics.weight', 'Body Weight'), val: '68', unit: 'kg (-1.2)', icon: Scale, iconBg: 'bg-emerald-500/20', iconColor: 'text-emerald-500', isNormal: true, sparkline: 'M0,10 L5,12 L10,10 L15,14 L20,10', activeBorder: 'border-emerald-500', glow: 'bg-emerald-500/10' }
           ].map((m) => {
             const isSelected = selectedVitalMetric === m.id;
             return (
@@ -983,7 +986,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-[#00a896] dark:text-teal-400" />
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Personal Health Goals</h3>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('analytics.health_goals', 'Personal Health Goals')}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">wait continuous health target goals</p>
             </div>
           </div>
@@ -993,7 +996,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             className="px-5 py-2 rounded-full font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
-            <span>Add Goal</span>
+            <span>{t('analytics.create_goal', 'Add Goal')}</span>
           </button>
         </div>
 
@@ -1024,7 +1027,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <Sparkles className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Health Activity Insights</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('analytics.activity_insights', 'Health Activity Insights')}</h3>
           </div>
 
           <div className="space-y-3 text-xs font-medium">
@@ -1047,7 +1050,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
             <BarChart3 className="w-5 h-5 text-purple-500 dark:text-purple-400" />
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">This Month vs Previous Month</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('analytics.monthly_comparison', 'This Month vs Previous Month')}</h3>
           </div>
 
           <div className="space-y-3 text-xs">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   ShieldCheck,
   Plus,
@@ -67,6 +68,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   user,
   onNavigate: _onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'claims' | 'family' | 'documents'>('overview');
 
@@ -249,10 +251,10 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   };
 
   const tabList = [
-    { id: 'overview', label: 'Policy & Coverage', icon: ShieldCheck, badge: `${safePolicies.length} Active` },
-    { id: 'claims', label: 'Claims & History', icon: FileText, badge: `${claims.length} Claims` },
-    { id: 'family', label: 'Family & Payments', icon: Users, badge: `${familyMembers.length} Members` },
-    { id: 'documents', label: 'Vault & Support', icon: Layers, badge: `${documents.length} Docs` },
+    { id: 'overview', label: t('insurance.view_coverage', 'Policy & Coverage'), icon: ShieldCheck, badge: `${safePolicies.length} Active` },
+    { id: 'claims', label: t('insurance.claim_tracker', 'Claims & History'), icon: FileText, badge: `${claims.length} Claims` },
+    { id: 'family', label: t('family.title', 'Family & Payments'), icon: Users, badge: `${familyMembers.length} Members` },
+    { id: 'documents', label: t('settings.support', 'Vault & Support'), icon: Layers, badge: `${documents.length} Docs` },
   ];
 
   return (
@@ -274,9 +276,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Insurance & Policy Portal"
-        subtitle="Manage your health coverage breakdown, digital cashless cards, family floater, and claims."
-        badgeText="Active Coverage"
+        title={t('insurance.title', 'Insurance & Policy Portal')}
+        subtitle={t('insurance.subtitle', 'Manage your health coverage breakdown, digital cashless cards, family floater, and claims.')}
+        badgeText={t('card.covered', 'Active Coverage')}
         badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-2">
@@ -285,14 +287,14 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
               className="px-3.5 py-2.5 rounded-xl font-bold text-xs bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <HelpCircle className="w-4 h-4 text-amber-500" />
-              <span className="hidden sm:inline">Insurance Support</span>
+              <span className="hidden sm:inline">{t('settings.support', 'Insurance Support')}</span>
             </button>
             <button
               onClick={() => setAddPolicyOpen(true)}
               className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Insurance</span>
+              <span>{t('insurance.new_claim', 'Add Insurance')}</span>
             </button>
           </div>
         }
@@ -307,7 +309,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Active Policies</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">{t('insurance.active_policy', 'Active Policies')}</span>
             <strong className="text-xl font-black text-slate-900 dark:text-white">{safePolicies.length}</strong>
           </div>
         </div>
@@ -319,7 +321,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Sum Insured</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">{t('insurance.sum_insured', 'Total Sum Insured')}</span>
             <strong className="text-xl font-black text-blue-700 dark:text-blue-400">
               ₹{((primaryPolicy?.coverageAmount || 1000000) / 100000).toFixed(0)} Lakhs
             </strong>
@@ -333,7 +335,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Claims Handled</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">{t('insurance.claim_tracker', 'Claims Handled')}</span>
             <strong className="text-xl font-black text-emerald-700 dark:text-emerald-400">{claims.length}</strong>
           </div>
         </div>
@@ -345,7 +347,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Vault Documents</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">{t('records.title', 'Vault Documents')}</span>
             <strong className="text-xl font-black text-purple-700 dark:text-purple-400">{documents.length}</strong>
           </div>
         </div>

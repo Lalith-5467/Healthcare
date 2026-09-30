@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Building2,
   MapPin,
@@ -52,6 +53,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // GEOLOCATION STATE
@@ -247,8 +249,8 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Nearby Hospitals & Clinics"
-        subtitle="Find empanelled cashless hospitals, emergency centers and specialist clinics near you."
+        title={t('hospitals.title', 'Nearby Hospitals & Clinics')}
+        subtitle={t('hospitals.subtitle', 'Find empanelled cashless hospitals, emergency centers and specialist clinics near you.')}
         badgeText={locationStatus === 'detected' ? 'Location Detected' : 'Default Location'}
         badgeIcon={<MapPin className="w-3.5 h-3.5" />}
         rightElement={
@@ -258,7 +260,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
             className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
           >
             <Navigation className={`w-4 h-4 text-[#00a896] dark:text-cyan-400 ${isLocating ? 'animate-spin' : ''}`} />
-            <span>{isLocating ? 'Locating...' : 'Use My Location'}</span>
+            <span>{isLocating ? 'Locating...' : t('hospitals.get_directions', 'Use My Location')}</span>
           </button>
         }
       />
@@ -266,7 +268,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       {/* 2. HERO SEARCH AREA */}
       <div className="bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-teal-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="space-y-2 max-w-xl">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Find Healthcare Near You</h2>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">{t('hospitals.title', 'Find Healthcare Near You')}</h2>
           <p className="text-xs text-slate-600 dark:text-slate-400 font-mono font-bold">📍 {locationName}</p>
         </div>
 
@@ -318,7 +320,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
           className="bg-[#00a896]/10 dark:bg-teal-900/20 border border-teal-200/50 dark:border-teal-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-teal-800 dark:text-teal-300 font-sans">Nearby Facilities</span>
+            <span className="text-xs font-bold text-teal-800 dark:text-teal-300 font-sans">{t('hospitals.empanelled', 'Nearby Facilities')}</span>
             <Building2 className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -333,14 +335,14 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
           className="bg-emerald-500/10 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 font-sans">Open Now</span>
+            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 font-sans">{t('hospitals.open_24_7', 'Open Now')}</span>
             <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
               {hospitals.filter((h) => h.status !== 'Closed').length}
             </span>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold font-sans">Active</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold font-sans">{t('status.active', 'Active')}</span>
           </div>
         </motion.div>
 
@@ -350,7 +352,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
           className="bg-rose-500/10 dark:bg-rose-900/20 border border-rose-200/50 dark:border-rose-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-800 dark:text-rose-300 font-sans">Emergency Care</span>
+            <span className="text-xs font-bold text-rose-800 dark:text-rose-300 font-sans">{t('hospitals.title', 'Emergency Care')}</span>
             <Activity className="w-4 h-4 text-rose-600 dark:text-rose-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -367,7 +369,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
           className="bg-amber-500/10 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/50 p-5 rounded-3xl space-y-2 shadow-md cursor-pointer"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-800 dark:text-amber-300 font-sans">Top Rated (4.5+)</span>
+            <span className="text-xs font-bold text-amber-800 dark:text-amber-300 font-sans">{t('hospitals.empanelled', 'Top Rated (4.5+)')}</span>
             <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -407,7 +409,7 @@ export const HospitalsView: React.FC<HospitalsViewProps> = ({
       <div className="space-y-4">
         {/* SORT BAR & VIEW MODE CONTROLS */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Hospitals Near You</h3>
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('hospitals.title', 'Hospitals Near You')}</h3>
 
           <div className="flex items-center gap-3 self-stretch sm:self-auto text-xs">
             <div className="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { getGreeting } from '../../utils/greeting';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { NotificationPopover } from './NotificationPopover';
 import { notificationApi } from '../../services/dhrApis';
+import { socketService } from '../../services/socketService';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface DashboardHeaderProps {
@@ -39,25 +40,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const checkUnreadCount = async () => {
     try {
       const res = await notificationApi.getNotifications();
-      if (res && res.data) {
-        setUnreadCount(res.data.filter((n: any) => !n.isRead).length);
-      }
-    } catch {}
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      const unread = list.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch {
+      // keep current or fail gracefully
+    }
   };
 
   useEffect(() => {
     checkUnreadCount();
     const handleUpdate = () => checkUnreadCount();
     window.addEventListener('notifications_updated', handleUpdate);
-    return () => window.removeEventListener('notifications_updated', handleUpdate);
-  }, []);
+
+    // Real-time socket notification listener
+    const unsubscribeSocket = socketService.subscribeToNotifications(() => {
+      checkUnreadCount();
+    });
+
+    return () => {
+      window.removeEventListener('notifications_updated', handleUpdate);
+      unsubscribeSocket();
+    };
+  }, [userName]);
 
   const handleTogglePopover = () => {
-    setPopoverOpen(!popoverOpen);
+    const next = !popoverOpen;
+    setPopoverOpen(next);
+    checkUnreadCount();
   };
 
   const handleNavigateToNotifications = () => {
     setPopoverOpen(false);
+    checkUnreadCount();
     if (onOpenNotifications) {
       onOpenNotifications();
     }
@@ -184,7 +199,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             <Bell className="w-4 h-4 text-[#00a896] dark:text-cyan-300" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white dark:ring-slate-950 animate-pulse">
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white dark:ring-slate-950 animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -192,7 +207,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
           <NotificationPopover
             isOpen={popoverOpen}
-            onClose={() => setPopoverOpen(false)}
+            onClose={() => {
+              setPopoverOpen(false);
+              checkUnreadCount();
+            }}
             onNavigateToNotifications={handleNavigateToNotifications}
           />
         </div>
@@ -221,7 +239,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           type="button"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={onLogout}
+          onClick={() => {
+            setUnreadCount(0);
+            if (onLogout) onLogout();
+          }}
           className="relative p-2 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-rose-500 dark:text-rose-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all shadow-md cursor-pointer flex items-center justify-center shrink-0"
           title={t('header.logout', 'Logout')}
         >

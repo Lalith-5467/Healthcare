@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Users,
   UserPlus,
@@ -65,6 +66,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // MAIN STATE & LOCALSTORAGE
@@ -222,9 +224,9 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Family Connect & Care Circle"
-        subtitle="Manage family care connections, shared records, and emergency permissions."
-        badgeText="Family Vault"
+        title={t('family.title', 'Family Connect & Care Circle')}
+        subtitle={t('family.subtitle', 'Manage family care connections, shared records, and emergency permissions.')}
+        badgeText={t('family.title', 'Family Vault')}
         badgeIcon={<Users className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
@@ -233,7 +235,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
             >
               <Filter className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>Filters</span>
+              <span>{t('common.filter', 'Filters')}</span>
             </button>
 
             <button
@@ -241,7 +243,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Add Family Member</span>
+              <span>{t('family.add_member', 'Add Family Member')}</span>
             </button>
           </div>
         }
@@ -252,56 +254,56 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
         <div className="bg-teal-50/60 dark:bg-teal-900/10 border border-teal-200/60 dark:border-teal-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-teal-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl -z-10 group-hover:bg-teal-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-teal-700 dark:text-teal-400">Family Members</span>
+            <span className="text-xs font-extrabold text-teal-700 dark:text-teal-400">{t('card.family_members', 'Family Members')}</span>
             <div className="p-2 bg-teal-100/50 dark:bg-teal-900/30 rounded-xl">
               <Users className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-[#00a896] dark:text-teal-400">{members.length}</span>
-            <span className="text-[10px] text-teal-600/80 dark:text-teal-400/80 font-bold font-sans">Connected</span>
+            <span className="text-[10px] text-teal-600/80 dark:text-teal-400/80 font-bold font-sans">{t('card.linked', 'Connected')}</span>
           </div>
         </div>
 
         <div className="bg-red-50/40 dark:bg-red-900/10 border border-red-200/60 dark:border-red-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-red-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -z-10 group-hover:bg-red-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-red-700 dark:text-red-400">Pending Requests</span>
+            <span className="text-xs font-extrabold text-red-700 dark:text-red-400">{t('reminders.status_pending', 'Pending Requests')}</span>
             <div className="p-2 bg-red-100/50 dark:bg-red-900/30 rounded-xl">
               <Clock className="w-4 h-4 text-red-600" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-red-600 dark:text-red-400">{pendingRequests.length}</span>
-            <span className="text-[10px] text-red-600/80 dark:text-red-400/80 font-bold font-sans">Awaiting</span>
+            <span className="text-[10px] text-red-600/80 dark:text-red-400/80 font-bold font-sans">{t('status.pending', 'Awaiting')}</span>
           </div>
         </div>
 
         <div className="bg-blue-100/70 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-blue-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -z-10 group-hover:bg-blue-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400">Shared Appointments</span>
+            <span className="text-xs font-extrabold text-blue-700 dark:text-blue-400">{t('card.appointments', 'Shared Appointments')}</span>
             <div className="p-2 bg-blue-100/50 dark:bg-blue-900/30 rounded-xl">
               <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">{sharedAppointments.length}</span>
-            <span className="text-[10px] text-blue-600/80 dark:text-blue-400/80 font-bold font-sans">Upcoming</span>
+            <span className="text-[10px] text-blue-600/80 dark:text-blue-400/80 font-bold font-sans">{t('status.upcoming', 'Upcoming')}</span>
           </div>
         </div>
 
         <div className="bg-purple-100/70 dark:bg-purple-900/30 border border-purple-200/60 dark:border-purple-800/50 p-5 rounded-3xl space-y-3 shadow-lg shadow-purple-200/20 dark:shadow-none hover:-translate-y-1 transition-transform group relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -z-10 group-hover:bg-purple-500/20 transition-colors" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-purple-700 dark:text-purple-400">Shared Reminders</span>
+            <span className="text-xs font-extrabold text-purple-700 dark:text-purple-400">{t('reminders.title', 'Shared Reminders')}</span>
             <div className="p-2 bg-purple-100/50 dark:bg-purple-900/30 rounded-xl">
               <Pill className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2 font-mono">
             <span className="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-300">{sharedReminders.length}</span>
-            <span className="text-[10px] text-purple-600/80 dark:text-purple-400/80 font-bold font-sans">Active</span>
+            <span className="text-[10px] text-purple-600/80 dark:text-purple-400/80 font-bold font-sans">{t('status.active', 'Active')}</span>
           </div>
         </div>
       </div>
@@ -310,11 +312,9 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
       <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">My Family</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Manage your connected family members</p>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('family.title', 'My Family')}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t('family.subtitle', 'Manage your connected family members')}</p>
           </div>
-
-
         </div>
 
         {/* FAMILY MEMBER CARDS GRID */}
@@ -347,7 +347,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               </div>
 
               <div className="space-y-2 text-[11px] text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-3">
-                <div className="flex justify-between items-center"><span>Shared Items:</span><span className="font-mono bg-[#00a896]/10 text-[#00897b] dark:text-cyan-400 px-1.5 py-0.5 rounded font-bold">{mem.sharedItemsCount} items</span></div>
+                <div className="flex justify-between items-center"><span>{t('family.records_synced', 'Shared Items:')}</span><span className="font-mono bg-[#00a896]/10 text-[#00897b] dark:text-cyan-400 px-1.5 py-0.5 rounded font-bold">{mem.sharedItemsCount} items</span></div>
                 <div className="flex justify-between items-center"><span>Last Activity:</span><span className="text-slate-800 dark:text-slate-300 font-semibold">{mem.lastActivity}</span></div>
               </div>
 
@@ -356,14 +356,14 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
                   onClick={() => setProfileDrawerTarget(mem)}
                   className="py-2.5 px-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold transition-colors cursor-pointer shadow-sm"
                 >
-                  View Profile
+                  {t('family.view_profile', 'View Profile')}
                 </button>
                 <button
                   onClick={() => setChatDrawerTarget(mem)}
                   className="py-2.5 px-2 rounded-xl bg-gradient-to-r from-[#00a896] to-cyan-500 hover:from-[#00897b] hover:to-cyan-600 text-slate-900 dark:text-white text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/20 active:scale-95"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Message</span>
+                  <span>{t('family.message', 'Message')}</span>
                 </button>
               </div>
             </div>
@@ -376,9 +376,9 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
       {pendingRequests.length > 0 && (
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Pending Connections</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('family.pending_connections', 'Pending Connections')}</h3>
             <span className="text-[10px] font-mono font-extrabold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-              {pendingRequests.length} Pending
+              {pendingRequests.length} {t('reminders.status_pending', 'Pending')}
             </span>
           </div>
 
@@ -395,13 +395,13 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
                     onClick={() => handleDeclineRequest(req.id)}
                     className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer"
                   >
-                    Cancel
+                    {t('common.cancel', 'Cancel')}
                   </button>
                   <button
                     onClick={() => handleAcceptRequest(req.id, req.name)}
                     className="px-4 py-1.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold cursor-pointer shadow-sm"
                   >
-                    Accept & Connect
+                    {t('family.accept_connect', 'Accept & Connect')}
                   </button>
                 </div>
               </div>
@@ -420,14 +420,14 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               <div className="p-2 bg-teal-50 dark:bg-teal-900/30 rounded-xl">
                 <CalendarIcon className="w-5 h-5 text-[#00a896] dark:text-cyan-400" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Shared Appointments</h3>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('card.appointments', 'Shared Appointments')}</h3>
             </div>
             <button
               onClick={() => setShareAptModalOpen(true)}
               className="px-4 py-2 rounded-full bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 hover:from-teal-100 hover:to-cyan-100 dark:hover:from-teal-900/40 dark:hover:to-cyan-900/40 text-[#00897b] dark:text-cyan-300 text-xs font-extrabold border border-teal-200/50 dark:border-teal-800/50 flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Share Appointment</span>
+              <span>{t('family.share_apt', 'Share Appointment')}</span>
             </button>
           </div>
 
@@ -465,14 +465,14 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
                 <Pill className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Shared Reminders</h3>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('reminders.title', 'Shared Reminders')}</h3>
             </div>
             <button
               onClick={() => setShareRemModalOpen(true)}
               className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 hover:from-purple-100 hover:to-fuchsia-100 dark:hover:from-purple-900/40 dark:hover:to-fuchsia-900/40 text-purple-700 dark:text-purple-300 text-xs font-extrabold border border-purple-200/50 dark:border-purple-800/50 flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Share Reminder</span>
+              <span>{t('family.share_rem', 'Share Reminder')}</span>
             </button>
           </div>
 
@@ -514,8 +514,8 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white">Emergency Contacts</h3>
-              <p className="text-xs text-rose-600/80 dark:text-rose-400/80 font-bold">Instantly accessible critical contacts</p>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">{t('emergency.contacts', 'Emergency Contacts')}</h3>
+              <p className="text-xs text-rose-600/80 dark:text-rose-400/80 font-bold">{t('emergency.subtitle', 'Instantly accessible critical contacts')}</p>
             </div>
           </div>
           <button
@@ -523,7 +523,7 @@ export const FamilyConnectView: React.FC<FamilyConnectViewProps> = ({
             className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-transform active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Contact</span>
+            <span>{t('family.add_emergency', 'Add Contact')}</span>
           </button>
         </div>
 

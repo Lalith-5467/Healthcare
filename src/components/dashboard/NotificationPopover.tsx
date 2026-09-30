@@ -90,20 +90,18 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   const loadNotifications = async () => {
     try {
       const res = await notificationApi.getNotifications();
-      if (res && res.data) {
-        const mapped: NotificationLog[] = res.data.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          description: n.message,
-          category: n.category || 'General',
-          timeAgo: formatTimeAgo(n.createdAt),
-          date: new Date(n.createdAt).toLocaleDateString(),
-          isRead: n.isRead,
-          relatedModule: n.relatedModule || 'dashboard',
-        }));
-        setNotifications(mapped);
-        return;
-      }
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      const mapped: NotificationLog[] = list.map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        description: n.message,
+        category: n.category || 'General',
+        timeAgo: formatTimeAgo(n.createdAt),
+        date: new Date(n.createdAt).toLocaleDateString(),
+        isRead: Boolean(n.isRead),
+        relatedModule: n.relatedModule || 'dashboard',
+      }));
+      setNotifications(mapped);
     } catch {
       // fallback if network error
     }
@@ -116,18 +114,34 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, [isOpen]);
 
-  const handleMarkRead = (id: string, e?: React.MouseEvent) => {
+  const handleMarkRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    notificationApi.markAsRead(id).catch(() => {});
-    const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-    setNotifications(updated);
+    // 1. Optimistic update
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+
+    // 2. Persist to server
+    try {
+      await notificationApi.markAsRead(id);
+    } catch (err) {
+      console.error('[NotificationPopover] Failed to mark as read:', err);
+    }
+
+    // 3. Dispatch event after database commit
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleMarkAllRead = () => {
-    notificationApi.markAllAsRead().catch(() => {});
-    const updated = notifications.map((n) => ({ ...n, isRead: true }));
-    setNotifications(updated);
+  const handleMarkAllRead = async () => {
+    // 1. Optimistic update
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+
+    // 2. Persist to server
+    try {
+      await notificationApi.markAllAsRead();
+    } catch (err) {
+      console.error('[NotificationPopover] Failed to mark all as read:', err);
+    }
+
+    // 3. Dispatch event after database commit
     window.dispatchEvent(new Event('notifications_updated'));
   };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, X, SlidersHorizontal, ArrowUpDown, LayoutList, Clock } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecordsSearchSortBarProps {
   searchQuery: string;
@@ -22,6 +23,8 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
   viewMode,
   onViewModeChange
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-2 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl">
       {/* SEARCH FIELD */}
@@ -31,7 +34,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search medical records by title, doctor, hospital, type, date..."
+          placeholder={t('records.search_placeholder', 'Search medical records by title, doctor, hospital, type, date...')}
           className="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a896]"
         />
         {searchQuery && (
@@ -56,7 +59,7 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
           }`}
         >
           <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-          <span>Filters</span>
+          <span>{t('common.filter', 'Filters')}</span>
           {activeFilterCount > 0 && (
             <span className="w-5 h-5 rounded-full bg-[#00a896] text-white text-[10px] font-black flex items-center justify-center">
               {activeFilterCount}
@@ -74,11 +77,11 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
             onChange={(e) => onSortChange(e.target.value)}
             className="py-2.5 pr-4 pl-1 rounded-r-2xl bg-slate-50 dark:bg-slate-900 border-r border-t border-b border-slate-200/80 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
           >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="az">Title (A - Z)</option>
+            <option value="newest">{t('records.newest', 'Newest First')}</option>
+            <option value="oldest">{t('records.oldest', 'Oldest First')}</option>
+            <option value="az">{t('records.title_az', 'Title (A - Z)')}</option>
             <option value="za">Title (Z - A)</option>
-            <option value="updated">Recently Updated</option>
+            <option value="updated">{t('records.recently_viewed', 'Recently Updated')}</option>
           </select>
         </div>
 
@@ -111,3 +114,4 @@ export const RecordsSearchSortBar: React.FC<RecordsSearchSortBarProps> = ({
     </div>
   );
 };
+

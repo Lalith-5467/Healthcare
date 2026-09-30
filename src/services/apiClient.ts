@@ -3,9 +3,8 @@
  * Ensures all requests send the Authorization Bearer token from localStorage
  */
 
-// Use relative path so Vite's dev-server proxy forwards /api/* → localhost:5000/api/*
-// In production, set VITE_API_URL to the deployed backend base URL.
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL ?? '/api';
+// Use direct backend URL on port 5000 in dev, or VITE_API_URL if configured
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -211,7 +210,13 @@ export async function apiRequest<T = any>(
   let token = getAuthToken();
 
   // If token is missing, attempt auto-login before sending protected requests
-  if (!token && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+  if (
+    !token &&
+    !endpoint.includes('/auth/login') &&
+    !endpoint.includes('/auth/register') &&
+    !endpoint.includes('/auth/send-otp') &&
+    !endpoint.includes('/auth/verify-otp')
+  ) {
     token = await attemptAutoLogin();
   }
 
@@ -274,7 +279,7 @@ export async function apiRequest<T = any>(
         : response.status === 403
         ? 'Access denied. You do not have permission for this resource.'
         : response.status === 502 || response.status === 504
-        ? 'Backend service is currently unreachable (Port 5000). Please start the backend server.'
+        ? (data?.message || 'Backend service is currently unreachable (Port 5000). Please start the backend server.')
         : (data?.message || `Request failed (Status ${response.status})`);
     throw new Error(errorMsg);
   }

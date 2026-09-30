@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { ShieldCheck, Plus, Trash2 } from 'lucide-react';
 import type { SurgeryItem } from './AddSurgeryModal';
 import { AddSurgeryModal } from './AddSurgeryModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SurgeriesSectionProps {
   onToast: (msg: string) => void;
 }
 
 export const SurgeriesSection: React.FC<SurgeriesSectionProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [surgeries, setSurgeries] = useState<SurgeryItem[]>([
     { id: '1', name: 'Appendectomy', year: '2022', hospital: 'Apollo Hospital', doctor: 'Dr. Rajesh Kumar' },
     { id: '2', name: 'ACL Knee Reconstruction', year: '2020', hospital: 'Fortis Healthcare', doctor: 'Dr. Vikram Sethi' }
@@ -34,9 +36,11 @@ export const SurgeriesSection: React.FC<SurgeriesSectionProps> = ({ onToast }) =
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Previous Surgeries
+                {t('profile.surgeries', 'Previous Surgeries')}
               </h3>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">{surgeries.length} Recorded Procedures</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                {surgeries.length} {t('profile.recorded', 'Recorded Procedures')}
+              </span>
             </div>
           </div>
 
@@ -45,18 +49,18 @@ export const SurgeriesSection: React.FC<SurgeriesSectionProps> = ({ onToast }) =
             className="px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/20 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Surgery</span>
+            <span>{t('profile.add_surgery', 'Add Surgery')}</span>
           </button>
         </div>
 
         {surgeries.length === 0 ? (
           <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-slate-800 space-y-2">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">No previous surgeries recorded</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{t('profile.no_surgeries', 'No previous surgeries recorded')}</p>
             <button
               onClick={() => setModalOpen(true)}
               className="px-3 py-1.5 text-xs font-bold text-[#00a896] hover:underline cursor-pointer"
             >
-              + Add Surgery
+              + {t('profile.add_surgery', 'Add Surgery')}
             </button>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Calendar, Clock, Video, Building2, User, Bell, RefreshCw, Trash2, CheckCircle2, MapPin, FileText } from 'lucide-react';
 import type { Appointment } from './appointmentsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface AppointmentDetailsDrawerProps {
   appointment: Appointment | null;
@@ -21,6 +22,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
   onCancel,
   onAddReminder,
 }) => {
+  const { t } = useLanguage();
   if (!isOpen || !appointment) return null;
 
   return (
@@ -33,7 +35,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
               ID: {appointment.id}
             </span>
             <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-              Appointment Details
+              {t('apt.details_title', 'Appointment Details')}
             </h3>
           </div>
           <button
@@ -68,7 +70,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400" />
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Date</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">{t('common.date', 'Date')}</span>
                 <strong className="text-slate-800 dark:text-slate-200">{appointment.date}</strong>
               </div>
             </div>
@@ -76,7 +78,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
               <Clock className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">Time</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold">{t('common.time', 'Time')}</span>
                 <strong className="text-slate-800 dark:text-slate-200">{appointment.time}</strong>
               </div>
             </div>
@@ -90,17 +92,17 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
               ) : (
                 <Building2 className="w-4 h-4 text-blue-600" />
               )}
-              <span className="font-bold text-slate-800 dark:text-slate-200">{appointment.type} Consultation</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{appointment.type} {t('apt.consultation', 'Consultation')}</span>
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono">
-              {appointment.status}
+              {t(`status.${appointment.status.toLowerCase()}`, appointment.status)}
             </span>
           </div>
 
           {/* DOCTOR CLINICAL NOTES (IF ANY) */}
           {appointment.notes && (
             <div className="space-y-1.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">Doctor Notes</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">{t('apt.doctor_notes', 'Doctor Notes')}</h4>
               <p className="text-xs text-slate-700 dark:text-teal-200 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/30 p-3.5 rounded-2xl leading-relaxed">
                 {appointment.notes}
               </p>
@@ -120,7 +122,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
                 className="w-full py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Video className="w-4 h-4" />
-                <span>Join Video Consultation</span>
+                <span>{t('apt.join_video', 'Join Video Consultation')}</span>
               </button>
             )}
 
@@ -133,7 +135,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
                 className="py-2.5 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-[11px] font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 <Bell className="w-3.5 h-3.5 text-amber-500" />
-                <span>Reminder</span>
+                <span>{t('apt.reminder', 'Reminder')}</span>
               </button>
 
               <button
@@ -144,7 +146,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
                 className="py-2.5 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-[11px] font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer border border-slate-200 dark:border-slate-700"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-[#00a896]" />
-                <span>Reschedule</span>
+                <span>{t('apt.reschedule', 'Reschedule')}</span>
               </button>
 
               <button
@@ -155,7 +157,7 @@ export const AppointmentDetailsDrawer: React.FC<AppointmentDetailsDrawerProps> =
                 className="py-2.5 px-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[11px] font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Cancel</span>
+                <span>{t('apt.cancel', 'Cancel')}</span>
               </button>
             </div>
           </div>

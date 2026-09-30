@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Lock, Eye, ShieldAlert, Users, QrCode } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PrivacyControlsCardProps {
   onToast: (msg: string) => void;
 }
 
 export const PrivacyControlsCard: React.FC<PrivacyControlsCardProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [toggles, setToggles] = useState({
     profileVisibility: true,
     emergencyAccess: true,
@@ -22,10 +24,10 @@ export const PrivacyControlsCard: React.FC<PrivacyControlsCardProps> = ({ onToas
   };
 
   const privacyItems = [
-    { key: 'profileVisibility' as const, label: 'Health Profile Visibility', desc: 'Allow ABDM verified doctors to search profile', icon: Eye },
-    { key: 'emergencyAccess' as const, label: 'Emergency SOS Access', desc: 'Allow first responders to scan emergency QR', icon: ShieldAlert },
-    { key: 'familyAccess' as const, label: 'Family Health Access', desc: 'Share vitals with linked family members', icon: Users },
-    { key: 'qrSharing' as const, label: 'QR Health Sharing', desc: 'Enable instant QR record transmission', icon: QrCode }
+    { key: 'profileVisibility' as const, label: t('profile.abdm_consent', 'Health Profile Visibility'), desc: 'Allow ABDM verified doctors to search profile', icon: Eye },
+    { key: 'emergencyAccess' as const, label: t('profile.sos_access', 'Emergency SOS Access'), desc: 'Allow first responders to scan emergency QR', icon: ShieldAlert },
+    { key: 'familyAccess' as const, label: t('profile.family_sync', 'Family Health Access'), desc: 'Share vitals with linked family members', icon: Users },
+    { key: 'qrSharing' as const, label: t('profile.doctor_temporary', 'QR Health Sharing'), desc: 'Enable instant QR record transmission', icon: QrCode }
   ];
 
   return (
@@ -37,12 +39,13 @@ export const PrivacyControlsCard: React.FC<PrivacyControlsCardProps> = ({ onToas
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Health Data Privacy & Consent Controls
+              {t('profile.privacy_controls', 'Health Data Privacy & Consent Controls')}
             </h3>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">ABDM Consent Engine Architecture</span>
           </div>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {privacyItems.map((item) => {

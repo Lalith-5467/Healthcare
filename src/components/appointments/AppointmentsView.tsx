@@ -540,7 +540,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center justify-between shadow-xs hover:border-teal-500/30 transition-all">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">Upcoming</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">{t('apt.upcoming', 'Upcoming')}</span>
             <span className="text-2xl font-black text-slate-900 dark:text-white mt-1 block font-mono">{upcomingCount}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-[#00a896] dark:text-teal-400">
@@ -550,7 +550,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center justify-between shadow-xs hover:border-emerald-500/30 transition-all">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">Completed</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">{t('apt.completed', 'Completed')}</span>
             <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block font-mono">{completedCount}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
@@ -560,7 +560,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center justify-between shadow-xs hover:border-rose-500/30 transition-all">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">Cancelled</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">{t('apt.cancelled', 'Cancelled')}</span>
             <span className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 block font-mono">{cancelledCount}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
@@ -570,7 +570,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center justify-between shadow-xs hover:border-purple-500/30 transition-all">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">This Month</span>
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-mono">{t('apt.this_month', 'This Month')}</span>
             <span className="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1 block font-mono">5</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
@@ -583,7 +583,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       {pendingRequests.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2.5">
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Appointment Requests</h3>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">{t('apt.requests', 'Appointment Requests')}</h3>
             <span className="bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm">
               {pendingRequests.length}
             </span>
@@ -605,10 +605,10 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                        Appointment Request
+                        {t('apt.request', 'Appointment Request')}
                       </h4>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                        Pending Decision
+                        {t('status.pending', 'Pending Decision')}
                       </span>
                     </div>
                     <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
@@ -627,19 +627,19 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                     onClick={() => handleAcceptFollowUp(req.id)}
                     className="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#00a896] hover:bg-[#00897b] shadow-md shadow-teal-500/10 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                   >
-                    Accept
+                    {t('common.accept', 'Accept')}
                   </button>
                   <button
                     onClick={() => setDeclineConfirmTarget(req)}
                     className="px-4 py-2 rounded-xl text-xs font-extrabold text-rose-600 hover:bg-rose-50 border border-rose-200 dark:border-rose-900 transition-colors cursor-pointer"
                   >
-                    Decline
+                    {t('common.decline', 'Decline')}
                   </button>
                   <button
                     onClick={() => setPendingDetailTarget(req)}
                     className="px-3.5 py-2 rounded-xl text-xs font-extrabold text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-750 transition-colors cursor-pointer"
                   >
-                    View
+                    {t('common.view', 'View')}
                   </button>
                 </div>
               </motion.div>
@@ -653,9 +653,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
         {/* STATUS TABS */}
         <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto font-mono">
           {[
-            { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
-            { id: 'past', label: 'Past', count: completedCount },
-            { id: 'cancelled', label: 'Cancelled', count: cancelledCount },
+            { id: 'upcoming', label: t('apt.upcoming', 'Upcoming'), count: upcomingCount },
+            { id: 'past', label: t('apt.past', 'Past'), count: completedCount },
+            { id: 'cancelled', label: t('apt.cancelled', 'Cancelled'), count: cancelledCount },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -688,7 +688,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
               }`}
             >
-              All Types
+              {t('apt.all_types', 'All Types')}
             </button>
             <button
               onClick={() => setSelectedTypeFilter('video')}
@@ -699,7 +699,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               }`}
             >
               <Video className="w-3 h-3" />
-              <span>Video</span>
+              <span>{t('apt.video', 'Video')}</span>
             </button>
             <button
               onClick={() => setSelectedTypeFilter('in-person')}
@@ -710,7 +710,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               }`}
             >
               <Building2 className="w-3 h-3" />
-              <span>Clinic</span>
+              <span>{t('apt.clinic', 'Clinic')}</span>
             </button>
           </div>
 
@@ -719,7 +719,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
-              placeholder="Search doctor or speciality..."
+              placeholder={t('apt.search_placeholder', 'Search doctor or speciality...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
@@ -735,9 +735,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             <div className="w-14 h-14 bg-teal-500/10 rounded-2xl flex items-center justify-center text-[#00a896] mx-auto">
               <CalendarCheck2 className="w-7 h-7" />
             </div>
-            <h4 className="text-base font-extrabold text-slate-900 dark:text-white">No Appointments Found</h4>
+            <h4 className="text-base font-extrabold text-slate-900 dark:text-white">{t('apt.no_appointments', 'No Appointments Found')}</h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              There are no {activeTab} appointments matching your filter. Book a consultation or clear search filters.
+              {t('apt.no_appointments_sub', 'There are no appointments matching your filter. Book a consultation or clear search filters.')}
             </p>
             <button
               onClick={() => {
@@ -747,7 +747,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               className="px-4 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs shadow-md inline-flex items-center gap-1.5 cursor-pointer mt-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Book New Consultation</span>
+              <span>{t('apt.book_new', 'Book New Consultation')}</span>
             </button>
           </div>
         ) : (
@@ -784,7 +784,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                         ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
                         : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
                     }`}>
-                      {apt.status}
+                      {t(`status.${apt.status.toLowerCase()}`, apt.status)}
                     </span>
                   </div>
 
@@ -817,7 +817,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center gap-1.5"
                 >
                   <Eye className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Details</span>
+                  <span>{t('common.details', 'Details')}</span>
                 </button>
 
                 {apt.status !== 'Cancelled' && apt.status !== 'Completed' && (
@@ -825,7 +825,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                     <button
                       onClick={() => setReminderTarget(apt)}
                       className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer border border-slate-200 dark:border-slate-700 transition-colors"
-                      title="Set Reminder"
+                      title={t('apt.set_reminder', 'Set Reminder')}
                     >
                       <Bell className="w-4 h-4 text-amber-500" />
                     </button>
@@ -833,7 +833,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                     <button
                       onClick={() => setRescheduleTarget(apt)}
                       className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer border border-slate-200 dark:border-slate-700 transition-colors"
-                      title="Reschedule"
+                      title={t('apt.reschedule', 'Reschedule')}
                     >
                       <RefreshCw className="w-4 h-4 text-[#00a896]" />
                     </button>
@@ -841,7 +841,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                     <button
                       onClick={() => setCancelTarget(apt)}
                       className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 cursor-pointer border border-rose-500/30 transition-colors"
-                      title="Cancel"
+                      title={t('apt.cancel', 'Cancel')}
                     >
                       <XCircle className="w-4 h-4" />
                     </button>
@@ -852,7 +852,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
                         className="px-4 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center gap-1.5"
                       >
                         <Video className="w-4 h-4" />
-                        <span>Join</span>
+                        <span>{t('apt.join', 'Join')}</span>
                       </button>
                     )}
                   </>

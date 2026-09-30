@@ -20,6 +20,8 @@ import type { ProfileFormData } from './EditProfileDrawer';
 import { ProfileSkeleton } from './ProfileSkeleton';
 import { QRModal } from '../dashboard/QRModal';
 
+import { useLanguage } from '../../context/LanguageContext';
+
 interface UserProfile {
   name: string;
   email: string;
@@ -39,6 +41,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   user,
   onNavigate
 }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -222,7 +225,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       console.warn('Backend profile update note:', backendErr);
     }
 
-    showToast('✓ Profile updated successfully.');
+    showToast(t('profile.updated_toast', '✓ Profile updated successfully.'));
   };
 
   return (

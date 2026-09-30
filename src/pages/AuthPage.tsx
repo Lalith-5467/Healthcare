@@ -1460,7 +1460,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                       return (
                                         <input
                                           key={index}
-                                          ref={(el) => (otpInputRefs.current[index] = el)}
+                                          ref={(el) => { otpInputRefs.current[index] = el; }}
                                           data-nav={`otp-${index}`}
                                           data-otp-input="true"
                                           type="text"

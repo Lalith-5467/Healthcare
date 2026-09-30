@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Building2,
   Users,
@@ -60,6 +61,7 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // MAIN STATE
@@ -207,9 +209,9 @@ export const EmergencyView: React.FC<EmergencyViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="SOS & Emergency Care"
-        subtitle="Quickly access emergency options and important contacts when you need them."
-        badgeText="24x7 Safety Desk"
+        title={t('emergency.title', 'SOS & Emergency Care')}
+        subtitle={t('emergency.subtitle', 'Quickly access emergency options and important contacts when you need them.')}
+        badgeText={t('emergency.title', '24x7 Safety Desk')}
         badgeIcon={<AlertTriangle className="w-3.5 h-3.5" />}
       />
 

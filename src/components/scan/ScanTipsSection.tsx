@@ -1,7 +1,9 @@
 import React from 'react';
 import { CheckCircle2, FileCheck, Lightbulb } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const ScanTipsSection: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 font-sans">
       {/* 1. TIPS FOR BETTER SCANS */}
@@ -10,25 +12,25 @@ export const ScanTipsSection: React.FC = () => {
           <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Lightbulb className="w-4 h-4" />
           </div>
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Tips for Highest OCR Accuracy</h3>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('scan.tips_title', 'Tips for Highest OCR Accuracy')}</h3>
         </div>
 
         <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
           <li className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-[#00a896] shrink-0" />
-            <span>Place the paper report on a flat, solid dark surface</span>
+            <span>{t('scan.tip1', 'Place the paper report on a flat, solid dark surface')}</span>
           </li>
           <li className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-[#00a896] shrink-0" />
-            <span>Ensure all 4 corners of the document are inside the frame</span>
+            <span>{t('scan.tip2', 'Ensure all 4 corners of the document are inside the frame')}</span>
           </li>
           <li className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-[#00a896] shrink-0" />
-            <span>Use good direct lighting or toggle the device scanner flash</span>
+            <span>{t('scan.tip3', 'Use good direct lighting or toggle the device scanner flash')}</span>
           </li>
           <li className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-[#00a896] shrink-0" />
-            <span>Avoid shadows or harsh overhead camera reflections</span>
+            <span>{t('scan.tip4', 'Avoid shadows or harsh overhead camera reflections')}</span>
           </li>
         </ul>
       </div>
@@ -40,7 +42,7 @@ export const ScanTipsSection: React.FC = () => {
             <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-[#00a896]">
               <FileCheck className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Supported Formats</h3>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('scan.supported_formats', 'Supported Formats')}</h3>
           </div>
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 font-mono">
             PDF, JPG, PNG (max 25MB)

@@ -33,6 +33,7 @@ import type { MedicineFilterState } from './MedicineFilterDrawer';
 import { SkipDoseModal } from './SkipDoseModal';
 import { MedicationHistoryModal } from './MedicationHistoryModal';
 import { medicineApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -52,6 +53,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -351,9 +353,9 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Medicines & Prescription Tracker"
-        subtitle="Stay on track with your medications and daily treatment schedule."
-        badgeText="Pill Tracker"
+        title={t('meds.title', 'Medicines & Prescription Tracker')}
+        subtitle={t('meds.subtitle', 'Stay on track with your medications and daily treatment schedule.')}
+        badgeText={t('meds.badge', 'Pill Tracker')}
         badgeIcon={<Pill className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
@@ -362,7 +364,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Clock className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>Medication History</span>
+              <span>{t('meds.history', 'Medication History')}</span>
             </button>
 
             <button
@@ -370,7 +372,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Medicine</span>
+              <span>{t('meds.add_medicine', 'Add Medicine')}</span>
             </button>
           </div>
         }
@@ -385,7 +387,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
                 Today • Tuesday, 23 August
               </span>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Today's Medication</h2>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{t('meds.today_meds', "Today's Medication")}</h2>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
                 {adherencePercentage >= 75 ? 'Great job! Keep it going.' : 'Remember to take your remaining scheduled doses.'}
               </p>
@@ -393,15 +395,15 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <div className="bg-white/80 dark:bg-slate-950/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">Scheduled</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">{t('meds.scheduled', 'Scheduled')}</span>
                 <span className="text-base font-extrabold text-slate-900 dark:text-white font-mono">{totalTodayDosesCount}</span>
               </div>
               <div className="bg-white/80 dark:bg-slate-950/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <span className="text-[9px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">Taken</span>
+                <span className="text-[9px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">{t('status.taken', 'Taken')}</span>
                 <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{takenDosesCount}</span>
               </div>
               <div className="bg-white/80 dark:bg-slate-950/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <span className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 block">Remaining</span>
+                <span className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 block">{t('meds.remaining', 'Remaining')}</span>
                 <span className="text-base font-extrabold text-amber-600 dark:text-amber-400 font-mono">{upcomingCount}</span>
               </div>
             </div>
@@ -448,10 +450,10 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
               <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
                 <Pill className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Next Medication</h3>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('meds.next_medication', 'Next Medication')}</h3>
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
-              {nextDose ? nextDose.status : 'All Clear'}
+              {nextDose ? t(`status.${nextDose.status.toLowerCase()}`, nextDose.status) : t('status.all_clear', 'All Clear')}
             </span>
           </div>
 
@@ -462,12 +464,12 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                 <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{nextDose.dosage}</span>
                   <span>•</span>
-                  <span className="font-mono text-[#00a896] dark:text-cyan-300 font-bold">Scheduled {nextDose.scheduledTime}</span>
+                  <span className="font-mono text-[#00a896] dark:text-cyan-300 font-bold">{t('meds.scheduled', 'Scheduled')} {nextDose.scheduledTime}</span>
                 </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-600 dark:text-slate-400 font-semibold">Next Dose In:</span>
+                <span className="text-slate-600 dark:text-slate-400 font-semibold">{t('meds.next_dose_in', 'Next Dose In:')}</span>
                 <span className="font-mono font-extrabold text-[#00a896] dark:text-cyan-400 text-sm">02h 14m</span>
               </div>
 
@@ -476,13 +478,13 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                 className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>Mark as Taken</span>
+                <span>{t('meds.mark_taken', 'Mark as Taken')}</span>
               </button>
             </div>
           ) : (
             <div className="py-6 text-center space-y-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">All scheduled doses for today have been completed!</p>
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('meds.all_completed_today', 'All scheduled doses for today have been completed!')}</p>
             </div>
           )}
         </div>
@@ -493,9 +495,9 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
         {/* TODAY'S SCHEDULE TIMELINE (LEFT 5 COLUMNS) */}
         <div className="lg:col-span-5 bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Today's Schedule</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('meds.today_schedule', "Today's Schedule")}</h3>
             <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
-              {todayDoses.length} Doses
+              {todayDoses.length} {t('meds.doses', 'Doses')}
             </span>
           </div>
 
@@ -605,14 +607,14 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                                 onClick={() => setSkipModalTarget(dose)}
                                 className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold transition-colors cursor-pointer border border-slate-200 dark:border-slate-600"
                               >
-                                Skip
+                                {t('meds.skip', 'Skip')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleMarkDoseTaken(dose.id, dose.medicineName)}
                                 className="px-2.5 py-1 rounded-lg bg-[#00a896] hover:bg-[#00897b] text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-2xs"
                               >
-                                Take
+                                {t('meds.take', 'Take')}
                               </button>
                             </>
                           )}
@@ -632,9 +634,9 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
             {/* TABS */}
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto">
               {[
-                { id: 'active', label: 'Active', count: medicines.filter((m) => m.status === 'Active').length },
-                { id: 'completed', label: 'Completed', count: medicines.filter((m) => m.status === 'Completed').length },
-                { id: 'paused', label: 'Paused', count: medicines.filter((m) => m.status === 'Paused').length },
+                { id: 'active', label: t('status.active', 'Active'), count: medicines.filter((m) => m.status === 'Active').length },
+                { id: 'completed', label: t('status.completed', 'Completed'), count: medicines.filter((m) => m.status === 'Completed').length },
+                { id: 'paused', label: t('status.paused', 'Paused'), count: medicines.filter((m) => m.status === 'Paused').length },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -661,7 +663,7 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search medicine..."
+                  placeholder={t('meds.search_placeholder', 'Search medicine...')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#00a896]"
@@ -704,26 +706,26 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
                       ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                       : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                   }`}>
-                    {med.status}
+                    {t(`status.${med.status.toLowerCase()}`, med.status)}
                   </span>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
                   <div className="flex justify-between">
-                    <span>Frequency:</span>
+                    <span>{t('meds.frequency', 'Frequency')}:</span>
                     <span className="font-semibold text-slate-900 dark:text-white">{med.frequency}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Next dose:</span>
+                    <span>{t('meds.next_dose', 'Next dose')}:</span>
                     <span className="font-mono font-bold text-[#00a896] dark:text-cyan-300">{med.times[0] || '08:00 AM'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Prescribed by:</span>
+                    <span>{t('meds.prescribed_by', 'Prescribed by')}:</span>
                     <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{med.prescribedBy}</span>
                   </div>
                   {med.sourcePrescriptionId && (
                     <div className="flex justify-between items-center pt-1 border-t border-slate-100 dark:border-slate-800/60">
-                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold">Source:</span>
+                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold">{t('meds.source', 'Source')}:</span>
                       <span className="text-[10px] font-mono text-teal-600 dark:text-cyan-400 font-bold">
                         Prescription #{med.sourcePrescriptionId}
                       </span>
@@ -733,10 +735,10 @@ export const MedicinesView: React.FC<MedicinesViewProps> = ({
 
                 <div className="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 text-xs font-mono">
                   <span className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">
-                    Stock: <strong className={med.stockRemaining < 10 ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-slate-900 dark:text-slate-200'}>{med.stockRemaining} left</strong>
+                    {t('meds.stock', 'Stock')}: <strong className={med.stockRemaining < 10 ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-slate-900 dark:text-slate-200'}>{med.stockRemaining} {t('meds.left', 'left')}</strong>
                   </span>
                   <span className="text-xs font-extrabold text-[#00a896] dark:text-amber-400 group-hover:underline flex items-center gap-1 font-sans">
-                    Details <ChevronRight className="w-3.5 h-3.5" />
+                    {t('common.details', 'Details')} <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>

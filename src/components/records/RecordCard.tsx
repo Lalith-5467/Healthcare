@@ -17,6 +17,7 @@ import {
   Check
 } from 'lucide-react';
 import type { MedicalRecordItem } from './recordsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecordCardProps {
   record: MedicalRecordItem;
@@ -41,6 +42,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
   onDelete,
   onRename
 }) => {
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Icon mapping
@@ -117,12 +119,12 @@ export const RecordCard: React.FC<RecordCardProps> = ({
               <>
                 <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20" />
                 <div className="absolute right-0 top-10 w-44 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white z-30 space-y-1 text-xs font-sans">
-                  <button onClick={() => { setMenuOpen(false); onView(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Eye className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" /><span>View Report</span></button>
-                  <button onClick={() => { setMenuOpen(false); onDownload(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /><span>Download</span></button>
-                  <button onClick={() => { setMenuOpen(false); onShare(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /><span>Share Record</span></button>
-                  <button onClick={() => { setMenuOpen(false); onRename(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Edit2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /><span>Rename</span></button>
+                  <button onClick={() => { setMenuOpen(false); onView(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Eye className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" /><span>{t('records.view_report', 'View Report')}</span></button>
+                  <button onClick={() => { setMenuOpen(false); onDownload(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /><span>{t('common.download', 'Download')}</span></button>
+                  <button onClick={() => { setMenuOpen(false); onShare(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Share2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /><span>{t('records.share', 'Share Record')}</span></button>
+                  <button onClick={() => { setMenuOpen(false); onRename(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Edit2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /><span>{t('records.rename', 'Rename')}</span></button>
                   <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
-                  <button onClick={() => { setMenuOpen(false); onDelete(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Trash2 className="w-3.5 h-3.5 text-rose-500" /><span>Delete Record</span></button>
+                  <button onClick={() => { setMenuOpen(false); onDelete(record); }} className="w-full px-3 py-2 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-300 flex items-center gap-2 text-left font-bold cursor-pointer transition-colors"><Trash2 className="w-3.5 h-3.5 text-rose-500" /><span>{t('records.delete', 'Delete Record')}</span></button>
                 </div>
               </>
             )}
@@ -158,7 +160,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
       {/* FOOTER: STATUS & ACTIONS */}
       <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
         <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold border ${getStatusBadge()}`}>
-          {record.status}
+          {t(`status.${record.status.toLowerCase()}`, record.status)}
         </span>
 
         <button
@@ -166,7 +168,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
           className="flex px-4 py-2 rounded-xl bg-[#00a896]/10 hover:bg-[#00a896]/20 text-[#00897b] dark:text-cyan-400 border border-[#00a896]/20 text-[13px] font-bold transition-all items-center gap-1.5 cursor-pointer"
         >
           <Eye className="w-4 h-4" />
-          <span>View</span>
+          <span>{t('common.view', 'View')}</span>
         </button>
       </div>
     </div>

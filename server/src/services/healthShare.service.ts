@@ -183,6 +183,13 @@ export class HealthShareService {
       },
     });
 
+    console.log(`[HealthShare] Scanned QR token validated:`);
+    console.log(`  → token: ${shareToken.token.slice(0, 10)}...`);
+    console.log(`  → patientId: ${patient.id}`);
+    console.log(`  → userId: ${patient.userId}`);
+    console.log(`  → database patient ID: ${patient.id}`);
+    console.log(`  → patient: ${patient.fullName}`);
+
     return {
       token: shareToken.token,
       patient: {
@@ -831,6 +838,13 @@ export class HealthShareService {
     if (!activeSession) {
       throw new AppError('Active patient consent required. Access is not approved, has expired, or was revoked by the patient.', 403);
     }
+
+    console.log(`[HealthShare] Patient 360 authorized session:`);
+    console.log(`  → shareSessionId: ${activeSession.id}`);
+    console.log(`  → patientId: ${patient.id}`);
+    console.log(`  → userId: ${patient.userId}`);
+    console.log(`  → database patient ID: ${patient.id}`);
+    console.log(`  → patient: ${patient.fullName}`);
 
     // 4. Parse Approved Permission Scope
     let approvedScopes: string[] = DEFAULT_PERMISSION_SCOPES;

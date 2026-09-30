@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, TrendingUp } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface ProfileHealthScoreCardProps {
   onNavigate: (id: string) => void;
 }
 
 export const ProfileHealthScoreCard: React.FC<ProfileHealthScoreCardProps> = ({ onNavigate }) => {
+  const { t } = useLanguage();
   const [score, setScore] = useState(0);
   const targetScore = 85;
 
@@ -36,15 +38,15 @@ export const ProfileHealthScoreCard: React.FC<ProfileHealthScoreCardProps> = ({ 
           <div className="p-1.5 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20">
             <Activity className="w-4 h-4" />
           </div>
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Health Score</span>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t('profile.health_score', 'Health Score')}</span>
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{score}</span>
-          <span className="text-xs font-extrabold text-emerald-500">Excellent</span>
+          <span className="text-xs font-extrabold text-emerald-500">{t('profile.excellent', 'Excellent')}</span>
         </div>
         <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
           <TrendingUp className="w-3 h-3" />
-          <span>+4 from last week</span>
+          <span>{t('profile.from_last_week', '+4 from last week')}</span>
         </p>
       </div>
 
@@ -69,3 +71,4 @@ export const ProfileHealthScoreCard: React.FC<ProfileHealthScoreCardProps> = ({ 
     </div>
   );
 };
+

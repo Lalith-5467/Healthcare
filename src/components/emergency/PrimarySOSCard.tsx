@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldAlert } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PrimarySOSCardProps {
   onTriggerSOS: () => void;
@@ -9,6 +10,7 @@ interface PrimarySOSCardProps {
 export const PrimarySOSCard: React.FC<PrimarySOSCardProps> = ({
   onTriggerSOS,
 }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -25,9 +27,9 @@ export const PrimarySOSCard: React.FC<PrimarySOSCardProps> = ({
       </div>
 
       <div className="space-y-2 max-w-md mx-auto relative z-10">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Emergency Assistance</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{t('emergency.title', 'Emergency Assistance')}</h2>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
-          Use this option when you need immediate emergency assistance. Requires deliberate confirmation before proceeding.
+          {t('emergency.subtitle', 'Use this option when you need immediate emergency assistance. Requires deliberate confirmation before proceeding.')}
         </p>
       </div>
 

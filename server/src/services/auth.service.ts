@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { performance } from 'perf_hooks';
 import { Role } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { config } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
+import { EmailService } from './email.service';
 
 export interface RegisterDTO {
   email: string;
@@ -101,6 +103,8 @@ export class AuthService {
    * Send Email Verification OTP (For when email verification is enabled)
    */
   static async sendEmailOtp(email: string): Promise<{ success: boolean; message: string; previewCode?: string }> {
+    const tTotalStart = performance.now();
+
     if (!email || !EMAIL_REGEX.test(email)) {
       const err: AppError = new Error('A valid email address is required');
       err.statusCode = 400;
@@ -110,6 +114,7 @@ export class AuthService {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user already registered
+    const tDbStart = performance.now();
     const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
@@ -120,16 +125,36 @@ export class AuthService {
     }
 
     // Generate secure 6-digit numeric OTP
+    const tGenStart = performance.now();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const tGen = performance.now() - tGenStart;
 
     otpStore.set(normalizedEmail, {
       otp: code,
       expiresAt,
       attempts: 0,
     });
+    const tDb = performance.now() - tDbStart - tGen;
 
-    console.log(`[Email Verification OTP] Generated code for ${normalizedEmail}: ${code}`);
+    // Send OTP via real SMTP email
+    const tSmtpStart = performance.now();
+    try {
+      await EmailService.sendVerificationOtpEmail(normalizedEmail, code);
+    } catch (emailErr: any) {
+      console.error(`[Email Verification OTP] Delivery failed for ${normalizedEmail}:`, emailErr.message || emailErr);
+      const err: AppError = new Error(`Failed to deliver verification email. Please verify the email address or try again.`);
+      err.statusCode = 502;
+      throw err;
+    }
+    const tSmtp = performance.now() - tSmtpStart;
+    const tTotal = performance.now() - tTotalStart;
+
+    // Safe diagnostic logging (Never log OTP code or sensitive data)
+    console.log(`[OTP] Generation: ${tGen.toFixed(2)} ms`);
+    console.log(`[OTP] Database save: ${tDb.toFixed(2)} ms`);
+    console.log(`[OTP] SMTP send: ${tSmtp.toFixed(2)} ms`);
+    console.log(`[OTP] Total: ${tTotal.toFixed(2)} ms`);
 
     return {
       success: true,

@@ -44,6 +44,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
       }
 
       setIsLoading(true);
+      setAuthData(null);
       setErrorStatus(null);
 
       try {
@@ -229,7 +230,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
 
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 text-slate-950 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-lg shadow-teal-500/30 border border-white/20 shrink-0">
-            {getLocalizedName(patient.fullName, t).charAt(0)}
+            {(patient.fullName || 'P').charAt(0)}
           </div>
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
@@ -246,7 +247,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {getLocalizedName(patient.fullName, t)}
+              {patient.fullName}
             </h1>
 
             <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-300">
@@ -327,7 +328,7 @@ export const Patient360View: React.FC<Patient360ViewProps> = ({ patientId, patie
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-400">{t("doctor.profile.full_name", "Full Name")}</span>
-                <span className="font-bold text-slate-900 dark:text-white">{getLocalizedName(patient.fullName, t)}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{patient.fullName}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-400">{t("doctor.patients.gender_age", "Gender / Age")}</span>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, User, Heart } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface ProfileFormData {
   name: string;
@@ -29,6 +30,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
   initialData,
   onSave
 }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<ProfileFormData>(initialData);
   const [activeTab, setActiveTab] = useState<'personal' | 'health'>('personal');
 
@@ -66,7 +68,9 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
         >
           {/* HEADER */}
           <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#0b1120] shrink-0">
-            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Edit Health Profile</h3>
+            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              {t('profile.edit_title', 'Edit Health Profile')}
+            </h3>
             <button
               onClick={onClose}
               className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -86,7 +90,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               }`}
             >
               <User className="w-4 h-4" />
-              <span>Personal Details</span>
+              <span>{t('profile.personal_info', 'Personal Details')}</span>
             </button>
 
             <button
@@ -98,7 +102,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               }`}
             >
               <Heart className="w-4 h-4" />
-              <span>Health Vitals</span>
+              <span>{t('analytics.vitals_tab', 'Health Vitals')}</span>
             </button>
           </div>
 
@@ -210,7 +214,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Weight</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{t('profile.weight', 'Weight')}</label>
                     <input
                       type="text"
                       value={formData.weight}
@@ -231,7 +235,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               onClick={onClose}
               className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all cursor-pointer"
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </button>
             <button
               form="edit-profile-form"
@@ -239,7 +243,7 @@ export const EditProfileDrawer: React.FC<EditProfileDrawerProps> = ({
               className="flex-1 py-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-sm transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Save className="w-5 h-5" />
-              <span>Save Changes</span>
+              <span>{t('profile.save_changes', 'Save Changes')}</span>
             </button>
           </div>
         </motion.div>
