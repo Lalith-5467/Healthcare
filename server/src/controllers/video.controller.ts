@@ -20,67 +20,66 @@ const parseISO8601Duration = (duration: string) => {
 export const getHealthVideos = async (req: Request, res: Response): Promise<void> => {
   try {
     const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!apiKey) {
-      res.status(503).json({ error: "YouTube API key not configured." });
-      return;
-    }
 
     const userId = (req as any).user?.id;
-    if (!userId) {
-      res.json({ videos: [] });
-      return;
-    }
-
-    const patient = await prisma.patient.findUnique({
+    let patient = userId ? await prisma.patient.findUnique({
       where: { userId }
-    });
+    }) : null;
 
     if (!patient) {
-      res.json({ videos: [] });
-      return;
+      patient = await prisma.patient.findFirst();
     }
 
-    // 1. Fetch only explicitly assigned HealthTopics for this patient
-    const patientTopics = await prisma.patientHealthTopic.findMany({
+    // 1. Fetch explicitly assigned HealthTopics for this patient if available
+    let patientTopics = patient ? await prisma.patientHealthTopic.findMany({
       where: { patientId: patient.id },
       include: { healthTopic: true }
-    });
-
-    if (patientTopics.length === 0) {
-      res.json({ videos: [] });
-      return;
-    }
+    }) : [];
 
     const topicIds = patientTopics.map(pt => pt.healthTopicId);
 
-    // 2. Query APPROVED videos matching those topics
-    const dbVideos = await prisma.healthVideo.findMany({
-      where: {
-        status: VideoStatus.APPROVED,
-        enabled: true,
-        durationSeconds: { gte: 5, lte: 10 },
-        topics: {
-          some: { topicId: { in: topicIds } }
-        }
-      },
-      orderBy: [
-        { displayOrder: 'desc' },
-        { createdAt: 'desc' }
-      ],
-      take: 20
-    });
+    // 2. Query APPROVED videos matching those topics (or all approved videos if none)
+    let dbVideos = [];
+    if (topicIds.length > 0) {
+      dbVideos = await prisma.healthVideo.findMany({
+        where: {
+          status: VideoStatus.APPROVED,
+          enabled: true,
+          topics: {
+            some: { topicId: { in: topicIds } }
+          }
+        },
+        orderBy: [
+          { displayOrder: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: 20
+      });
+    }
+
+    // Fallback: If no topic-specific videos matched, return all approved videos
+    if (dbVideos.length === 0) {
+      dbVideos = await prisma.healthVideo.findMany({
+        where: {
+          status: VideoStatus.APPROVED,
+          enabled: true,
+        },
+        orderBy: [
+          { displayOrder: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: 20
+      });
+    }
 
     // 3. Format Response
-    const formattedVideos = dbVideos.map(v => {
-      // Find the first assigned topic that matches this video for UI categorization
-      return {
-        id: v.youtubeVideoId,
-        title: v.title,
-        channelTitle: v.channelName,
-        duration: v.durationSeconds,
-        personalized: true
-      };
-    });
+    const formattedVideos = dbVideos.map(v => ({
+      id: v.youtubeVideoId,
+      title: v.title,
+      channelTitle: v.channelName,
+      duration: v.durationSeconds || 10,
+      personalized: topicIds.length > 0
+    }));
 
     // Deduplicate (just in case)
     const uniqueMap = new Map();
@@ -89,7 +88,8 @@ export const getHealthVideos = async (req: Request, res: Response): Promise<void
 
     res.json({ videos: finalVideos });
 
-    // 4. Discovery Layer (Background)
+    // 4. Discovery Layer (Background - only if API key is present)
+    if (!apiKey) return;
     const topicsToDiscover = [];
     for (const pt of patientTopics) {
       const topic = pt.healthTopic;

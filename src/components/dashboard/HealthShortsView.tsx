@@ -17,9 +17,36 @@ interface VideoMetadata {
   duration: number;
 }
 
+const FALLBACK_VIDEOS: VideoMetadata[] = [
+  { id: 'xhqI5Mt-gc8', title: 'Benefits of Drinking Water Daily', channelTitle: 'Health Coach', category: 'Hydration', icon: '💧', duration: 10 },
+  { id: 'dzHlPszxGM0', title: 'Why You Need More Water', channelTitle: 'Wellness Daily', category: 'Hydration', icon: '💧', duration: 10 },
+  { id: 'THuKHYzfeYc', title: 'Hydration Health Tips', channelTitle: 'Doctor Tips', category: 'Hydration', icon: '💧', duration: 10 },
+  { id: 'UNH1wmBkBCQ', title: 'Healthy Sleep Tips', channelTitle: 'Sleep Foundation', category: 'Sleep Health', icon: '🌙', duration: 10 },
+  { id: 'jge1zsyI-Yk', title: 'How to Sleep Better', channelTitle: 'Wellness Daily', category: 'Sleep Health', icon: '🌙', duration: 10 },
+  { id: 'Ao1tzPTm-40', title: 'Morning Exercise Routine', channelTitle: 'Fitness Pro', category: 'Fitness', icon: '🏃', duration: 10 },
+  { id: '4eBEAsMGLFA', title: 'Healthy Food Diet', channelTitle: 'Nutrition Expert', category: 'Nutrition', icon: '🥗', duration: 10 },
+  { id: 'SNOknWXvIL4', title: 'Nutrition Basics', channelTitle: 'Health Coach', category: 'Nutrition', icon: '🥗', duration: 10 },
+  { id: '1v6R_46lQ7g', title: 'Balanced Diet Guide', channelTitle: 'Doctor Tips', category: 'Nutrition', icon: '🥗', duration: 10 },
+  { id: 'p706o40Qz8Q', title: 'Quick Morning Stretches', channelTitle: 'Fitness Pro', category: 'Fitness', icon: '🏃', duration: 10 },
+];
+
+const deriveCategoryAndIcon = (title: string = '') => {
+  const lower = title.toLowerCase();
+  if (lower.includes('water') || lower.includes('hydration') || lower.includes('drink')) {
+    return { category: 'Hydration', icon: '💧' };
+  }
+  if (lower.includes('sleep') || lower.includes('rest') || lower.includes('routine')) {
+    return { category: 'Sleep Health', icon: '🌙' };
+  }
+  if (lower.includes('exercise') || lower.includes('stretch') || lower.includes('workout') || lower.includes('active')) {
+    return { category: 'Fitness', icon: '🏃' };
+  }
+  return { category: 'Nutrition & Diet', icon: '🥗' };
+};
+
 export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) => {
   const [muted, setMuted] = useState(true);
-  const [videos, setVideos] = useState<VideoMetadata[]>([]);
+  const [videos, setVideos] = useState<VideoMetadata[]>(FALLBACK_VIDEOS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
@@ -28,25 +55,42 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({ onClose }) =
   const iframeRefs = useRef<(HTMLIFrameElement | null)[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchVideos = async () => {
       try {
         setLoading(true);
         setError(null);
         const response = await api.get('/health-videos') as any;
-        const videoList = response.data?.videos || response.videos;
-        if (videoList && Array.isArray(videoList)) {
-          setVideos(videoList);
-        } else {
-          setVideos([]);
+        const videoList = response.data?.videos || response.videos || (Array.isArray(response) ? response : []);
+        if (isMounted) {
+          if (videoList && Array.isArray(videoList) && videoList.length > 0) {
+            const mapped = videoList.map((v: any) => {
+              const derived = deriveCategoryAndIcon(v.title);
+              return {
+                id: v.id || v.youtubeVideoId,
+                title: v.title,
+                channelTitle: v.channelTitle || v.channelName || 'Health Expert',
+                category: v.category || derived.category,
+                icon: v.icon || derived.icon,
+                duration: v.duration || v.durationSeconds || 10,
+              };
+            });
+            setVideos(mapped);
+          } else {
+            setVideos(FALLBACK_VIDEOS);
+          }
         }
       } catch (err: any) {
-        console.error("Failed to fetch health videos", err);
-        setError(language === 'ta' ? "சுகாதார வீடியோக்கள் தற்போது கிடைக்கவில்லை. பிறகு முயற்சிக்கவும்." : "Health videos are temporarily unavailable. Please try again later.");
+        console.warn("Backend video fetch fallback to curated shorts:", err);
+        if (isMounted) {
+          setVideos(FALLBACK_VIDEOS);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchVideos();
+    return () => { isMounted = false; };
   }, [language]);
 
   useEffect(() => {
