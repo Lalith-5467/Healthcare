@@ -22,9 +22,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         title={t('goToHome', 'Go to Home')}
         className="flex items-center gap-2.5 overflow-hidden select-none text-left cursor-pointer group hover:opacity-90 transition-opacity"
       >
-        {/* ECG ACTIVITY ICON WITH TEAL BACKGROUND */}
-        <div className="relative shrink-0 flex items-center justify-center w-9 h-9 rounded-2xl bg-[#00a896] text-white shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform">
-          <Activity className="w-5 h-5 text-white stroke-[2.5]" />
+        {/* ECG ACTIVITY ICON WITH TEAL BACKGROUND - SQUARE SHAPE MATCHING LANDING PAGE */}
+        <div className="relative shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-[#00a896] text-white shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+          <Activity className="w-6 h-6 text-white stroke-[2.5]" />
         </div>
 
         {/* BRAND NAME & SUBTITLE */}

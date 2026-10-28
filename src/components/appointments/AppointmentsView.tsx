@@ -101,6 +101,11 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             MOCK_DOCTORS.find((d) => d.id === item.doctorId || d.name === item.doctor?.fullName)?.photoUrl ||
             MOCK_DOCTORS[0]?.photoUrl;
           const dObj = new Date(item.appointmentDate);
+          const cancellationTimestamp = item.updatedAt ? new Date(item.updatedAt) : new Date();
+          const cancellationDateStr = !isNaN(cancellationTimestamp.getTime())
+            ? cancellationTimestamp.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
           return {
             id: item.id,
             doctorId: item.doctorId,
@@ -118,6 +123,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
             fee: Number(item.fee) || 750,
             meetingLink: item.meetingLink,
             notes: item.notes,
+            cancellationDate: item.status === 'CANCELLED' ? (item.cancellationDate || cancellationDateStr) : undefined,
+            cancellationReason: item.cancellationReason || undefined,
           };
         });
         setAppointments(mapped);
@@ -141,6 +148,19 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   useEffect(() => {
     loadRequests();
     fetchLiveAppointments();
+
+    // Check if user clicked "Book" on doctor from landing page prior to login
+    const pendingDoc = localStorage.getItem('pending_booking_doctor');
+    if (pendingDoc) {
+      try {
+        const parsed = JSON.parse(pendingDoc);
+        if (parsed && parsed.name) {
+          setSelectedDoctorForBooking(parsed);
+          setBookingModalOpen(true);
+        }
+      } catch {}
+      localStorage.removeItem('pending_booking_doctor');
+    }
 
     const handleUpdate = () => {
       loadRequests();
@@ -242,65 +262,29 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
   const handleConfirmNewBooking = async (newApt: Partial<Appointment>) => {
     try {
+      let appointmentDateIso = new Date().toISOString();
+      if (newApt.date) {
+        const parsed = new Date(newApt.date);
+        if (!isNaN(parsed.getTime())) {
+          appointmentDateIso = parsed.toISOString();
+        }
+      }
+
       const res = await appointmentApi.createAppointment({
         doctorId: newApt.doctorId || 'DOC-101',
-        appointmentDate: new Date().toISOString(),
+        appointmentDate: appointmentDateIso,
         slotTime: newApt.time || '10:30 AM',
-        type: newApt.type === 'Video' ? 'VIDEO' : 'IN_PERSON',
+        type: newApt.type === 'In-Person' ? 'IN_PERSON' : 'VIDEO',
         reason: newApt.reason || 'General Consultation',
       });
 
       if (res && res.data) {
         await fetchLiveAppointments();
         showToast(`✓ Appointment booked with ${newApt.doctorName || 'doctor'}`);
-        return;
       }
-    } catch (err) {
-      console.warn('Backend appointment creation error, persisting locally:', err);
-    }
-    const created: Appointment = {
-      id: newApt.id || `APT-2026-${Math.floor(10000 + Math.random() * 90000)}`,
-      doctorId: newApt.doctorId || 'DOC-101',
-      doctorName: newApt.doctorName || 'Dr. Rajesh Kumar',
-      doctorPhoto: newApt.doctorPhoto || MOCK_DOCTORS[0].photoUrl,
-      speciality: newApt.speciality || 'General Physician',
-      date: newApt.date || '23 Aug 2026',
-      time: newApt.time || '10:30 AM',
-      timestamp: newApt.timestamp || Date.now() + 86400000,
-      type: newApt.type || 'Video',
-      status: 'Confirmed',
-      hospital: newApt.hospital || 'Apollo Hospital',
-      fee: newApt.fee || 500,
-      reason: newApt.reason
-    };
-
-    try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doctorId: created.doctorId,
-          date: created.date,
-          time: created.time,
-          type: created.type,
-          reason: created.reason,
-          patientName: _user?.name
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Server returned an error');
-      }
-      
-      // Only proceed with local save if backend succeeded
-      const updated = [created, ...appointments];
-      saveAppointments(updated);
-      showToast(`✓ Appointment booked with ${created.doctorName}`);
-      
     } catch (e: any) {
       console.error('Failed to sync appointment with backend', e);
-      showToast(`❌ Booking Failed: ${e.message}`);
+      showToast(`❌ Booking Failed: ${e?.message || 'Server error occurred'}`);
     }
   };
 
@@ -330,23 +314,32 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
   const handleConfirmCancel = async (aptId: string, reason: string) => {
     try {
-      await appointmentApi.cancelAppointment(aptId, reason);
+      const res = await appointmentApi.cancelAppointment(aptId, reason);
+      const cancellationDateStr = res?.data?.updatedAt
+        ? new Date(res.data.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
       await fetchLiveAppointments();
-    } catch {
-      const updated = appointments.map((apt) => {
-        if (apt.id === aptId) {
-          return {
-            ...apt,
-            status: 'Cancelled' as const,
-            cancellationDate: '24 Aug 2026',
-            cancellationReason: reason
-          };
-        }
-        return apt;
-      });
-      saveAppointments(updated);
+
+      // Ensure local state reflects cancellation with the authentic cancellation date
+      setAppointments((prev) =>
+        prev.map((apt) => {
+          if (apt.id === aptId) {
+            return {
+              ...apt,
+              status: 'Cancelled' as const,
+              cancellationDate: cancellationDateStr,
+              cancellationReason: reason,
+            };
+          }
+          return apt;
+        })
+      );
+      showToast('✓ Appointment cancelled');
+    } catch (err: any) {
+      console.error('Failed to cancel appointment on backend:', err);
+      showToast(`❌ Cancellation Failed: ${err?.message || 'Could not cancel appointment'}`);
     }
-    showToast('✓ Appointment cancelled');
   };
 
   const handleSaveReminder = (aptId: string, offset: string) => {
@@ -401,19 +394,21 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-7 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader

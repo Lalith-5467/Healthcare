@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { config } from './config/env';
 import apiRouter from './routes';
 import { errorHandler } from './middleware/errorHandler';
@@ -32,6 +33,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+
 // Root Gateway Route Handler
 app.get('/', (req: Request, res: Response) => {
   const acceptsHtml = req.accepts(['html', 'json']) === 'html';
@@ -54,7 +58,7 @@ app.use('/api', apiRouter);
 // 404 Handler (Redirect browser navigation to frontend app, return JSON for API requests)
 app.use((req: Request, res: Response) => {
   const acceptsHtml = req.accepts(['html', 'json']) === 'html';
-  if (acceptsHtml && !req.path.startsWith('/api')) {
+  if (acceptsHtml && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
     const frontendBase = config.clientUrl || 'http://localhost:3000';
     return res.redirect(`${frontendBase}${req.originalUrl}`);
   }

@@ -7,13 +7,13 @@ import {
   ChevronRight, 
   Star, 
   MapPin, 
-  Sparkles,
   Stethoscope,
   ShieldCheck
 } from 'lucide-react';
 
 interface DoctorSectionProps {
-  onOpenDoctorPortal: () => void;
+  onOpenDoctorPortal: (doctor?: any) => void;
+  onViewAllDoctors?: () => void;
 }
 
 interface DoctorCard {
@@ -31,7 +31,7 @@ interface DoctorCard {
   badge: string;
 }
 
-export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal }) => {
+export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal, onViewAllDoctors }) => {
   const doctors: DoctorCard[] = [
     {
       id: 'dr-1',
@@ -193,11 +193,6 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
         
         {/* CENTERED SECTION HEADER */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 text-xs font-black uppercase tracking-wider font-mono">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Certified Healthcare Specialists</span>
-          </div>
-          
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
             Meet Our Leading Doctors
           </h2>
@@ -393,9 +388,9 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenDoctorPortal();
+                        onOpenDoctorPortal(doctor);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 active:scale-95 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-black text-xs text-white bg-gradient-to-r from-[#00a896] to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 active:scale-95 transition-all cursor-pointer"
                       title={`Book Consultation with ${doctor.name}`}
                     >
                       <Calendar className="w-3.5 h-3.5" />
@@ -445,7 +440,13 @@ export const DoctorSection: React.FC<DoctorSectionProps> = ({ onOpenDoctorPortal
           </div>
 
           <button 
-            onClick={onOpenDoctorPortal}
+            onClick={() => {
+              if (onViewAllDoctors) {
+                onViewAllDoctors();
+              } else {
+                onOpenDoctorPortal();
+              }
+            }}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-black text-slate-800 dark:text-slate-100 transition-all shadow-xs hover:shadow group cursor-pointer"
           >
             <span>View All 50+ Doctors</span>

@@ -556,12 +556,34 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
       }
     });
 
-    // 2. Fallback polling every 2.5 seconds
+    // 2. Subscribe to BroadcastChannel for immediate cross-tab approvals
+    let bc: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        bc = new BroadcastChannel('health_share_channel');
+        bc.onmessage = (evt) => {
+          if (!isSubscribed) return;
+          const msg = evt.data;
+          if (msg?.status === 'APPROVED' || msg?.type === 'health-share:request-approved') {
+            if (!submittedRequestId || msg.requestId === submittedRequestId) {
+              setRequestStatus('APPROVED');
+            }
+          } else if (msg?.status === 'REJECTED' || msg?.type === 'health-share:request-rejected') {
+            if (!submittedRequestId || msg.requestId === submittedRequestId) {
+              setRequestStatus('REJECTED');
+            }
+          }
+        };
+      } catch {}
+    }
+
+    // 3. Fallback polling every 2.5 seconds
     const intervalId = setInterval(verifyApprovalStatus, 2500);
 
     return () => {
       isSubscribed = false;
       unsubscribeSocket();
+      bc?.close();
       clearInterval(intervalId);
     };
   }, [stage, submittedRequestId, validationData]);
@@ -675,10 +697,75 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         purpose: selectedPurpose,
         permissionScope: selectedScopes,
       });
-      const reqId = res?.requestId || res?.request?.id || res?.id || null;
+      const reqId = res?.requestId || res?.request?.id || res?.id || `req-${Date.now()}`;
       setSubmittedRequestId(reqId);
       setRequestStatus('PENDING');
       setStage('WAITING_APPROVAL');
+
+      // Sync to localStorage and BroadcastChannel so patient portal in any open tab sees it immediately
+      const doctorUser = validationData.doctor || {};
+      const newRequestItem = {
+        id: reqId,
+        doctorId: doctorUser.id || 'doc-1',
+        doctorName: doctorUser.fullName || 'Dr. Arjun Kumar',
+        doctorHospital: doctorUser.hospital || 'Apollo Multispeciality Hospitals, Chennai',
+        doctorSpeciality: doctorUser.speciality || 'General Medicine',
+        doctorLicense: doctorUser.licenseNumber || 'TN-MED-48291',
+        doctorQualification: doctorUser.qualification || 'MBBS, MD',
+        purpose: selectedPurpose,
+        permissionScope: selectedScopes,
+        status: 'PENDING' as const,
+        requestedAt: new Date().toISOString(),
+      };
+
+      try {
+        const existing = JSON.parse(localStorage.getItem('pending_patient_access_requests') || '[]');
+        const filtered = Array.isArray(existing) ? existing.filter((x: any) => x.id !== reqId) : [];
+        filtered.unshift(newRequestItem);
+        localStorage.setItem('pending_patient_access_requests', JSON.stringify(filtered));
+
+        // Add to medicare_notifications so it shows in the notification bell immediately
+        const notifs = JSON.parse(localStorage.getItem('medicare_notifications') || '[]');
+        notifs.unshift({
+          id: reqId,
+          title: '🔔 Medical Record Access Request',
+          message: `${doctorUser.fullName || 'Doctor'} has requested access to your health records for ${selectedPurpose}.`,
+          type: 'ACCESS_REQUEST',
+          category: 'Clinical Access',
+          relatedModule: 'health-share',
+          createdAt: new Date().toISOString(),
+          isRead: false,
+        });
+        localStorage.setItem('medicare_notifications', JSON.stringify(notifs));
+
+        // Broadcast cross-tab event
+        if (typeof BroadcastChannel !== 'undefined') {
+          const crossBc = new BroadcastChannel('health_share_channel');
+          crossBc.postMessage({
+            type: 'health-share:request-created',
+            event: 'health-share:request-created',
+            requestId: reqId,
+            status: 'PENDING',
+            data: {
+              id: reqId,
+              requestId: reqId,
+              doctor: doctorUser,
+              doctorName: doctorUser.fullName,
+              doctorHospital: doctorUser.hospital,
+              doctorSpeciality: doctorUser.speciality,
+              purpose: selectedPurpose,
+              permissionScope: selectedScopes,
+              requestedAt: new Date().toISOString(),
+            },
+          });
+          crossBc.close();
+        }
+
+        window.dispatchEvent(new CustomEvent('health-share:request-created', { detail: newRequestItem }));
+        window.dispatchEvent(new Event('notifications_updated'));
+      } catch (e) {
+        console.warn('Cross-tab sync error:', e);
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to send access request to patient');
     } finally {
@@ -970,7 +1057,9 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.doc_name", "Doctor Name")}</span>
-                  <span className="font-black text-slate-900 dark:text-white">{validationData.doctor.fullName}</span>
+                  <span className="font-black text-slate-900 dark:text-white">
+                    {validationData.doctor.fullName?.startsWith('Dr') ? validationData.doctor.fullName : `Dr. ${validationData.doctor.fullName}`}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px] font-bold">{t("doctor.scan.doc_id", "Doctor / License ID")}</span>
@@ -1102,7 +1191,9 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
           <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-left space-y-2.5 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-400 font-bold">{t("doctor.scan.requested_by", "Requested by:")}</span>
-              <span className="font-black text-slate-900 dark:text-white">{validationData.doctor.fullName}</span>
+              <span className="font-black text-slate-900 dark:text-white">
+                {validationData.doctor.fullName?.startsWith('Dr') ? validationData.doctor.fullName : `Dr. ${validationData.doctor.fullName}`}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400 font-bold">{t("doctor.scan.purpose", "Purpose:")}</span>

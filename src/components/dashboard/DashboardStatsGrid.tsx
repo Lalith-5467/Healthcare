@@ -7,6 +7,7 @@ import {
 
 interface DashboardStatsGridProps {
   onNavigate: (id: string) => void;
+  isShortsOpen?: boolean;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -15,7 +16,7 @@ interface DashboardStatsGridProps {
    ───────────────────────────────────────────────────────────── */
 
 const CheckupArt = () => (
-  <svg width="56" height="56" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
+  <svg width="48" height="48" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
     {/* Clipboard */}
     <rect x="16" y="18" width="50" height="62" rx="9" fill="white" fillOpacity=".9" stroke="#c084fc" strokeWidth="2.5"/>
     <rect x="30" y="11" width="26" height="12" rx="5" fill="#a855f7"/>
@@ -32,7 +33,7 @@ const CheckupArt = () => (
 );
 
 const InsuranceArt = () => (
-  <svg width="56" height="56" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
+  <svg width="48" height="48" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
     <defs>
       <linearGradient id="ig1" x1="12" y1="8" x2="78" y2="84" gradientUnits="userSpaceOnUse">
         <stop stopColor="#93c5fd"/>
@@ -51,30 +52,38 @@ const InsuranceArt = () => (
 );
 
 const FamilyArt = () => (
-  <div className="flex items-center -space-x-2.5 shrink-0">
-    {(
-      [
-        { emoji: '👨', from: '#60a5fa', to: '#2563eb' },
-        { emoji: '👩', from: '#f472b6', to: '#db2777' },
-        { emoji: '👦', from: '#fbbf24', to: '#d97706' },
-      ] as { emoji: string; from: string; to: string }[]
-    ).map((m, i) => (
+  <div className="relative w-[48px] h-[48px] shrink-0 flex items-center justify-center">
+    <div className="relative w-[44px] h-[44px]">
       <div
-        key={i}
-        style={{ background: `linear-gradient(135deg, ${m.from}, ${m.to})`, zIndex: 3 - i }}
-        className="relative w-9 h-9 rounded-full border-[2.5px] border-white shadow-md flex items-center justify-center text-[17px] leading-none"
+        style={{ background: 'linear-gradient(135deg, #60a5fa, #2563eb)', zIndex: 3 }}
+        className="absolute top-0 left-0 w-6 h-6 rounded-full border-[1.5px] border-white shadow-sm flex items-center justify-center text-[11px] leading-none"
       >
-        {m.emoji}
+        👨
       </div>
-    ))}
-    <div className="relative w-7 h-7 rounded-full border-[2.5px] border-white bg-emerald-100 shadow flex items-center justify-center text-[9px] font-black text-emerald-700" style={{ zIndex: 0 }}>
-      +1
+      <div
+        style={{ background: 'linear-gradient(135deg, #f472b6, #db2777)', zIndex: 2 }}
+        className="absolute top-0 right-0 w-6 h-6 rounded-full border-[1.5px] border-white shadow-sm flex items-center justify-center text-[11px] leading-none"
+      >
+        👩
+      </div>
+      <div
+        style={{ background: 'linear-gradient(135deg, #fbbf24, #d97706)', zIndex: 1 }}
+        className="absolute bottom-0 left-0.5 w-6 h-6 rounded-full border-[1.5px] border-white shadow-sm flex items-center justify-center text-[11px] leading-none"
+      >
+        👦
+      </div>
+      <div
+        style={{ zIndex: 0 }}
+        className="absolute bottom-0.5 right-0.5 w-5 h-5 rounded-full border-[1.5px] border-white bg-emerald-100 shadow flex items-center justify-center text-[8px] font-black text-emerald-700"
+      >
+        +1
+      </div>
     </div>
   </div>
 );
 
 const AppointmentsArt = () => (
-  <svg width="56" height="56" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
+  <svg width="48" height="48" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
     <defs>
       <linearGradient id="ag1" x1="8" y1="16" x2="70" y2="80" gradientUnits="userSpaceOnUse">
         <stop stopColor="#a5b4fc"/>
@@ -97,7 +106,7 @@ const AppointmentsArt = () => (
 );
 
 const MedicinesArt = () => (
-  <svg width="56" height="56" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
+  <svg width="48" height="48" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
     {/* Medicine bottle */}
     <rect x="44" y="26" width="36" height="52" rx="9" fill="white" fillOpacity=".95" stroke="#f59e0b" strokeWidth="2.5"/>
     <rect x="48" y="16" width="28" height="12" rx="5" fill="#f59e0b"/>
@@ -113,7 +122,7 @@ const MedicinesArt = () => (
 );
 
 const HealthScoreArt = () => (
-  <svg width="56" height="56" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
+  <svg width="48" height="48" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="shrink-0 drop-shadow">
     {/* Background ring */}
     <circle cx="48" cy="48" r="38" stroke="#d1fae5" strokeWidth="10"/>
     {/* Progress ring — 85% */}
@@ -289,10 +298,69 @@ import { useLanguage } from '../../context/LanguageContext';
    COMPONENT — grid/padding/gap UNCHANGED
    ───────────────────────────────────────────────────────────── */
 
-export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNavigate }) => {
+export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ 
+  onNavigate,
+  isShortsOpen = false
+}) => {
   const { t } = useLanguage();
   const [items, setItems] = useState<StatItem[]>(initialStats);
   const [isHovered, setIsHovered] = useState(false);
+  const sectionRef = React.useRef<HTMLElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const updateWidth = () => {
+      if (el.clientWidth > 0) {
+        setContainerWidth(el.clientWidth);
+      }
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const getGridColsClass = () => {
+    if (!isShortsOpen) {
+      return 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6';
+    }
+    if (containerWidth >= 720) {
+      return 'grid-cols-3';
+    }
+    if (containerWidth >= 460) {
+      return 'grid-cols-2';
+    }
+    if (containerWidth > 0) {
+      return 'grid-cols-1';
+    }
+    return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+  };
+
+  const getGridStyle = (): React.CSSProperties | undefined => {
+    if (!isShortsOpen) return undefined;
+    if (containerWidth >= 720) {
+      return { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' };
+    }
+    if (containerWidth >= 460) {
+      return { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' };
+    }
+    if (containerWidth > 0) {
+      return { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' };
+    }
+    return undefined;
+  };
 
   useEffect(() => {
     dashboardApi.getStats().then((res) => {
@@ -373,7 +441,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
       case 'family': return `+ 3 ${t('card.linked', 'Linked')}`;
       case 'appointments': return `📅 2 ${t('card.upcoming', 'Upcoming')}`;
       case 'medicines': return `✓ 100% ${t('card.on_time', 'On Time')}`;
-      case 'analytics': return `↑ +4 ${t('card.health_score', 'pts')}`;
+      case 'analytics': return `↑ +4 ${t('card.pts', 'pts')}`;
       default: return original;
     }
   };
@@ -392,11 +460,20 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
 
   return (
     /* ── ORIGINAL: grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 — UNCHANGED ── */
-    <section onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} className="font-sans">
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+    <section 
+      ref={sectionRef} 
+      onMouseEnter={() => setIsHovered(true)} 
+      onMouseLeave={() => setIsHovered(false)} 
+      className="font-sans w-full"
+    >
+      <div 
+        className={`grid gap-3 transition-all duration-300 ${getGridColsClass()}`}
+        style={getGridStyle()}
+      >
         {items.map((s) => {
-          const Icon = s.icon;
           const FooterIcon = s.footerIcon;
+          const translatedVal = translateStatValue(s.value);
+          const isLongValue = translatedVal.length > 4;
 
           return (
             <motion.div
@@ -407,7 +484,7 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
               whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate(s.id)}
               /* ── ORIGINAL: rounded-2xl, overflow-hidden, cursor-pointer — UNCHANGED ── */
-              className="relative overflow-hidden rounded-2xl cursor-pointer group transition-shadow duration-200"
+              className="relative overflow-hidden rounded-2xl cursor-pointer group transition-shadow duration-200 flex flex-col h-full"
             >
               {/* Light mode background */}
               <div 
@@ -423,65 +500,76 @@ export const DashboardStatsGrid: React.FC<DashboardStatsGridProps> = ({ onNaviga
               <div className="pointer-events-none absolute -top-6 -right-6 w-32 h-32 rounded-full hidden dark:block opacity-[0.15]"
                 style={{ background: `radial-gradient(circle, ${s.accentColor} 0%, transparent 70%)` }} />
 
-              {/* ── ORIGINAL inner wrapper: p-4, flex-col, gap-2.5 — UNCHANGED ── */}
-              <div className="relative z-10 p-4 flex flex-col gap-2.5">
+              {/* ── Inner wrapper: px-3.5 py-3.5 sm:p-4, flex-col, h-full, justify-between ── */}
+              <div className="relative z-10 px-3.5 py-3.5 sm:p-4 flex flex-col justify-between flex-1 gap-2">
 
-                {/* Row 1 — Icon circle + View → */}
-                <div className="flex items-center justify-between">
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-slate-900 dark:text-white flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
-                    style={{ background: s.iconGradient, boxShadow: s.iconShadow }}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </div>
-
+                {/* 1. Header: View Details → */}
+                <div className="flex items-center justify-end h-4 min-w-0">
                   <button
+                    type="button"
                     onClick={e => { e.stopPropagation(); onNavigate(s.id); }}
-                    className="flex items-center gap-0.5 text-[11px] font-bold group-hover:opacity-75 transition-opacity"
+                    className="flex items-center gap-0.5 text-[10.5px] sm:text-[11px] font-bold group-hover:opacity-75 transition-opacity whitespace-nowrap pt-0.5 cursor-pointer"
                     style={{ color: s.accentColor }}
                   >
-                    {t('apt.view_details', 'View')} <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    <span className="leading-tight">{t('apt.view_details', 'View')}</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
                   </button>
                 </div>
 
-                {/* Row 2 — Title · Value · Art */}
-                <div className="flex items-center justify-between gap-1">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight truncate">
-                      {translateStatTitle(s.id, s.title)}
-                    </p>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                      <span className="text-[1.6rem] font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                        {translateStatValue(s.value)}
+                {/* 2. Card Label / Title */}
+                <div className="min-h-[1.75rem] flex items-center min-w-0">
+                  <h3 className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-snug break-words [overflow-wrap:anywhere] line-clamp-2">
+                    {translateStatTitle(s.id, s.title)}
+                  </h3>
+                </div>
+
+                {/* 3. Main Value + Right-side Icon */}
+                <div className="flex items-center justify-between gap-2 sm:gap-2.5 min-w-0 h-[48px]">
+                  {/* Left: Main Value */}
+                  <div className="flex-1 min-w-0 flex items-baseline gap-1">
+                    <span
+                      className={`${
+                        isLongValue
+                          ? 'text-[1.05rem] sm:text-[1.12rem] leading-tight'
+                          : 'text-[1.5rem] sm:text-[1.6rem] leading-none'
+                      } font-black text-slate-900 dark:text-white tracking-tight break-words [overflow-wrap:anywhere]`}
+                    >
+                      {translatedVal}
+                    </span>
+                    {s.unit && (
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+                        {s.unit}
                       </span>
-                      {s.unit && (
-                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 dark:text-slate-500">{s.unit}</span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  {/* Illustration — scales gently on hover, no layout shift */}
-                  <div className="shrink-0 group-hover:scale-[1.06] transition-transform duration-300">
+
+                  {/* Right: Icon Area — dedicated 48px column */}
+                  <div className="shrink-0 flex-[0_0_48px] w-[48px] h-[48px] flex items-center justify-center group-hover:scale-[1.06] transition-transform duration-300">
                     {s.art}
                   </div>
                 </div>
 
-                {/* Row 3 — Badge + subtitle */}
-                <div className="flex flex-col gap-1">
-                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${s.badgeCls}`}>
+                {/* 4. Status Badge */}
+                <div className="min-h-[1.5rem] flex items-center min-w-0">
+                  <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full max-w-full break-words leading-tight ${s.badgeCls}`}>
                     {translateStatBadge(s.id, s.badgeText)}
                   </span>
-                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate">
+                </div>
+
+                {/* 5. Description */}
+                <div className="min-h-[1.75rem] flex items-start min-w-0">
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 break-words leading-tight line-clamp-2">
                     {translateStatSubtitle(s.id, s.subtitle)}
                   </p>
                 </div>
 
-                {/* Divider */}
+                {/* 6. Divider */}
                 <div className="border-t border-black/[.06] dark:border-white/[.06]" />
 
-                {/* Row 4 — Footer info pill */}
-                <div className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 border ${s.footerBg} shadow-sm`}>
-                  <FooterIcon className={`w-3 h-3 shrink-0 ${s.footerIconCls}`} />
-                  <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate">
+                {/* 7. Bottom Message */}
+                <div className={`flex items-start gap-1.5 rounded-xl px-2.5 py-1.5 border ${s.footerBg} shadow-sm min-w-0 min-h-[2rem]`}>
+                  <FooterIcon className={`w-3 h-3 shrink-0 mt-0.5 ${s.footerIconCls}`} />
+                  <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 break-words leading-snug min-w-0 flex-1">
                     {translateStatFooter(s.id, s.footerText)}
                   </span>
                 </div>

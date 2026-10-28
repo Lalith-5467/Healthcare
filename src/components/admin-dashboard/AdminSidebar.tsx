@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, UserCheck, Stethoscope, HeartPulse, Pill, 
   HeartHandshake, ShieldCheck, ShieldAlert, KeyRound, FileText, 
   ShoppingBag, Calendar, Activity, Bell, FileSpreadsheet, 
-  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock, Video
+  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock, Video, Sliders
 } from 'lucide-react';
 import { Logo } from '../ui/Logo';
+import { dashboardApi } from '../../services/dhrApis';
 
 interface AdminSidebarProps {
   activeId: string;
@@ -13,6 +14,7 @@ interface AdminSidebarProps {
   currentRole: 'Admin' | 'Super Admin';
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  stats?: any;
 }
 
 interface NavItem {
@@ -34,22 +36,98 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeId,
   onSelectNav,
   currentRole,
-  isCollapsed
+  isCollapsed,
+  stats: propStats
 }) => {
   const isSuperAdmin = currentRole === 'Super Admin';
+  const [liveStats, setLiveStats] = useState<any>(propStats || null);
+
+  useEffect(() => {
+    if (propStats) {
+      setLiveStats(propStats);
+    }
+  }, [propStats]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveStats = () => {
+      dashboardApi.getStats()
+        .then((res) => {
+          if (isMounted && res && res.data) {
+            setLiveStats(res.data);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchLiveStats();
+
+    const handleUpdate = () => fetchLiveStats();
+    window.addEventListener('admin_stats_updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('admin_stats_updated', handleUpdate);
+    };
+  }, []);
+
+  const totalUsersCount = liveStats?.totalUsers;
+  const roles = liveStats?.roleDistribution || {};
+  const patientCount = roles.PATIENT ?? liveStats?.totalPatients;
+  const doctorCount = roles.DOCTOR ?? liveStats?.totalDoctors;
+  const nurseCount = roles.NURSE ?? liveStats?.totalNurses;
+  const pharmacistCount = roles.PHARMACIST ?? liveStats?.totalPharmacists;
+  const caregiverCount = roles.CAREGIVER ?? liveStats?.totalCaregivers;
+  const insuranceCount = (roles.INSURANCE_PROVIDER || roles.INSURANCE) ?? liveStats?.totalInsurance;
+  const adminCount = ((roles.ADMIN || 0) + (roles.SUPER_ADMIN || 0)) || undefined;
+  const ordersCount = liveStats?.totalOrders;
 
   const SECTIONS: NavSection[] = [
     {
       title: 'Core Administration',
       items: [
         { id: 'dashboard', label: 'Dashboard Home', icon: LayoutDashboard },
-        { id: 'users', label: 'User Management', icon: Users, badge: '12.4k' },
-        { id: 'patients', label: 'Patient Registry', icon: UserCheck, badge: '8.4k' },
-        { id: 'doctors', label: 'Doctor Directory', icon: Stethoscope, badge: '1.2k' },
-        { id: 'nurses', label: 'Nurse Directory', icon: HeartPulse, badge: '1.8k' },
-        { id: 'pharmacists', label: 'Pharmacist Hub', icon: Pill },
-        { id: 'caregivers', label: 'Caregiver Roster', icon: HeartHandshake },
-        { id: 'insurance', label: 'Insurance & TPA', icon: ShieldCheck }
+        { 
+          id: 'users', 
+          label: 'User Management', 
+          icon: Users, 
+          badge: totalUsersCount !== undefined ? String(totalUsersCount) : undefined 
+        },
+        { 
+          id: 'patients', 
+          label: 'Patient Registry', 
+          icon: UserCheck, 
+          badge: patientCount !== undefined ? String(patientCount) : undefined 
+        },
+        { 
+          id: 'doctors', 
+          label: 'Doctor Directory', 
+          icon: Stethoscope, 
+          badge: doctorCount !== undefined ? String(doctorCount) : undefined 
+        },
+        { 
+          id: 'nurses', 
+          label: 'Nurse Directory', 
+          icon: HeartPulse, 
+          badge: nurseCount !== undefined ? String(nurseCount) : undefined 
+        },
+        { 
+          id: 'pharmacists', 
+          label: 'Pharmacist Hub', 
+          icon: Pill,
+          badge: (pharmacistCount !== undefined && pharmacistCount > 0) ? String(pharmacistCount) : undefined
+        },
+        { 
+          id: 'caregivers', 
+          label: 'Caregiver Roster', 
+          icon: HeartHandshake,
+          badge: (caregiverCount !== undefined && caregiverCount > 0) ? String(caregiverCount) : undefined
+        },
+        { 
+          id: 'insurance', 
+          label: 'Insurance & TPA', 
+          icon: ShieldCheck,
+          badge: (insuranceCount !== undefined && insuranceCount > 0) ? String(insuranceCount) : undefined
+        }
       ]
     },
     {
@@ -57,7 +135,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       items: [
         { id: 'medical-records', label: 'Medical Records', icon: FileText },
         { id: 'prescriptions', label: 'Prescription Control', icon: Pill },
-        { id: 'pharmacy-orders', label: 'Pharmacy Orders', icon: ShoppingBag, badge: '4 New', badgeColor: 'bg-amber-500' },
+        { 
+          id: 'pharmacy-orders', 
+          label: 'Pharmacy Orders', 
+          icon: ShoppingBag, 
+          badge: (ordersCount !== undefined && ordersCount > 0) ? String(ordersCount) : undefined 
+        },
         { id: 'appointments', label: 'Appointments Matrix', icon: Calendar },
         { id: 'vitals-monitoring', label: 'Vitals Telemetry', icon: Activity },
         { id: 'notifications-dispatch', label: 'Notifications', icon: Bell }
@@ -74,17 +157,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'Governance & Security (Super Admin)',
       isSuperAdminOnly: true,
       items: [
-        { id: 'admin-management', label: 'Admin Management', icon: Shield, superAdminOnly: true },
+        { 
+          id: 'admin-management', 
+          label: 'Admin Management', 
+          icon: Shield, 
+          superAdminOnly: true,
+          badge: (adminCount !== undefined && adminCount > 0) ? String(adminCount) : undefined
+        },
         { id: 'roles-permissions', label: 'Roles & Permissions', icon: KeyRound, superAdminOnly: true },
-        { id: 'system-config', label: 'System Configuration', icon: Server, superAdminOnly: true },
         { id: 'health-videos', label: 'Health Videos Admin', icon: Video, superAdminOnly: true },
-        { id: 'security-audit', label: 'Security & Audit Radar', icon: ShieldAlert, superAdminOnly: true, badge: 'Alerts', badgeColor: 'bg-rose-500' },
+        { id: 'security-audit', label: 'Security & Audit Radar', icon: ShieldAlert, superAdminOnly: true },
         { id: 'backup-recovery', label: 'Backup & Recovery', icon: Database, superAdminOnly: true }
       ]
     },
     {
-      title: 'System',
+      title: 'System & Configuration',
       items: [
+        { id: 'system-config', label: 'Landing Page & System Config', icon: Sliders },
         { id: 'settings', label: 'System Settings', icon: Settings }
       ]
     }
@@ -98,25 +187,20 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     >
       <div className="space-y-4">
         
-        {/* ROLE BADGE BANNER */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-950/80 to-slate-900 text-white border border-blue-800/40 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {!isCollapsed && 'Authority Node'}
-            </span>
-            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
-              isSuperAdmin ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-blue-500/20 text-cyan-300 border border-blue-500/30'
-            }`}>
-              {isSuperAdmin ? 'SUPER' : 'ADMIN'}
-            </span>
-          </div>
-          {!isCollapsed && (
+        {/* ROLE IDENTITY CARD */}
+        <div className="px-3.5 py-3 rounded-xl bg-[#00a896] text-white shadow-xs">
+          {!isCollapsed ? (
             <div>
-              <p className="text-xs font-black text-white truncate">
+              <p className="text-sm font-black text-white tracking-tight truncate">
                 {isSuperAdmin ? 'Super Admin Directorate' : 'Hospital Executive Admin'}
               </p>
-              <p className="text-[10px] text-slate-400 font-mono">ABDM Tier-1 Node</p>
+              <p className="text-xs text-teal-100/95 font-semibold truncate mt-0.5">
+                {isSuperAdmin ? 'Master System Governance' : 'Clinical Operations'}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center font-black text-xs text-white tracking-wider">
+              {isSuperAdmin ? 'SA' : 'ADM'}
             </div>
           )}
         </div>
@@ -129,25 +213,25 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <div key={sIdx} className="space-y-1">
                   {!isCollapsed && (
                     <div className="px-3 pb-1 flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         {section.title}
                       </span>
-                      <Lock className="w-3 h-3 text-slate-400" />
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
                     </div>
                   )}
                   {section.items.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => onSelectNav(item.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 dark:text-slate-600 hover:bg-rose-500/5 cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold text-slate-400 dark:text-slate-600 hover:bg-rose-500/5 cursor-pointer group"
                       title={isCollapsed ? `${item.label} (Super Admin Restricted)` : undefined}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <item.icon className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors" />
+                        <item.icon className="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-rose-500 transition-colors" />
                         {!isCollapsed && <span className="truncate">{item.label}</span>}
                       </div>
                       {!isCollapsed && (
-                        <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       )}
                     </button>
                   ))}
@@ -159,7 +243,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <div key={sIdx} className="space-y-1">
                 {!isCollapsed && (
                   <div className="px-3 pb-1">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       {section.title}
                     </span>
                   </div>
@@ -174,23 +258,29 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                       key={item.id}
                       onClick={() => onSelectNav(item.id)}
                       title={isCollapsed ? item.label : undefined}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group cursor-pointer outline-none ${
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group cursor-pointer outline-none ${
                         isActive
-                          ? 'bg-blue-600/10 text-blue-600 dark:bg-cyan-500/15 dark:text-cyan-300 font-bold border border-blue-500/20 dark:border-cyan-500/30 shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-medium'
+                          ? 'bg-[#00a896]/15 text-[#00a896] dark:text-[#2dd4bf] font-bold border border-[#00a896]/30 shadow-xs'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-medium'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                        <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${
                           isActive 
-                            ? 'text-blue-600 dark:text-cyan-400' 
+                            ? 'text-[#00a896] dark:text-[#2dd4bf]' 
                             : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
                         }`} />
                         {!isCollapsed && <span className="truncate">{item.label}</span>}
                       </div>
                       
                       {!isCollapsed && item.badge && (
-                        <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full shrink-0 text-white shadow-2xs ${item.badgeColor || 'bg-slate-700'}`}>
+                        <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full shrink-0 transition-colors ${
+                          item.badgeColor 
+                            ? `${item.badgeColor} text-white` 
+                            : isActive
+                            ? 'bg-[#00a896] text-white shadow-2xs'
+                            : 'bg-[#00a896]/10 text-[#00796b] dark:bg-[#00a896]/20 dark:text-[#2dd4bf] border border-[#00a896]/20'
+                        }`}>
                           {item.badge}
                         </span>
                       )}
@@ -206,18 +296,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       {/* FOOTER ACCREDITATION */}
       <div className="pt-3 border-t border-slate-200 dark:border-slate-800 mt-4">
         {!isCollapsed ? (
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-[#00a896] shrink-0" />
               <span className="truncate">ABDM Admin Vault</span>
             </div>
-            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               v4.9.2
             </span>
           </div>
         ) : (
           <div className="flex justify-center">
-            <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
+            <ShieldCheck className="w-4 h-4 text-[#00a896]" />
           </div>
         )}
       </div>

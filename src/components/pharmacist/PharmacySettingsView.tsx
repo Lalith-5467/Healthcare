@@ -24,15 +24,30 @@ interface PharmacySettingsViewProps {
 }
 
 export const PharmacySettingsView: React.FC<PharmacySettingsViewProps> = ({ user }) => {
-  const [storeName, setStoreName] = useState(user?.hospitalAffiliation || 'Apollo Central Pharmacy Hub');
-  const [dlNumber, setDlNumber] = useState('DL-KA-BNG-2026-89412');
+  const [storeName, setStoreName] = useState(user?.hospitalAffiliation || localStorage.getItem('pharmacist_pharmacy_name') || 'Registered Pharmacy');
+  const [dlNumber, setDlNumber] = useState('DL-TN-2026-89412');
   const [pciNumber, setPciNumber] = useState('PCI-REG-77419');
   const [gstin, setGstin] = useState('29AABCU9603R1ZM');
   const [phone, setPhone] = useState('+91 80 2234 5678');
-  const [email, setEmail] = useState(user?.email || 'dispensary@apollocentral.in');
-  const [address, setAddress] = useState('Ground Floor, OPD Block A, Apollo Hospitals, Bannerghatta Rd, Bangalore');
+  const [email, setEmail] = useState(user?.email || 'dispensary@health.com');
+  const [address, setAddress] = useState('OPD Dispensary Block, Registered Health Network');
   const [operatingHours, setOperatingHours] = useState('24 Hours / 7 Days Emergency Dispensary');
   const [saved, setSaved] = useState(false);
+
+  React.useEffect(() => {
+    import('../../services/apiClient').then(({ apiClient }) => {
+      apiClient.get<any>('/profile/me').then((res) => {
+        if (res?.data?.pharmacist) {
+          const ph = res.data.pharmacist.pharmacy || res.data.pharmacist;
+          if (ph.name || ph.pharmacyName) setStoreName(ph.name || ph.pharmacyName);
+          if (ph.address) setAddress(ph.address);
+          if (ph.licenseNumber) setDlNumber(ph.licenseNumber);
+          if (ph.phone || res.data.phoneNumber) setPhone(ph.phone || res.data.phoneNumber);
+          if (ph.email || res.data.email) setEmail(ph.email || res.data.email);
+        }
+      }).catch(() => {});
+    });
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,19 +175,21 @@ export const PharmacySettingsView: React.FC<PharmacySettingsViewProps> = ({ user
       </form>
 
       {/* FLOATING SUCCESS TOAST */}
-      <AnimatePresence>
-        {saved && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <p className="text-sm font-black">Dispensary credentials and licenses updated successfully.</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {saved && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-emerald-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <p className="text-sm font-black">Dispensary credentials and licenses updated successfully.</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

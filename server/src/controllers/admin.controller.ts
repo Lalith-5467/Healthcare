@@ -103,6 +103,7 @@ export const createUserController = async (
     const data = await AdminService.createUser({
       ...req.body,
       actorId: req.user!.id,
+      actorRole: req.user!.role,
       ipAddress: req.ip,
     });
 
@@ -126,6 +127,7 @@ export const updateUserController = async (
     const data = await AdminService.updateUser(id, {
       ...req.body,
       actorId: req.user!.id,
+      actorRole: req.user!.role,
       ipAddress: req.ip,
     });
 
@@ -152,6 +154,53 @@ export const deleteUserController = async (
       success: true,
       message: 'User deleted successfully',
       data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetUserPasswordController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { password } = req.body;
+    const data = await AdminService.resetPassword(id, password, req.user!.id, req.ip);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAuditLogsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const result = await AdminService.getAuditLogs({
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+      search: typeof req.query.search === 'string' ? req.query.search : undefined,
+      module: typeof req.query.module === 'string' ? req.query.module : undefined,
+      action: typeof req.query.action === 'string' ? req.query.action : undefined,
+      userId: typeof req.query.userId === 'string' ? req.query.userId : undefined,
+      startDate: typeof req.query.startDate === 'string' ? req.query.startDate : undefined,
+      endDate: typeof req.query.endDate === 'string' ? req.query.endDate : undefined,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result.logs,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);

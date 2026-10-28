@@ -56,6 +56,32 @@ export interface NurseAdminRecord {
   councilRegNo: string;
 }
 
+export interface PharmacistAdminRecord {
+  id: string;
+  pharmacistId: string;
+  name: string;
+  dispensary: string;
+  hospital: string;
+  email: string;
+  phone: string;
+  councilRegNo: string;
+  status: 'Active' | 'Suspended';
+  assignedOrders: number;
+}
+
+export interface CaregiverAdminRecord {
+  id: string;
+  caregiverId: string;
+  name: string;
+  specialty: string;
+  hospital: string;
+  email: string;
+  phone: string;
+  certificationId: string;
+  status: 'Active' | 'Suspended';
+  assignedPatients: number;
+}
+
 export interface PharmacyOrderAdminRecord {
   id: string;
   orderId: string;
@@ -150,6 +176,18 @@ export const INITIAL_NURSES: NurseAdminRecord[] = [
   { id: 'NUR-01', nurseId: 'RN-88421', name: 'Nurse Sarah Jenkins', department: 'Emergency & Trauma ICU', shift: 'Morning (Shift A)', email: 'sarah.nurse@hospital.in', phone: '+91 98403 45678', status: 'On Duty', assignedPatients: 8, councilRegNo: 'KNC-88421-RN' },
   { id: 'NUR-02', nurseId: 'RN-88422', name: 'Nurse Lakshmi Priya', department: 'In-Patient General Ward', shift: 'Evening (Shift B)', email: 'lakshmi.nurse@hospital.in', phone: '+91 98417 89012', status: 'On Duty', assignedPatients: 14, councilRegNo: 'TNC-77210-RN' },
   { id: 'NUR-03', nurseId: 'RN-88423', name: 'Nurse Mary D\'Souza', department: 'Cardiology Step-Down', shift: 'Night (Shift C)', email: 'mary.dsouza@hospital.in', phone: '+91 98418 90123', status: 'Off Duty', assignedPatients: 6, councilRegNo: 'MNC-99140-RN' }
+];
+
+export const INITIAL_PHARMACISTS: PharmacistAdminRecord[] = [
+  { id: 'PHARM-01', pharmacistId: 'PH-4421', name: 'Suresh Nair', dispensary: 'Central Dispensary & OPD Pharmacy', hospital: 'MediCare Central Hospital', email: 'pharmacist@apollocentral.in', phone: '+91 98404 56789', councilRegNo: 'PCI-90241-TN', status: 'Active', assignedOrders: 18 },
+  { id: 'PHARM-02', pharmacistId: 'PH-4422', name: 'Arun Kumar', dispensary: 'MedLife Express Dispensary', hospital: 'Apollo Central Hub', email: 'arun.pharma@medlife.in', phone: '+91 98419 01234', councilRegNo: 'PCI-77120-KA', status: 'Active', assignedOrders: 24 },
+  { id: 'PHARM-03', pharmacistId: 'PH-4423', name: 'Divya Krishnan', dispensary: 'Emergency Trauma Pharmacy', hospital: 'MediCare Central Hospital', email: 'divya.pharma@hospital.in', phone: '+91 98420 12345', councilRegNo: 'PCI-66290-MH', status: 'Active', assignedOrders: 12 }
+];
+
+export const INITIAL_CAREGIVERS: CaregiverAdminRecord[] = [
+  { id: 'CG-01', caregiverId: 'CG-991', name: 'Anita Sharma', specialty: 'Elderly Homecare & Geriatric Care', hospital: 'MediCare Central Hospital', email: 'anita.caregiver@abdm.in', phone: '+91 98405 67890', certificationId: 'CG-CERT-5819', status: 'Active', assignedPatients: 4 },
+  { id: 'CG-02', caregiverId: 'CG-992', name: 'Ramesh Babu', specialty: 'Post-Op Physical Rehabilitation', hospital: 'MediCare Central Hospital', email: 'ramesh.caregiver@abdm.in', phone: '+91 98421 23456', certificationId: 'CG-CERT-6620', status: 'Active', assignedPatients: 3 },
+  { id: 'CG-03', caregiverId: 'CG-993', name: 'Sunita Patil', specialty: 'Palliative & Chronic Support', hospital: 'Apollo Central Hub', email: 'sunita.care@abdm.in', phone: '+91 98422 34567', certificationId: 'CG-CERT-8841', status: 'Active', assignedPatients: 5 }
 ];
 
 export const INITIAL_PHARMACY_ORDERS: PharmacyOrderAdminRecord[] = [

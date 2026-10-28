@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { VideoStatus } from '@prisma/client';
+import { searchHealthShorts } from '../services/healthShorts.service';
 
 const logHistory = async (videoId: string, adminUserId: string, action: string, previousValue: any, newValue: any) => {
   await prisma.healthVideoHistory.create({
@@ -62,7 +63,7 @@ export const addHealthVideo = async (req: Request, res: Response): Promise<void>
 export const updateHealthVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { title, description, keywords, hashtags, displayOrder, topics } = req.body;
 
     const existing = await prisma.healthVideo.findUnique({ where: { id }, include: { topics: true } });
@@ -99,7 +100,7 @@ export const updateHealthVideo = async (req: Request, res: Response): Promise<vo
 export const deleteHealthVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
     
     const existing = await prisma.healthVideo.findUnique({ where: { id } });
     if (!existing) {
@@ -122,7 +123,7 @@ export const deleteHealthVideo = async (req: Request, res: Response): Promise<vo
 export const approveHealthVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const existing = await prisma.healthVideo.findUnique({ where: { id } });
     if (!existing) {
@@ -150,7 +151,7 @@ export const approveHealthVideo = async (req: Request, res: Response): Promise<v
 export const disableHealthVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const existing = await prisma.healthVideo.findUnique({ where: { id } });
     if (!existing) {
@@ -173,7 +174,7 @@ export const disableHealthVideo = async (req: Request, res: Response): Promise<v
 export const restoreHealthVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const existing = await prisma.healthVideo.findUnique({ where: { id } });
     if (!existing) {
@@ -196,7 +197,7 @@ export const restoreHealthVideo = async (req: Request, res: Response): Promise<v
 export const undoHealthVideoChange = async (req: Request, res: Response): Promise<void> => {
   try {
     const adminId = (req as any).user.id;
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { historyId } = req.body;
 
     const historyRecord = await prisma.healthVideoHistory.findUnique({ where: { id: historyId } });
@@ -288,7 +289,7 @@ export const addHealthTopic = async (req: Request, res: Response): Promise<void>
 
 export const updateHealthTopic = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { topicKey, displayName, description, searchKeywords, hashtags, enabled } = req.body;
     const topic = await prisma.healthTopic.update({
       where: { id },
@@ -309,10 +310,161 @@ export const updateHealthTopic = async (req: Request, res: Response): Promise<vo
 
 export const deleteHealthTopic = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const topic = await prisma.healthTopic.delete({ where: { id } });
     res.json({ success: true, data: topic });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+function parseDurationToSeconds(durationStr?: string): number {
+  if (!durationStr) return 0;
+  const parts = durationStr.split(':').map(p => parseInt(p.trim(), 10));
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    return parts[0] * 60 + parts[1];
+  }
+  if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  const parsed = parseInt(durationStr, 10);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * POST /api/admin/health/videos/sync
+ * Super Admin endpoint to synchronize discovered YouTube Shorts into HealthVideo review queue
+ */
+export const syncHealthVideos = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const adminId = (req as any).user?.id || 'SUPER_ADMIN';
+    const { category, query, limit = 20 } = req.body || {};
+
+    // Standard health categories used across MediCare Patient Portal
+    const categoriesToSync = category 
+      ? [category] 
+      : ['For You', 'Wellness', 'Fitness', 'Diet', 'Nattu Maruthuvam', 'Preventive Health'];
+
+    let totalDiscovered = 0;
+    let insertedCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+    const seenYtIds = new Set<string>();
+
+    for (const cat of categoriesToSync) {
+      try {
+        const result = await searchHealthShorts(query || '', cat, undefined, limit);
+        const candidates = result.videos || [];
+
+        for (const cand of candidates) {
+          if (!cand.videoId || seenYtIds.has(cand.videoId)) continue;
+          seenYtIds.add(cand.videoId);
+          totalDiscovered++;
+
+          // Check if video already exists in database
+          const existing = await prisma.healthVideo.findUnique({
+            where: { youtubeVideoId: cand.videoId }
+          });
+
+          if (existing) {
+            // Preservation requirement: DO NOT overwrite or revert existing moderation decisions!
+            // If it is DISABLED, DELETED, or APPROVED, keep existing status and enabled flag!
+            let hasMetadataUpdate = false;
+            const updateData: any = {};
+            if (!existing.channelName && (cand.channelName || cand.channelTitle)) {
+              updateData.channelName = cand.channelName || cand.channelTitle;
+              hasMetadataUpdate = true;
+            }
+            if (!existing.description && cand.description) {
+              updateData.description = cand.description;
+              hasMetadataUpdate = true;
+            }
+            if (existing.durationSeconds === 0 && cand.duration) {
+              const dur = parseDurationToSeconds(cand.duration);
+              if (dur > 0) {
+                updateData.durationSeconds = dur;
+                hasMetadataUpdate = true;
+              }
+            }
+
+            if (hasMetadataUpdate) {
+              await prisma.healthVideo.update({
+                where: { id: existing.id },
+                data: updateData
+              });
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+          } else {
+            // New discovery: MUST enter PENDING_REVIEW review state, not auto-approved
+            const dur = parseDurationToSeconds(cand.duration);
+            const created = await prisma.healthVideo.create({
+              data: {
+                youtubeVideoId: cand.videoId,
+                title: cand.title,
+                description: cand.description || null,
+                channelName: cand.channelName || cand.channelTitle || null,
+                durationSeconds: dur,
+                keywords: JSON.stringify([]),
+                hashtags: JSON.stringify([]),
+                status: VideoStatus.PENDING_REVIEW,
+                enabled: false,
+                displayOrder: 0,
+                createdBy: adminId || 'SYSTEM_DISCOVERY',
+              }
+            });
+
+            // If a topic exists matching category, associate it
+            try {
+              const matchedTopic = await prisma.healthTopic.findFirst({
+                where: {
+                  OR: [
+                    { topicKey: { equals: cat.toLowerCase().replace(/\s+/g, '_') } },
+                    { displayName: { equals: cat } }
+                  ]
+                }
+              });
+              if (matchedTopic) {
+                await prisma.healthVideoTopic.create({
+                  data: {
+                    videoId: created.id,
+                    topicId: matchedTopic.id
+                  }
+                });
+              }
+            } catch {}
+
+            await logHistory(created.id, adminId, 'DISCOVER', null, {
+              source: 'YouTube Discovery',
+              category: cat,
+              status: VideoStatus.PENDING_REVIEW
+            });
+
+            insertedCount++;
+          }
+        }
+      } catch (catErr) {
+        console.warn(`[Sync Health Videos] Error searching category "${cat}":`, catErr);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `YouTube Shorts discovery synchronization completed successfully.`,
+      stats: {
+        discovered: totalDiscovered,
+        inserted: insertedCount,
+        updated: updatedCount,
+        skipped: skippedCount
+      }
+    });
+  } catch (error: any) {
+    console.error('[Sync Health Videos Error]:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to synchronize YouTube Shorts'
+    });
+  }
+};
+

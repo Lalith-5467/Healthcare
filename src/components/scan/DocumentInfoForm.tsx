@@ -32,6 +32,24 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
   const [date, setDate] = useState('2026-08-23');
   const [notes, setNotes] = useState('Blood vitals within normal parameters. Hemoglobin: 14.2 g/dL, Platelets: 245,000 /µL.');
 
+  const patientDisplayName = React.useMemo(() => {
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    return 'Ragul Kumar';
+  }, []);
+
   React.useEffect(() => {
     const timer1 = setTimeout(() => {
       setOcrAnalyzing(false);
@@ -104,11 +122,19 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
 
             <div className="relative aspect-[3/4] w-full bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center p-2">
               {imageSrc ? (
-                <img
-                  src={imageSrc}
-                  alt="Scanned Medical Document"
-                  className="w-full h-full object-contain rounded-xl"
-                />
+                fileName.toLowerCase().endsWith('.pdf') ? (
+                  <iframe
+                    src={`${imageSrc}#toolbar=0`}
+                    title="PDF Preview"
+                    className="w-full h-full border-0 rounded-xl"
+                  />
+                ) : (
+                  <img
+                    src={imageSrc}
+                    alt="Scanned Medical Document"
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                )
               ) : (
                 <div className="w-full h-full bg-white text-slate-900 p-6 rounded-xl overflow-y-auto text-xs font-sans border border-slate-200 shadow-inner">
                   <div className="border-b-2 border-[#00a896] pb-3 mb-4 flex justify-between items-start">
@@ -123,7 +149,7 @@ export const DocumentInfoForm: React.FC<DocumentInfoFormProps> = ({
                   </div>
                   <div className="space-y-3">
                     <div className="bg-slate-100 p-2 rounded text-[11px] font-semibold">
-                      Patient: Lalith Patel | Age: 34 M
+                      Patient: {patientDisplayName} | Age: 34 M
                     </div>
                     <div className="font-bold underline text-slate-900">COMPLETE BLOOD COUNT</div>
                     <div className="space-y-1 text-[11px]">

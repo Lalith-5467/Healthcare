@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Camera, Zap, ZapOff, Image, ArrowLeft, X, Upload,
+  Camera, Zap, ZapOff, Image as ImageIcon, ArrowLeft, X, Upload,
   Sparkles, RefreshCw, CheckCircle2, Scan, ShieldCheck,
   FileText, Lock, Cpu, Activity, Eye, Crosshair, Sun, Moon, AlertCircle
 } from 'lucide-react';
@@ -12,7 +12,8 @@ interface ScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCapture: (capturedDataUrl: string) => void;
-  onSwitchToUpload: () => void;
+  onSelectFile?: (file: File) => void;
+  onSwitchToUpload?: () => void;
 }
 
 // ── Prescription presets (rotate each session) ────────────────────────────────
@@ -55,11 +56,11 @@ const DEMO_PRESETS = [
 type ScanPhase = 'prompt' | 'scanning' | 'done';
 
 export const ScannerModal: React.FC<ScannerModalProps> = ({
-  isOpen, onClose, onCapture, onSwitchToUpload,
+  isOpen, onClose, onCapture, onSelectFile, onSwitchToUpload,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const [phase, setPhase] = useState<ScanPhase>('scanning');
-  const [scannerState, setScannerState] = useState<'idle' | 'permission_required' | 'scanning' | 'processing' | 'success' | 'error'>('scanning');
+  const [phase, setPhase] = useState<ScanPhase>('prompt');
+  const [scannerState, setScannerState] = useState<'idle' | 'permission_required' | 'scanning' | 'processing' | 'success' | 'error'>('idle');
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   const [cameraGranted, setCameraGranted] = useState(false);
@@ -77,6 +78,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const streamRef = useRef<MediaStream | null>(null);
   const nativeCameraRef = useRef<HTMLInputElement | null>(null);
   const galleryRef = useRef<HTMLInputElement | null>(null);
+  const uploadRef = useRef<HTMLInputElement | null>(null);
+  const currentScanIdRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -144,28 +147,28 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     } catch (err: any) {
       console.error('[Scanner] camera access error:', err);
       setCameraGranted(false);
-      setPhase('scanning');
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setErrorMessage('Camera access is required to scan a document.');
+        setErrorMessage('Camera access was not granted. You can still select Photo Library or Upload File below.');
       } else {
-        setErrorMessage('No camera was detected.');
+        setErrorMessage('No camera device was detected. You can upload an image or PDF document directly.');
       }
-      setScannerState('error');
+      // Keep in prompt phase so user can easily upload without fatal blocker
+      setPhase('prompt');
+      setScannerState('idle');
     }
   }, [stopCamera]);
 
   // ── reset on open / close ─────────────────────────────────────────────────
   useEffect(() => {
     if (isOpen) {
-      setPhase('scanning');
-      setScannerState('scanning');
+      setPhase('prompt');
+      setScannerState('idle');
       setResultImage(null);
       setErrorMessage('');
       setScanProgress(0);
       setDetectedFields([]);
       setConfidence(0);
       setIsAbdmVerified(false);
-      startLiveCamera();
     } else {
       clearAllTimers();
       stopCamera();
@@ -178,7 +181,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       setConfidence(0);
       setIsAbdmVerified(false);
     }
-  }, [isOpen, startLiveCamera, stopCamera]);
+  }, [isOpen, stopCamera]);
 
   // ── video ref stream attachment listener ──────────────────────────────────
   useEffect(() => {
@@ -271,8 +274,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     return canvas.toDataURL('image/jpeg', 0.93);
   };
 
-  // ── capture live video frame ──────────────────────────────────────────────
-  const captureVideoFrame = (): string | null => {
+  // ── capture live video frame to canvas ────────────────────────────────────
+  const captureVideoCanvas = (): HTMLCanvasElement | null => {
     if (!videoRef.current) return null;
     const v = videoRef.current;
     const w = v.videoWidth || 0;
@@ -283,9 +286,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     }
 
     try {
-      // The viewfinder is fixed at 3:4 aspect ratio.
-      // Crop the document region visible to the user with a 15% safety margin
-      // so no prescription text around the border is cut off.
       const targetRatio = 3 / 4;
       const videoRatio = w / h;
 
@@ -295,14 +295,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       let sh = h;
 
       if (videoRatio > targetRatio * 1.05) {
-        // Landscape stream (e.g. 1920x1080)
         const visibleW = h * targetRatio;
         sw = Math.min(w, Math.round(visibleW * 1.15));
         sx = Math.max(0, Math.round((w - sw) / 2));
         sh = h;
         sy = 0;
       } else if (videoRatio < targetRatio * 0.95) {
-        // Narrow portrait stream
         const visibleH = w / targetRatio;
         sh = Math.min(h, Math.round(visibleH * 1.15));
         sy = Math.max(0, Math.round((h - sh) / 2));
@@ -310,9 +308,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         sx = 0;
       }
 
-      // Upscale high-resolution canvas if needed (minimum width 1600px)
       let scale = 1;
-      if (sw < 1600) {
+      if (sw < 1600 && sw > 0) {
         scale = Math.min(2.5, 1800 / sw);
       }
       const targetW = Math.round(sw * scale);
@@ -328,37 +325,80 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(v, sx, sy, sw, sh, 0, 0, targetW, targetH);
 
-      return canvas.toDataURL('image/jpeg', 0.95);
+      return canvas;
     } catch (e) {
       console.error('[Scanner] capture frame error:', e);
       return null;
     }
   };
 
-  // ── process captured document through Tesseract OCR & NLP ─────────────────
-  const processCapturedDocument = async (imageSource: string) => {
-    setScannerState('processing');
+  // ── CORE SINGLE PROCESSING PIPELINE ───────────────────────────────────────
+  // All three sources (Camera, Photo Library, Upload File) run through this exact function
+  const processPrescriptionDocument = async (file: File) => {
+    const scanId = ++currentScanIdRef.current;
+    clearAllTimers();
+
+    // 1. Clear old extracted fields
+    setDetectedFields([]);
+    // 2. Clear old confidence
+    setConfidence(0);
+    // 3. Reset validation state
+    setIsAbdmVerified(false);
+    // 4. Set processing/loading state
+    setErrorMessage('');
     setScanProgress(10);
+    setScannerState('processing');
+    setPhase('scanning');
     setScanStatusMsg('Running AI OCR & extracting prescription metrics...');
 
+    // Pause live camera to display the document being scanned
+    stopCamera();
+
+    // Setup preview for image files
+    let previewDataUrl: string | null = null;
+    if (file.type.startsWith('image/')) {
+      try {
+        previewDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        if (scanId === currentScanIdRef.current) {
+          setResultImage(previewDataUrl);
+        }
+      } catch (err) {
+        console.warn('[Scanner] Preview generation error:', err);
+      }
+    }
+
     try {
-      const result = await runOpticalOcr(imageSource, (prog, msg) => {
+      // 5. Process the NEW file through the existing Tesseract OCR + NLP pipeline
+      const result = await runOpticalOcr(file, (prog, msg) => {
+        if (scanId !== currentScanIdRef.current) return;
         setScanProgress(prog);
         if (msg) setScanStatusMsg(msg);
       });
 
-      if (!result.text || result.text.trim().length === 0) {
+      // Handle race condition: drop result if another scan started
+      if (scanId !== currentScanIdRef.current) return;
+
+      // 6. Validate real OCR result
+      if (!result.text || result.text.trim().length === 0 || (result.fields.length === 0 && result.confidence < 20)) {
+        setDetectedFields([]);
+        setConfidence(0);
+        setIsAbdmVerified(false);
         setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
         setScannerState('error');
         return;
       }
 
-      if (result.fields.length === 0 && result.confidence < 25) {
-        setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
-        setScannerState('error');
-        return;
+      // If document was a PDF, use its generated preview if available
+      if (!previewDataUrl && result.previewUrl) {
+        setResultImage(result.previewUrl);
       }
 
+      // 7. On success, display actual extracted data
       setDetectedFields(result.fields);
       setConfidence(result.confidence);
       setIsAbdmVerified(result.isAbdmCompliant);
@@ -366,55 +406,85 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       setScanStatusMsg('✓ Extraction complete');
       setScannerState('success');
       setPhase('done');
-      stopCamera();
     } catch (err: any) {
+      if (scanId !== currentScanIdRef.current) return;
       console.error('[OCR] processing failed:', err);
+      // 8. On failure, display a clear real error state
+      setDetectedFields([]);
+      setConfidence(0);
+      setIsAbdmVerified(false);
       setErrorMessage('Prescription could not be read clearly. Please position the full document inside the frame and capture again.');
       setScannerState('error');
     }
   };
 
-  // ── handle capture document click ─────────────────────────────────────────
+  // ── A) CAMERA CAPTURE HANDLER ─────────────────────────────────────────────
   const handleCaptureDocument = async () => {
-    console.log('[Scanner] capture started');
+    console.log('[Scanner] camera capture started');
     setScanStatusMsg('Capturing document...');
 
-    let capturedDataUrl: string | null = null;
-    if (cameraGranted && videoRef.current) {
-      capturedDataUrl = captureVideoFrame();
-    } else {
-      capturedDataUrl = buildCanvas();
-    }
-
-    if (!capturedDataUrl) {
-      setErrorMessage('Unable to capture the document. Please try again.');
+    if (!cameraGranted || !videoRef.current) {
+      setErrorMessage('Camera access is not active. Please grant camera permission or select Photo Library / Upload File.');
       setScannerState('error');
       return;
     }
 
-    console.log('[Scanner] captured image created');
-    setResultImage(capturedDataUrl);
-    setScanStatusMsg('✓ Capture complete — Starting OCR...');
+    const canvas = captureVideoCanvas();
+    if (!canvas) {
+      setErrorMessage('Unable to capture document frame. Please hold steady and try again.');
+      setScannerState('error');
+      return;
+    }
 
-    await processCapturedDocument(capturedDataUrl);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+    if (!blob) {
+      setErrorMessage('Unable to process captured frame. Please try again.');
+      setScannerState('error');
+      return;
+    }
+
+    // Convert to the same File format used by uploads
+    const file = new File([blob], `camera_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+    if (onSelectFile) {
+      onSelectFile(file);
+      onClose();
+      return;
+    }
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    if (onCapture) {
+      onCapture(dataUrl);
+      onClose();
+      return;
+    }
+    await processPrescriptionDocument(file);
   };
 
-  // ── file / gallery select ─────────────────────────────────────────────────
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = async ev => {
-        if (ev.target?.result) {
-          const dataUrl = ev.target.result as string;
-          setResultImage(dataUrl);
-          setPhase('scanning');
-          setScanStatusMsg('✓ Capture complete — Starting OCR...');
-          await processCapturedDocument(dataUrl);
-        }
-      };
-      reader.readAsDataURL(file);
+  // ── B) PHOTO LIBRARY HANDLER ──────────────────────────────────────────────
+  const handlePhotoLibrarySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (onSelectFile) {
+        onSelectFile(file);
+        onClose();
+      } else {
+        processPrescriptionDocument(file);
+      }
     }
+    e.target.value = '';
+  };
+
+  // ── C) UPLOAD FILE HANDLER ────────────────────────────────────────────────
+  const handleUploadFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (onSelectFile) {
+        onSelectFile(file);
+        onClose();
+      } else {
+        processPrescriptionDocument(file);
+      }
+    }
+    e.target.value = '';
   };
 
   const handleResetScanner = () => {
@@ -438,7 +508,21 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     setResultImage(demoCanvas);
     setPhase('scanning');
     setScanStatusMsg('✓ Demo document loaded — Starting OCR...');
-    await processCapturedDocument(demoCanvas);
+    const blob = await new Promise<Blob | null>((resolve) => {
+      const img = new window.Image();
+      img.src = demoCanvas;
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        c.getContext('2d')?.drawImage(img, 0, 0);
+        c.toBlob(resolve, 'image/jpeg', 0.95);
+      };
+    });
+    if (blob) {
+      const file = new File([blob], 'demo_prescription.jpg', { type: 'image/jpeg' });
+      await processPrescriptionDocument(file);
+    }
   };
 
   const renderViewfinderContent = () => {
@@ -466,7 +550,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={onSwitchToUpload}
+                onClick={() => uploadRef.current?.click()}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
               >
                 <span>Upload File</span>
@@ -480,7 +564,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           <>
             {flashOn && <div className="absolute inset-0 z-30 pointer-events-none bg-yellow-200/5" />}
 
-            {cameraGranted ? (
+            {resultImage ? (
+              <img
+                src={resultImage}
+                alt="Prescription Document Preview"
+                className="absolute inset-0 w-full h-full object-contain bg-slate-950 rounded-xl"
+              />
+            ) : cameraGranted ? (
               <video
                 ref={(node) => {
                   videoRef.current = node;
@@ -499,90 +589,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 className="absolute inset-0 w-full h-full object-cover rounded-xl"
               />
             ) : (
-              <div 
-                className="absolute inset-0 rounded-xl overflow-hidden" 
-                style={{
-                  background: theme === 'dark' ? 'linear-gradient(to bottom, #1e293b, #020617)' : 'linear-gradient(to bottom, #f1f5f9, #e2e8f0)',
-                  backgroundImage: theme === 'dark' 
-                    ? 'linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px)'
-                    : 'linear-gradient(rgba(14,116,144,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(14,116,144,0.05) 1px, transparent 1px)',
-                  backgroundSize: '18px 18px',
-                }}
-              >
-                {/* Document card slides in */}
-                <AnimatePresence>
-                  {scanProgress > 25 && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 12 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-3 rounded-lg overflow-hidden shadow-lg flex flex-col border border-slate-200 dark:border-slate-700"
-                      style={{ backgroundColor: '#ffffff', zIndex: 5 }}
-                    >
-                      {/* Header */}
-                      <div className="px-3 py-1.5 flex justify-between items-center shrink-0 bg-teal-800">
-                        <div>
-                          <div className="text-[9px] font-black text-slate-900 dark:text-white">{preset.hospital}</div>
-                          <div className="text-[7px] text-teal-200">{preset.dept}</div>
-                        </div>
-                        <div className="text-right text-[7px] text-teal-200 font-mono">
-                          <div>{preset.rxRef}</div>
-                          <div>{new Date().toLocaleDateString('en-IN')}</div>
-                        </div>
-                      </div>
-
-                      {/* Patient Details */}
-                      <div className="px-3 py-1 flex justify-between text-[8px] font-bold border-b shrink-0 bg-slate-50 text-slate-800 border-slate-200">
-                        <span>Patient: {preset.patient}</span>
-                        <span>Age: {preset.age}</span>
-                      </div>
-
-                      {/* Doctor */}
-                      <div className="px-3 py-0.5 text-[7px] border-b shrink-0 text-slate-500 border-slate-100">
-                        {preset.doctor} · {preset.specialty}
-                      </div>
-
-                      {/* Medicines */}
-                      <div className="flex-1 px-3 py-1.5 space-y-1 overflow-hidden bg-white">
-                        <div className="text-[8px] font-black uppercase mb-0.5 text-slate-600">Prescribed Medicines</div>
-                        {preset.medicines.map((m, i) => (
-                          <AnimatePresence key={i}>
-                            {revealedMeds > i && (
-                              <motion.div
-                                initial={{ opacity: 0, x: -6 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="p-1 rounded text-[7px] bg-teal-55 text-slate-900 border border-teal-100"
-                              >
-                                <div className="font-bold flex justify-between text-slate-900">
-                                  <span>{i + 1}. {m.name}</span>
-                                  <span className="text-teal-600">{m.dur}</span>
-                                </div>
-                                <div className="text-[6.5px] text-slate-500">{m.dosage}</div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        ))}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="px-3 py-1 flex justify-between items-center border-t shrink-0 border-slate-200 bg-slate-50">
-                        <span className="px-1 py-0.5 rounded text-[6.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                          Follow-up: {preset.followUp}
-                        </span>
-                        <div className="text-right text-[7px] font-bold text-slate-700">{preset.doctor}</div>
-                      </div>
-
-                      {/* Scan line overlay */}
-                      <motion.div
-                        className="absolute left-0 right-0 h-0.5 z-10 pointer-events-none"
-                        animate={{ top: ['5%', '95%', '5%'] }}
-                        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                        style={{ background: 'linear-gradient(to right, transparent, rgba(20,184,166,0.8), transparent)', boxShadow: '0 0 8px #00a896' }}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-950 rounded-xl">
+                <Camera className="w-12 h-12 mb-3 text-teal-500/40" />
+                <p className="text-xs font-medium text-slate-300">Camera preview inactive</p>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">Position your prescription within frame, or select Photo Library / Upload File.</p>
               </div>
             )}
 
@@ -703,7 +713,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={onSwitchToUpload}
+                onClick={() => uploadRef.current?.click()}
                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
               >
                 <span>Upload Instead</span>
@@ -772,7 +782,9 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 </div>
               </div>
             ) : detectedFields.length === 0 ? (
-              <p className="text-xs text-slate-400 italic font-mono">Awaiting scan initiation...</p>
+              <p className="text-xs text-slate-400 italic font-mono">
+                {scannerState === 'error' ? 'No fields detected from document' : 'Awaiting scan initiation...'}
+              </p>
             ) : (
               detectedFields.map((f, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs text-slate-800 font-medium">
@@ -809,7 +821,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </div>
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-500">Processing Engine</span>
-            <span className="font-bold text-purple-600 font-medium">Tesseract OCR v4 + NLP</span>
+            <span className="font-bold text-purple-600 font-medium">Tesseract OCR v7 + NLP</span>
           </div>
         </div>
       </>
@@ -824,8 +836,9 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col bg-slate-50 text-slate-900 font-sans">
       {/* Hidden inputs */}
-      <input ref={nativeCameraRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" />
-      <input ref={galleryRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
+      <input ref={nativeCameraRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoLibrarySelect} className="hidden" />
+      <input ref={galleryRef} type="file" accept="image/*" onChange={handlePhotoLibrarySelect} className="hidden" />
+      <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf" onChange={handleUploadFileSelect} className="hidden" />
 
       {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200 bg-white shadow-xs">
@@ -906,6 +919,18 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 </p>
               </div>
 
+              {errorMessage && (
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between gap-2 text-left">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                  <button type="button" onClick={() => setErrorMessage('')} className="p-1 text-amber-700 hover:text-amber-900 cursor-pointer">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {/* Doc type selector */}
               <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100/90 dark:bg-slate-800/90">
                 {(['prescription', 'lab_report'] as const).map(t => (
@@ -957,7 +982,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               </div>
 
               <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                <button type="button" onClick={onSwitchToUpload} className="text-slate-700 dark:text-slate-300 hover:text-[#00a896] dark:hover:text-teal-400 font-bold flex items-center gap-1.5 cursor-pointer">
+                <button type="button" onClick={() => uploadRef.current?.click()} className="text-slate-700 dark:text-slate-300 hover:text-[#00a896] dark:hover:text-teal-400 font-bold flex items-center gap-1.5 cursor-pointer">
                   <Upload className="w-3.5 h-3.5 text-[#00a896]" />
                   <span>Upload PDF or photo from device</span>
                 </button>
@@ -1062,7 +1087,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           <button type="button" onClick={() => galleryRef.current?.click()}
             className="flex flex-col items-center gap-1.5 cursor-pointer group text-slate-600 hover:text-slate-900 transition-colors">
             <div className="p-3 rounded-2xl border border-slate-200 bg-slate-100 group-hover:bg-slate-200 group-hover:border-teal-500/40 group-hover:scale-105 transition-all shadow-xs">
-              <Image className="w-5 h-5 text-[#00a896]" />
+              <ImageIcon className="w-5 h-5 text-[#00a896]" />
             </div>
             <span className="text-[11px] font-bold text-slate-700">Photo Library</span>
           </button>
@@ -1090,7 +1115,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </button>
 
           {/* Upload */}
-          <button type="button" onClick={onSwitchToUpload}
+          <button type="button" onClick={() => uploadRef.current?.click()}
             className="flex flex-col items-center gap-1.5 cursor-pointer group text-slate-600 hover:text-slate-900 transition-colors">
             <div className="p-3 rounded-2xl border border-slate-200 bg-slate-100 group-hover:bg-slate-200 group-hover:border-teal-500/40 group-hover:scale-105 transition-all shadow-xs">
               <Upload className="w-5 h-5 text-[#00a896]" />

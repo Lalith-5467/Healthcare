@@ -11,6 +11,7 @@ import {
   QrCode
 } from 'lucide-react';
 import { SpotlightCard } from '../ui/SpotlightCard';
+import { useSiteConfig } from '../../context/ConfigContext';
 
 interface HeroProps {
   onStartJourney: () => void;
@@ -89,27 +90,93 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
     }
   };
 
-  const activeCard = CARDS_DATA[activeCardIndex];
+  let heroConfig: any = null;
+  let brandingConfig: any = null;
+  try {
+    const siteConfig = useSiteConfig();
+    heroConfig = siteConfig.landing?.hero;
+    brandingConfig = siteConfig.branding;
+  } catch {}
+
+  if (heroConfig?.enabled === false) {
+    return null;
+  }
+
+  const title = heroConfig?.title || 'Your Health,';
+  const highlightTitle = heroConfig?.highlightTitle || 'Always With You.';
+  const subtitle = heroConfig?.subtitle || 'Secure your medical records, manage your medicines, share health information with doctors, and stay prepared for emergencies — all in one place.';
+  const primaryCta = heroConfig?.primaryCtaText || 'Get Started';
+  const secondaryCta = heroConfig?.secondaryCtaText || 'Connect ABHA';
+  const videoSrc = heroConfig?.backgroundVideoUrl || '/Digital_Health_Record_For_Project.mp4';
+  const imageSrc = heroConfig?.backgroundImageUrl || '';
+  const mediaType = heroConfig?.mediaType || (imageSrc && !videoSrc ? 'image' : 'video');
+  const isImage = mediaType === 'image' && Boolean(imageSrc);
+  const overlayStyle = heroConfig?.overlayStyle || 'gradient';
+  const showSoundControl = heroConfig?.showSoundControl !== false;
+  const showIndicators = heroConfig?.showIndicators !== false;
+  const showSosCard = heroConfig?.showSosCard !== false;
+  const sosCardTitle = heroConfig?.sosCardTitle || 'Emergency SOS';
+  const sosCardSubtitle = heroConfig?.sosCardSubtitle || 'SOS Pass Ready';
+  const accentColor = brandingConfig?.accentColor || '#00d2be';
+  const primaryColor = brandingConfig?.primaryColor || '#00a896';
+
+  const activeCards = CARDS_DATA
+    .map((card) => {
+      if (card.id === 'sos') {
+        return {
+          ...card,
+          title: sosCardTitle,
+          subtitle: sosCardSubtitle,
+        };
+      }
+      return card;
+    })
+    .filter((card) => {
+      if (card.id === 'sos' && !showSosCard) return false;
+      return true;
+    });
+
+  const displayCards = activeCards.length > 0 ? activeCards : CARDS_DATA;
+  const activeCard = displayCards[activeCardIndex % displayCards.length];
   const IconComponent = activeCard.icon;
 
   return (
     <section id="home" className="relative w-full min-h-[calc(100vh-5rem)] py-12 sm:py-16 flex items-center overflow-hidden bg-slate-900">
 
-      {/* 1. BACKGROUND VIDEO LAYER */}
+      {/* 1. BACKGROUND MEDIA LAYER */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <video
-          ref={videoRef}
-          src="/Digital_Health_Record_For_Project.mp4"
-          autoPlay
-          muted={isMuted}
-          loop
-          playsInline
-          className="w-full h-full object-cover object-top"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
-        />
+        {isImage ? (
+          <img
+            src={imageSrc}
+            alt="Hero Background"
+            className="w-full h-full object-cover object-top"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            autoPlay
+            muted={isMuted}
+            loop
+            playsInline
+            className="w-full h-full object-cover object-top"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          />
+        )}
 
-        {/* 2. VIDEO OVERLAY LAYER */}
-        <div className="absolute inset-0 bg-slate-950/30 dark:bg-slate-950/45 bg-gradient-to-r from-slate-950/55 via-slate-950/20 to-transparent" />
+        {/* 2. OVERLAY LAYER */}
+        <div 
+          className={`absolute inset-0 ${
+            overlayStyle === 'dark'
+              ? 'bg-slate-950/75'
+              : overlayStyle === 'light'
+              ? 'bg-slate-950/25'
+              : overlayStyle === 'medium'
+              ? 'bg-slate-950/45'
+              : 'bg-slate-950/30 dark:bg-slate-950/45 bg-gradient-to-r from-slate-950/60 via-slate-950/25 to-transparent'
+          }`} 
+        />
 
         {/* AMBIENT GLOW DECORATIONS */}
         <div className="absolute top-1/4 left-10 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
@@ -117,26 +184,22 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
       </div>
 
       {/* SOUND TOGGLE BUTTON */}
-      <div className="absolute bottom-6 right-6 z-20">
-        <button
-          onClick={toggleSound}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-white shadow-lg hover:bg-slate-900 transition-all text-xs font-semibold cursor-pointer"
-          title={isMuted ? "Unmute Video Audio" : "Mute Video Audio"}
-          aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
-        >
-          {isMuted ? (
-            <>
+      {showSoundControl && !isImage && (
+        <div className="absolute bottom-6 right-6 z-20">
+          <button
+            onClick={toggleSound}
+            className="flex items-center justify-center p-2.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-white shadow-lg hover:bg-slate-900 hover:scale-105 transition-all cursor-pointer"
+            title={isMuted ? "Unmute Video Audio" : "Mute Video Audio"}
+            aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
+          >
+            {isMuted ? (
               <VolumeX className="w-4 h-4 text-red-400" />
-              <span>Sound Off</span>
-            </>
-          ) : (
-            <>
+            ) : (
               <Volume2 className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span>Sound On</span>
-            </>
-          )}
-        </button>
-      </div>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* 3. HERO CONTENT & DOWNWARD-POSITIONED RIGHT CARDS */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -151,22 +214,23 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
           >
             {/* MAIN HEADLINE */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
-              Your Health, <br />
-              <span className="text-[#00d2be] drop-shadow-[0_2px_12px_rgba(0,210,190,0.3)]">Always With You.</span>
+              {title} <br />
+              <span style={{ color: accentColor }} className="drop-shadow-[0_2px_12px_rgba(0,210,190,0.3)]">{highlightTitle}</span>
             </h1>
 
             {/* SUBTITLE */}
             <p className="text-base sm:text-lg text-slate-100 max-w-xl font-medium leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              Secure your medical records, manage your medicines, share health information with doctors, and stay prepared for emergencies — all in one place.
+              {subtitle}
             </p>
 
             {/* ACTION BUTTONS */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-4 pt-2">
               <button
                 onClick={onStartJourney}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-bold text-white bg-[#00a896] hover:bg-[#00897b] rounded-xl shadow-xl shadow-teal-950/50 hover:shadow-2xl transition-all active:scale-98 gap-2.5 cursor-pointer border border-teal-500/30"
+                style={{ backgroundColor: primaryColor }}
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 text-base font-bold text-white rounded-xl shadow-xl shadow-teal-950/50 hover:shadow-2xl transition-all active:scale-98 gap-2.5 cursor-pointer border border-teal-500/30"
               >
-                <span>Get Started</span>
+                <span>{primaryCta}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
 
@@ -175,7 +239,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
                 className="group w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-teal-500/15 backdrop-blur-md rounded-xl transition-all duration-200 gap-2 cursor-pointer active:scale-95 active:translate-y-0"
               >
                 <FileText className="w-4 h-4 text-[#00a896] transition-transform duration-200 group-hover:scale-110 group-hover:text-teal-300" />
-                <span>Connect ABHA</span>
+                <span>{secondaryCta}</span>
               </button>
             </div>
           </motion.div>
@@ -220,21 +284,23 @@ export const Hero: React.FC<HeroProps> = ({ onStartJourney, onSeeHowItWorks }) =
               </div>
 
               {/* CAROUSEL PROGRESS INDICATOR DOTS */}
-              <div className="flex items-center gap-2 pt-1">
-                {CARDS_DATA.map((card, idx) => (
-                  <button
-                    key={card.id}
-                    onClick={() => setActiveCardIndex(idx)}
-                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                      activeCardIndex === idx 
-                        ? 'w-7 bg-[#00a896]' 
-                        : 'w-2 bg-white/40 dark:bg-slate-700 hover:bg-white/70'
-                    }`}
-                    title={`View ${card.title}`}
-                    aria-label={`View ${card.title}`}
-                  />
-                ))}
-              </div>
+              {showIndicators && (
+                <div className="flex items-center gap-2 pt-1">
+                  {displayCards.map((card, idx) => (
+                    <button
+                      key={card.id}
+                      onClick={() => setActiveCardIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        (activeCardIndex % displayCards.length) === idx 
+                          ? 'w-7 bg-[#00a896]' 
+                          : 'w-2 bg-white/40 dark:bg-slate-700 hover:bg-white/70'
+                      }`}
+                      title={`View ${card.title}`}
+                      aria-label={`View ${card.title}`}
+                    />
+                  ))}
+                </div>
+              )}
 
             </div>
 

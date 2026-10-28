@@ -13,7 +13,6 @@ import {
   Activity, 
   CheckCircle2, 
   QrCode, 
-  Sparkles, 
   ChevronLeft,
   KeyRound,
   UserPlus,
@@ -865,14 +864,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           setAuthToken(token);
           safeLocalStorageSet('token', token);
           safeLocalStorageSet('auth_token', token);
+          const profile: any = user.profile || {};
           const authoritativeRole = userRoleDisplayMap[user.role] || userRoleDisplayMap[user.role?.toLowerCase?.()] || user.role || 'Patient';
           if (user.role === 'PATIENT' || authoritativeRole === 'Patient') {
             safeLocalStorageSet('patient_token', token);
           } else if (user.role === 'DOCTOR' || authoritativeRole === 'Doctor') {
             safeLocalStorageSet('doctor_token', token);
+          } else if (user.role === 'PHARMACIST' || authoritativeRole === 'Pharmacist') {
+            safeLocalStorageSet('pharmacist_token', token);
+            safeLocalStorageSet('pharmacist_user_name', profile.fullName || user.email.split('@')[0]);
+            safeLocalStorageSet('pharmacist_pharmacy_name', profile.pharmacy?.name || profile.pharmacyName || '');
+            safeLocalStorageSet('pharmacist_pharmacy_id', profile.pharmacy?.id || profile.pharmacyId || '');
+          } else if (user.role === 'NURSE' || authoritativeRole === 'Nurse') {
+            safeLocalStorageSet('nurse_token', token);
+          } else if (user.role === 'CAREGIVER' || authoritativeRole === 'Caregiver') {
+            safeLocalStorageSet('caregiver_token', token);
+          } else if (user.role === 'INSURANCE_PROVIDER' || authoritativeRole === 'Insurance') {
+            safeLocalStorageSet('insurance_token', token);
+          } else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || authoritativeRole === 'Admin') {
+            safeLocalStorageSet('admin_token', token);
           }
-
-          const profile: any = user.profile || {};
           const resolvedUserData = {
             id: user.id,
             profileId: profile.id,
@@ -889,10 +900,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             weightKg: weightKg ? parseFloat(weightKg) : undefined,
             bmi: bmiInfo.value,
             specialization: profile.speciality,
-            hospitalAffiliation: profile.hospital,
+            hospitalAffiliation: profile.hospital || profile.pharmacy?.name || profile.pharmacyName,
+            pharmacyName: profile.pharmacy?.name || profile.pharmacyName,
+            pharmacyId: profile.pharmacy?.id || profile.pharmacyId,
           };
 
           safeLocalStorageSet('app_user', JSON.stringify(resolvedUserData));
+          if (user.role === 'PATIENT' || authoritativeRole === 'Patient') {
+            safeLocalStorageSet('patient_user', JSON.stringify(resolvedUserData));
+            safeLocalStorageSet('patient_user_name', resolvedUserData.name);
+          }
           safeLocalStorageSet('app_is_logged_in', 'true');
 
           setSubmitted(true);
@@ -935,8 +952,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   // Consistent Input Field Class (Light mode optimized on form panel)
-  const inputClass = "w-full h-12 px-4 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs";
-  const inputWithIconClass = "w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs";
+  const inputClass = "w-full h-12 px-4 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+  const inputWithIconClass = "w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
   const labelClass = "text-[13px] font-semibold text-slate-700 block mb-1.5";
 
   return (
@@ -961,164 +978,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </motion.button>
       </div>
 
-      {/* MAIN DUAL-COLUMN CARD (45/55 SPLIT) */}
-      <div className="mx-auto w-full max-w-6xl xl:max-w-7xl relative z-10 pt-4 sm:pt-6">
-        <div className="rounded-3xl bg-white border border-slate-200/90 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px] transition-all">
-          
-          {/* COLUMN 1: LEFT MEDICARE BRANDING & STATIC VISUAL PANEL (45%) */}
-          <div 
-            className="p-7 sm:p-9 lg:p-10 text-white flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#061B33] to-[#040e1e] border-slate-800 lg:col-span-5 lg:order-1 border-r border-slate-800/80"
-          >
-            {/* AMBIENT MESH OVERLAYS */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-blue-600/15 via-teal-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-            {/* TOP BRANDING & HEADLINE */}
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center justify-between">
-                <Logo showBadge variant="dark" />
-                <div className="flex items-center gap-1.5">
-                  <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-cyan-300 rounded-full border border-teal-400/30 font-mono shadow-xs">
-                    ABDM Verified
-                  </span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 rounded-full border border-blue-400/30 font-mono shadow-xs">
-                    ABDM Ready
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-1">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight leading-tight text-white">
-                  {mode === 'login' 
-                    ? 'Unified Healthcare & ABHA Ecosystem' 
-                    : 'Join the Unified Healthcare Network'}
-                </h2>
-                <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                  {mode === 'login'
-                    ? 'Integrated ABDM healthcare records, diagnostic telemetry, smart e-prescriptions, and cashless hospital gateway.'
-                    : 'Create your verified account to access personalized health records, remote consultations, and 24x7 emergency response.'}
-                </p>
-              </div>
-
-              {/* HEALTHCARE STATIC IMAGE CONTAINER (STATIC VISUAL - NO CAROUSEL / SLIDERS) */}
-              <div className="py-1">
-                <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-lg bg-slate-950">
-                  <img 
-                    src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=85" 
-                    alt="MediCare Digital Health Ecosystem"
-                    className="w-full h-40 object-cover object-center"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-                  
-                  <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs font-bold text-white">
-                    <span className="text-[11px] bg-slate-900/90 px-2.5 py-1 rounded-md border border-white/10 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                      <span>MediCare Smart Network</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-teal-300">ABDM Compliant</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3 COMPACT BENEFIT TILES */}
-              <div className="space-y-2 pt-1">
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-white">Personal Health Records</h5>
-                    <p className="text-[11px] text-slate-300">Live vitals & health records</p>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-white">Secure Health Data</h5>
-                    <p className="text-[11px] text-slate-300">Protected digital health information</p>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3 hover:bg-white/10 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-white">24×7 Emergency Network</h5>
-                    <p className="text-[11px] text-slate-300">Emergency healthcare support</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* BOTTOM SECONDARY SWITCHER LINK */}
-            <div className="relative z-10 pt-4 border-t border-white/10 mt-3 text-center">
-              <p className="text-xs text-slate-300">
-                {mode === 'login' ? 'New to MediCare Healthcare?' : 'Already have a MediCare account?'}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  const newMode = mode === 'login' ? 'register' : 'login';
-                  setMode(newMode);
-                  clearError();
-                  if (onNavigate) onNavigate(newMode);
-                }}
-                className="mt-1.5 text-xs font-bold text-teal-300 hover:text-teal-200 hover:underline inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>{mode === 'login' ? 'Create an Account' : 'Sign In to Portal'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* COLUMN 2: INTERACTIVE FORM PANEL (55%) */}
-          <div 
-            className="p-7 sm:p-9 lg:p-10 flex flex-col justify-between bg-white text-slate-900 lg:col-span-7 lg:order-2 overflow-y-auto max-h-[92vh] lg:max-h-none"
-          >
+      {/* MAIN AUTHENTICATION CARD */}
+      <div className={`mx-auto w-full relative z-10 pt-4 sm:pt-6 transition-all duration-300 ${mode === 'login' ? 'max-w-md sm:max-w-lg' : 'max-w-3xl lg:max-w-4xl xl:max-w-5xl'}`}>
+        <div className="rounded-3xl bg-white border border-slate-200/90 shadow-2xl overflow-hidden transition-all">
+          <div className={`flex flex-col justify-between bg-white text-slate-900 transition-all ${mode === 'login' ? 'p-7 sm:p-10' : 'p-6 sm:p-8 lg:p-10'}`}>
             <div>
-              {/* SEGMENTED SWITCHER (LOGIN vs REGISTER) */}
-              <div className="p-1 rounded-xl bg-slate-100 border border-slate-200 flex items-center mb-6 relative">
-                <button
-                  type="button"
-                  onClick={() => { 
-                    setMode('login'); 
-                    clearError(); 
-                    if (onNavigate) onNavigate('login');
-                  }}
-                  className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
-                    mode === 'login'
-                      ? 'bg-[#00a896] text-white shadow-sm'
-                      : 'bg-transparent text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => { 
-                    setMode('register'); 
-                    clearError(); 
-                    if (onNavigate) onNavigate('register');
-                  }}
-                  className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 relative z-10 ${
-                    mode === 'register'
-                      ? 'bg-[#00a896] text-white shadow-sm'
-                      : 'bg-transparent text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Register</span>
-                </button>
-              </div>
-
               {/* FORM HEADING */}
-              <div className="mb-5">
+              <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
                   {mode === 'login' ? (
                     <span>
@@ -1138,7 +1004,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       : 'Patient Registration'
                   )}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 font-normal">
+                <p className="text-xs text-slate-500 mt-1.5 font-normal max-w-sm mx-auto">
                   {mode === 'login'
                     ? 'Enter your credentials to securely access your medical records and care circle.'
                     : (
@@ -1200,15 +1066,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       STEP 3: Medical Information & Vitals Summary
                       ========================================================================= */}
                   {mode === 'register' && role === 'patient' && (
-                    <div ref={patientFormRef} onKeyDown={handlePatientKeyDown} className="flex flex-col md:flex-row gap-6 lg:gap-8 items-start pt-1">
+                    <div ref={patientFormRef} onKeyDown={handlePatientKeyDown} className="flex flex-col md:flex-row gap-8 lg:gap-10 items-start pt-2">
                       
                       {/* VERTICAL STEPPER RAIL (BESIDE THE FORM) */}
-                      <div className="w-full md:w-52 lg:w-60 shrink-0 pb-4 md:pb-0 border-b md:border-b-0 md:border-r border-slate-200/90 md:pr-5">
+                      <div className="w-full md:w-64 lg:w-72 shrink-0 pb-4 md:pb-0 border-b md:border-b-0 md:border-r border-slate-200/90 md:pr-6 lg:pr-8">
                         <div className="flex flex-row md:flex-col justify-between md:justify-start gap-2 md:gap-0 relative">
                           
                           {/* STEP 1: ACCOUNT & VERIFICATION */}
-                          <div className="flex items-start gap-3 relative z-10">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                          <div className="flex items-start gap-3.5 relative z-10">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep > 1 
                                 ? 'bg-teal-600 text-white shadow-sm' 
                                 : patientRegStep === 1 
@@ -1231,13 +1097,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           </div>
 
                           {/* VERTICAL CONNECTOR 1 -> 2 */}
-                          <div className="hidden md:block w-0.5 h-12 ml-4 my-1 transition-all duration-300">
-                            <div className={`w-full h-full ${patientRegStep > 1 ? 'bg-teal-500' : 'bg-slate-200'}`} />
+                          <div className="hidden md:block w-0.5 h-14 ml-[17px] my-1 transition-all duration-300">
+                            <div className={`w-full h-full ${patientRegStep > 1 ? 'bg-[#00a896]' : 'bg-slate-200'}`} />
                           </div>
 
                           {/* STEP 2: PERSONAL INFORMATION */}
-                          <div className="flex items-start gap-3 relative z-10 md:mt-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                          <div className="flex items-start gap-3.5 relative z-10 md:mt-0">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep > 2 
                                 ? 'bg-teal-600 text-white shadow-sm' 
                                 : patientRegStep === 2 
@@ -1260,13 +1126,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           </div>
 
                           {/* VERTICAL CONNECTOR 2 -> 3 */}
-                          <div className="hidden md:block w-0.5 h-12 ml-4 my-1 transition-all duration-300">
-                            <div className={`w-full h-full ${patientRegStep > 2 ? 'bg-teal-500' : 'bg-slate-200'}`} />
+                          <div className="hidden md:block w-0.5 h-14 ml-[17px] my-1 transition-all duration-300">
+                            <div className={`w-full h-full ${patientRegStep > 2 ? 'bg-[#00a896]' : 'bg-slate-200'}`} />
                           </div>
 
                           {/* STEP 3: MEDICAL INFORMATION */}
-                          <div className="flex items-start gap-3 relative z-10 md:mt-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                          <div className="flex items-start gap-3.5 relative z-10 md:mt-0">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                               patientRegStep === 3 
                                 ? 'bg-[#00a896] text-white ring-4 ring-teal-500/20 shadow-sm' 
                                 : 'bg-slate-100 text-slate-400 border border-slate-200'
@@ -1290,7 +1156,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       </div>
 
                       {/* CURRENT STEP FORM FIELDS */}
-                      <div className="flex-1 min-w-0 w-full space-y-4">
+                      <div className="flex-1 min-w-0 w-full space-y-5 md:pl-2">
                         
                         {/* -------------------------------------------------------------
                             STEP 1: ACCOUNT & EMAIL VERIFICATION
@@ -1357,7 +1223,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                     placeholder="••••••••••••"
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); clearError(); }}
-                                    className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
+                                    className={`w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-xs border ${
+                                      password.length > 0
+                                        ? password.length >= 8
+                                          ? 'border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15'
+                                          : 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15'
+                                        : 'border-slate-200 focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15'
+                                    }`}
                                   />
                                   <button
                                     tabIndex={-1}
@@ -1368,23 +1240,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                   </button>
                                 </div>
-
-                                {/* PASSWORD STRENGTH METER */}
-                                {password && (
-                                  <div className="pt-2 space-y-1">
-                                    <div className="flex items-center justify-between text-[10px] font-bold">
-                                      <span className="text-slate-500 font-mono">Strength:</span>
-                                      <span className={`${strength.score >= 75 ? 'text-teal-600' : 'text-amber-500'} font-mono`}>
-                                        {strength.label}
-                                      </span>
-                                    </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                      <div 
-                                        className={`h-full transition-all duration-300 ${strength.color}`} 
-                                        style={{ width: `${strength.score}%` }} 
-                                      />
-                                    </div>
-                                  </div>
+                                {password.length > 0 && password.length < 8 && (
+                                  <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                    <span>Password must be at least 8 characters</span>
+                                  </p>
                                 )}
                               </div>
 
@@ -1399,7 +1259,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                     placeholder="••••••••••••"
                                     value={confirmPassword}
                                     onChange={(e) => { setConfirmPassword(e.target.value); clearError(); }}
-                                    className="w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
+                                    className={`w-full h-12 pl-11 pr-10 rounded-xl bg-slate-50/90 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-xs border ${
+                                      confirmPassword.length > 0
+                                        ? confirmPassword === password
+                                          ? 'border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15'
+                                          : 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15'
+                                        : 'border-slate-200 focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15'
+                                    }`}
                                   />
                                   <button
                                     tabIndex={-1}
@@ -1410,6 +1276,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                   </button>
                                 </div>
+                                {confirmPassword.length > 0 && confirmPassword !== password && (
+                                  <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                    <span>Passwords do not match</span>
+                                  </p>
+                                )}
+                                {confirmPassword.length > 0 && confirmPassword === password && (
+                                  <p className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1.5">
+                                    <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 shrink-0" />
+                                    <span>Passwords match</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -1568,7 +1446,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                       data-nav="fullName"
                                       type="text"
                                       required
-                                      placeholder="e.g. Lalith Patel"
+                                      placeholder="Enter your full name"
                                       value={fullName}
                                       onChange={(e) => { setFullName(e.target.value); clearError(); }}
                                       className={inputWithIconClass}
@@ -1738,13 +1616,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             </div>
 
                             {/* STEP 2 ACTIONS */}
-                            <div className="grid grid-cols-2 gap-3.5 pt-3">
+                            <div className="flex items-center gap-3 pt-3">
                               <button
                                 type="button"
                                 onClick={() => { clearError(); setPatientRegStep(1); }}
-                                className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="h-12 w-28 sm:w-32 px-4 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                               >
-                                <ArrowLeft className="w-4 h-4" />
+                                <ArrowLeft className="w-4 h-4 shrink-0" />
                                 <span>Back</span>
                               </button>
 
@@ -1754,10 +1632,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 whileTap={{ scale: 0.99 }}
                                 type="button"
                                 onClick={handleProceedToStep3}
-                                className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20"
+                                className="h-12 flex-1 px-4 sm:px-6 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer border border-teal-400/20"
                               >
-                                <span>Continue to Medical Information</span>
-                                <ArrowRight className="w-4 h-4" />
+                                <span className="whitespace-nowrap">Continue to Medical Information</span>
+                                <ArrowRight className="w-4 h-4 shrink-0" />
                               </motion.button>
                             </div>
                           </div>
@@ -1848,94 +1726,77 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div>
-                                  <label className={labelClass}>Blood Pressure (mmHg)</label>
-                                  <div className="grid grid-cols-2 gap-2">
+                                  <label className={labelClass}>Systolic BP (mmHg)</label>
+                                  <div className="relative">
+                                    <Activity className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                     <input
                                       data-nav="systolicBp"
                                       type="number"
                                       min="60"
                                       max="220"
-                                      placeholder="120 (Sys)"
+                                      placeholder="e.g. 120"
                                       value={systolicBp}
                                       onChange={(e) => setSystolicBp(e.target.value)}
-                                      className={inputClass}
-                                    />
-                                    <input
-                                      data-nav="diastolicBp"
-                                      type="number"
-                                      min="40"
-                                      max="140"
-                                      placeholder="80 (Dia)"
-                                      value={diastolicBp}
-                                      onChange={(e) => setDiastolicBp(e.target.value)}
-                                      className={inputClass}
+                                      className={inputWithIconClass}
                                     />
                                   </div>
                                 </div>
 
                                 <div>
-                                  <label className={labelClass}>Heart Rate & Temp</label>
-                                  <div className="grid grid-cols-2 gap-2">
+                                  <label className={labelClass}>Diastolic BP (mmHg)</label>
+                                  <div className="relative">
+                                    <Activity className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input
+                                      data-nav="diastolicBp"
+                                      type="number"
+                                      min="40"
+                                      max="140"
+                                      placeholder="e.g. 80"
+                                      value={diastolicBp}
+                                      onChange={(e) => setDiastolicBp(e.target.value)}
+                                      className={inputWithIconClass}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className={labelClass}>Heart Rate (BPM)</label>
+                                  <div className="relative">
+                                    <Heart className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                     <input
                                       data-nav="heartRate"
                                       type="number"
                                       min="40"
                                       max="200"
-                                      placeholder="72 BPM"
+                                      placeholder="e.g. 72"
                                       value={heartRate}
                                       onChange={(e) => setHeartRate(e.target.value)}
-                                      className={inputClass}
+                                      className={inputWithIconClass}
                                     />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className={labelClass}>Body Temperature (°F)</label>
+                                  <div className="relative">
+                                    <Thermometer className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                     <input
                                       data-nav="temperature"
                                       type="number"
                                       step="0.1"
                                       min="90"
                                       max="110"
-                                      placeholder="98.6 °F"
+                                      placeholder="e.g. 98.6"
                                       value={temperature}
                                       onChange={(e) => setTemperature(e.target.value)}
-                                      className={inputClass}
+                                      className={inputWithIconClass}
                                     />
                                   </div>
                                 </div>
                               </div>
                             </div>
 
-                            {/* REGISTRATION READINESS SUMMARY */}
-                            <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2">
-                              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Registration Summary</p>
-                              
-                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                                <span className="flex items-center gap-2">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                  <span>Account & Credentials</span>
-                                </span>
-                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                  ✓ Email verified ({email})
-                                </span>
-                              </div>
 
-                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                                <span className="flex items-center gap-2">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                  <span>Personal Information</span>
-                                </span>
-                                <span className="text-[11px] font-bold text-slate-700 bg-slate-200/70 px-2 py-0.5 rounded-full">
-                                  ✓ Completed ({fullName || 'Profile Details'})
-                                </span>
-                              </div>
-
-                              <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                                <span className="flex items-center gap-2">
-                                  <CheckCircle2 className="w-4 h-4 text-[#00a896]" />
-                                  <span>Medical Information</span>
-                                </span>
-                                <span className="text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                                  ✓ Completed
-                                </span>
-                              </div>
-                            </div>
 
                             {/* TERMS CHECKBOX */}
                             <div className="pt-1">
@@ -1953,13 +1814,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                             </div>
 
                             {/* STEP 3 ACTIONS */}
-                            <div className="grid grid-cols-2 gap-3.5 pt-2">
+                            <div className="flex items-center gap-3 pt-2">
                               <button
                                 type="button"
                                 onClick={() => { clearError(); setPatientRegStep(2); }}
-                                className="h-12 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="h-12 w-28 sm:w-32 px-4 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                               >
-                                <ArrowLeft className="w-4 h-4" />
+                                <ArrowLeft className="w-4 h-4 shrink-0" />
                                 <span>Back</span>
                               </button>
 
@@ -1969,14 +1830,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 whileTap={{ scale: 0.99 }}
                                 type="submit"
                                 disabled={loading}
-                                className="h-12 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-teal-400/20 disabled:opacity-50"
+                                className="h-12 flex-1 px-4 sm:px-6 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer border border-teal-400/20 disabled:opacity-50"
                               >
                                 {loading ? (
                                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                   <>
-                                    <span>Create MediCare Account</span>
-                                    <ArrowRight className="w-4 h-4" />
+                                    <span className="whitespace-nowrap">Create MediCare Account</span>
+                                    <ArrowRight className="w-4 h-4 shrink-0" />
                                   </>
                                 )}
                               </motion.button>
@@ -2743,7 +2604,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 placeholder="••••••••••••"
                                 value={password}
                                 onChange={(e) => { setPassword(e.target.value); clearError(); }}
-                                className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 border border-slate-200 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15 transition-all shadow-xs"
+                                className={`w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-xs border ${
+                                  password.length > 0
+                                    ? password.length >= 8
+                                      ? 'border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15'
+                                      : 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15'
+                                    : 'border-slate-200 focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15'
+                                }`}
                               />
                               <button
                                 type="button"
@@ -2753,23 +2620,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
                             </div>
-
-                            {/* DYNAMIC PASSWORD STRENGTH METER */}
-                            {password && (
-                              <div className="pt-1.5 space-y-1">
-                                <div className="flex items-center justify-between text-[10px] font-bold">
-                                  <span className="text-slate-500 font-mono">Strength:</span>
-                                  <span className={`${strength.score >= 75 ? 'text-teal-600' : 'text-amber-500'} font-mono`}>
-                                    {strength.label}
-                                  </span>
-                                </div>
-                                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                                  <div 
-                                    className={`h-full transition-all duration-300 ${strength.color}`} 
-                                    style={{ width: `${strength.score}%` }} 
-                                  />
-                                </div>
-                              </div>
+                            {password.length > 0 && password.length < 8 && (
+                              <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                <span>Password must be at least 8 characters</span>
+                              </p>
                             )}
                           </div>
 
@@ -2783,9 +2638,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                                 placeholder="••••••••••••"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={inputWithIconClass}
+                                className={`w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all shadow-xs border ${
+                                  confirmPassword.length > 0
+                                    ? confirmPassword === password
+                                      ? 'border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15'
+                                      : 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15'
+                                    : 'border-slate-200 focus:border-[#00a896] focus:ring-2 focus:ring-[#00a896]/15'
+                                }`}
                               />
                             </div>
+                            {confirmPassword.length > 0 && confirmPassword !== password && (
+                              <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                <span>Passwords do not match</span>
+                              </p>
+                            )}
+                            {confirmPassword.length > 0 && confirmPassword === password && (
+                              <p className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1.5">
+                                <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 shrink-0" />
+                                <span>Passwords match</span>
+                              </p>
+                            )}
                           </div>
                         </div>
                       ) : (

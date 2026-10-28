@@ -20,10 +20,9 @@ import {
   updatePharmacyOrderStatus
 } from '../../utils/healthWorkflowStorage';
 import type { ExtendedPharmacyOrder } from '../../utils/healthWorkflowStorage';
-import { INITIAL_MEDICINE_STOCK } from '../pharmacy/pharmacyData';
+import { INITIAL_MEDICINE_STOCK, getPharmacyStock } from '../pharmacy/pharmacyData';
 import { PharmacistPrescriptionModal } from './PharmacistPrescriptionModal';
 import { DeclineOrderModal } from './DeclineOrderModal';
-import { showGlobalToast } from '../common/GlobalToastManager';
 import { acceptPharmacyOrder, declinePharmacyOrder } from '../../services/pharmacyOrderApi';
 
 interface PharmacistOverviewTabProps {
@@ -36,7 +35,7 @@ interface PharmacistOverviewTabProps {
   };
   onNavigateOrders: (filterTab?: string) => void;
   onNavigateMedicines?: () => void;
-  onToast: (msg: string) => void;
+  onToast: (msg: string, type?: 'success' | 'info' | 'warning' | 'error', title?: string, eventKey?: string) => void;
 }
 
 export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
@@ -49,6 +48,8 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
   const [selectedRxOrder, setSelectedRxOrder] = useState<any | null>(null);
   const [declineTargetOrder, setDeclineTargetOrder] = useState<any | null>(null);
   const [acceptingOrderId, setAcceptingOrderId] = useState<string | null>(null);
+  const pharmacyId = (user as any)?.pharmacyId || localStorage.getItem('pharmacist_pharmacy_id') || undefined;
+  const [stockItems, setStockItems] = useState<any[]>(() => getPharmacyStock(pharmacyId));
 
   const loadData = async () => {
     try {
@@ -80,8 +81,23 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
 
   useEffect(() => {
     loadData();
-    const handleUpdate = () => loadData();
+
+    const pollInterval = setInterval(() => {
+      loadData();
+    }, 4000);
+
+    const handleUpdate = () => {
+      loadData();
+      setStockItems(getPharmacyStock(pharmacyId));
+    };
     window.addEventListener('health_workflow_updated', handleUpdate);
+
+    const handleStorageUpdate = (e: StorageEvent) => {
+      if (e.key === 'health_workflow_last_updated' || e.key === 'pharmacy_order_updated') {
+        loadData();
+      }
+    };
+    window.addEventListener('storage', handleStorageUpdate);
 
     let unsub: any;
     import('../../services/socketService').then(({ socketService }) => {
@@ -92,10 +108,12 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
     });
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('health_workflow_updated', handleUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
       if (unsub) unsub();
     };
-  }, []);
+  }, [pharmacyId]);
 
   const pendingOrders = orders.filter((o) => (o.status as string) === 'Pending Pharmacist Verification' || (o.status as string) === 'PENDING');
   const processingOrders = orders.filter((o) => (o.status as string) === 'Processing' || (o.status as string) === 'ACCEPTED' || (o.status as string) === 'PREPARING' || (o.status as string) === 'READY' || (o.status as string) === 'OUT_FOR_DELIVERY');
@@ -116,7 +134,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
     } catch {}
     return user?.name || 'Registered Pharmacist';
   }, [user?.name]);
-  const pharmacyStore = user?.hospitalAffiliation || 'Apollo Central Pharmacy';
+  const pharmacyStore = user?.hospitalAffiliation || localStorage.getItem('pharmacist_pharmacy_name') || 'Dispensary Hub';
 
   const handleAcceptOrder = async (orderId: string) => {
     setAcceptingOrderId(orderId);
@@ -124,8 +142,8 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
       await acceptPharmacyOrder(orderId);
       await loadData();
       window.dispatchEvent(new Event('health_workflow_updated'));
-      onToast(`✓ Order #${orderId.slice(-6)} Accepted and moved to Dispensing!`);
-      showGlobalToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+      const eventKey = `order-${orderId.toLowerCase()}-accepted`;
+      onToast(`Order #${orderId.slice(-6)} was accepted successfully.`, 'success', 'Order Accepted', eventKey);
       if (selectedRxOrder && selectedRxOrder.id === orderId) {
         setSelectedRxOrder(null);
       }
@@ -142,16 +160,15 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
         if (res.success) {
           await loadData();
           window.dispatchEvent(new Event('health_workflow_updated'));
-          onToast(`✓ Order #${orderId.slice(-6)} Accepted!`);
-          showGlobalToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+          const eventKey = `order-${orderId.toLowerCase()}-accepted`;
+          onToast(`Order #${orderId.slice(-6)} was accepted successfully.`, 'success', 'Order Accepted', eventKey);
           if (selectedRxOrder && selectedRxOrder.id === orderId) {
             setSelectedRxOrder(null);
           }
           return;
         }
       } catch {}
-      onToast(err?.message || 'Failed to accept order.');
-      showGlobalToast(err?.message || 'Failed to accept order.', 'error');
+      onToast(err?.message || 'Failed to accept order.', 'error', 'Action Failed');
     } finally {
       setAcceptingOrderId(null);
     }
@@ -162,8 +179,8 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
       await declinePharmacyOrder(orderId, notes ? `${reason} - ${notes}` : reason);
       await loadData();
       window.dispatchEvent(new Event('health_workflow_updated'));
-      onToast(`✕ Order #${orderId.slice(-6)} Declined`);
-      showGlobalToast(`✕ Order #${orderId.slice(-6)} Declined`, 'info');
+      const eventKey = `order-${orderId.toLowerCase()}-declined`;
+      onToast(`Order #${orderId.slice(-6)} was declined.`, 'info', 'Order Declined', eventKey);
       setDeclineTargetOrder(null);
       if (selectedRxOrder && selectedRxOrder.id === orderId) {
         setSelectedRxOrder(null);
@@ -181,14 +198,13 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
         if (res.success) {
           await loadData();
           window.dispatchEvent(new Event('health_workflow_updated'));
-          onToast(`✕ Order #${orderId.slice(-6)} Declined`);
-          showGlobalToast(`✕ Order #${orderId.slice(-6)} Declined`, 'info');
+          const eventKey = `order-${orderId.toLowerCase()}-declined`;
+          onToast(`Order #${orderId.slice(-6)} was declined.`, 'info', 'Order Declined', eventKey);
           setDeclineTargetOrder(null);
           return;
         }
       } catch {}
-      onToast(err?.message || 'Failed to decline order.');
-      showGlobalToast(err?.message || 'Failed to decline order.', 'error');
+      onToast(err?.message || 'Failed to decline order.', 'error', 'Action Failed');
     }
   };
 
@@ -202,7 +218,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
             Welcome, {pharmacistName} 👋
           </h2>
           <div className="text-xs sm:text-sm text-teal-50 space-y-1">
-            <p>Registered Pharmacist | ID: <span className="font-mono font-bold">DL-TN-2024-PH-8941</span></p>
+            <p>Registered Pharmacist | ID: <span className="font-mono font-bold">{user?.abhaId || 'RPH-LIC-VERIFIED'}</span></p>
             <p>You have <strong className="text-white font-black px-1.5 py-0.5 rounded-md bg-white/20 mx-1">{pendingOrders.length} pending prescription{pendingOrders.length !== 1 ? 's' : ''}</strong></p>
             <p className="text-teal-200">Awaiting clinical review and dispensing.</p>
           </div>
@@ -309,7 +325,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
             </div>
           </div>
           <div className="text-3xl font-black text-slate-900 dark:text-white font-mono flex-1 flex gap-1 items-baseline">
-            {INITIAL_MEDICINE_STOCK.length} <span className="text-xs font-medium text-slate-500 tracking-normal font-sans">Formulations</span>
+            {stockItems.length} <span className="text-xs font-medium text-slate-500 tracking-normal font-sans">Formulations</span>
           </div>
           <div className="flex items-center justify-between mt-auto">
             <span className="text-[11px] text-slate-500 font-medium">
@@ -503,7 +519,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
         </div>
 
         {/* COMPACT STOCK GRID */}
-        {INITIAL_MEDICINE_STOCK.length === 0 ? (
+        {stockItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50">
             <div className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-slate-800 flex items-center justify-center mb-3 text-slate-400">
               <Pill className="w-6 h-6" />
@@ -517,7 +533,7 @@ export const PharmacistOverviewTab: React.FC<PharmacistOverviewTabProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {INITIAL_MEDICINE_STOCK.slice(0, 6).map((med) => {
+            {stockItems.slice(0, 6).map((med) => {
               const isLow = med.stockLevel === 'Low Stock' || med.stockLevel === 'Out of Stock';
               const isMedium = med.stockLevel === 'Medium Stock';
               

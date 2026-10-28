@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
@@ -19,6 +19,7 @@ import {
   ShoppingBag,
   Bell,
   Eye,
+  EyeOff,
   Check,
   X,
   ExternalLink,
@@ -28,13 +29,12 @@ import {
   FileCheck2,
   ScanLine,
   MapPin,
-  Phone,
-  ShieldAlert,
   Lock,
-  CheckCheck,
   ChevronDown,
   ChevronUp,
-  Star
+  RotateCw,
+  FileQuestion,
+  HelpCircle
 } from 'lucide-react';
 import type { StructuredPrescription, ExtractedMedicine } from '../../utils/prescriptionExtractor';
 import {
@@ -44,12 +44,25 @@ import {
 import {
   processPrescriptionConfirmation,
   getLatestWorkflowResult,
+  setLatestWorkflowResult,
   updateReminderFollowUpStatus,
   getReminders,
+  savePharmacyOrder,
 } from '../../utils/healthWorkflowStorage';
 import type { WorkflowConfirmationResult, ExtendedReminderItem } from '../../utils/healthWorkflowStorage';
 import { INITIAL_PHARMACIES, type Pharmacy } from '../pharmacy/pharmacyData';
 import { OrderTrackingModal } from '../pharmacy/OrderTrackingModal';
+
+export type WorkflowState =
+  | 'idle'
+  | 'file_selected'
+  | 'uploading'
+  | 'processing'
+  | 'review_required'
+  | 'choose_pharmacy'
+  | 'verifying'
+  | 'verified'
+  | 'failed';
 
 interface PrescriptionScannerTabProps {
   user?: {
@@ -58,6 +71,8 @@ interface PrescriptionScannerTabProps {
     role?: string;
     abhaId?: string;
   };
+  selectedFileProp?: File | null;
+  onClearSelectedFile?: () => void;
   capturedImage?: string | null;
   onClearCapturedImage?: () => void;
   onNavigate: (module: string) => void;
@@ -67,39 +82,74 @@ interface PrescriptionScannerTabProps {
 
 export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   user,
+  selectedFileProp,
+  onClearSelectedFile,
   capturedImage,
   onClearCapturedImage,
   onNavigate,
   onToast,
   onOpenScanner
 }) => {
-  // PROGRESSIVE STEPS: 1 = 'upload', 2 = 'scanning', 3 = 'review', 4 = 'success'
-  const [step, setStep] = useState<'upload' | 'scanning' | 'review' | 'success'>('upload');
+  // SINGLE AUTHORITATIVE WORKFLOW STATE MACHINE
+  const [workflowState, setWorkflowState] = useState<WorkflowState>('idle');
 
   // Authoritative Patient Name Resolution Helper
-  const isInvalidPatientName = React.useCallback((name?: string): boolean => {
+  const isInvalidPatientName = useCallback((name?: string): boolean => {
     if (!name) return true;
     const lower = name.toLowerCase().trim();
     return (
       lower === 'patient' ||
+      lower === 'ananya sharma' ||
+      lower === 'ananya' ||
       lower.startsWith('dr.') ||
       lower.startsWith('dr ') ||
       lower.includes('doctor') ||
-      lower.includes('arjun') ||
       lower.includes('pharmacist') ||
       lower.includes('r.ph') ||
-      lower.includes('suresh nair') ||
       lower.includes('nurse') ||
       lower.includes('admin') ||
       lower.includes('caregiver')
     );
   }, []);
 
-  const resolveAuthoritativePatientName = React.useCallback((userCandidate?: any): string => {
+  const isClinicUncertain = useCallback((name?: string): boolean => {
+    if (!name || !name.trim()) return true;
+    const lower = name.trim().toLowerCase();
+    return (
+      lower === 'hospital' ||
+      lower === 'clinic' ||
+      lower === 'hospital / clinic' ||
+      lower === 'hospital/clinic' ||
+      lower === 'hospital / facility' ||
+      lower === 'clinic name' ||
+      lower === 'hospital name' ||
+      lower === 'facility' ||
+      lower === 'medical centre' ||
+      lower === 'medical center' ||
+      lower === 'health centre' ||
+      lower === 'health center' ||
+      lower === 'healthcare' ||
+      lower === 'unable to verify clinic name' ||
+      lower === 'unable to verify hospital or clinic' ||
+      lower.includes('unknown')
+    );
+  }, []);
+
+  const resolveAuthoritativePatientName = useCallback((userCandidate?: any): string => {
     try {
       const custom = localStorage.getItem('patient_user_name');
       if (custom && custom.trim() && !isInvalidPatientName(custom)) {
         return custom.trim();
+      }
+      const patientUser = localStorage.getItem('patient_user');
+      if (patientUser) {
+        const parsed = JSON.parse(patientUser);
+        if (parsed?.name && !isInvalidPatientName(parsed.name)) {
+          return parsed.name.trim();
+        }
+      }
+      if (userCandidate?.name && !isInvalidPatientName(userCandidate.name)) {
+        return userCandidate.name.trim();
       }
       const prof = localStorage.getItem('user_profile_data');
       if (prof) {
@@ -121,13 +171,13 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       return userCandidate.name.trim();
     }
 
-    return 'Ananya Sharma';
+    return '';
   }, [isInvalidPatientName]);
 
   const [patientNameInput, setPatientNameInput] = useState<string>(() => resolveAuthoritativePatientName(user));
   const [isEditingPatientName, setIsEditingPatientName] = useState(false);
 
-  // Sync patient name if user object updates, listen to app_user_updated, or fetch from backend profile
+  // Sync patient name if user object updates
   useEffect(() => {
     let isMounted = true;
     const resolved = resolveAuthoritativePatientName(user);
@@ -135,7 +185,6 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       setPatientNameInput(resolved);
     }
 
-    // Fetch live patient profile from backend to guarantee real patient name
     import('../../services/apiClient').then(({ apiClient }) => {
       apiClient.get<any>('/profile/patient').then((res) => {
         if (res && res.data && res.data.fullName && isMounted) {
@@ -145,7 +194,15 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
             localStorage.setItem('patient_user_name', fn);
           }
         }
-      }).catch(() => {});
+      }).catch(() => {
+        apiClient.get<any>('/profile').then((res) => {
+          const fn = res?.data?.patient?.fullName || res?.data?.profile?.fullName || res?.data?.fullName;
+          if (fn && isMounted && !isInvalidPatientName(fn)) {
+            setPatientNameInput(fn.trim());
+            localStorage.setItem('patient_user_name', fn.trim());
+          }
+        }).catch(() => {});
+      });
     });
 
     const handleUserUpdated = () => {
@@ -167,38 +224,34 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     if (!trimmed) return;
 
     try {
-      // 1. Update localStorage app_user
       const appUserStr = localStorage.getItem('app_user');
       if (appUserStr) {
         const appUser = JSON.parse(appUserStr);
         appUser.name = trimmed;
         localStorage.setItem('app_user', JSON.stringify(appUser));
       }
-      // 2. Update user_profile_data
       const profStr = localStorage.getItem('user_profile_data');
       if (profStr) {
         const prof = JSON.parse(profStr);
         prof.name = trimmed;
         localStorage.setItem('user_profile_data', JSON.stringify(prof));
       }
-      // 3. Dispatch event so entire app and all tabs update immediately
       window.dispatchEvent(new Event('app_user_updated'));
 
-      // 4. Update backend profile in MySQL
       const { apiClient } = await import('../../services/apiClient');
-      await apiClient.put('/profile/patient', {
-        fullName: trimmed
-      });
+      await apiClient.put('/profile/patient', { fullName: trimmed });
       onToast(`✓ Patient profile name saved: ${trimmed}`);
     } catch (err) {
       console.warn('Failed to update patient profile name:', err);
     }
   };
 
-  // FILE & IMAGE PREVIEW
+  // FILE & IMAGE PREVIEW STATE
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [activePageIndex, setActivePageIndex] = useState<number>(0);
+  const [showRawOcr, setShowRawOcr] = useState<boolean>(false);
 
   // SCANNING / OCR PROGRESS
   const [scanProgress, setScanProgress] = useState(0);
@@ -208,58 +261,117 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   // EXTRACTED / EDITABLE PRESCRIPTION STATE
   const [prescriptionData, setPrescriptionData] = useState<StructuredPrescription | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<WorkflowConfirmationResult | null>(null);
-  const [isConfirming, setIsConfirming] = useState(false);
 
-  // REGISTERED PHARMACY STATE & DROPDOWN SELECTION
-  const [registeredPharmacies, setRegisteredPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
-  const [selectedPharmacyId, setSelectedPharmacyId] = useState<string>(INITIAL_PHARMACIES[0]?.id || 'PHARM-1');
+  // REGISTERED PHARMACY STATE & SELECTION
+  const [registeredPharmacies, setRegisteredPharmacies] = useState<Pharmacy[]>([]);
+  const [isLoadingPharmacies, setIsLoadingPharmacies] = useState<boolean>(true);
+  const [selectedPharmacyId, setSelectedPharmacyId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('patient_preferred_pharmacy_id') || '';
+    } catch {
+      return '';
+    }
+  });
   const [isPharmacyPickerOpen, setIsPharmacyPickerOpen] = useState<boolean>(false);
-  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
-  const [authDeclinedNotice, setAuthDeclinedNotice] = useState<string | null>(null);
+  const [patientDeliveryAddress, setPatientDeliveryAddress] = useState<string>('');
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState<boolean>(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const isSubmittingRef = useRef<boolean>(false);
+  const submittedPrescriptionIdsRef = useRef<Set<string>>(new Set());
   const [isLiveTrackingOpen, setIsLiveTrackingOpen] = useState<boolean>(false);
   const [liveTrackingOrder, setLiveTrackingOrder] = useState<any>(null);
 
-  // Fetch available registered tie-up pharmacies from backend if available
+  // Load authenticated patient's registered delivery address
   useEffect(() => {
-    const fetchAvailablePharmacies = async () => {
+    let isMounted = true;
+    const loadPatientAddress = async () => {
       try {
         const { apiClient } = await import('../../services/apiClient');
-        const res = await apiClient.get<any[]>('/pharmacies/available');
-        if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-          const mapped: Pharmacy[] = res.data.map((p: any, idx: number) => ({
-            id: p.pharmacyId || p.id,
-            name: p.name,
-            rating: 4.8,
-            reviewCount: 350,
-            distanceKm: Number((1.8 + idx * 0.9).toFixed(1)),
-            hours: 'Open until 10:00 PM',
-            deliveryTime: '30–45 min',
-            deliveryAvailable: true,
-            pickupAvailable: true,
-            address: [p.address, p.city, p.state].filter(Boolean).join(', ') || 'Chennai, TN',
-            phone: p.phone || '+91 98401 23456',
-            isPreferred: idx === 0,
-          }));
-          setRegisteredPharmacies(mapped);
-          setSelectedPharmacyId(mapped[0].id);
+        const res = await apiClient.get<any>('/profile/patient');
+        if (isMounted && res?.data?.address && typeof res.data.address === 'string' && res.data.address.trim()) {
+          setPatientDeliveryAddress(res.data.address.trim());
         }
-      } catch {
-        // Fallback gracefully to INITIAL_PHARMACIES
+      } catch (err) {
+        try {
+          const stored = localStorage.getItem('user_profile_data');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (isMounted && parsed?.location && typeof parsed.location === 'string' && parsed.location.trim()) {
+              setPatientDeliveryAddress(parsed.location.trim());
+            }
+          }
+        } catch {}
       }
     };
-    fetchAvailablePharmacies();
+    loadPatientAddress();
+    return () => { isMounted = false; };
   }, []);
 
-  const selectedPharmacy =
-    registeredPharmacies.find((p) => p.id === selectedPharmacyId) || registeredPharmacies[0];
-
-  // LIVE LATEST WORKFLOW HUB STATE
-  const [latestWorkflow, setLatestWorkflow] = useState<WorkflowConfirmationResult | null>(null);
-  const [latestReminder, setLatestReminder] = useState<ExtendedReminderItem | null>(null);
+  // CONFIRMATION LOADING STATE
+  const [confirmStatusText, setConfirmStatusText] = useState<string>('Verifying & Submitting...');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Load latest workflow from localStorage on mount & listen to updates
+  // Fetch available registered tie-up pharmacies from backend
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAvailablePharmacies = async () => {
+      setIsLoadingPharmacies(true);
+      try {
+        const { apiClient } = await import('../../services/apiClient');
+        const res = await apiClient.get<any[]>('/pharmacies/available');
+        if (isMounted && res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const seenIds = new Set<string>();
+          const mapped: Pharmacy[] = [];
+
+          res.data.forEach((p: any, idx: number) => {
+            const id = p.id || p.pharmacyId;
+            if (!id || seenIds.has(id)) return;
+            seenIds.add(id);
+
+            mapped.push({
+              id,
+              name: p.name || 'Partner Pharmacy',
+              rating: 4.8,
+              reviewCount: 350,
+              distanceKm: Number((1.8 + idx * 0.9).toFixed(1)),
+              hours: 'Open until 10:00 PM',
+              deliveryTime: '30–45 min',
+              deliveryAvailable: true,
+              pickupAvailable: true,
+              address: [p.address, p.city, p.state].filter(Boolean).join(', ') || 'Chennai, TN',
+              phone: p.phone || '+91 98401 23456',
+              isPreferred: false,
+            });
+          });
+
+          setRegisteredPharmacies(mapped);
+
+          // Only set if patient previously confirmed a preferred pharmacy that exists in network
+          const savedPref = localStorage.getItem('patient_preferred_pharmacy_id');
+          if (savedPref && mapped.some((m) => m.id === savedPref)) {
+            setSelectedPharmacyId(savedPref);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load registered pharmacies from backend:', err);
+      } finally {
+        if (isMounted) setIsLoadingPharmacies(false);
+      }
+    };
+    fetchAvailablePharmacies();
+    return () => { isMounted = false; };
+  }, []);
+
+  const selectedPharmacy = useMemo(() => {
+    if (!selectedPharmacyId) return null;
+    return registeredPharmacies.find((p) => p.id === selectedPharmacyId) || null;
+  }, [registeredPharmacies, selectedPharmacyId]);
+
+  // LIVE LATEST WORKFLOW STATE
+  const [latestWorkflow, setLatestWorkflow] = useState<WorkflowConfirmationResult | null>(null);
+  const [latestReminder, setLatestReminder] = useState<ExtendedReminderItem | null>(null);
+
   const syncLatestWorkflow = () => {
     const lw = getLatestWorkflowResult();
     setLatestWorkflow(lw);
@@ -279,16 +391,40 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     return () => window.removeEventListener('health_workflow_updated', handleUpdate);
   }, []);
 
-  // TRIGGER OCR SCANNING WITH DYNAMIC SOURCE
+  // VALIDATE SELECTED FILE
+  const validateFile = (file: File): string | null => {
+    if (!file) return 'No file selected.';
+    if (file.size === 0) return 'The selected file is empty (0 bytes). Please upload a valid document.';
+    const maxSize = 25 * 1024 * 1024;
+    if (file.size > maxSize) return 'File size exceeds 25 MB limit. Please upload a smaller file.';
+    const allowed = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const isAllowed = allowed.includes(file.type) || ['pdf', 'jpg', 'jpeg', 'png', 'webp'].includes(ext || '');
+    if (!isAllowed) {
+      return `Unsupported file format (.${ext || 'unknown'}). Please upload a PDF, JPG, PNG, or WEBP document.`;
+    }
+    return null;
+  };
+
+  // EXECUTE OCR EXTRACTION PIPELINE
   const runExtractionWorkflow = async (overrideSource?: string | File | null) => {
-    setStep('scanning');
+    setWorkflowState('processing');
     setScanProgress(10);
-    setScanStatusText('Analyzing layout and optical characters...');
+    setScanStatusText('Initializing AI OCR Engine & analyzing document structure...');
     setScanError(null);
+    setActivePageIndex(0);
+    setPrescriptionData(null);
+    setConfirmationResult(null);
+    setShowRawOcr(false);
 
     try {
-      const targetSource = overrideSource || selectedFile || previewUrl || selectedPresetId;
-      const targetPreset = (overrideSource || selectedFile) ? undefined : selectedPresetId;
+      const isPresetSource = (typeof overrideSource === 'string' && overrideSource.startsWith('preset-')) || (!overrideSource && !selectedFile && !!selectedPresetId);
+      const targetPreset = isPresetSource ? (typeof overrideSource === 'string' ? overrideSource : selectedPresetId) : undefined;
+      const targetSource = targetPreset || overrideSource || selectedFile || previewUrl;
+
+      if (!targetSource) {
+        throw new Error('No document source provided for OCR scan.');
+      }
 
       const extracted = await extractPrescriptionData(
         targetSource,
@@ -300,39 +436,76 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         patientNameInput.trim() || user?.name || 'Patient'
       );
 
+      if (!extracted || !extracted.id) {
+        throw new Error('AI OCR scanning completed but failed to parse prescription structure.');
+      }
+
       setPrescriptionData(extracted);
-      setStep('review');
-      setShowAuthModal(true);
-      onToast('✓ Prescription scanned! Choose your preferred fulfillment action.');
-    } catch (err) {
-      console.error(err);
-      setScanError('Unable to parse document automatically. You can complete the fields manually.');
-      setStep('review');
+      // TRANSITION DIRECTLY TO REVIEW & VERIFY (STEP 3) — NEVER AUTO-ADVANCE TO STEP 4
+      setWorkflowState('review_required');
+      onToast('✓ Prescription scanned! Please review extracted fields and confirm.');
+    } catch (err: any) {
+      console.error('OCR Extraction error:', err);
+      setScanError(err?.message || 'Unable to scan document automatically. You can retry or complete fields manually.');
+      setWorkflowState('failed');
+      onToast('⚠️ OCR scan could not complete automatically. Check the document or retry.');
     }
   };
 
-  // AUTO TRIGGER WHEN CAPTURED IMAGE IS PASSED FROM CAMERA / CROPPER
+  // HANDLE FILE SELECTION (Independent of camera permission)
+  const handleSelectFile = useCallback((file: File) => {
+    const error = validateFile(file);
+    if (error) {
+      setScanError(error);
+      setWorkflowState('failed');
+      onToast(`✕ ${error}`);
+      return;
+    }
+
+    setSelectedFile(file);
+    setSelectedPresetId('');
+    setScanError(null);
+    setPrescriptionData(null);
+    setConfirmationResult(null);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    // Transition to uploading, then auto-start OCR pipeline
+    setWorkflowState('uploading');
+    setScanStatusText('Validating and preparing document for OCR scan...');
+    setScanProgress(5);
+
+    setTimeout(() => {
+      runExtractionWorkflow(file);
+    }, 450);
+  }, [patientNameInput, user]);
+
+  // Handle selectedFileProp passed from parent (e.g. ScanView header Browse button)
+  useEffect(() => {
+    if (selectedFileProp) {
+      handleSelectFile(selectedFileProp);
+      onClearSelectedFile?.();
+    }
+  }, [selectedFileProp, handleSelectFile, onClearSelectedFile]);
+
+  // Handle capturedImage passed from camera modal
   useEffect(() => {
     if (capturedImage) {
       setPreviewUrl(capturedImage);
       setSelectedFile(null);
       setSelectedPresetId('');
-      runExtractionWorkflow(capturedImage);
-    }
-  }, [capturedImage]);
-
-  // FILE SELECTION HANDLER
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      setSelectedPresetId('');
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
       setScanError(null);
-      
-      // Auto-trigger extraction
-      runExtractionWorkflow(file);
+      setWorkflowState('uploading');
+      setTimeout(() => {
+        runExtractionWorkflow(capturedImage);
+      }, 400);
+      onClearCapturedImage?.();
+    }
+  }, [capturedImage, onClearCapturedImage]);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleSelectFile(e.target.files[0]);
     }
   };
 
@@ -341,15 +514,19 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     setSelectedFile(null);
     setPreviewUrl(null);
     setScanError(null);
+    setWorkflowState('file_selected');
   };
 
-  // TRIGGER OCR SCANNING
-  const handleStartScan = () => {
-    if (selectedFile) {
-      runExtractionWorkflow();
-    } else {
-      onOpenScanner();
-    }
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setSelectedPresetId('');
+    setScanError(null);
+    setPrescriptionData(null);
+    setWorkflowState('idle');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    onClearCapturedImage?.();
+    onClearSelectedFile?.();
   };
 
   // EDIT HANDLERS FOR EXTRACTED MEDICINES
@@ -371,9 +548,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     if (!prescriptionData) return;
     const newMed: ExtractedMedicine = {
       id: `med-${Date.now()}`,
-      name: 'New Medicine',
+      name: 'New Medication',
       dosage: '500 mg',
-      frequency: 'Twice daily',
+      frequency: 'Once daily',
       duration: '5 days',
       quantity: 10,
       instructions: 'Take after meals',
@@ -393,36 +570,15 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
     });
   };
 
-  // CONFIRMATION LOADING PROGRESSION STATES
-  const [confirmStatusText, setConfirmStatusText] = useState<string>('Confirm & Send to Pharmacy');
-
-  // OPEN AUTHENTICATION & CONSENT DIALOG
-  const handleOpenAuthModal = () => {
-    if (!prescriptionData) {
-      onToast('Please review your prescription details before proceeding.');
-      return;
-    }
-    setAuthDeclinedNotice(null);
-    setShowAuthModal(true);
-  };
-
-  // DECLINE AUTHENTICATION HANDLER
-  const handleDeclineAuth = () => {
-    setShowAuthModal(false);
-    setAuthDeclinedNotice(`Prescription transfer to ${selectedPharmacy?.name || 'pharmacy'} was declined by user. You can re-select pharmacy or modify details.`);
-    onToast('✕ Prescription transfer authorization was cancelled.');
-  };
-
-  // SAVE TO PERSONAL HEALTH RECORDS ONLY (NO PHARMACY ORDER TRANSMISSION)
+  // SAVE TO PERSONAL HEALTH RECORDS ONLY (NO PHARMACY DISPATCH)
   const handleSaveToRecordsOnly = async () => {
     if (!prescriptionData) {
       onToast('Please review your prescription details before saving.');
       return;
     }
-    setShowAuthModal(false);
-    setAuthDeclinedNotice(null);
-    setIsConfirming(true);
-    setConfirmStatusText('Saving prescription to Digital Health Locker...');
+
+    setWorkflowState('verifying');
+    setConfirmStatusText('Saving verified record to Digital Health Locker...');
 
     try {
       const chosenPharm = {
@@ -437,7 +593,6 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         pharmacyOrder: null,
       };
 
-      // Also persist to backend DB if logged in
       try {
         const { getStoredAuthToken } = await import('../../services/pharmacyOrderApi');
         const token = getStoredAuthToken();
@@ -495,45 +650,69 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         setLatestReminder(vaultResult.reminderItem);
       }
 
-      setIsConfirming(false);
-      setStep('success');
+      setWorkflowState('verified');
       onToast('✓ Prescription saved to your Digital Health Locker!');
     } catch (err) {
       console.error(err);
-      setIsConfirming(false);
+      setWorkflowState('review_required');
       onToast('Failed to save to health records. Please try again.');
     }
   };
 
-  // ACCEPT AUTHENTICATION & DISPATCH TO PHARMACY
-  const handleConfirmPrescription = async () => {
+  // INITIATE PHARMACY VERIFICATION FLOW
+  const handleVerifyAndSendClick = () => {
     if (!prescriptionData) {
-      onToast('Please review and confirm your prescription before sending it to the pharmacy.');
+      onToast('Please review your prescription details before confirming.');
       return;
     }
-    setShowAuthModal(false);
-    setAuthDeclinedNotice(null);
-    setIsConfirming(true);
-    setConfirmStatusText(`Authenticating transfer to ${selectedPharmacy?.name || 'Pharmacy'}...`);
+    setSubmissionError(null);
+    setIsPharmacyPickerOpen(true);
+  };
 
-    // Multi-stage visual loading sequence to ensure clear status feedback
-    await new Promise((r) => setTimeout(r, 400));
-    setConfirmStatusText(`Routing order to ${selectedPharmacy?.name || 'Pharmacy'}...`);
+  // CONFIRM & SEND TO REGISTERED PHARMACY
+  const handleExecutePharmacySubmission = async (targetPharmacyId?: string) => {
+    const pharmIdToUse = targetPharmacyId || selectedPharmacyId;
+    if (!pharmIdToUse) {
+      setSubmissionError('Please select a registered partner pharmacy before confirming.');
+      return;
+    }
+
+    if (!prescriptionData) {
+      onToast('Please review your prescription details before confirming.');
+      return;
+    }
+
+    // Double-click lock
+    if (isSubmittingRef.current || isSubmittingOrder) {
+      return;
+    }
+
+    const chosenPharm = registeredPharmacies.find((p) => p.id === pharmIdToUse);
+    if (!chosenPharm) {
+      setSubmissionError('Selected pharmacy not found in network. Please select a valid partner pharmacy.');
+      return;
+    }
+
+    const prescriptionIdentifier = prescriptionData.id || `${prescriptionData.patientName}-${prescriptionData.prescriptionDate || ''}`;
+    if (prescriptionIdentifier && submittedPrescriptionIdsRef.current.has(prescriptionIdentifier)) {
+      onToast('This prescription has already been submitted to the pharmacy.');
+      setIsPharmacyPickerOpen(false);
+      return;
+    }
+
+    const finalDeliveryAddress = patientDeliveryAddress.trim();
+    if (!finalDeliveryAddress) {
+      setSubmissionError('Please provide your delivery address before placing the order.');
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsSubmittingOrder(true);
+    setWorkflowState('verifying');
+    setSubmissionError(null);
 
     try {
-      const chosenPharm = selectedPharmacy || registeredPharmacies[0] || {
-        id: 'DHR-PH-00124',
-        name: 'Apollo Central Pharmacy',
-        address: 'Plot 42, Anna Salai, Guindy, Chennai, TN',
-      };
-
-      const result = processPrescriptionConfirmation(prescriptionData, {
-        id: chosenPharm.id,
-        name: chosenPharm.name,
-        address: chosenPharm.address,
-      });
-
-      // Submit to DHR Backend Database & Dispatch to Registered Pharmacist Realtime Queue
+      // 1. Submit to backend database first - ensure real MySQL persistence
       const { createPatientPharmacyOrder } = await import('../../services/pharmacyOrderApi');
       const realOrder = await createPatientPharmacyOrder({
         prescriptionData: {
@@ -544,12 +723,30 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
           medicines: prescriptionData.medicines,
         },
         pharmacyId: chosenPharm.id,
-        deliveryAddress: chosenPharm.address || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai',
+        deliveryAddress: finalDeliveryAddress,
         deliveryType: 'Home Delivery',
       });
 
       if (!realOrder || !realOrder.id) {
         throw new Error('Failed to create pharmacy order record in database');
+      }
+
+      // 2. Process workflow confirmation and associate with authoritative order
+      const result = processPrescriptionConfirmation(prescriptionData, {
+        id: chosenPharm.id,
+        name: chosenPharm.name,
+        address: chosenPharm.address,
+      });
+
+      // Store preference
+      try {
+        localStorage.setItem('patient_preferred_pharmacy_id', chosenPharm.id);
+        localStorage.setItem('health_workflow_last_updated', String(Date.now()));
+        localStorage.setItem('pharmacy_order_updated', realOrder.id);
+      } catch {}
+
+      if (prescriptionIdentifier) {
+        submittedPrescriptionIdsRef.current.add(prescriptionIdentifier);
       }
 
       const updatedResult: any = {
@@ -564,24 +761,34 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
           progressPercent: 20,
         },
       };
+
       setConfirmationResult(updatedResult);
       setLatestWorkflow(updatedResult);
+      setLatestWorkflowResult(updatedResult);
       setLiveTrackingOrder(realOrder as any);
+      savePharmacyOrder(updatedResult.pharmacyOrder);
       window.dispatchEvent(new Event('health_workflow_updated'));
 
       if (result.reminderItem) {
         setLatestReminder(result.reminderItem);
       }
 
-      setConfirmStatusText('Prescription submitted successfully.');
-      setIsConfirming(false);
-      setStep('success');
-      onToast(`✓ Transmitted! Live order request #${realOrder.id.slice(-6)} sent to ${chosenPharm.name}.`);
+      setSelectedPharmacyId(chosenPharm.id);
+      setIsPharmacyPickerOpen(false);
+      setWorkflowState('verified');
+      setIsLiveTrackingOpen(true);
+      onToast(`✓ Transmitted! Live order #${realOrder.id.slice(-6)} sent to ${chosenPharm.name}.`);
     } catch (err: any) {
       console.error('Pharmacy order submission error:', err);
-      setIsConfirming(false);
-      setConfirmStatusText('Confirm & Send to Pharmacy');
-      onToast(err?.message || "Failed to create pharmacy request. Please try again.");
+      const errorMessage = err?.message || 'Failed to submit order to pharmacy. Please try again.';
+      setSubmissionError(errorMessage);
+      setIsPharmacyPickerOpen(true);
+      setWorkflowState('review_required');
+      setIsLiveTrackingOpen(false);
+      onToast(errorMessage);
+    } finally {
+      setIsSubmittingOrder(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -594,49 +801,109 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
   };
 
   const handleReset = () => {
-    setStep('upload');
+    setWorkflowState('idle');
     setSelectedFile(null);
     setPreviewUrl(null);
+    setSelectedPresetId('');
     setPrescriptionData(null);
     setConfirmationResult(null);
     setScanProgress(0);
+    setScanError(null);
+    setActivePageIndex(0);
+    setShowRawOcr(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     onClearCapturedImage?.();
+    onClearSelectedFile?.();
   };
 
-  // STEP METADATA FOR PROGRESS STEPPER
+  // VALIDATION ISSUES COMPUTATION
+  const validationAlerts = useMemo(() => {
+    if (!prescriptionData) return [];
+    const alerts: { field: string; message: string; severity: 'warning' | 'info' }[] = [];
+
+    if (
+      !prescriptionData.doctorName ||
+      prescriptionData.doctorName === 'Unable to verify physician name' ||
+      prescriptionData.doctorName.toLowerCase().includes('unknown') ||
+      prescriptionData.doctorName === 'Doctor'
+    ) {
+      alerts.push({
+        field: 'Doctor',
+        message: prescriptionData.doctorName === 'Unable to verify physician name'
+          ? 'Unable to verify physician name from document. Please review and enter manually.'
+          : 'Physician name is uncertain. Please check the document.',
+        severity: 'warning'
+      });
+    }
+    if (isClinicUncertain(prescriptionData.clinicName)) {
+      alerts.push({ field: 'Clinic', message: 'Hospital or clinic information needs review.', severity: 'info' });
+    }
+    if (!prescriptionData.prescriptionDate) {
+      alerts.push({ field: 'Date', message: 'Prescription date could not be parsed automatically.', severity: 'warning' });
+    }
+    if (!prescriptionData.medicines || prescriptionData.medicines.length === 0) {
+      alerts.push({ field: 'Medicines', message: 'No medications were detected in the OCR text.', severity: 'warning' });
+    }
+    return alerts;
+  }, [prescriptionData]);
+
+  // MAP WORKFLOW STATE TO 4-STEP NAVIGATION
+  const activeStepNumber = useMemo(() => {
+    switch (workflowState) {
+      case 'idle':
+      case 'file_selected':
+      case 'uploading':
+        return 1;
+      case 'processing':
+        return 2;
+      case 'review_required':
+      case 'choose_pharmacy':
+      case 'verifying':
+      case 'failed':
+        return 3;
+      case 'verified':
+        return 4;
+    }
+  }, [workflowState]);
+
   const STEPS_NAV = [
-    { id: 'upload', title: '1. Select / Upload', icon: Upload },
-    { id: 'scanning', title: '2. AI OCR Scan', icon: ScanLine },
-    { id: 'review', title: '3. Review & Verify', icon: FileCheck2 },
-    { id: 'success', title: '4. Health Automations', icon: Layers }
+    { stepNum: 1, title: '1. Select / Upload', icon: Upload },
+    { stepNum: 2, title: '2. AI OCR Scan', icon: ScanLine },
+    { stepNum: 3, title: '3. Review & Verify', icon: FileCheck2 },
+    { stepNum: 4, title: '4. Health Automations', icon: Layers }
   ];
+
+  // Helper to determine if file is PDF
+  const isPdfFile = useMemo(() => {
+    if (selectedFile?.type === 'application/pdf') return true;
+    if (selectedFile?.name.toLowerCase().endsWith('.pdf')) return true;
+    if (previewUrl && previewUrl.startsWith('blob:') && selectedFile?.name.toLowerCase().endsWith('.pdf')) return true;
+    return false;
+  }, [selectedFile, previewUrl]);
 
   return (
     <div className="space-y-6 font-sans">
-      {/* HIDDEN FILE INPUT */}
+      {/* HIDDEN SYSTEM FILE PICKER (INDEPENDENT OF CAMERA PERMISSION) */}
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        onChange={handleFileChange}
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        onChange={handleFileInputChange}
         className="hidden"
       />
 
       {/* ============================================================ */}
-      {/* PROGRESS STEPPER BAR                                        */}
+      {/* 4-STEP PROGRESS STEPPER BAR                                  */}
       {/* ============================================================ */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 shadow-sm">
         <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 sm:pb-0">
           {STEPS_NAV.map((s, idx) => {
             const Icon = s.icon;
-            const isCurrent = step === s.id;
-            const isPassed =
-              (s.id === 'upload' && step !== 'upload') ||
-              (s.id === 'scanning' && (step === 'review' || step === 'success')) ||
-              (s.id === 'review' && step === 'success');
+            const isCurrent = activeStepNumber === s.stepNum;
+            const isPassed = activeStepNumber > s.stepNum;
 
             return (
-              <div key={s.id} className="flex items-center gap-2 flex-1 min-w-[140px]">
+              <div key={s.stepNum} className="flex items-center gap-2 flex-1 min-w-[140px]">
                 <div
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl w-full transition-all text-xs font-extrabold ${
                     isCurrent
@@ -669,9 +936,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       </div>
 
       {/* ============================================================ */}
-      {/* 1. STEP: UPLOAD & PRESET SELECTION VIEW                      */}
+      {/* 1. STEP: SELECT / UPLOAD VIEW (idle, file_selected, uploading) */}
       {/* ============================================================ */}
-      {step === 'upload' && (
+      {(workflowState === 'idle' || workflowState === 'file_selected' || workflowState === 'uploading') && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -694,9 +961,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                       value={patientNameInput}
                       onChange={(e) => setPatientNameInput(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSavePatientName();
-                        }
+                        if (e.key === 'Enter') handleSavePatientName();
                       }}
                       className="px-3 py-1 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 border border-teal-500 text-slate-900 dark:text-white focus:outline-none"
                       placeholder="Enter patient name"
@@ -740,69 +1005,133 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
             </div>
           </div>
 
-          {/* PRESCRIPTION SELECTION GRID */}
+          {/* UPLOAD & PRESETS WORKSPACE */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* PRIMARY: DRAG & DROP PHYSICAL PRESCRIPTION UPLOAD (7 COLS) */}
+            {/* PRIMARY: DOCUMENT DROPZONE & SELECTION */}
             <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`lg:col-span-7 bg-white dark:bg-slate-900 border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center transition-all cursor-pointer shadow-xl flex flex-col justify-between space-y-5 group ${
+              className={`lg:col-span-7 bg-white dark:bg-slate-900 border-2 rounded-3xl p-6 sm:p-8 text-center transition-all shadow-xl flex flex-col justify-between space-y-5 ${
                 selectedFile
-                  ? 'border-[#00a896] bg-teal-50/30 dark:bg-teal-950/10 ring-2 ring-teal-500/20'
-                  : 'border-slate-300 dark:border-slate-800 hover:border-[#00a896]'
+                  ? 'border-[#00a896] bg-teal-50/20 dark:bg-teal-950/10 ring-2 ring-teal-500/20'
+                  : 'border-dashed border-slate-300 dark:border-slate-800 hover:border-[#00a896]'
               }`}
             >
-              <div className="space-y-3 my-auto">
-                <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[#00a896] flex items-center justify-center mx-auto group-hover:scale-105 transition-transform shadow-xs">
-                  <Upload className="w-8 h-8" />
-                </div>
-                <div>
-                  <div className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 uppercase mb-1">
-                    Primary Patient Flow
+              {/* IF FILE IS SELECTED */}
+              {selectedFile ? (
+                <div className="space-y-4 my-auto">
+                  <div className="w-16 h-16 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-[#00a896] flex items-center justify-center mx-auto shadow-xs">
+                    <FileText className="w-8 h-8" />
                   </div>
-                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                    Upload Physical Prescription Document
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                    Upload your prescription image (JPG, PNG) or PDF. The AI OCR engine extracts patient, medicines, dosages, and doctor follow-up dates.
-                  </p>
-                </div>
 
-                {selectedFile && (
-                  <div className="p-3 bg-teal-500/15 border border-teal-500/30 rounded-2xl text-xs text-[#00a896] dark:text-cyan-300 font-extrabold truncate max-w-sm mx-auto flex items-center justify-center gap-2">
-                    <FileText className="w-4 h-4 shrink-0" />
-                    <span className="truncate">Selected: {selectedFile.name}</span>
+                  <div>
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 uppercase mb-1">
+                      {selectedFile.type || 'Document File'}
+                    </span>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white truncate max-w-md mx-auto">
+                      {selectedFile.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 font-mono mt-1">
+                      Size: {(selectedFile.size / 1024 > 1024) ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` : `${Math.round(selectedFile.size / 1024)} KB`}
+                    </p>
                   </div>
-                )}
-              </div>
 
-              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
-                  className="flex-1 py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs transition-colors cursor-pointer border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2"
+                  {/* PREVIEW CONTAINER */}
+                  {previewUrl && (
+                    <div className="max-w-sm mx-auto h-40 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                      {isPdfFile ? (
+                        <div className="text-center p-4 space-y-2">
+                          <FileText className="w-10 h-10 text-rose-500 mx-auto" />
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                            PDF Document Attached
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            Pages will be scanned via Optical AI Engine
+                          </span>
+                        </div>
+                      ) : (
+                        <img
+                          src={previewUrl}
+                          alt="Document Preview"
+                          className="w-full h-full object-contain"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-extrabold transition-colors cursor-pointer"
+                    >
+                      Replace File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 text-xs font-extrabold transition-colors cursor-pointer"
+                    >
+                      Remove File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => runExtractionWorkflow(selectedFile)}
+                      className="px-6 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-black transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ScanLine className="w-4 h-4" />
+                      <span>Start AI OCR Scan</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* IDLE UPLOAD DROPZONE */
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="space-y-4 my-auto cursor-pointer"
                 >
-                  <FileText className="w-4 h-4 text-[#00a896]" />
-                  <span>Browse Device / Photos</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleStartScan();
-                  }}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Camera className="w-4 h-4" />
-                  <span>Start AI OCR Scan</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+                  <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-[#00a896] flex items-center justify-center mx-auto hover:scale-105 transition-transform shadow-xs">
+                    <Upload className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 uppercase mb-1">
+                      Physical Document Flow
+                    </div>
+                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                      Upload Physical Prescription Document
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                      Upload your prescription image (JPG, PNG, WEBP) or PDF document. AI OCR extracts patient details, medications, dosages, and physician follow-up instructions.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2.5 pt-3 max-w-md mx-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="flex-1 py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs transition-colors cursor-pointer border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2"
+                    >
+                      <FileText className="w-4 h-4 text-[#00a896]" />
+                      <span>Browse Files (PDF / Image)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenScanner();
+                      }}
+                      className="flex-1 py-3 px-4 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <span>Use Camera Scanner</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* SECONDARY: DEMO PRESCRIPTION PRESETS (5 COLS) */}
+            {/* SECONDARY: DEMO PRESCRIPTION PRESETS */}
             <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -818,10 +1147,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 </div>
 
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                  Test the complete extraction and workflow pipeline with sample clinical hospital records:
+                  Test the complete extraction and verification pipeline with sample clinical hospital records:
                 </p>
 
-                {/* PRESET CARDS LIST */}
                 <div className="space-y-2 pt-1">
                   {SAMPLE_PRESCRIPTION_PRESETS.map((preset) => {
                     const isSelected = selectedPresetId === preset.id && !selectedFile;
@@ -877,8 +1205,15 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
 
               <button
                 type="button"
-                onClick={handleStartScan}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                onClick={() => {
+                  if (selectedPresetId) {
+                    runExtractionWorkflow(selectedPresetId);
+                  } else {
+                    onToast('Please select a preset first.');
+                  }
+                }}
+                disabled={!selectedPresetId}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>Test with Selected Demo Preset</span>
@@ -889,9 +1224,9 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* 2. STEP: MULTI-STAGE SCANNING / LOADING STATE               */}
+      {/* 2. STEP: GENUINE AI OCR SCANNING (processing)                */}
       {/* ============================================================ */}
-      {step === 'scanning' && (
+      {workflowState === 'processing' && (
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -913,7 +1248,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
             </p>
           </div>
 
-          {/* PROGRESS BAR */}
+          {/* REAL PROGRESS BAR */}
           <div className="space-y-1.5 font-mono">
             <div className="flex justify-between text-xs text-slate-500">
               <span>Processing Medical Entities</span>
@@ -929,48 +1264,55 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
             </div>
           </div>
 
-          {/* LIVE OCR CHECKPOINTS */}
+          {/* OCR CHECKPOINTS */}
           <div className="grid grid-cols-1 gap-2 pt-2 text-left text-xs text-slate-600 dark:text-slate-300">
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Recognizing Doctor, Clinic & Patient identity</span>
+              <span>Optical layout analysis & entity extraction</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Parsing Active Medications, Formulations & Dosages</span>
+              <span>Parsing medications, dosages, frequency & food rules</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Detecting Physician Follow-up Directives</span>
+              <span>Detecting physician follow-up directives</span>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* ============================================================ */}
-      {/* 3. STEP: REVIEW & EDIT EXTRACTED PRESCRIPTION DATA           */}
+      {/* 3. STEP: REVIEW & VERIFY (review_required, verifying, failed) */}
       {/* ============================================================ */}
-      {step === 'review' && prescriptionData && (
+      {(workflowState === 'review_required' || workflowState === 'verifying' || workflowState === 'failed') && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
           {/* TOP REVIEW BANNER */}
-          <div className="p-5 rounded-3xl bg-gradient-to-r from-[#00a896] to-teal-700 text-slate-900 dark:text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="p-5 rounded-3xl bg-gradient-to-r from-[#00a896] to-teal-700 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 text-slate-900 dark:text-white flex items-center justify-center shrink-0 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
                 <FileCheck2 className="w-6 h-6" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase font-mono tracking-wider text-teal-100 block">
-                  Step 3: Verification
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase font-mono tracking-wider text-teal-100 block">
+                    Step 3: Clinical Review & Verification
+                  </span>
+                  {prescriptionData?.confidence && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20 text-white">
+                      OCR Confidence: {prescriptionData.confidence}%
+                    </span>
+                  )}
+                </div>
                 <h4 className="text-base font-black">
-                  Review & Verify Extracted Prescription
+                  Review & Verify Extracted Document Data
                 </h4>
                 <p className="text-xs text-teal-100 mt-0.5">
-                  Verify patient details, medicines, choose your tie-up pharmacy, and authorize transfer.
+                  Confirm patient details, medications, and tie-up pharmacy before proceeding with consequential actions.
                 </p>
               </div>
             </div>
@@ -979,18 +1321,19 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
               <button
                 type="button"
                 onClick={handleReset}
-                disabled={isConfirming}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-slate-900 dark:text-white text-xs font-extrabold transition-colors cursor-pointer border border-white/20 disabled:opacity-50"
+                disabled={workflowState === 'verifying'}
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-extrabold transition-colors cursor-pointer border border-white/20 disabled:opacity-50"
               >
-                Rescan / Back
+                Rescan / Replace File
               </button>
+
               <button
                 type="button"
-                onClick={handleOpenAuthModal}
-                disabled={isConfirming}
+                onClick={handleVerifyAndSendClick}
+                disabled={workflowState === 'verifying' || !prescriptionData}
                 className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-teal-900 font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-75"
               >
-                {isConfirming ? (
+                {workflowState === 'verifying' ? (
                   <span className="flex items-center gap-2">
                     <span className="w-3.5 h-3.5 border-2 border-teal-900/30 border-t-teal-900 rounded-full animate-spin" />
                     {confirmStatusText}
@@ -998,771 +1341,587 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4 text-[#00a896]" />
-                    <span>Proceed to Authenticate & Send ➔</span>
+                    <span>Verify & Continue ➔</span>
                   </>
                 )}
               </button>
             </div>
           </div>
 
-          {/* DECLINED NOTICE BANNER (IF PREVIOUSLY DECLINED) */}
-          {authDeclinedNotice && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center justify-between gap-3 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>{authDeclinedNotice}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAuthDeclinedNotice(null)}
-                className="p-1 text-amber-700 hover:text-amber-900 dark:text-amber-300 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </motion.div>
-          )}
-
-          {/* UPLOADED PRESCRIPTION DOCUMENT PREVIEW (IF AVAILABLE) */}
-          {previewUrl && (
-            <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md flex flex-col md:flex-row items-center gap-4">
-              <div className="w-full md:w-36 h-36 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
-                <img
-                  src={previewUrl}
-                  alt="Uploaded Prescription"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/10 text-[#00a896] dark:text-cyan-300 font-extrabold font-mono text-[10px] uppercase border border-teal-500/20">
-                  <CheckCircle2 className="w-3 h-3 text-[#00a896]" />
-                  <span>Uploaded Physical Prescription Document</span>
-                </div>
-                <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                  {selectedFile?.name || 'Scanned_Prescription_Image.jpg'}
-                </h4>
-                <p className="text-slate-500 dark:text-slate-400">
-                  The AI OCR engine extracted the medical entities below directly from your document. You can verify and edit any details before choosing your pharmacy.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 1, 2, 3: PATIENT, DOCTOR, AND PRESCRIPTION METADATA */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* 1. PATIENT INFORMATION */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md space-y-3">
-              <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider font-mono">
-                <User className="w-4 h-4" />
-                <span>1. Patient Information</span>
-              </div>
-              <div className="space-y-2 text-xs">
+          {/* SCAN FAILURE NOTICE */}
+          {workflowState === 'failed' && (
+            <div className="p-5 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-6 h-6 text-rose-600 shrink-0" />
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Patient Name</label>
-                  <input
-                    type="text"
-                    value={prescriptionData.patientName}
-                    onChange={(e) => {
-                      setPrescriptionData({ ...prescriptionData, patientName: e.target.value });
-                      setPatientNameInput(e.target.value);
-                    }}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Patient ABHA / ID</label>
-                  <input
-                    type="text"
-                    value={user?.abhaId || '91-8472-9104-5821@abdm'}
-                    disabled
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-500 cursor-not-allowed"
-                  />
+                  <h5 className="font-bold text-sm">Automated Optical Recognition Incomplete</h5>
+                  <p className="mt-0.5 text-rose-700 dark:text-rose-300">
+                    {scanError || 'Could not parse structured text from this document. You can retry with a clearer file or fill in details manually.'}
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* 2. DOCTOR INFORMATION */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md space-y-3">
-              <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider font-mono">
-                <Building2 className="w-4 h-4" />
-                <span>2. Doctor Information</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Physician Name</label>
-                  <input
-                    type="text"
-                    value={prescriptionData.doctorName}
-                    onChange={(e) => setPrescriptionData({ ...prescriptionData, doctorName: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Hospital / Clinic & Department</label>
-                  <input
-                    type="text"
-                    value={prescriptionData.clinicName}
-                    onChange={(e) => setPrescriptionData({ ...prescriptionData, clinicName: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 3. PRESCRIPTION INFORMATION */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md space-y-3">
-              <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider font-mono">
-                <FileText className="w-4 h-4" />
-                <span>3. Prescription Info</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Prescription ID</label>
-                  <input
-                    type="text"
-                    value={prescriptionData.id}
-                    disabled
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-500 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Prescription Date</label>
-                  <input
-                    type="date"
-                    value={prescriptionData.prescriptionDate}
-                    onChange={(e) => setPrescriptionData({ ...prescriptionData, prescriptionDate: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4: EXTRACTED MEDICINES TABLE */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-[#00a896] dark:text-cyan-400 flex items-center justify-center">
-                  <Pill className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                    4. Extracted Medicines ({prescriptionData.medicines.length})
-                  </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Transfers automatically to Pharmacy Order and Daily Medication Schedule.
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleAddMedicine}
-                className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 text-xs font-extrabold flex items-center gap-1 cursor-pointer transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Medicine</span>
-              </button>
-            </div>
-
-            {/* MEDICINES LIST */}
-            <div className="space-y-3">
-              {prescriptionData.medicines.map((med, index) => (
-                <div
-                  key={med.id}
-                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3"
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => runExtractionWorkflow(selectedFile || previewUrl || selectedPresetId)}
+                  className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold cursor-pointer hover:bg-rose-700 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-slate-500">
-                      Medicine #{index + 1}
+                  Retry Scan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
+                >
+                  Choose Another File
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TWO-COLUMN SIDE-BY-SIDE REVIEW WORKSPACE */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* LEFT COLUMN: DOCUMENT PREVIEW & OCR AUDIT (5 COLS) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#00a896]" />
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white font-mono">
+                      Document Preview
+                    </span>
+                  </div>
+                  {prescriptionData?.confidence && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30">
+                      ★ {prescriptionData.confidence}% Confidence
+                    </span>
+                  )}
+                </div>
+
+                {/* MULTI-PAGE DOCUMENT NAVIGATION (IF AVAILABLE) */}
+                {prescriptionData?.pages && prescriptionData.pages.length > 1 && (
+                  <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <button
+                      type="button"
+                      disabled={activePageIndex === 0}
+                      onClick={() => setActivePageIndex((prev) => Math.max(0, prev - 1))}
+                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 disabled:opacity-40 cursor-pointer"
+                    >
+                      ‹ Previous Page
+                    </button>
+                    <span className="font-mono text-[11px]">
+                      Page {activePageIndex + 1} of {prescriptionData.pages.length}
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleRemoveMedicine(med.id)}
-                      className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                      title="Remove medicine"
+                      disabled={activePageIndex >= prescriptionData.pages.length - 1}
+                      onClick={() => setActivePageIndex((prev) => Math.min(prescriptionData.pages!.length - 1, prev + 1))}
+                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 disabled:opacity-40 cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Next Page ›
                     </button>
                   </div>
+                )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Medicine Name</label>
-                      <input
-                        type="text"
-                        value={med.name}
-                        onChange={(e) => handleMedicineChange(med.id, 'name', e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
-                      />
+                {/* THE ACTUAL PREVIEW FRAME */}
+                <div className="relative aspect-[3/4] w-full bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center p-2">
+                  {prescriptionData?.pages && prescriptionData.pages[activePageIndex] ? (
+                    <img
+                      src={prescriptionData.pages[activePageIndex]}
+                      alt={`Prescription Page ${activePageIndex + 1}`}
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  ) : previewUrl && isPdfFile ? (
+                    <iframe
+                      src={`${previewUrl}#toolbar=0`}
+                      title="Uploaded PDF Document"
+                      className="w-full h-full border-0 rounded-xl"
+                    />
+                  ) : previewUrl ? (
+                    <img
+                      src={previewUrl}
+                      alt="Uploaded Document"
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  ) : (
+                    <div className="text-center p-6 space-y-2 text-slate-400">
+                      <FileQuestion className="w-10 h-10 mx-auto" />
+                      <p className="text-xs font-medium">Sample Prescription Preset Active</p>
                     </div>
+                  )}
+                </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Dosage</label>
-                      <input
-                        type="text"
-                        value={med.dosage}
-                        onChange={(e) => handleMedicineChange(med.id, 'dosage', e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
-                      />
-                    </div>
+                {/* FILE METADATA FOOTER */}
+                <div className="flex items-center justify-between text-xs text-slate-500 font-mono pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <span className="truncate max-w-[200px]">
+                    {selectedFile?.name || 'Medical_Prescription_Scan'}
+                  </span>
+                  <span>
+                    {selectedFile ? `${Math.round(selectedFile.size / 1024)} KB` : 'Verified Source'}
+                  </span>
+                </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Frequency</label>
-                      <select
-                        value={med.frequency}
-                        onChange={(e) => handleMedicineChange(med.id, 'frequency', e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
-                      >
-                        <option value="Once daily">Once daily</option>
-                        <option value="Twice daily">Twice daily</option>
-                        <option value="Three times daily">Three times daily</option>
-                        <option value="Every 4 hours">Every 4 hours</option>
-                        <option value="As needed">As needed</option>
-                      </select>
-                    </div>
+                {/* RAW OCR TEXT TOGGLE */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRawOcr(!showRawOcr)}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {showRawOcr ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{showRawOcr ? 'Hide Raw OCR Text' : 'View Extracted Raw OCR Text'}</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">Raw Stream</span>
+                  </button>
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Duration</label>
-                      <input
-                        type="text"
-                        value={med.duration}
-                        onChange={(e) => handleMedicineChange(med.id, 'duration', e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
-                      />
-                    </div>
+                  {showRawOcr && prescriptionData?.rawOcrText && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-2 p-3 bg-slate-900 text-emerald-400 rounded-2xl text-[11px] font-mono whitespace-pre-wrap max-h-56 overflow-y-auto border border-slate-800 leading-relaxed"
+                    >
+                      {prescriptionData.rawOcrText}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Quantity</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={med.quantity}
-                        onChange={(e) => handleMedicineChange(med.id, 'quantity', parseInt(e.target.value, 10) || 1)}
-                        className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white font-mono"
-                      />
+              {/* VALIDATION & UNCERTAIN FIELDS ALERT */}
+              {validationAlerts.length > 0 && (
+                <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 font-black">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Uncertain / Missing Values Detected ({validationAlerts.length})</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                    The following fields had low OCR confidence. You can edit them on the right before saving:
+                  </p>
+                  <ul className="space-y-1 list-disc list-inside text-[11px]">
+                    {validationAlerts.map((a, i) => (
+                      <li key={i}>
+                        <strong>{a.field}:</strong> {a.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT COLUMN: EXTRACTED CLINICAL FIELDS (7 COLS) */}
+            <div className="lg:col-span-7 space-y-5">
+              {prescriptionData && (
+                <>
+                  {/* SECTION 1: PATIENT & DOCTOR INFO */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* PATIENT INFO */}
+                      <div className="space-y-2 text-xs">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                          Patient Name
+                        </label>
+                        <input
+                          type="text"
+                          value={prescriptionData.patientName}
+                          onChange={(e) => {
+                            setPrescriptionData({ ...prescriptionData, patientName: e.target.value });
+                            setPatientNameInput(e.target.value);
+                          }}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      {/* PRESCRIPTION DATE */}
+                      <div className="space-y-2 text-xs">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                          Prescription Date
+                        </label>
+                        <input
+                          type="date"
+                          value={prescriptionData.prescriptionDate}
+                          onChange={(e) => setPrescriptionData({ ...prescriptionData, prescriptionDate: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono font-bold text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      {/* DOCTOR INFO */}
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                            Prescribing Physician
+                          </label>
+                          {prescriptionData.doctorName === 'Unable to verify physician name' && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono">
+                              ⚠️ Action Needed
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={prescriptionData.doctorName}
+                          onChange={(e) => setPrescriptionData({ ...prescriptionData, doctorName: e.target.value })}
+                          placeholder="Enter physician name"
+                          className={`w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border font-bold text-slate-900 dark:text-white ${
+                            prescriptionData.doctorName === 'Unable to verify physician name'
+                              ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50/20 text-amber-900 dark:text-amber-200'
+                              : 'border-slate-200 dark:border-slate-800'
+                          }`}
+                        />
+                      </div>
+
+                      {/* CLINIC / HOSPITAL */}
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                            Hospital / Clinic
+                          </label>
+                          {isClinicUncertain(prescriptionData.clinicName) && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono">
+                              ⚠️ Action Needed
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={prescriptionData.clinicName}
+                          onChange={(e) => setPrescriptionData({ ...prescriptionData, clinicName: e.target.value })}
+                          placeholder="Enter hospital or clinic name"
+                          className={`w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border font-bold text-slate-900 dark:text-white ${
+                            isClinicUncertain(prescriptionData.clinicName)
+                              ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50/20 text-amber-900 dark:text-amber-200'
+                              : 'border-slate-200 dark:border-slate-800'
+                          }`}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* SECTION 5: DOCTOR FOLLOW-UP SECTION */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                    5. Doctor Follow-up Extraction
-                  </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    If detected, automatically creates an appointment reminder in the Reminders Hub.
-                  </span>
-                </div>
-              </div>
+                  {/* SECTION 2: EXTRACTED MEDICINES TABLE */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-[#00a896] dark:text-cyan-400 flex items-center justify-center">
+                          <Pill className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                            Extracted Medicines ({prescriptionData.medicines.length})
+                          </h4>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Verify dosages, frequency, and duration before transmission.
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddMedicine}
+                        className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 text-xs font-extrabold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Medicine</span>
+                      </button>
+                    </div>
 
-              <label className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={prescriptionData.followUp.hasFollowUp}
-                  onChange={(e) =>
-                    setPrescriptionData({
-                      ...prescriptionData,
-                      followUp: {
-                        ...prescriptionData.followUp,
-                        hasFollowUp: e.target.checked,
-                        date: e.target.checked ? (prescriptionData.followUp.date || '2026-09-05') : ''
-                      }
-                    })
-                  }
-                  className="w-4 h-4 accent-[#00a896] rounded cursor-pointer"
-                />
-                <span>Follow-up Scheduled</span>
-              </label>
-            </div>
-
-            {prescriptionData.followUp.hasFollowUp ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                    Doctor
-                  </label>
-                  <input
-                    type="text"
-                    value={prescriptionData.doctorName}
-                    disabled
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                    Follow-up Date
-                  </label>
-                  <input
-                    type="date"
-                    value={prescriptionData.followUp.date}
-                    onChange={(e) =>
-                      setPrescriptionData({
-                        ...prescriptionData,
-                        followUp: {
-                          ...prescriptionData.followUp,
-                          date: e.target.value
-                        }
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                    Follow-up Instructions
-                  </label>
-                  <input
-                    type="text"
-                    value={prescriptionData.followUp.instructions}
-                    onChange={(e) =>
-                      setPrescriptionData({
-                        ...prescriptionData,
-                        followUp: {
-                          ...prescriptionData.followUp,
-                          instructions: e.target.value
-                        }
-                      })
-                    }
-                    placeholder="e.g. Review after 7 days for chest auscultation"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 space-y-1">
-                <p className="font-bold text-slate-700 dark:text-slate-300">
-                  No doctor follow-up detected in this prescription.
-                </p>
-                <p className="text-[11px]">
-                  No automatic doctor appointment reminder will be generated. You can check the box above if you wish to add one manually.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* SECTION 6: REGISTERED TIE-UP PHARMACY SELECTION */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-[#00a896] dark:text-cyan-400 flex items-center justify-center">
-                  <Building2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                    6. Choose Registered Tie-Up Pharmacy & Location
-                  </h4>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Select a verified partner pharmacy to fulfill and dispense this prescription.
-                  </span>
-                </div>
-              </div>
-
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-[11px] font-extrabold text-teal-700 dark:text-cyan-300">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#00a896]" />
-                <span>{registeredPharmacies.length} Verified Tie-Up Pharmacies</span>
-              </div>
-            </div>
-
-            {/* DROPDOWN SELECTOR */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                  Select Partner Pharmacy from Registered Network
-                </label>
-                <select
-                  value={selectedPharmacyId}
-                  onChange={(e) => {
-                    setSelectedPharmacyId(e.target.value);
-                    setAuthDeclinedNotice(null);
-                  }}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00a896] cursor-pointer"
-                >
-                  {registeredPharmacies.map((pharm) => (
-                    <option key={pharm.id} value={pharm.id}>
-                      {pharm.name} — {pharm.address} ({pharm.distanceKm} km away)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* PHARMACY DETAILS CARDS GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                {registeredPharmacies.map((pharm) => {
-                  const isSelected = pharm.id === selectedPharmacyId;
-                  return (
-                    <div
-                      key={pharm.id}
-                      onClick={() => {
-                        setSelectedPharmacyId(pharm.id);
-                        setAuthDeclinedNotice(null);
-                      }}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
-                        isSelected
-                          ? 'bg-teal-500/10 border-teal-500 ring-2 ring-teal-500/20 shadow-md'
-                          : 'bg-slate-50/70 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-400'
-                      }`}
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h5 className="font-extrabold text-xs text-slate-900 dark:text-white">
-                              {pharm.name}
-                            </h5>
-                            {pharm.isPreferred && (
-                              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-[#00a896] text-white">
-                                Recommended
-                              </span>
-                            )}
+                    <div className="space-y-3">
+                      {prescriptionData.medicines.map((med, index) => (
+                        <div
+                          key={med.id}
+                          className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-mono font-bold text-slate-500">
+                              Item #{index + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedicine(med.id)}
+                              className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                              title="Remove medication"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                          <div
-                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'border-[#00a896] bg-[#00a896] text-white'
-                                : 'border-slate-300 dark:border-slate-600'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                            <div className="sm:col-span-2">
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Medicine Name</label>
+                              <input
+                                type="text"
+                                value={med.name}
+                                onChange={(e) => handleMedicineChange(med.id, 'name', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Dosage</label>
+                              <input
+                                type="text"
+                                value={med.dosage}
+                                onChange={(e) => handleMedicineChange(med.id, 'dosage', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Frequency</label>
+                              <select
+                                value={med.frequency}
+                                onChange={(e) => handleMedicineChange(med.id, 'frequency', e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                              >
+                                <option value="Once daily">Once daily</option>
+                                <option value="Twice daily">Twice daily</option>
+                                <option value="Three times daily">Three times daily</option>
+                                <option value="Every 4 hours">Every 4 hours</option>
+                                <option value="As needed">As needed</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Duration</label>
+                              <input
+                                type="text"
+                                value={med.duration}
+                                onChange={(e) => handleMedicineChange(med.id, 'duration', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 mb-1">Quantity</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={med.quantity}
+                                onChange={(e) => handleMedicineChange(med.id, 'quantity', parseInt(e.target.value, 10) || 1)}
+                                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white font-mono"
+                              />
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
 
-                        <p className="text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-[#00a896] shrink-0 mt-0.5" />
-                          <span>{pharm.address}</span>
-                        </p>
+                  {/* SECTION 3: DOCTOR FOLLOW-UP DIRECTIVE */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                          <Calendar className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                            Physician Follow-up Directives
+                          </h4>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            If enabled, an appointment reminder is automatically scheduled.
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span>{pharm.hours}</span>
-                        </span>
-                        <span className="font-bold text-[#00a896]">
-                          {pharm.distanceKm} km away
-                        </span>
+                      <label className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={prescriptionData.followUp.hasFollowUp}
+                          onChange={(e) =>
+                            setPrescriptionData({
+                              ...prescriptionData,
+                              followUp: {
+                                ...prescriptionData.followUp,
+                                hasFollowUp: e.target.checked,
+                                date: e.target.checked ? (prescriptionData.followUp.date || '2026-09-05') : ''
+                              }
+                            })
+                          }
+                          className="w-4 h-4 accent-[#00a896] rounded cursor-pointer"
+                        />
+                        <span>Follow-up Scheduled</span>
+                      </label>
+                    </div>
+
+                    {prescriptionData.followUp.hasFollowUp ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                            Follow-up Date
+                          </label>
+                          <input
+                            type="date"
+                            value={prescriptionData.followUp.date}
+                            onChange={(e) =>
+                              setPrescriptionData({
+                                ...prescriptionData,
+                                followUp: { ...prescriptionData.followUp, date: e.target.value }
+                              })
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                            Follow-up Instructions
+                          </label>
+                          <input
+                            type="text"
+                            value={prescriptionData.followUp.instructions}
+                            onChange={(e) =>
+                              setPrescriptionData({
+                                ...prescriptionData,
+                                followUp: { ...prescriptionData.followUp, instructions: e.target.value }
+                              })
+                            }
+                            placeholder="e.g. Review after 7 days for chest auscultation"
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-900 dark:text-white"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">
+                        No physician follow-up directive detected. Enable checkbox above to schedule one manually.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* SECTION 4: REGISTERED PHARMACY SELECTION */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-[#00a896] dark:text-cyan-400 flex items-center justify-center">
+                          <Building2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                            Choose Registered Fulfillment Pharmacy
+                          </h4>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Select a verified partner pharmacy to dispense and deliver this prescription.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-[11px] font-extrabold text-teal-700 dark:text-cyan-300">
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#00a896]" />
+                        <span>{registeredPharmacies.length} Verified Pharmacies</span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
 
-          {/* CONFIRMATION STRIP */}
-          <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#00a896] text-white flex items-center justify-center shrink-0">
-                <Layers className="w-5 h-5" />
-              </div>
-              <div className="text-xs">
-                <strong className="text-slate-900 dark:text-white block font-extrabold">
-                  Target Pharmacy: {selectedPharmacy.name} ({selectedPharmacy.address})
-                </strong>
-                <span className="text-slate-600 dark:text-slate-400">
-                  {prescriptionData.followUp.hasFollowUp ? '🗓️ 1 Follow-up Reminder • ' : ''}📦 Direct Routing to {selectedPharmacy.name} • 💊 {prescriptionData.medicines.length} Medication Schedules
-                </span>
-              </div>
-            </div>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      <div className="flex-1">
+                        <select
+                          value={selectedPharmacyId}
+                          onChange={(e) => {
+                            setSelectedPharmacyId(e.target.value);
+                            setSubmissionError(null);
+                          }}
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00a896] cursor-pointer"
+                        >
+                          <option value="">-- Choose a registered partner pharmacy --</option>
+                          {registeredPharmacies.map((pharm) => (
+                            <option key={pharm.id} value={pharm.id}>
+                              {pharm.name} — {pharm.address} ({pharm.distanceKm} km away)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPharmacyPickerOpen(true)}
+                        className="px-4 py-3 rounded-2xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 text-xs font-black transition-colors border border-teal-500/20 cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5"
+                      >
+                        <Building2 className="w-3.5 h-3.5" />
+                        <span>{selectedPharmacy ? 'Change Pharmacy' : 'Browse Pharmacies'}</span>
+                      </button>
+                    </div>
 
-            <button
-              type="button"
-              onClick={handleOpenAuthModal}
-              disabled={isConfirming}
-              className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[#00a896] hover:bg-[#00897b] text-white font-black text-xs transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
-            >
-              {isConfirming ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {confirmStatusText}
-                </span>
-              ) : (
-                <>
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Proceed to Authenticate & Send ➔</span>
+                    {selectedPharmacy && (
+                      <div className="p-3.5 rounded-2xl bg-teal-500/5 border border-teal-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-slate-900 dark:text-white">{selectedPharmacy.name}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                              Verified Partner
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {selectedPharmacy.address} • {selectedPharmacy.distanceKm} km away • {selectedPharmacy.deliveryTime}
+                          </p>
+                        </div>
+                        <div className="text-xs font-bold text-[#00a896] dark:text-cyan-400 shrink-0">
+                          ⭐ {selectedPharmacy.rating} ({selectedPharmacy.reviewCount} reviews)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ACTION BAR: VERIFY / SAVE OPTIONS */}
+                  <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-teal-500/10 border border-teal-500/20 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* SECTION 1: SHIELD ICON (LEFT) */}
+                      <div className="w-8 h-8 rounded-xl bg-[#00a896] text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <ShieldCheck className="w-4.5 h-4.5" />
+                      </div>
+
+                      {/* SECTION 2: AUTHORIZATION HEADING & PHARMACY DETAILS (MIDDLE-LEFT) */}
+                      <div className="min-w-0 flex-1">
+                        <strong className="text-slate-900 dark:text-white block font-extrabold text-xs whitespace-nowrap leading-tight">
+                          Ready to Confirm & Authorize
+                        </strong>
+                        <p className="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5 leading-snug truncate">
+                          <span className="font-medium">Target Pharmacy: </span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">
+                            {selectedPharmacy ? selectedPharmacy.name : 'Select partner pharmacy'}
+                          </span>
+                          <span className="inline-block whitespace-nowrap font-medium">&nbsp;•&nbsp;{prescriptionData.medicines.length} Medications</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* SECTION 3: THE TWO ACTION BUTTONS (RIGHT) */}
+                    <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-2 shrink-0 w-full xl:w-auto justify-start xl:justify-end">
+                      <button
+                        type="button"
+                        onClick={handleSaveToRecordsOnly}
+                        disabled={workflowState === 'verifying' || isSubmittingOrder}
+                        className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-colors cursor-pointer border border-slate-300 dark:border-slate-700 inline-flex items-center justify-center text-center whitespace-nowrap shrink-0 disabled:opacity-50"
+                      >
+                        Save to Health Locker Only
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleVerifyAndSendClick}
+                        disabled={workflowState === 'verifying' || isSubmittingOrder}
+                        className="h-9 px-3.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-[11px] transition-all shadow-md inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0 min-w-[170px]"
+                      >
+                        {workflowState === 'verifying' || isSubmittingOrder ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                            <span>Transmitting...</span>
+                          </span>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-4 h-4 shrink-0" />
+                            <span>Verify & Send to Pharmacy ➔</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </>
               )}
-            </button>
+            </div>
           </div>
         </motion.div>
       )}
 
-      {/* ============================================================ */}
-      {/* ACCEPT / DECLINE AUTHENTICATION & CONSENT MODAL              */}
-      {/* ============================================================ */}
-      <AnimatePresence>
-        {showAuthModal && prescriptionData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 font-sans relative overflow-hidden"
-            >
-              {/* TOP SECURITY ACCENT BAR */}
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400" />
-
-              {/* HEADER */}
-              <div className="flex items-start justify-between gap-3 pt-1">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-[#00a896] dark:text-cyan-400 flex items-center justify-center shrink-0 shadow-xs">
-                    <ShieldCheck className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase font-mono tracking-wider text-teal-700 dark:text-cyan-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
-                        ABDM E-Prescription Gateway
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 font-mono">256-Bit Encrypted</span>
-                    </div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
-                      Authorize Prescription Transfer
-                    </h3>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleDeclineAuth}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* 1. INTERACTIVE REGISTERED PHARMACY SELECTOR CARD */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5 font-mono">
-                    <Building2 className="w-4 h-4 text-[#00a896]" />
-                    <span>Selected Fulfillment Pharmacy</span>
-                  </label>
-                  <span className="text-[11px] font-bold text-[#00a896] dark:text-cyan-300 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#00a896] animate-pulse" />
-                    Verified Tie-up Network
-                  </span>
-                </div>
-
-                {/* CURRENT SELECTED PHARMACY DISPLAY BUTTON / CARD */}
-                <div
-                  onClick={() => setIsPharmacyPickerOpen(!isPharmacyPickerOpen)}
-                  className="p-4 rounded-2xl bg-gradient-to-br from-teal-50/50 to-white dark:from-slate-800/80 dark:to-slate-900 border-2 border-[#00a896] shadow-sm hover:border-[#00897b] transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-                >
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                        {selectedPharmacy.name}
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#00a896] text-white">
-                        ★ {selectedPharmacy.rating || 4.8}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-[#00a896] dark:text-cyan-300">
-                        {selectedPharmacy.distanceKm} km away
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 truncate">
-                      <MapPin className="w-3.5 h-3.5 text-[#00a896] shrink-0" />
-                      <span className="truncate">{selectedPharmacy.address}</span>
-                    </p>
-
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5 font-mono">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-slate-400" />
-                        <span>{selectedPharmacy.hours || 'Open until 10:00 PM'}</span>
-                      </span>
-                      <span>•</span>
-                      <span className="text-[#00a896] font-bold">⚡ {selectedPharmacy.deliveryTime || '30–45 min delivery'}</span>
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00a896] text-white text-xs font-bold shadow-xs group-hover:bg-[#00897b] transition-colors self-start sm:self-center">
-                    <span>Change</span>
-                    {isPharmacyPickerOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  </div>
-                </div>
-
-                {/* ACCORDION / EXPANDABLE LIST OF ALL REGISTERED PHARMACIES */}
-                <AnimatePresence>
-                  {isPharmacyPickerOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden space-y-2 pt-1"
-                    >
-                      <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 max-h-56 overflow-y-auto">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono block px-1">
-                          Click any registered pharmacy to select:
-                        </span>
-                        {registeredPharmacies.map((pharm) => {
-                          const isSelected = pharm.id === selectedPharmacyId;
-                          return (
-                            <div
-                              key={pharm.id}
-                              onClick={() => {
-                                setSelectedPharmacyId(pharm.id);
-                                setIsPharmacyPickerOpen(false);
-                                setAuthDeclinedNotice(null);
-                              }}
-                              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                                isSelected
-                                  ? 'bg-[#00a896]/10 border-[#00a896] text-slate-900 dark:text-white shadow-xs'
-                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
-                              }`}
-                            >
-                              <div className="space-y-0.5 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-extrabold text-xs text-slate-900 dark:text-white">
-                                    {pharm.name}
-                                  </span>
-                                  {pharm.isPreferred && (
-                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-[#00a896] text-white">
-                                      Best Match
-                                    </span>
-                                  )}
-                                  <span className="text-[10px] font-mono font-bold text-[#00a896]">
-                                    {pharm.distanceKm} km
-                                  </span>
-                                </div>
-                                <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-[#00a896] shrink-0" />
-                                  <span>{pharm.address}</span>
-                                </p>
-                              </div>
-
-                              <div className="shrink-0">
-                                <div
-                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                    isSelected
-                                      ? 'border-[#00a896] bg-[#00a896] text-white'
-                                      : 'border-slate-300 dark:border-slate-600'
-                                  }`}
-                                >
-                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* 2. PRESCRIPTION & PATIENT AUDIT DATA */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
-                  <div>
-                    <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">Patient Identity</span>
-                    <strong className="text-slate-900 dark:text-white block mt-0.5">
-                      {patientNameInput || user?.name || 'Patient'}
-                    </strong>
-                    <span className="text-[10px] text-slate-500 font-mono">{user?.abhaId || '91-8472-9104-5821@abdm'}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">Prescribing Physician</span>
-                    <strong className="text-slate-900 dark:text-white block mt-0.5 truncate">
-                      {prescriptionData.doctorName}
-                    </strong>
-                    <span className="text-[10px] text-slate-500 truncate block">{prescriptionData.clinicName}</span>
-                  </div>
-                </div>
-
-                {/* EXTRACTED MEDICINES CHIPS PREVIEW */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-mono font-bold uppercase text-slate-400">
-                      Prescribed Medicines ({prescriptionData.medicines.length})
-                    </span>
-                    <span className="text-[10px] font-bold text-[#00a896] font-mono">Dispense Request</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {prescriptionData.medicines.map((m) => (
-                      <span
-                        key={m.id}
-                        className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1 shadow-2xs"
-                      >
-                        <Pill className="w-3 h-3 text-[#00a896]" />
-                        <span>{m.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono font-normal">({m.dosage})</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. CONSENT NOTICE */}
-              <div className="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs text-teal-950 dark:text-teal-200 flex items-start gap-2.5">
-                <Lock className="w-4 h-4 text-[#00a896] shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  Choose how you want to proceed. You can transmit this prescription for live pharmacy fulfillment and real-time tracking, save it to your personal Health Locker only, or edit your medications.
-                </p>
-              </div>
-
-              {/* 4. ACTIONS / PERMISSION CHOICES */}
-              <div className="space-y-2.5 pt-1">
-                {/* PRIMARY: SEND TO PHARMACY & TRACK LIVE */}
-                <button
-                  type="button"
-                  onClick={handleConfirmPrescription}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-[#00897b] hover:to-teal-700 text-white font-black text-xs transition-all shadow-lg shadow-teal-500/20 flex items-center justify-between gap-2 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-white shrink-0" />
-                    <span className="text-left font-black">Send Request to Pharmacy & Track Live</span>
-                  </div>
-                  <span className="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider group-hover:bg-white/30 transition-colors">
-                    Fulfill Order →
-                  </span>
-                </button>
-
-                {/* SECONDARY: SAVE TO HEALTH LOCKER ONLY */}
-                <button
-                  type="button"
-                  onClick={handleSaveToRecordsOnly}
-                  className="w-full py-3 px-4 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-700 dark:text-cyan-300 font-extrabold text-xs transition-colors flex items-center justify-between gap-2 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <FileCheck2 className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
-                    <span>Save to Digital Health Locker Only (No Pharmacy)</span>
-                  </div>
-                  <span className="text-[10px] font-mono opacity-80">Vault Only</span>
-                </button>
-
-                {/* CANCEL / EDIT */}
-                <button
-                  type="button"
-                  onClick={handleDeclineAuth}
-                  className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-colors cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5"
-                >
-                  <X className="w-4 h-4 text-slate-400" />
-                  <span>Review & Edit Medications First</span>
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ============================================================ */}
-      {/* 4. STEP: SUCCESS & AUTOMATIC WORKFLOW SPLIT                   */}
+      {/* 4. STEP: SUCCESS & HEALTH AUTOMATIONS (verified)             */}
       {/* ============================================================ */}
-      {step === 'success' && confirmationResult && (
+      {workflowState === 'verified' && confirmationResult && (
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1783,14 +1942,14 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 Prescription Verified Successfully
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto mt-1 leading-relaxed">
-                Your prescription <strong className="text-[#00a896]">#{confirmationResult.prescription.id}</strong> has been verified and sent to the pharmacy for processing.
+                Your prescription <strong className="text-[#00a896]">#{confirmationResult.prescription.id}</strong> has been verified and processed according to your chosen workflow.
               </p>
             </div>
           </div>
 
           {/* VISUAL WORKFLOW SPLIT */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 1. MEDICINES & PHARMACY ORDER WORKFLOW */}
+            {/* 1. PHARMACY ORDER FULFILLMENT */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -1801,56 +1960,64 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                     </h4>
                   </div>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/15 text-blue-700 dark:text-cyan-300 border border-blue-500/30 font-mono">
-                    Pharmacy: Submitted
+                    {confirmationResult.pharmacyOrder ? 'Order Submitted' : 'Saved to Vault'}
                   </span>
                 </div>
 
-                {/* WORKFLOW STEP DIAGRAM */}
-                <div className="space-y-2 font-mono text-xs">
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                    <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Assigned Pharmacy:</span>
-                    <span className="font-extrabold text-[#00a896] dark:text-cyan-400">
-                      {confirmationResult.pharmacyOrder?.pharmacyName || selectedPharmacy.name}
-                    </span>
-                  </div>
+                {confirmationResult.pharmacyOrder ? (
+                  <div className="space-y-2 font-mono text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Assigned Pharmacy:</span>
+                      <span className="font-extrabold text-[#00a896] dark:text-cyan-400">
+                        {confirmationResult.pharmacyOrder?.pharmacyName || selectedPharmacy?.name || 'Verified Partner Pharmacy'}
+                      </span>
+                    </div>
 
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                    <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Pharmacy Order ID:</span>
-                    <span className="font-bold text-[#00a896] dark:text-cyan-300">
-                      #{confirmationResult.pharmacyOrder?.id || `RX-ORD-${confirmationResult.prescription.id.replace('RX-DOC-', '')}`}
-                    </span>
-                  </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Pharmacy Order ID:</span>
+                      <span className="font-bold text-[#00a896] dark:text-cyan-300">
+                        #{confirmationResult.pharmacyOrder?.id}
+                      </span>
+                    </div>
 
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 flex items-center justify-between">
-                    <span className="text-amber-900 dark:text-amber-200 font-sans font-bold">Pharmacy Status:</span>
-                    <span className="font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                      Pending Pharmacist Verification
-                    </span>
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 flex items-center justify-between">
+                      <span className="text-amber-900 dark:text-amber-200 font-sans font-bold">Live Status:</span>
+                      <span className="font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        Pending Pharmacist Verification
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Your prescription is queued for clinical pharmacist verification. Click below to view the live pharmacy tracking timeline.
-                </p>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 space-y-1">
+                    <p className="font-bold text-slate-700 dark:text-slate-300">
+                      Saved to Digital Health Locker
+                    </p>
+                    <p>
+                      No pharmacy order was transmitted. The prescription record has been securely archived in your personal medical records.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsLiveTrackingOpen(true)}
-                  className="flex-1 py-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Track Live Status Popup →</span>
-                </button>
+                {confirmationResult.pharmacyOrder && (
+                  <button
+                    type="button"
+                    onClick={() => setIsLiveTrackingOpen(true)}
+                    className="flex-1 py-3 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white text-xs font-extrabold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Track Live Status Popup →</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => onNavigate('pharmacy')}
                   className="py-3 px-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 text-xs font-extrabold transition-all border border-teal-500/20 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span>Pharmacy View</span>
+                  <span>Pharmacy Module</span>
                 </button>
               </div>
             </div>
@@ -1877,7 +2044,7 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 {confirmationResult.reminderCreated ? (
                   <div className="space-y-2 font-mono text-xs">
                     <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                      <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Follow-up Detected:</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-sans font-bold">Follow-up Directive:</span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">✓ Detected</span>
                     </div>
 
@@ -1898,19 +2065,13 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
                 ) : (
                   <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-center space-y-1 text-xs">
                     <p className="font-bold text-slate-700 dark:text-slate-300">
-                      No follow-up detected in this prescription
+                      No follow-up detected
                     </p>
                     <p className="text-slate-500">
-                      No automatic doctor reminder was required or created.
+                      No automatic appointment reminder was needed for this prescription.
                     </p>
                   </div>
                 )}
-
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {confirmationResult.reminderCreated
-                    ? `Doctor review with ${confirmationResult.prescription.doctorName} is scheduled in your appointments & reminders.`
-                    : 'You can create custom reminders anytime in the Reminders module.'}
-                </p>
               </div>
 
               <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
@@ -1948,7 +2109,221 @@ export const PrescriptionScannerTab: React.FC<PrescriptionScannerTabProps> = ({
         </motion.div>
       )}
 
-      {/* LIVE TRACKING MODAL */}
+      {/* REGISTERED PHARMACY SELECTION MODAL */}
+      <AnimatePresence>
+        {isPharmacyPickerOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden font-sans"
+            >
+              {/* MODAL HEADER */}
+              <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#00a896] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                      Select Fulfillment Pharmacy
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Choose a verified partner pharmacy to fulfill and deliver your medications
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isSubmittingOrder) {
+                      setIsPharmacyPickerOpen(false);
+                      setSubmissionError(null);
+                    }
+                  }}
+                  disabled={isSubmittingOrder}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-colors cursor-pointer disabled:opacity-50"
+                  aria-label="Close pharmacy picker"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* MODAL BODY */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+                {submissionError && (
+                  <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800/50 flex items-start gap-2.5 text-xs text-rose-700 dark:text-rose-300">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <strong className="block font-bold">Submission Failed</strong>
+                      <p className="mt-0.5">{submissionError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* PATIENT DELIVERY ADDRESS INPUT */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <label htmlFor="patient-delivery-address" className="font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#00a896]" />
+                      <span>Patient Delivery Address</span>
+                      <span className="text-rose-500 font-bold">*</span>
+                    </label>
+                    {patientDeliveryAddress.trim() ? (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">✓ Address provided</span>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Required for home delivery</span>
+                    )}
+                  </div>
+                  <input
+                    id="patient-delivery-address"
+                    type="text"
+                    value={patientDeliveryAddress}
+                    onChange={(e) => {
+                      setPatientDeliveryAddress(e.target.value);
+                      if (submissionError) setSubmissionError(null);
+                    }}
+                    placeholder="Enter your delivery address..."
+                    disabled={isSubmittingOrder}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#00a896] transition-colors"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold px-1">
+                  <span>Available Network Pharmacies ({registeredPharmacies.length})</span>
+                  <span className="flex items-center gap-1 text-[#00a896]">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Live Tie-ups</span>
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {registeredPharmacies.map((pharm) => {
+                    const isSelected = selectedPharmacyId === pharm.id;
+                    return (
+                      <div
+                        key={pharm.id}
+                        onClick={() => {
+                          if (!isSubmittingOrder) {
+                            setSelectedPharmacyId(pharm.id);
+                            setSubmissionError(null);
+                          }
+                        }}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-teal-500/10 border-[#00a896] shadow-sm ring-1 ring-[#00a896]'
+                            : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                isSelected
+                                  ? 'border-[#00a896] bg-[#00a896] text-white'
+                                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                                  {pharm.name}
+                                </h4>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                  Verified
+                                </span>
+                              </div>
+
+                              <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span>{pharm.address}</span>
+                              </p>
+
+                              <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                <span className="font-bold text-teal-700 dark:text-teal-400">
+                                  📍 {pharm.distanceKm} km away
+                                </span>
+                                <span>•</span>
+                                <span>⭐ {pharm.rating} ({pharm.reviewCount}+)</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                                  <Clock className="w-3 h-3" />
+                                  <span>{pharm.deliveryTime}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* MODAL FOOTER */}
+              <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="text-xs text-slate-500 dark:text-slate-400 truncate w-full sm:w-auto">
+                  {selectedPharmacy ? (
+                    <span>
+                      Selected:{' '}
+                      <strong className="text-slate-900 dark:text-white font-bold">
+                        {selectedPharmacy.name}
+                      </strong>
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">
+                      Please select a pharmacy above to continue
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isSubmittingOrder) {
+                        setIsPharmacyPickerOpen(false);
+                        setSubmissionError(null);
+                      }
+                    }}
+                    disabled={isSubmittingOrder}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExecutePharmacySubmission()}
+                    disabled={!selectedPharmacyId || isSubmittingOrder}
+                    className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-black text-xs transition-all shadow-md inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {isSubmittingOrder ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Transmitting Order...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Confirm & Send to Pharmacy ➔</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* LIVE PHARMACY TRACKING POPUP */}
       <OrderTrackingModal
         isOpen={isLiveTrackingOpen}
         order={liveTrackingOrder || confirmationResult?.pharmacyOrder || null}

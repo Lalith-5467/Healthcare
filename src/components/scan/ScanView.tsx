@@ -95,12 +95,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
     }
   }, []);
 
-  // Auto-open scanner modal when directly landing on /user/scan
-  useEffect(() => {
-    if (window.location.pathname.startsWith('/user/scan')) {
-      setScannerOpen(true);
-    }
-  }, []);
+  // Scanner modal only opens when explicitly requested by user (e.g. Start Scan button)
 
   // Helper to persist records
   const updateRecords = (newRecords: MedicalRecordItem[]) => {
@@ -168,7 +163,21 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      validateAndProcessFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (scanMode === 'prescription') {
+        setSelectedFile(file);
+      } else {
+        validateAndProcessFile(file);
+      }
+    }
+  };
+
+  const handleModalFileSelect = (file: File) => {
+    setScannerOpen(false);
+    if (scanMode === 'prescription') {
+      setSelectedFile(file);
+    } else {
+      validateAndProcessFile(file);
     }
   };
 
@@ -269,26 +278,26 @@ export const ScanView: React.FC<ScanViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
         title={t('scan.title', 'Scan & Digitization Hub')}
         subtitle={t('scan.subtitle', 'Extract prescriptions into actionable reminders & pharmacy workflows, or digitize diagnostic reports.')}
-        badgeText={t('scan.badge', 'Smart Health Digitizer')}
-        badgeIcon={<Camera className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-2.5 self-stretch sm:self-auto font-sans">
             <button
@@ -339,9 +348,20 @@ export const ScanView: React.FC<ScanViewProps> = ({
         </button>
       </div>
 
+      {/* HIDDEN GLOBAL FILE INPUT */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
+
       {scanMode === 'prescription' ? (
         <PrescriptionScannerTab
           user={user}
+          selectedFileProp={selectedFile}
+          onClearSelectedFile={() => setSelectedFile(null)}
           capturedImage={capturedImage}
           onClearCapturedImage={() => setCapturedImage(null)}
           onNavigate={onNavigate}
@@ -350,15 +370,6 @@ export const ScanView: React.FC<ScanViewProps> = ({
         />
       ) : (
         <div className="space-y-6">
-
-      {/* HIDDEN FILE INPUT */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-        onChange={handleFileInputChange}
-        className="hidden"
-      />
 
       {/* 2. MAIN EXPERIENCE CONTROLS & SUCCESS STATE */}
       {flowStep === 'success' ? (
@@ -400,7 +411,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
       ) : flowStep === 'info' ? (
         /* DOCUMENT INFORMATION FORM */
         <DocumentInfoForm
-          imageSrc={capturedImage}
+          imageSrc={capturedImage || (selectedFile ? URL.createObjectURL(selectedFile) : null)}
           fileName={selectedFile?.name || 'Scanned_Document_Aug2026.pdf'}
           fileSize={selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '2.4 MB'}
           onBack={handleBackPrompt}
@@ -603,6 +614,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
         isOpen={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onCapture={handleCameraCapture}
+        onSelectFile={handleModalFileSelect}
         onSwitchToUpload={() => {
           setScannerOpen(false);
           fileInputRef.current?.click();

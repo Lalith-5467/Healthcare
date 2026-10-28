@@ -32,6 +32,7 @@ export interface BackendPharmacyOrder {
   patientId: string;
   prescriptionId?: string | null;
   pharmacyId?: string | null;
+  patientName?: string | null;
   status:
     | 'PENDING'
     | 'ACCEPTED'
@@ -40,15 +41,21 @@ export interface BackendPharmacyOrder {
     | 'READY_FOR_PICKUP'
     | 'OUT_FOR_DELIVERY'
     | 'DELIVERED'
+    | 'DISPENSED'
     | 'COMPLETED'
     | 'DECLINED'
     | 'CANCELLED';
   totalAmount: number | string;
+  paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  paymentMethod?: string | null;
+  paidAt?: string | null;
   deliveryAddress?: string | null;
   deliveryType?: string | null;
   orderedAt: string;
+  createdAt?: string | null;
   updatedAt: string;
   items: BackendOrderItem[];
+  payments?: any[];
   pharmacy?: BackendPharmacy | null;
   patient?: {
     id: string;
@@ -58,11 +65,60 @@ export interface BackendPharmacyOrder {
   } | null;
   prescription?: {
     id: string;
+    doctor?: {
+      id?: string;
+      fullName?: string;
+      specialty?: string;
+    } | null;
     diagnosis?: string | null;
     issuedAt?: string;
   } | null;
   statusTimeline?: Record<string, string | null>;
   timeline?: Record<string, string | null>;
+}
+
+export interface PharmacyBillItem {
+  id?: string;
+  medicineId?: string | null;
+  medicineName: string;
+  dosage?: string | null;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface PharmacyBill {
+  orderId: string;
+  prescriptionId?: string | null;
+  orderedAt: string;
+  status: string;
+  paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  paymentMethod?: string | null;
+  paidAt?: string | null;
+  patient: {
+    id: string;
+    fullName: string;
+    gender?: string | null;
+    bloodGroup?: string | null;
+  };
+  pharmacy?: {
+    id: string;
+    pharmacyId: string;
+    name: string;
+    address?: string | null;
+    city?: string | null;
+    phone?: string | null;
+  } | null;
+  doctor?: {
+    id: string;
+    fullName: string;
+    speciality?: string | null;
+  } | null;
+  items: PharmacyBillItem[];
+  subtotal: number;
+  taxAmount: number;
+  finalAmount: number;
+  payments: any[];
 }
 
 export const DHR_STATUS_DISPLAY: Record<string, string> = {
@@ -73,6 +129,7 @@ export const DHR_STATUS_DISPLAY: Record<string, string> = {
   READY_FOR_PICKUP: 'Ready for Pickup',
   OUT_FOR_DELIVERY: 'Out for Delivery',
   DELIVERED: 'Delivered',
+  DISPENSED: 'Medicines Dispensed',
   COMPLETED: 'Completed',
   DECLINED: 'Order Declined',
   CANCELLED: 'Order Cancelled',
@@ -85,7 +142,8 @@ export const DHR_STATUS_PERCENT: Record<string, number> = {
   READY: 80,
   READY_FOR_PICKUP: 80,
   OUT_FOR_DELIVERY: 90,
-  DELIVERED: 100,
+  DELIVERED: 98,
+  DISPENSED: 100,
   COMPLETED: 100,
   DECLINED: 100,
   CANCELLED: 100,
@@ -194,6 +252,51 @@ export async function updatePharmacyOrderStatus(
   return res.data;
 }
 
+/**
+ * Fetch itemised pharmacy order bill with real database calculations
+ */
+export async function fetchPharmacyOrderBill(orderId: string): Promise<PharmacyBill> {
+  const res = await apiClient.get<PharmacyBill>(`/pharmacy-orders/${orderId}/bill`);
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Failed to fetch pharmacy bill');
+  }
+  return res.data;
+}
+
+/**
+ * Patient pays pharmacy order with backend verification and recalculation
+ */
+export async function payPharmacyOrder(
+  orderId: string,
+  payload: { paymentMethod: string; transactionRef?: string; notes?: string }
+): Promise<{ order: BackendPharmacyOrder; payment: any }> {
+  const res = await apiClient.post<{ order: BackendPharmacyOrder; payment: any }>(
+    `/pharmacy-orders/${orderId}/pay`,
+    payload
+  );
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Payment processing failed');
+  }
+  return res.data;
+}
+
+/**
+ * Pharmacist confirms cash payment received at counter
+ */
+export async function confirmPharmacistCashPayment(
+  orderId: string,
+  notes?: string
+): Promise<{ order: BackendPharmacyOrder; payment: any }> {
+  const res = await apiClient.post<{ order: BackendPharmacyOrder; payment: any }>(
+    `/pharmacy-orders/${orderId}/confirm-cash`,
+    { notes }
+  );
+  if (!res || !res.data) {
+    throw new Error(res?.message || 'Failed to confirm cash payment');
+  }
+  return res.data;
+}
+
 export interface CreateOrderPayload {
   prescriptionData: {
     notes?: string;
@@ -251,21 +354,27 @@ export async function createPatientPharmacyOrder(
   }
 
   // 2. Create prescription record
+  if (!prescriptionData.medicines || prescriptionData.medicines.length === 0) {
+    throw new Error('Prescription contains no medicines to send to pharmacy');
+  }
+
   const rxPayload: any = {
     diagnosis: prescriptionData.notes || 'Clinical Prescription & Medicine Order',
     notes: `Doctor: ${prescriptionData.doctorName || 'Attending Physician'} (${prescriptionData.clinicName || 'Clinic'}). Patient: ${prescriptionData.patientName || 'Patient'}.`,
-    items: (prescriptionData.medicines && prescriptionData.medicines.length > 0
-      ? prescriptionData.medicines
-      : [{ name: 'Amoxicillin 500mg', dosage: '500mg', frequency: 'Twice daily', duration: 5, instructions: 'After meals' }]
-    ).map((m) => ({
-      medicineName: m.name,
-      dosage: m.dosage || '500mg',
-      unit: 'mg',
-      frequency: m.frequency || 'Once daily',
-      durationDays: typeof m.duration === 'number' ? m.duration : parseInt(m.duration as string, 10) || 7,
-      instructions: m.instructions || 'Take as prescribed',
-      foodInstruction: m.foodInstruction || 'After food',
-    })),
+    items: prescriptionData.medicines.map((m) => {
+      const dur = typeof m.duration === 'number' ? m.duration : parseInt(String(m.duration || 7), 10) || 7;
+      const qty = typeof m.quantity === 'number' ? m.quantity : parseInt(String(m.quantity || ''), 10);
+      const qtyStr = qty && !isNaN(qty) && qty > 0 ? ` [Qty: ${qty}]` : '';
+      return {
+        medicineName: m.name,
+        dosage: m.dosage || '500mg',
+        unit: 'mg',
+        frequency: m.frequency || 'Once daily',
+        durationDays: dur,
+        instructions: (m.instructions ? m.instructions : 'Take as prescribed') + qtyStr,
+        foodInstruction: m.foodInstruction || 'After food',
+      };
+    }),
   };
 
   if (patientId) {
@@ -283,18 +392,29 @@ export async function createPatientPharmacyOrder(
   await apiClient.patch<any>(`/prescriptions/${rxId}/confirm`);
 
   // 4. Create pharmacy order
-  const orderRes = await apiClient.post<BackendPharmacyOrder>('/pharmacy-orders', {
-    prescriptionId: rxId,
-    pharmacyId,
-    deliveryAddress: deliveryAddress || 'Standard Delivery Address',
-    deliveryType: deliveryType || 'Home Delivery',
-  });
+  try {
+    const orderRes = await apiClient.post<BackendPharmacyOrder>('/pharmacy-orders', {
+      prescriptionId: rxId,
+      pharmacyId,
+      deliveryAddress: deliveryAddress || 'Standard Delivery Address',
+      deliveryType: deliveryType || 'Home Delivery',
+    });
 
-  if (!orderRes || !orderRes.data) {
-    throw new Error(orderRes?.message || 'Failed to route order to pharmacy');
+    if (!orderRes || !orderRes.data) {
+      throw new Error(orderRes?.message || 'Failed to route order to pharmacy');
+    }
+
+    return orderRes.data;
+  } catch (err: any) {
+    if (err?.message && (err.message.includes('already been created') || err.message.includes('409'))) {
+      const allOrders = await fetchPatientPharmacyOrders();
+      const existing = allOrders.find((o) => o.prescriptionId === rxId);
+      if (existing) {
+        return existing;
+      }
+    }
+    throw err;
   }
-
-  return orderRes.data;
 }
 
 export { setAuthToken, clearAuthToken };

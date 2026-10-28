@@ -8,10 +8,10 @@ import {
   FileCheck2, 
   Building2, 
   CheckCircle2, 
-  ExternalLink,
-  Sparkles
+  ExternalLink
 } from 'lucide-react';
 import { SpotlightCard } from '../ui/SpotlightCard';
+import { AbhaLogo } from '../common/AbhaLogo';
 
 interface ABHASectionProps {
   onManageConnection: () => void;
@@ -140,6 +140,14 @@ const ABHACard: React.FC<{
 };
 
 export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) => {
+  const [copiedField, setCopiedField] = useState<'number' | 'address' | null>(null);
+
+  const handleCopy = (text: string, field: 'number' | 'address') => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
   const workflowSteps: WorkflowStep[] = [
     {
       step: '01',
@@ -180,11 +188,6 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
         {/* HEADER */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-[#00a896] dark:text-cyan-400 text-xs font-black uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4 text-[#00a896]" />
-            <span>Official ABDM Integration Ready</span>
-          </div>
-
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
             Connected to India’s Digital Health Ecosystem
           </h2>
@@ -208,69 +211,117 @@ export const ABHASection: React.FC<ABHASectionProps> = ({ onManageConnection }) 
 
         {/* INTERACTIVE ABHA CONNECTED STATUS SPOTLIGHT CARD */}
         <SpotlightCard
-          spotlightColor="rgba(0, 168, 150, 0.22)"
-          className="max-w-2xl mx-auto p-6 sm:p-8 rounded-[24px] bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-xl"
+          spotlightColor="rgba(0, 168, 150, 0.18)"
+          className="max-w-2xl mx-auto p-6 sm:p-7 rounded-[28px] bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 shadow-xl space-y-6 relative overflow-hidden backdrop-blur-xl"
         >
           {/* AMBIENT CORNER GLOW */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-52 h-52 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* TOP HEADER ROW WITH PERFECT ALIGNMENT */}
+          {/* TOP HEADER ROW WITH BALANCED VERTICAL ALIGNMENT */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-700/80 relative z-10">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500/15 to-cyan-500/20 text-[#00a896] dark:text-cyan-400 flex items-center justify-center font-black text-sm border border-teal-500/30 shadow-xs">
-                ABHA
-              </div>
-              <div className="space-y-0.5">
+              <AbhaLogo className="w-12 h-12" />
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                     Ayushman Bharat Health Account
                   </h3>
                   <CheckCircle2 className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  ABDM Integration Status: <span className="text-[#00a896] dark:text-cyan-400 font-bold">Linked & Verified</span>
+                  ABDM Integration Status:{' '}
+                  <span className="text-[#00a896] dark:text-cyan-400 font-semibold">
+                    Linked &amp; Verified
+                  </span>
                 </p>
               </div>
             </div>
 
-            <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 font-mono shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Connected
-            </span>
+            {/* CONNECTED PILL WITH PULSING INDICATOR */}
+            <div className="self-start sm:self-center inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/60 shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-xs font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">
+                Connected
+              </span>
+            </div>
           </div>
 
-          {/* TWO DATA BOXES: PERFECTLY SIZED & ALIGNED BASELINES */}
+          {/* TWO DATA BOXES: BALANCED, ACCENTED & COPYABLE */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider font-mono">
-                ABHA Number
-              </span>
-              <p className="font-mono text-base sm:text-lg font-black text-[#00a896] dark:text-cyan-400 tracking-wider">
+            {/* BOX 1: ABHA NUMBER */}
+            <div className="group p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-700/80 hover:border-teal-500/40 transition-colors flex flex-col justify-between space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                  ABHA Number
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('14-XXXX-XXXX-8921', 'number')}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-400 transition-colors px-1.5 py-0.5 rounded cursor-pointer"
+                  title="Copy ABHA Number"
+                  aria-label="Copy ABHA Number"
+                >
+                  {copiedField === 'number' ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-600 dark:text-emerald-400 text-[10px]">Copied</span>
+                    </>
+                  ) : (
+                    <span className="text-[10px] tracking-normal opacity-0 group-hover:opacity-100 transition-opacity">Copy</span>
+                  )}
+                </button>
+              </div>
+              <p className="font-mono text-base sm:text-lg font-bold text-[#00a896] dark:text-cyan-400 tracking-wider">
                 14-XXXX-XXXX-8921
               </p>
             </div>
             
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-700/80 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 dark:text-slate-500 tracking-wider font-mono">
-                ABHA Address
-              </span>
-              <p className="font-mono text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-wide">
-                lalith.patel@abdm
+            {/* BOX 2: ABHA ADDRESS */}
+            <div className="group p-4 sm:p-4.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-700/80 hover:border-teal-500/40 transition-colors flex flex-col justify-between space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                  ABHA Address
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCopy('medicare.phr@abdm', 'address')}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-400 transition-colors px-1.5 py-0.5 rounded cursor-pointer"
+                  title="Copy ABHA Address"
+                  aria-label="Copy ABHA Address"
+                >
+                  {copiedField === 'address' ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-600 dark:text-emerald-400 text-[10px]">Copied</span>
+                    </>
+                  ) : (
+                    <span className="text-[10px] tracking-normal opacity-0 group-hover:opacity-100 transition-opacity">Copy</span>
+                  )}
+                </button>
+              </div>
+              <p className="font-mono text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide">
+                medicare.phr@abdm
               </p>
             </div>
           </div>
 
           {/* FOOTER ACTION ROW */}
-          <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-relaxed text-center sm:text-left">
-              MediCare routes authorization requests strictly through official ABDM gateway protocols.
-            </p>
+          <div className="pt-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+              <ShieldCheck className="w-4 h-4 text-[#00a896] dark:text-cyan-400 shrink-0" />
+              <p className="leading-relaxed">
+                MediCare routes authorization requests strictly through official ABDM gateway protocols.
+              </p>
+            </div>
 
             <motion.button
-              whileHover={{ scale: 1.025 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onManageConnection}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-xs font-black text-slate-900 dark:text-white bg-gradient-to-r from-[#00a896] via-teal-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 shadow-md shadow-teal-500/25 transition-all gap-2 shrink-0 cursor-pointer border border-teal-400/30"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-md shadow-teal-500/20 transition-all gap-2 shrink-0 cursor-pointer border border-teal-500/30"
             >
               <span>Manage Connection</span>
               <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />

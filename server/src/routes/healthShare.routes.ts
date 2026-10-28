@@ -34,13 +34,13 @@ router.get('/access-requests/patient', requireRole('PATIENT', 'DOCTOR', 'ADMIN',
 router.get('/access-requests/doctor', requireRole('DOCTOR', 'PATIENT', 'ADMIN', 'SUPER_ADMIN'), getDoctorAccessRequestsController);
 
 // 6. Patient: Approve Access Request
-router.post('/access-requests/:id/approve', requireRole('PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), approveAccessRequestController);
+router.post('/access-requests/:id/approve', requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), approveAccessRequestController);
 
 // 7. Patient: Reject Access Request
-router.post('/access-requests/:id/reject', requireRole('PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), rejectAccessRequestController);
+router.post('/access-requests/:id/reject', requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), rejectAccessRequestController);
 
 // 8. Patient: Revoke Active Access Session
-router.post('/access-sessions/:id/revoke', requireRole('PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), revokeAccessController);
+router.post('/access-sessions/:id/revoke', requireRole('PATIENT', 'ADMIN', 'SUPER_ADMIN', 'CAREGIVER'), revokeAccessController);
 
 // 9. Doctor: Get Patient 360° Data (Strict Session & Scope Validation)
 router.get('/patient-360/:patientId', requireRole('DOCTOR', 'ADMIN', 'SUPER_ADMIN', 'NURSE'), getPatient360DataController);

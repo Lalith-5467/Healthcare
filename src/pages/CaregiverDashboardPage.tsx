@@ -35,6 +35,7 @@ import { CaregiverNotificationPopover } from '../components/caregiver-dashboard/
 
 import { useLanguage } from '../context/LanguageContext';
 import { getLocalizedName } from '../utils/caregiverDataTranslator';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
 
 interface CaregiverDashboardPageProps {
   user?: { 
@@ -302,6 +303,7 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
               transition={{ duration: 0.2 }}
               className="max-w-7xl mx-auto h-full"
             >
+              <DashboardAnnouncementBanner role="caregiver" />
               {renderContent()}
             </motion.div>
           </AnimatePresence>
@@ -310,19 +312,21 @@ export const CaregiverDashboardPage: React.FC<CaregiverDashboardPageProps> = ({
       </div>
 
       {/* GLOBAL TOAST */}
-      <AnimatePresence>
-        {toastMsg && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 backdrop-blur-xl"
-          >
-            <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0" />
-            <span className="text-xs font-bold">{toastMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMsg && (
+            <motion.div 
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 backdrop-blur-xl"
+            >
+              <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0" />
+              <span className="text-xs font-bold">{toastMsg}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* GLOBAL SOS CONFIRM MODAL */}
       <AnimatePresence>

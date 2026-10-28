@@ -23,6 +23,11 @@ export default defineConfig({
         secure: false,
         timeout: 60000,
       },
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
       '/socket.io': {
         target: 'http://localhost:5000',
         changeOrigin: true,

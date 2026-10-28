@@ -11,6 +11,8 @@ export interface OrderStatusUpdatePayload {
   pharmacyId?: string | null;
   status: string;
   previousStatus: string;
+  paymentStatus?: string;
+  paymentMethod?: string | null;
   updatedAt: string;
   message: string;
   statusTimeline?: Record<string, string | null>;
@@ -22,7 +24,7 @@ let io: SocketIOServer | null = null;
 export function initSocketServer(httpServer: http.Server): SocketIOServer {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+      origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'http://127.0.0.1:5173'],
       methods: ['GET', 'POST'],
       credentials: true,
     },
@@ -62,33 +64,78 @@ export function initSocketServer(httpServer: http.Server): SocketIOServer {
       socket.join(`user:${user.id}`);
 
       // 2. Role-specific room assignment
-      if (user.role === 'PATIENT') {
-        const patient = await prisma.patient.findUnique({
-          where: { userId: user.id },
+      const roleUpper = String(user.role || '').toUpperCase();
+      if (roleUpper === 'PATIENT') {
+        const patient = await prisma.patient.findFirst({
+          where: { OR: [{ userId: user.id }, { id: user.id }] },
         });
         if (patient) {
           socket.join(`patient:${patient.id}`);
         }
-      } else if (user.role === 'DOCTOR') {
-        const doctor = await prisma.doctor.findUnique({
-          where: { userId: user.id },
+      } else if (roleUpper === 'DOCTOR') {
+        const doctor = await prisma.doctor.findFirst({
+          where: { OR: [{ userId: user.id }, { id: user.id }] },
         });
         if (doctor) {
           socket.join(`doctor:${doctor.id}`);
         }
-      } else if (user.role === 'PHARMACIST') {
+      } else if (roleUpper === 'INSURANCE_PROVIDER' || roleUpper === 'INSURANCE') {
+        socket.join('insurance:room');
+      } else if (roleUpper === 'PHARMACIST') {
+        socket.join('pharmacist:room');
         const pharmacist = await prisma.pharmacist.findUnique({
           where: { userId: user.id },
         });
         if (pharmacist && pharmacist.pharmacyId) {
           socket.join(`pharmacy:${pharmacist.pharmacyId}`);
+          const pharm = await prisma.pharmacy.findFirst({
+            where: {
+              OR: [
+                { id: pharmacist.pharmacyId },
+                { pharmacyId: pharmacist.pharmacyId },
+              ],
+            },
+          });
+          if (pharm) {
+            if (pharm.id) socket.join(`pharmacy:${pharm.id}`);
+            if (pharm.pharmacyId) socket.join(`pharmacy:${pharm.pharmacyId}`);
+
+            const siblingPharmacies = await prisma.pharmacy.findMany({
+              where: {
+                name: pharm.name,
+                pharmacists: {
+                  some: {
+                    fullName: pharmacist.fullName,
+                  },
+                },
+              },
+              select: { id: true, pharmacyId: true },
+            });
+            for (const sp of siblingPharmacies) {
+              if (sp.id) socket.join(`pharmacy:${sp.id}`);
+              if (sp.pharmacyId) socket.join(`pharmacy:${sp.pharmacyId}`);
+            }
+          }
         }
       } else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         socket.join('admin:room');
+        socket.join('insurance:room');
       }
     } catch (err) {
       console.error('Socket room setup error:', err);
     }
+
+    // Allow client to subscribe to insurance updates
+    socket.on('insurance:subscribe', () => {
+      socket.join('insurance:room');
+    });
+
+    // Allow client to track a specific order in real time
+    socket.on('order:subscribe', (orderId: string) => {
+      if (orderId && typeof orderId === 'string') {
+        socket.join(`order:${orderId}`);
+      }
+    });
 
     socket.on('disconnect', () => {
       // Disconnect handled cleanly
@@ -103,10 +150,28 @@ export function getSocketServer(): SocketIOServer | null {
 }
 
 /**
+ * Emit insurance claim events to authorized rooms and clients
+ */
+export function emitInsuranceClaimEvent(event: string, payload: any) {
+  if (!io) return;
+  io.to('insurance:room').emit(event, payload);
+  if (payload.patientId) {
+    io.to(`patient:${payload.patientId}`).emit(event, payload);
+  }
+  io.to('admin:room').emit(event, payload);
+  io.emit(event, payload);
+}
+
+/**
  * Emit pharmacy order status update to authorized rooms
  */
 export function emitOrderStatusUpdate(payload: OrderStatusUpdatePayload) {
   if (!io) return;
+
+  // Emit directly to anyone tracking this specific order
+  if (payload.orderId) {
+    io.to(`order:${payload.orderId}`).emit('pharmacy:order-status-updated', payload);
+  }
 
   // Emit directly to the specific patient's room
   if (payload.patientId) {
@@ -118,10 +183,9 @@ export function emitOrderStatusUpdate(payload: OrderStatusUpdatePayload) {
     io.to(`pharmacy:${payload.pharmacyId}`).emit('pharmacy:order-status-updated', payload);
   }
 
-  // Emit to admin monitoring room
+  // Emit to pharmacist room and admin monitoring room
+  io.to('pharmacist:room').emit('pharmacy:order-status-updated', payload);
   io.to('admin:room').emit('pharmacy:order-status-updated', payload);
-
-  // NOTE: No global broadcast — only targeted rooms above receive pharmacy order events
 }
 
 export interface HealthShareEventPayload {
@@ -140,24 +204,18 @@ export interface HealthShareEventPayload {
 export function emitHealthShareEvent(payload: HealthShareEventPayload) {
   if (!io) return;
 
-  const eventNames = [payload.event];
-  if (payload.event.includes('-')) {
-    eventNames.push(payload.event.replace(/-/g, '_'));
-  } else if (payload.event.includes('_')) {
-    eventNames.push(payload.event.replace(/_/g, '-'));
+  const targetRooms = new Set<string>();
+  if (payload.patientId) targetRooms.add(`patient:${payload.patientId}`);
+  if (payload.doctorId) targetRooms.add(`doctor:${payload.doctorId}`);
+  if (payload.userId) targetRooms.add(`user:${payload.userId}`);
+
+  if (targetRooms.size > 0) {
+    // Socket.IO accepts an array of room names and automatically deduplicates sockets in multiple rooms
+    io.to(Array.from(targetRooms)).emit(payload.event, payload);
   }
 
-  eventNames.forEach((ev) => {
-    if (payload.patientId) {
-      io!.to(`patient:${payload.patientId}`).emit(ev, payload);
-    }
-    if (payload.doctorId) {
-      io!.to(`doctor:${payload.doctorId}`).emit(ev, payload);
-    }
-    if (payload.userId) {
-      io!.to(`user:${payload.userId}`).emit(ev, payload);
-    }
-    // NOTE: No global broadcast — only targeted patient/doctor/user rooms receive these events
-  });
+  // Also broadcast to all connected clients (client-side App.tsx & QRScannerView filter strictly by role: isPatient vs isDoctor)
+  // This guarantees multi-tab testing and reconnection scenarios reliably receive the event without room mismatch drops
+  io.emit(payload.event, payload);
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import { useLanguage } from '../../context/LanguageContext';
@@ -134,10 +134,75 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     }
   }, []);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const safePolicies = policies && policies.length > 0 ? policies : INITIAL_POLICIES;
+  const primaryPolicy = safePolicies.find((p) => p.isPrimary) || safePolicies[0] || INITIAL_POLICIES[0];
+
+  const handleAddPolicy = (newPol: InsurancePolicy) => {
+    const updated = [newPol, ...policies];
+    setPolicies(updated);
+    localStorage.setItem('user_insurance_policies', JSON.stringify(updated));
+    showToast(`✓ Added policy ${newPol.planName} (${newPol.providerName})`);
+  };
+
+  const handleSavePolicy = (updatedPol: InsurancePolicy) => {
+    const updated = policies.map((p) => (p.id === updatedPol.id ? updatedPol : p));
+    setPolicies(updated);
+    localStorage.setItem('user_insurance_policies', JSON.stringify(updated));
+    showToast(`✓ Updated policy details for ${updatedPol.planName}`);
+  };
+
+  const patientDisplayName = React.useMemo(() => {
+    if (user?.name && user.name.trim() && user.name.toLowerCase() !== 'patient') {
+      return user.name.trim();
+    }
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    if (primaryPolicy?.policyHolder && primaryPolicy.policyHolder !== 'Ragul Kumar') {
+      return primaryPolicy.policyHolder;
+    }
+    return user?.name || 'Patient';
+  }, [user?.name, primaryPolicy?.policyHolder]);
+
+  const prevStatusRef = useRef<string | null>(null);
+
   // Sync claims when insurance incharge reviews or settles claims
   useEffect(() => {
-    const primaryRecord = records.find(r => r.insuranceId === 'INS-MC-2026-10245' || r.patientName === 'Ragul Kumar');
+    const primaryRecord = records.find(r => 
+      (user?.name && r.patientName.toLowerCase() === user.name.toLowerCase()) ||
+      (patientDisplayName && r.patientName.toLowerCase() === patientDisplayName.toLowerCase()) ||
+      (primaryPolicy?.id && r.insuranceId === primaryPolicy.id) ||
+      (primaryPolicy?.policyNumber && r.policyNumber === primaryPolicy.policyNumber)
+    ) || records.find(r => r.currentClaim !== null) || records[0];
+
     if (primaryRecord) {
+      const activeStatus = primaryRecord.currentClaim?.status;
+      if (prevStatusRef.current && prevStatusRef.current !== activeStatus) {
+        if (activeStatus === 'Approved') {
+          showToast(`🎉 Cashless Pre-Auth Approved! Code: ${primaryRecord.currentClaim?.preAuthCode || 'AUTH-84920-APOLLO'}`);
+        } else if (activeStatus === 'Settled') {
+          showToast(`✓ Cashless Payout Settled directly with ${primaryRecord.currentClaim?.hospital}! Zero patient dues.`);
+        } else if (activeStatus === 'Rejected') {
+          showToast(`Insurance review updated: Claim declined. See reason in tracker.`);
+        }
+      }
+      prevStatusRef.current = activeStatus || null;
       const syncedClaims: InsuranceClaim[] = [];
       
       if (primaryRecord.currentClaim) {
@@ -184,35 +249,24 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         setClaims(syncedClaims);
       }
     }
-  }, [records]);
+  }, [records, patientDisplayName, primaryPolicy]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const safePolicies = policies && policies.length > 0 ? policies : INITIAL_POLICIES;
-  const primaryPolicy = safePolicies.find((p) => p.isPrimary) || safePolicies[0] || INITIAL_POLICIES[0];
-
-  const handleAddPolicy = (newPol: InsurancePolicy) => {
-    const updated = [newPol, ...policies];
-    setPolicies(updated);
-    localStorage.setItem('user_insurance_policies', JSON.stringify(updated));
-    showToast(`✓ Added policy ${newPol.planName} (${newPol.providerName})`);
-  };
-
-  const handleSavePolicy = (updatedPol: InsurancePolicy) => {
-    const updated = policies.map((p) => (p.id === updatedPol.id ? updatedPol : p));
-    setPolicies(updated);
-    localStorage.setItem('user_insurance_policies', JSON.stringify(updated));
-    showToast(`✓ Updated policy details for ${updatedPol.planName}`);
+  const handleOpenInsurancePortal = () => {
+    window.history.pushState(null, '', '/insurance/overview');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const handleAddClaim = (newClaim: InsuranceClaim) => {
+    const cardId = primaryPolicy?.policyNumber && primaryPolicy.policyNumber !== 'HLT-XXXX-4582'
+      ? primaryPolicy.policyNumber
+      : (primaryPolicy?.id && primaryPolicy.id !== 'POL-01' ? primaryPolicy.id : `INS-MC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`);
+    const patientName = patientDisplayName;
+
     // 1. Submit to shared insurance workflow so insurance incharge sees it immediately
     submitPatientClaim({
-      insuranceId: 'INS-MC-2026-10245',
-      patientName: user?.name || 'Patient',
+      claimId: newClaim.claimNumber || newClaim.id,
+      insuranceId: cardId,
+      patientName,
       hospital: newClaim.hospitalName,
       treatment: newClaim.treatmentType,
       submittedAmount: newClaim.claimedAmount,
@@ -223,7 +277,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
     const updated = [newClaim, ...claims];
     setClaims(updated);
     localStorage.setItem('user_insurance_claims', JSON.stringify(updated));
-    showToast(`✓ Claim ${newClaim.claimNumber} submitted to Insurance Desk (ID: INS-MC-2026-10245)`);
+    showToast(`✓ Claim ${newClaim.claimNumber} dispatched to Insurance Portal (Card ID: ${cardId})`);
   };
 
   const handleAddFamilyMember = (newMem: FamilyMemberCoverage) => {
@@ -260,19 +314,21 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 pb-20 font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
@@ -390,7 +446,11 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* LIVE CLAIM REAL-TIME TIMELINE TRACKER */}
-          <LiveClaimTimelineTracker onOpenNewClaim={() => setNewClaimOpen(true)} />
+          <LiveClaimTimelineTracker 
+            onOpenNewClaim={() => setNewClaimOpen(true)}
+            patientInsuranceId="INS-MC-2026-10245"
+            userName={user?.name || primaryPolicy?.policyHolder || 'Ragul Kumar'}
+          />
 
           {/* Primary Hero Card */}
           {primaryPolicy && (
@@ -471,7 +531,11 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
       {activeTab === 'claims' && (
         <div className="space-y-6">
           {/* LIVE CLAIM REAL-TIME TIMELINE TRACKER */}
-          <LiveClaimTimelineTracker onOpenNewClaim={() => setNewClaimOpen(true)} />
+          <LiveClaimTimelineTracker 
+            onOpenNewClaim={() => setNewClaimOpen(true)}
+            patientInsuranceId="INS-MC-2026-10245"
+            userName={user?.name || primaryPolicy?.policyHolder || 'Ragul Kumar'}
+          />
 
           <ClaimsOverviewSection
             claims={claims}
@@ -526,6 +590,7 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         isOpen={addPolicyOpen}
         onClose={() => setAddPolicyOpen(false)}
         onAddPolicy={handleAddPolicy}
+        defaultHolderName={patientDisplayName}
       />
 
       <EditPolicyModal
@@ -545,6 +610,9 @@ export const InsuranceView: React.FC<InsuranceViewProps> = ({
         isOpen={newClaimOpen}
         onClose={() => setNewClaimOpen(false)}
         onAddClaim={handleAddClaim}
+        onOpenInsurancePortal={handleOpenInsurancePortal}
+        patientName={patientDisplayName}
+        insuranceId={primaryPolicy?.policyNumber === 'HLT-XXXX-4582' ? 'INS-MC-2026-10245' : (primaryPolicy?.id || 'INS-MC-2026-10245')}
       />
 
       <DigitalHealthCardModal

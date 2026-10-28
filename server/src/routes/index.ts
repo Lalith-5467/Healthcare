@@ -24,6 +24,9 @@ import dietRoutes from './diet.routes';
 import videoRoutes from './video.routes';
 import adminHealthVideoRoutes from './adminHealthVideo.routes';
 import patientHealthTopicRoutes from './patientHealthTopic.routes';
+import healthShortsRoutes from './healthShorts.routes';
+import settingsRoutes from './settings.routes';
+import uploadRoutes from './upload.routes';
 
 const router = Router();
 
@@ -111,6 +114,9 @@ router.use('/diet', dietRoutes);
 // Health Videos APIs
 router.use('/health-videos', videoRoutes);
 
+// Dynamic Health Shorts APIs
+router.use('/health-shorts', healthShortsRoutes);
+
 // General Health Topics (public/authenticated read)
 import { getAllHealthTopics } from '../controllers/healthTopic.controller';
 import { authenticate } from '../middleware/auth.middleware';
@@ -118,5 +124,11 @@ router.get('/health-topics', authenticate, getAllHealthTopics);
 
 // Patient Health Topics APIs
 router.use('/patients/:patientId/health-topics', patientHealthTopicRoutes);
+
+// Shared System Settings APIs
+router.use('/settings', settingsRoutes);
+
+// Secure File Upload APIs
+router.use('/upload', uploadRoutes);
 
 export default router;

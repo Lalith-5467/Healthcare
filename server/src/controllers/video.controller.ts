@@ -39,7 +39,7 @@ export const getHealthVideos = async (req: Request, res: Response): Promise<void
     const topicIds = patientTopics.map(pt => pt.healthTopicId);
 
     // 2. Query APPROVED videos matching those topics (or all approved videos if none)
-    let dbVideos = [];
+    let dbVideos: any[] = [];
     if (topicIds.length > 0) {
       dbVideos = await prisma.healthVideo.findMany({
         where: {

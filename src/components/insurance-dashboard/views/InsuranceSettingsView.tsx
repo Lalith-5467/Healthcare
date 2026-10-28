@@ -6,6 +6,7 @@ import {
   Upload, Save, RotateCcw, AlertTriangle, ArrowRight,
   MonitorSmartphone, Smartphone, Mail, Globe, Lock
 } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
 
 type SettingsSection = 
   | 'profile' | 'claim-config' | 'pre-auth' | 'network' 
@@ -13,6 +14,7 @@ type SettingsSection =
   | 'security' | 'audit';
 
 export const InsuranceSettingsView: React.FC = () => {
+  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -59,29 +61,29 @@ export const InsuranceSettingsView: React.FC = () => {
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-[2rem] bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">TPA Desk Settings</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('TPA Desk Settings')}</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
-            Configure TPA operations, claim workflows, network access, settlements, notifications, and security.
+            {t('Configure TPA operations, claim workflows, network access, settlements, notifications, and security.')}
           </p>
         </div>
         
         <div className="flex flex-col items-end gap-3 shrink-0">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800/50">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            All settings are up to date
+            {t('All settings are up to date')}
           </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={handleReset}
               className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Reset Changes
+              <RotateCcw className="w-3.5 h-3.5" /> {t('Reset Changes')}
             </button>
             <button 
               onClick={handleSave}
               className="px-6 py-2.5 rounded-xl font-black text-xs bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Save className="w-3.5 h-3.5" /> Save Changes
+              <Save className="w-3.5 h-3.5" /> {t('Save Changes')}
             </button>
           </div>
         </div>
@@ -96,7 +98,7 @@ export const InsuranceSettingsView: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search settings..." 
+              placeholder={t('Search settings...')} 
               className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/50 outline-none text-slate-900 dark:text-white transition-all shadow-sm"
             />
           </div>
@@ -588,15 +590,17 @@ export const InsuranceSettingsView: React.FC = () => {
         )}
 
         {savedSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <p className="text-sm font-black">Settings saved successfully</p>
-          </motion.div>
+          <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-emerald-500 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-white"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <p className="text-sm font-black">Settings saved successfully</p>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -607,6 +611,7 @@ export const InsuranceSettingsView: React.FC = () => {
 // Sub-components for clean structure
 
 const NavItem = ({ id, icon: Icon, label, current, onClick }: any) => {
+  const { t } = useLanguage();
   const isActive = current === id;
   return (
     <button
@@ -618,7 +623,7 @@ const NavItem = ({ id, icon: Icon, label, current, onClick }: any) => {
       }`}
     >
       <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-cyan-400' : ''}`} />
-      {label}
+      {t(label)}
     </button>
   );
 };

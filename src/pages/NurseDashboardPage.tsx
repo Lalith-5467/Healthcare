@@ -24,6 +24,7 @@ import { NurseSettingsView } from '../components/nurse-dashboard/views/NurseSett
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
 import { notificationApi, authApi } from '../services/dhrApis';
 import { useLanguage } from '../context/LanguageContext';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
 
 interface NurseDashboardPageProps {
   onLogout: () => void;
@@ -280,6 +281,7 @@ export const NurseDashboardPage: React.FC<NurseDashboardPageProps> = ({ onLogout
 
         {/* MAIN WORKBENCH VIEWPORT */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <DashboardAnnouncementBanner role="nurse" />
           {renderActiveView()}
         </main>
       </div>

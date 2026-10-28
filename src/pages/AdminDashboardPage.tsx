@@ -6,6 +6,7 @@ import {
   AlertTriangle, Lock, User
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { AdminSidebar } from '../components/admin-dashboard/AdminSidebar';
 
 // SUB-VIEWS
@@ -21,7 +22,9 @@ import { AdminSecurityAuditView } from '../components/admin-dashboard/views/Admi
 import { AdminSystemSettingsView } from '../components/admin-dashboard/views/AdminSystemSettingsView';
 import { AdminReportsAnalyticsView } from '../components/admin-dashboard/views/AdminReportsAnalyticsView';
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
 import { notificationApi } from '../services/dhrApis';
+import { getAuthToken, parseJwtRole } from '../services/apiClient';
 
 interface AdminDashboardPageProps {
   user?: {
@@ -38,9 +41,22 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   user,
   initialNavId = 'dashboard',
   onLogout,
-  onNavigate: _onNavigate
+  onNavigate
 }) => {
-  const [currentRole, setCurrentRole] = useState<'Admin' | 'Super Admin'>('Super Admin');
+  const getInitialAdminRole = (): 'Admin' | 'Super Admin' => {
+    const token = getAuthToken();
+    if (token) {
+      const role = parseJwtRole(token);
+      if (role === 'SUPER_ADMIN') return 'Super Admin';
+      if (role === 'ADMIN') return 'Admin';
+    }
+    const propRole = (user?.role || '').toUpperCase();
+    if (propRole === 'SUPER_ADMIN' || propRole.includes('SUPER')) return 'Super Admin';
+    if (propRole === 'ADMIN') return 'Admin';
+    return 'Super Admin';
+  };
+
+  const [currentRole, setCurrentRole] = useState<'Admin' | 'Super Admin'>(getInitialAdminRole);
   const [activeNavId, setActiveNavId] = useState<string>(initialNavId);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -48,6 +64,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  React.useEffect(() => {
+    if (initialNavId) {
+      setActiveNavId(initialNavId);
+    }
+  }, [initialNavId]);
 
   const loadUnreadCount = async () => {
     try {
@@ -65,18 +87,24 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
-  const adminName = currentRole === 'Super Admin' ? 'Vikramaditya Rao' : 'Kavita Sundaram';
-  const adminEmail = currentRole === 'Super Admin' ? 'superadmin@dhr-medicare.in' : 'admin.kavita@dhr-medicare.in';
+  const adminName = user?.name || (user?.email ? user.email.split('@')[0] : (currentRole === 'Super Admin' ? 'Super Administrator' : 'Administrator'));
+  const adminEmail = user?.email || (currentRole === 'Super Admin' ? 'superadmin@dhr-medicare.in' : 'admin@dhr-medicare.in');
 
   const SUPER_ADMIN_ONLY_VIEWS = [
     'admin-management',
     'roles-permissions',
-    'system-config',
     'security-audit',
     'backup-recovery'
   ];
 
   const handleSelectNav = (id: string) => {
+    if (id === 'home') {
+      if (onNavigate) {
+        onNavigate('home');
+      }
+      return;
+    }
+
     setActiveNavId(id);
     localStorage.setItem('admin_active_nav_id', id);
 
@@ -123,7 +151,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       case 'nurses':
         return <AdminStaffManagementView type="nurse" />;
       case 'pharmacists':
+        return <AdminStaffManagementView type="pharmacist" />;
       case 'caregivers':
+        return <AdminStaffManagementView type="caregiver" />;
       case 'insurance':
         return <AdminOperationsView type="insurance" />;
       case 'pharmacy-orders':
@@ -139,15 +169,15 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         return <AdminRolesPermissionsView currentRole={currentRole} />;
       case 'health-videos':
         return <SuperAdminHealthVideoView currentRole={currentRole} />;
-      case 'system-config':
       case 'security-audit':
       case 'backup-recovery':
       case 'activity-logs':
         return <AdminSecurityAuditView currentRole={currentRole} />;
       case 'reports-analytics':
         return <AdminReportsAnalyticsView />;
+      case 'system-config':
       case 'settings':
-        return <AdminSystemSettingsView />;
+        return <AdminSystemSettingsView currentRole={currentRole} />;
       default:
         return <AdminDashboardHomeView onNavigate={handleSelectNav} currentRole={currentRole} />;
     }
@@ -169,12 +199,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <div className="flex items-center gap-3">
             <Logo />
             <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
-              <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-md flex items-center gap-1.5 border font-mono ${
-                currentRole === 'Super Admin'
-                  ? 'text-rose-700 dark:text-rose-300 bg-rose-500/10 dark:bg-rose-900/30 border-rose-500/30'
-                  : 'text-blue-700 dark:text-cyan-300 bg-blue-500/10 dark:bg-cyan-900/30 border-blue-500/30'
-              }`}>
-                <Shield className="w-3.5 h-3.5" /> {currentRole} Portal
+              <span className="text-xs font-bold text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-950/40 px-2.5 py-1 rounded-lg border border-teal-500/20">
+                {currentRole} Portal
               </span>
             </div>
           </div>
@@ -185,25 +211,28 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setCurrentRole('Admin')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                 currentRole === 'Admin' 
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-300 shadow-xs' 
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Admin
             </button>
             <button
               onClick={() => setCurrentRole('Super Admin')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                 currentRole === 'Super Admin' 
-                  ? 'bg-rose-500 text-white shadow-xs font-black' 
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Super Admin
             </button>
           </div>
+
+          {/* DARK / LIGHT THEME TOGGLE */}
+          <ThemeToggle />
 
           <button 
             type="button"
@@ -225,15 +254,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className="flex items-center gap-2 p-1.5 pr-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs text-white ${
-                currentRole === 'Super Admin' ? 'bg-rose-600' : 'bg-blue-600'
-              }`}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm text-white bg-[#00a896] shadow-xs">
                 {adminName.charAt(0)}
               </div>
-              <span className="text-xs font-black text-slate-800 dark:text-slate-200 hidden md:block">{adminName}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 hidden md:block">{adminName}</span>
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </button>
 
             <AnimatePresence>
@@ -256,7 +283,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                   >
-                    <User className="w-3.5 h-3.5 text-blue-500" /> My Profile & Settings
+                    <User className="w-3.5 h-3.5 text-[#00a896]" /> My Profile & Settings
                   </button>
 
                   <button
@@ -344,6 +371,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               transition={{ duration: 0.2 }}
               className="max-w-7xl mx-auto h-full"
             >
+              <DashboardAnnouncementBanner role={currentRole === 'Super Admin' ? 'superAdmin' : 'admin'} />
               {renderContent()}
             </motion.div>
           </AnimatePresence>

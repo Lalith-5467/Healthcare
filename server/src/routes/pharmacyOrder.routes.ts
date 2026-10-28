@@ -8,6 +8,9 @@ import {
   acceptPharmacyOrderController,
   declinePharmacyOrderController,
   updatePharmacyOrderStatusController,
+  getPharmacyOrderBillController,
+  processPharmacyOrderPaymentController,
+  confirmCashPaymentController,
 } from '../controllers/pharmacyOrder.controller';
 
 const router = Router();
@@ -36,21 +39,42 @@ router.get(
   getPharmacyOrderByIdController
 );
 
-// 4. Pharmacist accepts order: PENDING -> ACCEPTED
+// 4. Get itemised bill with real database prices and calculation
+router.get(
+  '/:id/bill',
+  requireRole('PATIENT', 'PHARMACIST', 'DOCTOR', 'NURSE', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
+  getPharmacyOrderBillController
+);
+
+// 5. Patient or Caregiver makes payment with strict backend recalculation
+router.post(
+  '/:id/pay',
+  requireRole('PATIENT', 'CAREGIVER', 'ADMIN', 'SUPER_ADMIN'),
+  processPharmacyOrderPaymentController
+);
+
+// 6. Pharmacist confirms cash payment received at counter
+router.post(
+  '/:id/confirm-cash',
+  requireRole('PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),
+  confirmCashPaymentController
+);
+
+// 7. Pharmacist accepts order: PENDING -> ACCEPTED
 router.patch(
   '/:id/accept',
   requireRole('PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),
   acceptPharmacyOrderController
 );
 
-// 5. Pharmacist declines order: PENDING -> DECLINED
+// 8. Pharmacist declines order: PENDING -> DECLINED
 router.patch(
   '/:id/decline',
   requireRole('PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),
   declinePharmacyOrderController
 );
 
-// 6. Pharmacist updates order status along valid state machine transitions
+// 9. Pharmacist updates order status along valid state machine transitions (enforces dispensing payment rule)
 router.patch(
   '/:id/status',
   requireRole('PHARMACIST', 'ADMIN', 'SUPER_ADMIN'),

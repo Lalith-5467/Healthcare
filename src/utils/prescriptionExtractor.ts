@@ -1,3 +1,5 @@
+import { runOpticalOcr, parseStructuredPrescriptionFromOcr } from './ocrService';
+
 export interface ExtractedMedicine {
   id: string;
   name: string;
@@ -28,6 +30,13 @@ export interface StructuredPrescription {
   status: 'pending-review' | 'confirmed';
   notes?: string;
   rawImagePreview?: string;
+  rawOcrText?: string;
+  confidence?: number;
+  rawConfidence?: number;
+  isAbdmCompliant?: boolean;
+  fields?: string[];
+  pages?: string[];
+  pageCount?: number;
   createdAt: number;
 }
 
@@ -250,8 +259,9 @@ export const SAMPLE_PRESCRIPTION_PRESETS: SamplePrescriptionPreset[] = [
 ];
 
 /**
- * Intelligent Client-Side Extraction Helper:
- * Attempts to parse patient name, doctor, clinic, and medicines from file/input metadata.
+ * Real Optical Prescription Extraction Helper:
+ * Runs Tesseract OCR on the supplied document and parses genuine prescription entities.
+ * Returns demo preset only when explicitly selected by the user in demo mode.
  */
 export const extractPrescriptionData = async (
   fileOrImage: File | string,
@@ -259,176 +269,37 @@ export const extractPrescriptionData = async (
   onProgress?: (step: string, percent: number) => void,
   customPatientName?: string
 ): Promise<StructuredPrescription> => {
-  const steps = [
-    { text: 'Scanning prescription document & detecting layout boundaries...', percent: 20 },
-    { text: 'Running optical character recognition on physician handwriting & header...', percent: 45 },
-    { text: 'Parsing patient entity, doctor registration & clinic stamp...', percent: 70 },
-    { text: 'Extracting medicine entities, dosages, frequencies & quantities...', percent: 85 },
-    { text: 'Detecting follow-up directives, review dates & appointment directives...', percent: 95 }
-  ];
+  // If the user explicitly selected a clinical preset scenario from the demo presets list:
+  if (presetId && presetId !== 'custom-upload') {
+    const matchedPreset = SAMPLE_PRESCRIPTION_PRESETS.find((p) => p.id === presetId);
+    if (matchedPreset) {
+      if (onProgress) onProgress('Loading clinical preset demo...', 100);
+      const uniqueId = `RX-DOC-${Date.now().toString().slice(-6)}`;
+      return {
+        id: uniqueId,
+        patientName: customPatientName?.trim() || matchedPreset.data.patientName,
+        doctorName: matchedPreset.data.doctorName,
+        clinicName: matchedPreset.data.clinicName,
+        doctorSpeciality: matchedPreset.data.doctorSpeciality,
+        prescriptionDate: new Date().toISOString().slice(0, 10),
+        medicines: matchedPreset.data.medicines.map((m, idx) => ({ ...m, id: `med-${uniqueId}-${idx + 1}` })),
+        followUp: { ...matchedPreset.data.followUp },
+        status: 'pending-review',
+        notes: matchedPreset.data.notes,
+        createdAt: Date.now()
+      };
+    }
+  }
 
-  for (const step of steps) {
+  // Real OCR pipeline for all uploaded files, captured images, or photo library files
+  const ocrResult = await runOpticalOcr(fileOrImage, (prog, msg) => {
     if (onProgress) {
-      onProgress(step.text, step.percent);
+      onProgress(msg || 'Extracting prescription data with optical OCR...', prog);
     }
-    // Simulate real-time OCR pipeline processing
-    await new Promise((res) => setTimeout(res, 280));
-  }
+  });
 
-  // 1. Determine Patient Name & Document Hints
-  let fileNameOrHint = '';
-  if (typeof fileOrImage !== 'string' && fileOrImage instanceof File) {
-    fileNameOrHint = fileOrImage.name.toLowerCase();
-  } else if (typeof fileOrImage === 'string') {
-    fileNameOrHint = fileOrImage.toLowerCase();
-  }
-
-  const isAksharaOrSMS = fileNameOrHint.includes('akshara') || fileNameOrHint.includes('sms') || fileNameOrHint.includes('vomilast') || fileNameOrHint.includes('gestakind') || fileNameOrHint.includes('zoclar') || fileNameOrHint.includes('abciximab');
-
-  let resolvedPatientName = customPatientName?.trim() || '';
-  if (!resolvedPatientName && typeof fileOrImage !== 'string' && fileOrImage instanceof File) {
-    const fn = fileOrImage.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-    if (fn && !fn.toLowerCase().includes('prescription') && !fn.toLowerCase().includes('document') && !fn.toLowerCase().includes('scan')) {
-      resolvedPatientName = fn.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    }
-  }
-
-  const isCustomUpload = !presetId || presetId === 'custom-upload';
-  const matchedPreset = SAMPLE_PRESCRIPTION_PRESETS.find((p) => p.id === presetId);
-
-  if (!resolvedPatientName) {
-    resolvedPatientName = matchedPreset?.data.patientName || 'Patient';
-  }
-
-  const uniqueId = `RX-DOC-${Date.now().toString().slice(-6)}`;
-  const previewDataUrl = typeof fileOrImage === 'string' ? fileOrImage : undefined;
-  const todayStr = new Date().toISOString().slice(0, 10);
-
-  // 5 days from today for follow up
-  const followUpDate = new Date();
-  followUpDate.setDate(followUpDate.getDate() + 5);
-  const followUpDateStr = followUpDate.toISOString().slice(0, 10);
-
-  let result: StructuredPrescription;
-
-  if (isAksharaOrSMS || (isCustomUpload && !matchedPreset)) {
-    // Highly accurate multi-medicine extraction for Dr. Akshara / SMS Hospital Rx or Custom upload
-    result = {
-      id: uniqueId,
-      patientName: resolvedPatientName || 'Patient',
-      doctorName: isAksharaOrSMS ? 'Dr. Akshara, M.S. (Reg. No: MMC 2018)' : 'Dr. Akshara, M.S. (General Surgery & Medicine)',
-      clinicName: isAksharaOrSMS ? 'SMS Hospital, MG Road, Pune' : 'SMS Hospital & Medical Research Centre',
-      doctorSpeciality: 'General Surgery & OPD Medicine',
-      prescriptionDate: todayStr,
-      medicines: [
-        {
-          id: `med-${uniqueId}-1`,
-          name: 'Tab. Abciximab',
-          dosage: '1 Morning',
-          frequency: 'Once daily',
-          duration: '8 Days',
-          quantity: 8,
-          instructions: 'Take 1 tablet in the morning',
-          foodInstruction: 'Before Food'
-        },
-        {
-          id: `med-${uniqueId}-2`,
-          name: 'Tab. Vomilast (Doxylamine + Pyridoxine + Folic Acid)',
-          dosage: '1 Morning, 1 Night',
-          frequency: 'Twice daily',
-          duration: '8 Days',
-          quantity: 16,
-          instructions: 'Take 1 morning and 1 night after meals',
-          foodInstruction: 'After Food'
-        },
-        {
-          id: `med-${uniqueId}-3`,
-          name: 'Cap. Zoclar 500 (Clarithromycin 500mg)',
-          dosage: '1 Morning',
-          frequency: 'Once daily',
-          duration: '3 Days',
-          quantity: 3,
-          instructions: 'Take 1 capsule in the morning after food',
-          foodInstruction: 'After Food'
-        },
-        {
-          id: `med-${uniqueId}-4`,
-          name: 'Tab. Gestakind 10/SR (Isoxsuprine 10mg)',
-          dosage: '1 Night',
-          frequency: 'Once daily',
-          duration: '4 Days',
-          quantity: 4,
-          instructions: 'Take 1 tablet at bedtime',
-          foodInstruction: 'After Food'
-        }
-      ],
-      followUp: {
-        hasFollowUp: true,
-        date: followUpDateStr,
-        rawText: `Follow up review on ${followUpDateStr} at SMS Hospital OPD`,
-        instructions: 'Take complete bed rest. Avoid outside food. Eat easy to digest boiled food.'
-      },
-      status: 'pending-review',
-      notes: 'Prescription verified via Optical AI Engine. Clinical findings: Fever with chills & headache.',
-      rawImagePreview: previewDataUrl,
-      createdAt: Date.now()
-    };
-  } else if (matchedPreset) {
-    // Matched clinical preset scenario
-    result = {
-      id: uniqueId,
-      patientName: resolvedPatientName,
-      doctorName: matchedPreset.data.doctorName,
-      clinicName: matchedPreset.data.clinicName,
-      doctorSpeciality: matchedPreset.data.doctorSpeciality,
-      prescriptionDate: todayStr,
-      medicines: matchedPreset.data.medicines.map((m, idx) => ({
-        ...m,
-        id: `med-${uniqueId}-${idx + 1}`
-      })),
-      followUp: { ...matchedPreset.data.followUp },
-      status: 'pending-review',
-      notes: matchedPreset.data.notes,
-      rawImagePreview: previewDataUrl,
-      createdAt: Date.now()
-    };
-  } else {
-    // Fallback default
-    result = {
-      id: uniqueId,
-      patientName: resolvedPatientName || 'Patient',
-      doctorName: 'Dr. Akshara, M.S. (Reg. No: MMC 2018)',
-      clinicName: 'SMS Hospital, Pune',
-      doctorSpeciality: 'General Surgery & OPD Medicine',
-      prescriptionDate: todayStr,
-      medicines: [
-        {
-          id: `med-${uniqueId}-1`,
-          name: 'Tab. Abciximab',
-          dosage: '1 Morning',
-          frequency: 'Once daily',
-          duration: '8 Days',
-          quantity: 8,
-          instructions: 'Take 1 tablet in the morning',
-          foodInstruction: 'Before Food'
-        }
-      ],
-      followUp: {
-        hasFollowUp: true,
-        date: followUpDateStr,
-        rawText: `Follow up review on ${followUpDateStr}`,
-        instructions: 'Take complete rest.'
-      },
-      status: 'pending-review',
-      notes: 'Prescription verified via Optical OCR Engine.',
-      rawImagePreview: previewDataUrl,
-      createdAt: Date.now()
-    };
-  }
-
-  if (onProgress) {
-    onProgress('Prescription extraction complete. Ready for review.', 100);
-  }
-
-  return result;
+  const previewUrl = typeof fileOrImage === 'string'
+    ? fileOrImage
+    : (ocrResult.previewUrl || (fileOrImage instanceof Blob ? URL.createObjectURL(fileOrImage) : undefined));
+  return parseStructuredPrescriptionFromOcr(ocrResult, customPatientName, previewUrl);
 };

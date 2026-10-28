@@ -244,10 +244,16 @@ export const updatePharmacyOrderStatus = (
 
     const latestWf = getLatestWorkflowResult();
     if (latestWf && latestWf.pharmacyOrder?.id === orderId) {
-      setLatestWorkflowResult({
-        ...latestWf,
-        pharmacyOrder: updatedOrder
-      });
+      const s = (newStatus || '').toUpperCase();
+      const isTerminal = s === 'COMPLETED' || s === 'DELIVERED' || s === 'DISPENSED' || s === 'CANCELLED' || s.includes('DECLINE');
+      if (isTerminal) {
+        clearLatestWorkflowResult();
+      } else {
+        setLatestWorkflowResult({
+          ...latestWf,
+          pharmacyOrder: updatedOrder
+        });
+      }
     }
 
     dispatchWorkflowEvent('health_workflow_updated');
@@ -411,59 +417,59 @@ export const processPrescriptionConfirmation = (
     }
   }
 
-  // 4. Pharmacy Order Creation (Duplicate Protected / Idempotent)
+  // 4. Pharmacy Order Creation (Only when explicitly confirmed with a registered partner pharmacy)
   let pharmacyOrderCreated = false;
   let pharmacyOrder: ExtendedPharmacyOrder | undefined;
 
   const existingOrders = getPharmacyOrders();
   const existingOrder = existingOrders.find((o) => o.sourcePrescriptionId === prescription.id);
 
-  if (!existingOrder && prescription.medicines.length > 0) {
-    const totalAmount = prescription.medicines.reduce((acc, m) => acc + (m.quantity || 10) * 12, 50);
-    const chosenName = selectedPharmacy?.name || 'Apollo Central Pharmacy';
-    const chosenId = selectedPharmacy?.id || 'PHARM-1';
-    const chosenAddress = selectedPharmacy?.address || 'Flat 4B, Emerald Heights, Anna Salai, Guindy, Chennai';
+  if (selectedPharmacy && selectedPharmacy.id && selectedPharmacy.id !== 'VAULT') {
+    if (!existingOrder && prescription.medicines.length > 0) {
+      const totalAmount = prescription.medicines.reduce((acc, m) => acc + (m.quantity || 10) * 12, 50);
+      const chosenName = selectedPharmacy.name;
+      const chosenId = selectedPharmacy.id;
+      const chosenAddress = selectedPharmacy.address || 'Chennai, TN';
 
-    pharmacyOrder = {
-      id: `RX-ORD-${prescription.id.replace('RX-DOC-', '')}`,
-      date: formatDateDisplay(new Date().toISOString()),
-      pharmacyName: chosenName,
-      pharmacyId: chosenId,
-      sourcePrescriptionId: prescription.id,
-      doctorName: prescription.doctorName,
-      patientName: prescription.patientName || 'Patient',
-      clinicName: prescription.clinicName,
-      items: prescription.medicines.map((m) => ({
-        name: m.name,
-        dosage: m.dosage,
-        quantity: m.quantity || 10,
-        unitPrice: 12
-      })),
-      deliveryMethod: 'Home Delivery',
-      deliveryAddress: chosenAddress,
-      totalAmount,
-      status: 'Pending Pharmacist Verification' as any,
-      estimatedDelivery: 'Tomorrow, 10:30 AM – 12:00 PM',
-      progressPercent: 20
-    };
+      pharmacyOrder = {
+        id: `RX-ORD-${prescription.id.replace('RX-DOC-', '')}`,
+        date: formatDateDisplay(new Date().toISOString()),
+        pharmacyName: chosenName,
+        pharmacyId: chosenId,
+        sourcePrescriptionId: prescription.id,
+        doctorName: prescription.doctorName,
+        patientName: prescription.patientName || 'Patient',
+        clinicName: prescription.clinicName,
+        items: prescription.medicines.map((m) => ({
+          name: m.name,
+          dosage: m.dosage,
+          quantity: m.quantity || 10,
+          unitPrice: 12
+        })),
+        deliveryMethod: 'Home Delivery',
+        deliveryAddress: chosenAddress,
+        totalAmount,
+        status: 'Pending Pharmacist Verification' as any,
+        estimatedDelivery: 'Tomorrow, 10:30 AM – 12:00 PM',
+        progressPercent: 20
+      };
 
-    savePharmacyOrder(pharmacyOrder);
-    pharmacyOrderCreated = true;
+      savePharmacyOrder(pharmacyOrder);
+      pharmacyOrderCreated = true;
 
-    // Linked Prescriptions Table in Pharmacy
-    saveLinkedPrescription({
-      id: prescription.id,
-      doctorName: prescription.doctorName,
-      date: formatDateDisplay(prescription.prescriptionDate),
-      medicinesCount: prescription.medicines.length,
-      status: 'Active',
-      associatedMedicines: prescription.medicines.map((m) => m.name)
-    });
-
-
-  } else if (existingOrder) {
-    pharmacyOrder = existingOrder;
-    pharmacyOrderCreated = true;
+      // Linked Prescriptions Table in Pharmacy
+      saveLinkedPrescription({
+        id: prescription.id,
+        doctorName: prescription.doctorName,
+        date: formatDateDisplay(prescription.prescriptionDate),
+        medicinesCount: prescription.medicines.length,
+        status: 'Active',
+        associatedMedicines: prescription.medicines.map((m) => m.name)
+      });
+    } else if (existingOrder) {
+      pharmacyOrder = existingOrder;
+      pharmacyOrderCreated = true;
+    }
   }
 
   // 5. Medication Tracking Auto-Enrollment (Duplicate Protected)

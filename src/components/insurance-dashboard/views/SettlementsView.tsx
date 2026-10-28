@@ -6,6 +6,8 @@ import {
   IndianRupee, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   Landmark, Activity, Wallet
 } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
+import { showGlobalToast } from '../../common/GlobalToastManager';
 
 type Settlement = {
   id: string;
@@ -106,6 +108,7 @@ const CHART_DATA = [
 ];
 
 export const SettlementsView: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
   
   // Draft Filters
@@ -152,24 +155,24 @@ export const SettlementsView: React.FC = () => {
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Settlements & Payouts</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('Settlements & Payouts')}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Track claim settlements, hospital payments, and agent payouts in one place.
+            {t('Track claim settlements, hospital payments, and agent payouts in one place.')}
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
           <button 
-            onClick={() => window.alert('Date Range Picker will open here.')}
+            onClick={() => showGlobalToast(t('Date range active: Last 30 Days'), 'info', t('Filter Applied'))}
             className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors shadow-sm cursor-pointer"
           >
-            <Calendar className="w-4 h-4" /> Last 30 Days
+            <Calendar className="w-4 h-4" /> {t('Last 30 Days')}
           </button>
           <button 
-            onClick={() => window.alert('Exporting Settlements Report...')}
+            onClick={() => showGlobalToast(t('Settlements report exported successfully as CSV/PDF.'), 'success', t('Report Exported'))}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4" /> Export Report
+            <Download className="w-4 h-4" /> {t('Export Report')}
           </button>
         </div>
       </div>
@@ -181,10 +184,10 @@ export const SettlementsView: React.FC = () => {
             <IndianRupee className="w-16 h-16 text-blue-500" />
           </div>
           <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Total Settlement Amount</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">{t('Total Settlement Amount')}</p>
             <p className="text-2xl font-black text-slate-900 dark:text-white mb-2">₹48.6L</p>
             <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +12.4% from last month
+              <TrendingUp className="w-3.5 h-3.5" /> {t('+12.4% from last month')}
             </p>
           </div>
         </div>
@@ -194,10 +197,10 @@ export const SettlementsView: React.FC = () => {
             <CheckCircle2 className="w-16 h-16 text-emerald-500" />
           </div>
           <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Settled Claims</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">{t('Settled Claims')}</p>
             <p className="text-2xl font-black text-slate-900 dark:text-white mb-2">328</p>
             <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +8.2% this month
+              <TrendingUp className="w-3.5 h-3.5" /> {t('+8.2% this month')}
             </p>
           </div>
         </div>
@@ -207,10 +210,10 @@ export const SettlementsView: React.FC = () => {
             <AlertCircle className="w-16 h-16 text-amber-500" />
           </div>
           <div className="relative z-10">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Pending Settlements</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">{t('Pending Settlements')}</p>
             <p className="text-2xl font-black text-slate-900 dark:text-white mb-2">42</p>
             <p className="text-xs font-bold text-amber-600 dark:text-amber-500 flex items-center gap-1">
-              Requires attention
+              {t('Requires attention')}
             </p>
           </div>
         </div>

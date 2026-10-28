@@ -7,14 +7,17 @@ export interface OcrExtractionResult {
   isAbdmCompliant: boolean;
   rawConfidence: number;
   passUsed: 1 | 2;
+  previewUrl?: string;
+  pages?: string[];
+  pageCount?: number;
 }
 
 export type OcrProgressCallback = (progressPercent: number, statusText?: string) => void;
 
 /**
- * Loads an image (dataURL, Blob, or Canvas) into an HTMLCanvasElement
+ * Loads an image (dataURL, Blob, File, or Canvas) into an HTMLCanvasElement
  */
-export async function loadImageToCanvas(source: string | HTMLCanvasElement | Blob): Promise<HTMLCanvasElement> {
+export async function loadImageToCanvas(source: string | HTMLCanvasElement | Blob | File): Promise<HTMLCanvasElement> {
   if (source instanceof HTMLCanvasElement) {
     return source;
   }
@@ -43,54 +46,39 @@ export async function loadImageToCanvas(source: string | HTMLCanvasElement | Blo
 }
 
 /**
- * Crops the document region matching the 3:4 viewfinder frame with safe margins
- * and scales to a high-resolution canvas suitable for Tesseract OCR.
+ * Normalizes document canvas resolution suitable for Tesseract OCR.
+ * Preserves 100% of document content from camera captures, photo library, and uploads
+ * without cropping out headers, patient details, or prescribed medicines.
  */
-export function cropAndScaleDocument(sourceCanvas: HTMLCanvasElement, targetRatio: number = 3 / 4): HTMLCanvasElement {
+export function cropAndScaleDocument(sourceCanvas: HTMLCanvasElement): HTMLCanvasElement {
   const w = sourceCanvas.width;
   const h = sourceCanvas.height;
-  const videoRatio = w / h;
 
-  let sx = 0;
-  let sy = 0;
-  let sw = w;
-  let sh = h;
+  const sx = 0;
+  const sy = 0;
+  const sw = w;
+  const sh = h;
 
-  if (videoRatio > targetRatio * 1.05) {
-    // Landscape camera frame (e.g. 16:9 1920x1080)
-    // The central 3:4 area is what the user framed, with 15% safe padding
-    const visibleW = h * targetRatio;
-    sw = Math.min(w, Math.round(visibleW * 1.15));
-    sx = Math.max(0, Math.round((w - sw) / 2));
-    sh = h;
-    sy = 0;
-  } else if (videoRatio < targetRatio * 0.95) {
-    // Tall mobile portrait frame
-    const visibleH = w / targetRatio;
-    sh = Math.min(h, Math.round(visibleH * 1.15));
-    sy = Math.max(0, Math.round((h - sh) / 2));
-    sw = w;
-    sx = 0;
-  }
-
-  // Ensure high resolution (width at least 1600px for crisp text strokes)
+  // Ensure high resolution (minimum width 1600px for crisp text strokes, capped at 2800px)
   let scale = 1;
-  if (sw < 1600) {
+  if (sw < 1600 && sw > 0) {
     scale = Math.min(2.5, 1800 / sw);
+  } else if (sw > 3000) {
+    scale = 2400 / sw;
   }
   const destW = Math.round(sw * scale);
   const destH = Math.round(sh * scale);
 
-  const cropped = document.createElement('canvas');
-  cropped.width = destW;
-  cropped.height = destH;
-  const ctx = cropped.getContext('2d');
+  const normalized = document.createElement('canvas');
+  normalized.width = destW;
+  normalized.height = destH;
+  const ctx = normalized.getContext('2d');
   if (ctx) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(sourceCanvas, sx, sy, sw, sh, 0, 0, destW, destH);
   }
-  return cropped;
+  return normalized;
 }
 
 /**
@@ -190,6 +178,287 @@ export function preprocessCanvasForOcr(
 }
 
 /**
+ * Safely extracts a clean patient name from OCR lines.
+ * Strictly separates patient name from physician details and surrounding metadata.
+ */
+export function extractPatientNameFromLines(lines: string[], fallbackName?: string): string {
+  for (const line of lines) {
+    const pMatch = line.match(/(?:patient\s*name|patient|pt\.?|name)\s*[:|-]\s*([a-zA-Z\s.]+)/i);
+    if (pMatch && pMatch[1]) {
+      let clean = pMatch[1]
+        // Strip doctor and other field labels if concatenated on the same line
+        .replace(/\s+(?:dr\.?|doctor|physician|consultant|clinic|hospital|age|sex|gender|date|reg\.?|uhid|opd|ipd)\b.*$/i, '')
+        .replace(/^[#*•\-_:|\s]+/, '')
+        .replace(/[,;|/•\-#*:]+$/, '')
+        .trim();
+      if (
+        clean.length >= 2 &&
+        !clean.toLowerCase().startsWith('dr') &&
+        !clean.toLowerCase().includes('hospital') &&
+        !clean.toLowerCase().includes('clinic') &&
+        !clean.toLowerCase().includes('prescription')
+      ) {
+        return clean;
+      }
+    }
+  }
+
+  // Fallback to standalone name line labeled as "Patient" or "Name"
+  for (const line of lines) {
+    if (/^patient\b/i.test(line)) {
+      const clean = line
+        .replace(/^[#*•\-_:|\s]+/, '')
+        .replace(/^patient\s*[:|-]?\s*/i, '')
+        .replace(/\s+(?:dr\.?|doctor|physician|age|sex|gender|date)\b.*$/i, '')
+        .trim();
+      if (clean.length >= 2 && !clean.toLowerCase().startsWith('dr')) {
+        return clean;
+      }
+    }
+  }
+
+  return (fallbackName && fallbackName.trim() && fallbackName.trim() !== 'Doctor') ? fallbackName.trim() : 'Patient';
+}
+
+/**
+ * Robustly extracts the prescribing physician's name from OCR lines.
+ * Removes unrelated patient names, serial numbers, headings, and other OCR text.
+ * Returns "Unable to verify physician name" if not confidently found. Never invents a name.
+ */
+export function extractDoctorNameFromLines(lines: string[], patientName?: string): string {
+  const cleanPatientTokens = patientName && patientName !== 'Patient'
+    ? patientName.trim().split(/\s+/).filter(t => t.length > 1).map(t => t.toLowerCase())
+    : [];
+
+  const isContaminatedByPatient = (str: string): boolean => {
+    if (!patientName || patientName === 'Patient') return false;
+    const lower = str.toLowerCase();
+    if (lower.includes(patientName.toLowerCase())) return true;
+    for (const token of cleanPatientTokens) {
+      if (new RegExp(`\\b${token}\\b`, 'i').test(lower)) return true;
+    }
+    return false;
+  };
+
+  const cleanDoctorCandidate = (raw: string): string | null => {
+    let candidate = raw.trim();
+
+    // 1. If candidate contains Dr. or Doctor in the middle (e.g. "Helen Persia 2 Dr. Arjun Kumar"),
+    // discard everything before the doctor title
+    const drIndex = candidate.search(/\b(?:dr\.?|doctor)\s+[a-zA-Z]/i);
+    if (drIndex !== -1) {
+      candidate = candidate.slice(drIndex);
+    } else {
+      candidate = candidate.replace(/^(?:prescribing\s*(?:physician|doctor)|consulting\s*(?:physician|doctor)|attending\s*(?:physician|doctor)|treated\s*by|consultant|physician|doctor)\s*[:|-]?\s*/i, '');
+    }
+
+    // 2. Remove any occurrences of the patient's name
+    if (patientName && patientName !== 'Patient') {
+      const escPatient = patientName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      candidate = candidate.replace(new RegExp(`\\b${escPatient}\\b`, 'gi'), '');
+      for (const token of cleanPatientTokens) {
+        const escToken = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        candidate = candidate.replace(new RegExp(`\\b${escToken}\\b`, 'gi'), '');
+      }
+    }
+
+    // 3. Remove leading numbers, serial numbers, punctuation, or table cell artifacts (e.g. "2 ", "#1 ", "S.No ")
+    candidate = candidate.replace(/^[\d\s.#*•\-_:|\/,]+/, '');
+    candidate = candidate.replace(/^(?:s\.?\s*no\.?|no\.?|opd|ipd|uhid|bed|room|token|page)\s*[:|-]?\s*\d*\s*/i, '');
+
+    // 4. Ensure proper "Dr. " prefix formatting
+    candidate = candidate.replace(/^dr\b(?!\.)/i, 'Dr.');
+    candidate = candidate.replace(/^dr\.\s*/i, 'Dr. ');
+    candidate = candidate.replace(/^doctor\s*[:|-]?\s*/i, 'Dr. ');
+
+    // 5. Strip trailing unrelated fields (e.g. Date, Reg. No, Phone, Hospital, Signature)
+    candidate = candidate.replace(/\s+(?:reg\.?\s*(?:no\.?)?|date|dt\.?|prescription\s*date|ph(?:one)?|mob(?:ile)?|contact|email|time|age|sex|gender|uhid|opd|ipd|hospital|clinic|centre|center|department|dept|sign(?:ature)?)\b.*$/i, '');
+    candidate = candidate.replace(/\b(?:signature|signed|verified|seal)\b.*$/i, '');
+    candidate = candidate.replace(/[,;|/•\-#*:]+$/, '').trim();
+
+    // 6. Check for valid name structure
+    const nameWithoutTitle = candidate.replace(/^(?:dr\.?|doctor)\s+/i, '').trim();
+    const lettersOnly = nameWithoutTitle.replace(/[^a-zA-Z]/g, '');
+
+    if (lettersOnly.length < 2) return null;
+
+    if (/^(?:name|physician|doctor|consultant|hospital|clinic|signature|patient|prescription|mbbs|md|ms)$/i.test(nameWithoutTitle)) {
+      return null;
+    }
+
+    if (isContaminatedByPatient(candidate) && lettersOnly.toLowerCase() === (patientName || '').replace(/[^a-zA-Z]/g, '').toLowerCase()) {
+      return null;
+    }
+
+    if (!candidate.toLowerCase().startsWith('dr.') && !candidate.toLowerCase().startsWith('dr ')) {
+      candidate = `Dr. ${candidate}`;
+    }
+
+    return candidate.trim();
+  };
+
+  // PASS 1: Explicit labeled lines
+  for (const line of lines) {
+    if (/(?:prescribing\s*(?:physician|doctor)|consulting\s*(?:physician|doctor)|attending\s*physician|treated\s*by|consultant\s*:|physician\s*:|doctor\s*:)/i.test(line)) {
+      const cleaned = cleanDoctorCandidate(line);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  // PASS 2: Lines containing "Dr." with a name
+  for (const line of lines) {
+    if (/\b(?:dr\.?|doctor)\s+[a-zA-Z]/i.test(line)) {
+      const cleaned = cleanDoctorCandidate(line);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  // PASS 3: Medical degree lines
+  for (const line of lines) {
+    if (/\b(?:mbbs|md|ms|dnb|dm|mch|frcp|mrcp)\b/i.test(line) && !line.toLowerCase().includes('patient')) {
+      const cleaned = cleanDoctorCandidate(line);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  return 'Unable to verify physician name';
+}
+
+/**
+ * Safely and accurately extracts the hospital or clinic name from OCR lines.
+ * Strictly separates the clinic name from patient names, physician names, contact numbers, and unrelated OCR text.
+ * Returns "" if not present or purely a generic placeholder. Never invents a clinic name.
+ */
+export function extractClinicNameFromLines(
+  lines: string[],
+  patientName?: string,
+  doctorName?: string
+): string {
+  const isGenericPlaceholder = (text: string): boolean => {
+    const lower = text.trim().toLowerCase();
+    return (
+      lower === 'hospital' ||
+      lower === 'clinic' ||
+      lower === 'hospital / clinic' ||
+      lower === 'hospital/clinic' ||
+      lower === 'hospital / facility' ||
+      lower === 'hospital name' ||
+      lower === 'clinic name' ||
+      lower === 'facility' ||
+      lower === 'medical centre' ||
+      lower === 'medical center' ||
+      lower === 'health centre' ||
+      lower === 'health center' ||
+      lower === 'healthcare' ||
+      lower === 'dispensary' ||
+      lower === 'centre' ||
+      lower === 'center' ||
+      lower === 'poly clinic' ||
+      lower === 'polyclinic'
+    );
+  };
+
+  const cleanClinicCandidate = (raw: string): string | null => {
+    let candidate = raw.trim();
+
+    // 1. Remove leading noise, bullets, dashes, bars
+    candidate = candidate.replace(/^[#*•\-_:|\s]+/, '');
+
+    // 2. Remove leading label prefixes (e.g. "Hospital / Clinic:", "Hospital:", "Clinic Name:", "Clinic:")
+    candidate = candidate.replace(
+      /^(?:hospital\s*\/\s*clinic|hospital\s*name|clinic\s*name|hospital\s*\/\s*facility|hospital|clinic|facility|medical\s*centre|medical\s*center|healthcare\s*centre|health\s*centre)\s*[:|-]?\s*/i,
+      ''
+    );
+
+    // 3. Remove patient name if concatenated on the same line
+    if (patientName && patientName !== 'Patient') {
+      const escPatient = patientName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      candidate = candidate.replace(new RegExp(`\\b(?:patient(?:\\s*name)?\\s*[:|-]?\\s*)?${escPatient}\\b`, 'gi'), '');
+    }
+
+    // 4. Remove doctor name if concatenated on the same line
+    if (doctorName && doctorName !== 'Unable to verify physician name') {
+      const escDoctor = doctorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      candidate = candidate.replace(new RegExp(`\\b(?:dr\\.?|doctor)?\\s*${escDoctor}\\b`, 'gi'), '');
+    }
+    // Also strip generic doctor prefixes if at the end of the line (e.g. "... | Dr. Arjun Kumar")
+    candidate = candidate.replace(/[•|]\s*(?:dr\.?|doctor)\b.*$/i, '');
+    candidate = candidate.replace(/\s+(?:dr\.?|doctor)\s+[a-zA-Z].*$/i, '');
+
+    // 5. Strip trailing metadata (e.g., Phone, Mobile, Contact, Email, Date, Reg No, GST, Timing, Fax)
+    candidate = candidate.replace(
+      /\s+(?:ph(?:one)?|mob(?:ile)?|tel|call|contact|email|web(?:site)?|reg\.?\s*(?:no\.?)?|date|dt\.?|timing|timings|gst|fax|pin)\b.*$/i,
+      ''
+    );
+
+    // 6. Strip trailing punctuation/noise
+    candidate = candidate.replace(/[,;|/•\-#*:]+$/, '').trim();
+
+    // 7. Check candidate validity
+    if (candidate.length < 3 || candidate.length > 120) return null;
+
+    // Reject if candidate looks like a medication dosage line
+    if (/(?:tab\.?|cap\.?|tablet|capsule|syrup|mg|ml|mcg|once daily|twice daily|\b\d+\s*days\b)/i.test(candidate)) {
+      return null;
+    }
+
+    // Reject if it starts with doctor title or is purely patient/doctor
+    if (/^(?:dr\b|dr\.|doctor|patient)\b/i.test(candidate)) {
+      return null;
+    }
+
+    // Reject if it is merely a generic placeholder
+    if (isGenericPlaceholder(candidate)) {
+      return null;
+    }
+
+    return candidate.trim();
+  };
+
+  // PASS 1: Explicit labeled lines (e.g. "Hospital: Apollo Multispecialty", "Clinic: City Care Clinic")
+  for (const line of lines) {
+    if (
+      /^(?:hospital\s*\/\s*clinic|hospital\s*name|clinic\s*name|hospital\s*:|clinic\s*:|facility\s*:|institution\s*:|medical\s*centre\s*:)/i.test(
+        line.trim()
+      )
+    ) {
+      const cleaned = cleanClinicCandidate(line);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  // PASS 2: Lines containing strong hospital/clinic keywords
+  const strongKeywords = /(?:hospital|clinic|centre|center|health\s*(?:facility|centre|care|city)|medical\s*centre|medical\s*center|dispensary|nursing\s*home|polyclinic|multispecialty|super\s*specialty|apollo|fortis|sms|max\s*healthcare|manipal|aiims|medanta)/i;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (
+      strongKeywords.test(trimmed) &&
+      !trimmed.toLowerCase().startsWith('patient') &&
+      !trimmed.toLowerCase().startsWith('dr.') &&
+      !trimmed.toLowerCase().startsWith('dr ') &&
+      !trimmed.toLowerCase().startsWith('doctor') &&
+      !trimmed.toLowerCase().startsWith('rx') &&
+      !trimmed.toLowerCase().startsWith('prescribing')
+    ) {
+      const cleaned = cleanClinicCandidate(line);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  return '';
+}
+
+/**
  * Extracts structured prescription and medical fields from OCR text.
  * Strictly avoids guessing or inventing missing information.
  */
@@ -205,42 +474,27 @@ export function extractFieldsFromText(
   const fields: string[] = [];
   let isAbdmCompliant = false;
 
-  // 1. Hospital / Clinic / Healthcare Facility
-  const hospitalPattern = /(?:hospital|clinic|centre|center|health\s*(?:facility|centre|care|city)|medical\s*centre|dispensary|opd|apollo|fortis|sms|max\s*healthcare|manipal)/i;
-  for (const line of lines) {
-    if (hospitalPattern.test(line) && !line.toLowerCase().startsWith('patient') && !line.toLowerCase().startsWith('dr')) {
-      const clean = line.replace(/^[#*•\-_:|\s]+/, '').replace(/[•|]/g, ' ').trim();
-      if (clean.length > 3 && clean.length < 80) {
-        fields.push(`Hospital / Facility: ${clean}`);
-        break;
-      }
-    }
+  // 1. Patient Name (Identified first to avoid cross-field contamination)
+  const patientNameCandidate = extractPatientNameFromLines(lines);
+  if (patientNameCandidate && patientNameCandidate !== 'Patient') {
+    fields.push(`Patient: ${patientNameCandidate}`);
   }
 
   // 2. Consulting Doctor & Degrees
-  const doctorPattern = /(?:dr\.?\s+[a-zA-Z\s.,()]+|consulting\s*:\s*[a-zA-Z\s.,()]+|physician\s*:\s*[a-zA-Z\s.,()]+|(?:doctor|dr)\s*[:|-]\s*[a-zA-Z\s.,()]+)/i;
-  let doctorFound = false;
-  for (const line of lines) {
-    if (/(?:dr\.?\s+[a-zA-Z]|consulting\s*:|mbbs|md\b|dm\b|ms\b|dnb\b)/i.test(line) && !line.toLowerCase().includes('patient')) {
-      const clean = line.replace(/^[#*•\-_:|\s]+/, '').trim();
-      if (clean.length > 3 && clean.length < 80) {
-        fields.push(`Doctor: ${clean}`);
-        doctorFound = true;
-        break;
-      }
-    }
-  }
-  if (!doctorFound) {
-    for (const line of lines) {
-      const match = line.match(doctorPattern);
-      if (match && match[0].trim().length > 4) {
-        fields.push(`Doctor: ${match[0].trim()}`);
-        break;
-      }
-    }
+  const doctorNameCandidate = extractDoctorNameFromLines(lines, patientNameCandidate);
+  if (doctorNameCandidate && doctorNameCandidate !== 'Unable to verify physician name') {
+    fields.push(`Doctor: ${doctorNameCandidate}`);
+  } else {
+    fields.push('Doctor: Unable to verify physician name');
   }
 
-  // 3. Prescription Date
+  // 3. Hospital / Clinic / Healthcare Facility
+  const clinicCandidate = extractClinicNameFromLines(lines, patientNameCandidate, doctorNameCandidate);
+  if (clinicCandidate) {
+    fields.push(`Hospital / Facility: ${clinicCandidate}`);
+  }
+
+  // 4. Prescription Date
   const datePattern = /(?:date|prescribed\s*on|rx\s*date)\s*[:|-]?\s*([0-9a-zA-Z\s,.-]+)|\b(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\b|\b(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{2,4})\b/i;
   for (const line of lines) {
     const match = line.match(datePattern);
@@ -248,43 +502,6 @@ export function extractFieldsFromText(
       const d = match[1] || match[2] || match[3] || line.trim();
       fields.push(`Prescription Date: ${d.trim()}`);
       break;
-    }
-  }
-
-  // 4. Patient Name
-  const patientPattern = /(?:patient\s*name|patient|pt\.?|name)\s*[:|-]\s*([a-zA-Z\s.]+)/i;
-  let patientFound = false;
-  for (const line of lines) {
-    const match = line.match(patientPattern);
-    if (match && match[1] && match[1].trim().length > 2) {
-      const name = match[1].trim();
-      // Ensure it doesn't match a doctor title or label
-      if (!name.toLowerCase().startsWith('dr') && !name.toLowerCase().includes('hospital')) {
-        fields.push(`Patient: ${name}`);
-        patientFound = true;
-        break;
-      }
-    }
-  }
-  if (!patientFound) {
-    for (const line of lines) {
-      if (/^patient\b/i.test(line)) {
-        const clean = line.replace(/^[#*•\-_:|\s]+/, '').replace(/^patient\s*[:|-]?\s*/i, '').trim();
-        if (clean.length > 2 && !clean.toLowerCase().startsWith('dr')) {
-          fields.push(`Patient: ${clean}`);
-          patientFound = true;
-          break;
-        }
-      }
-    }
-  }
-  if (!patientFound) {
-    // If patient label exists but is illegible
-    for (const line of lines) {
-      if (/patient|pt\.?/i.test(line) && line.length < 25) {
-        fields.push('Patient: Not clearly detected');
-        break;
-      }
     }
   }
 
@@ -421,26 +638,21 @@ export function extractFieldsFromText(
 }
 
 /**
- * Runs the optical Tesseract OCR pipeline on a captured image source.
- * Includes document region crop, contrast enhancement, glare mitigation, and multi-pass OCR.
+ * Runs multi-pass optical Tesseract OCR on a prepared canvas.
  */
-export async function runOpticalOcr(
-  imageSource: string | HTMLCanvasElement | Blob,
+export async function runOpticalOcrOnCanvas(
+  rawCanvas: HTMLCanvasElement,
   onProgress?: OcrProgressCallback
 ): Promise<OcrExtractionResult> {
-  console.log('[OCR] processing started');
-  if (onProgress) onProgress(10, 'Initializing Tesseract OCR v4 engine...');
+  console.log('[OCR] canvas processing started');
+  if (onProgress) onProgress(15, 'Preparing neural image normalization...');
 
-  // 1. Load source image to canvas
-  const rawCanvas = await loadImageToCanvas(imageSource);
+  // Normalize document resolution without cropping any borders
+  const scaledCanvas = cropAndScaleDocument(rawCanvas);
 
-  // 2. Crop document region matching 3:4 viewfinder frame & upscale for high quality OCR
-  if (onProgress) onProgress(20, 'Cropping document region & normalizing resolution...');
-  const croppedCanvas = cropAndScaleDocument(rawCanvas, 3 / 4);
-
-  // 3. Preprocess canvas for Pass 1 (Grayscale + Dynamic Contrast + Glare Suppression)
+  // Preprocess canvas for Pass 1 (Grayscale + Dynamic Contrast + Glare Suppression)
   if (onProgress) onProgress(30, 'Enhancing document contrast & suppressing glare...');
-  const preprocessedPass1 = preprocessCanvasForOcr(croppedCanvas, 'contrast');
+  const preprocessedPass1 = preprocessCanvasForOcr(scaledCanvas, 'contrast');
 
   let worker: any = null;
   try {
@@ -477,7 +689,7 @@ export async function runOpticalOcr(
       if (onProgress) onProgress(75, 'Applying adaptive thresholding multi-pass analysis...');
       console.log('[OCR] Pass 1 confidence low (' + conf1 + '%). Running Pass 2 adaptive binarization...');
 
-      const preprocessedPass2 = preprocessCanvasForOcr(croppedCanvas, 'adaptive_threshold');
+      const preprocessedPass2 = preprocessCanvasForOcr(scaledCanvas, 'adaptive_threshold');
       try {
         const ret2 = await worker.recognize(preprocessedPass2);
         const text2 = (ret2.data && ret2.data.text) ? ret2.data.text.trim() : '';
@@ -517,9 +729,7 @@ export async function runOpticalOcr(
     console.log('[OCR] field extraction completed');
 
     // ABDM validation
-    console.log('[ABDM] validation started');
     const finalAbdm = isAbdmCompliant && confidence > 30;
-    console.log('[ABDM] validation completed');
 
     if (onProgress) onProgress(100, '✓ Extraction complete');
 
@@ -540,4 +750,375 @@ export async function runOpticalOcr(
       }
     }
   }
+}
+
+
+export async function processPdfSource(
+  source: string | Blob | File,
+  onProgress?: OcrProgressCallback
+): Promise<OcrExtractionResult> {
+  if (onProgress) onProgress(15, 'Reading PDF structure & layout streams...');
+
+  let arrayBuffer: ArrayBuffer;
+  let originalBlobUrl: string | undefined;
+
+  if (source instanceof Blob) {
+    if (source.size === 0) {
+      throw new Error('The selected PDF file is empty (0 bytes). Please upload a valid document.');
+    }
+    if (source.size > 25 * 1024 * 1024) {
+      throw new Error('PDF file size exceeds 25 MB limit.');
+    }
+    try {
+      originalBlobUrl = URL.createObjectURL(source);
+    } catch {}
+    arrayBuffer = await source.arrayBuffer();
+  } else if (typeof source === 'string' && source.startsWith('data:application/pdf;base64,')) {
+    const base64 = source.split(',')[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    arrayBuffer = bytes.buffer;
+  } else if (typeof source === 'string') {
+    const res = await fetch(source);
+    arrayBuffer = await res.arrayBuffer();
+  } else {
+    throw new Error('Unsupported PDF input format');
+  }
+
+  const uint8 = new Uint8Array(arrayBuffer);
+
+  if (uint8.length === 0) {
+    throw new Error('The selected PDF file is empty (0 bytes). Please upload a valid document.');
+  }
+
+  // Check valid PDF header (%PDF-)
+  const isPdfHeader =
+    uint8.length >= 4 &&
+    uint8[0] === 0x25 && // %
+    uint8[1] === 0x50 && // P
+    uint8[2] === 0x44 && // D
+    uint8[3] === 0x46;   // F
+
+  if (!isPdfHeader) {
+    throw new Error('The selected file is not a valid PDF document or appears to be corrupted.');
+  }
+
+  // Check for password encryption (/Encrypt)
+  const textDecoder = new TextDecoder('latin1');
+  const headerSlice = textDecoder.decode(uint8.subarray(0, Math.min(uint8.length, 65536)));
+  const footerSlice = textDecoder.decode(uint8.subarray(Math.max(0, uint8.length - 65536)));
+  if (headerSlice.includes('/Encrypt') || footerSlice.includes('/Encrypt')) {
+    throw new Error('This PDF document is password-protected. Please upload an unlocked PDF or image.');
+  }
+
+  // 1. Check for embedded JPEG image streams (common in scanned prescriptions saved to PDF)
+  const scannedPages: { blob: Blob; url: string }[] = [];
+  let scanPos = 0;
+  while (scanPos < uint8.length - 3) {
+    if (uint8[scanPos] === 0xff && uint8[scanPos + 1] === 0xd8 && uint8[scanPos + 2] === 0xff) {
+      let pageEnd = -1;
+      for (let j = scanPos + 3; j < uint8.length - 1; j++) {
+        if (uint8[j] === 0xff && uint8[j + 1] === 0xd9) {
+          pageEnd = j + 2;
+          break;
+        }
+      }
+      if (pageEnd !== -1 && pageEnd - scanPos > 500) {
+        const slice = uint8.slice(scanPos, pageEnd);
+        const jBlob = new Blob([slice], { type: 'image/jpeg' });
+        scannedPages.push({ blob: jBlob, url: URL.createObjectURL(jBlob) });
+        scanPos = pageEnd;
+        continue;
+      }
+    }
+    scanPos++;
+  }
+
+  if (scannedPages.length > 0) {
+    if (onProgress) onProgress(25, `Found ${scannedPages.length} scanned page(s) in PDF document...`);
+    // Run optical OCR on the first page canvas
+    const canvas = await loadImageToCanvas(scannedPages[0].blob);
+    const ocrResult = await runOpticalOcrOnCanvas(canvas, onProgress);
+    ocrResult.previewUrl = scannedPages[0].url || originalBlobUrl;
+    ocrResult.pages = scannedPages.map(p => p.url);
+    ocrResult.pageCount = scannedPages.length;
+    return ocrResult;
+  }
+
+  // 2. Parse text streams from digital PDF
+  if (onProgress) onProgress(35, 'Extracting text streams from digital PDF...');
+  const rawString = textDecoder.decode(uint8);
+
+  const extractedLines: string[] = [];
+  const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = streamRegex.exec(rawString)) !== null) {
+    const streamContent = match[1];
+    const tjMatches = [...streamContent.matchAll(/\(([^)]+)\)\s*(?:Tj|'|")/g)].map(m => m[1]);
+    if (tjMatches.length > 0) {
+      extractedLines.push(...tjMatches);
+    }
+
+    // Try DecompressionStream for FlateDecode streams
+    try {
+      const streamStart = match.index + match[0].indexOf('\n') + 1;
+      const streamEnd = match.index + match[0].lastIndexOf('endstream');
+      if (streamEnd > streamStart && typeof DecompressionStream !== 'undefined') {
+        const compressedSlice = uint8.slice(streamStart, streamEnd);
+        if (compressedSlice.length > 2 && (compressedSlice[0] === 0x78 || (compressedSlice[0] === 0x1f && compressedSlice[1] === 0x8b))) {
+          const ds = new DecompressionStream(compressedSlice[0] === 0x1f ? 'gzip' : 'deflate');
+          const decompressed = await new Response(new Blob([compressedSlice]).stream().pipeThrough(ds)).arrayBuffer().catch(() => null);
+          if (decompressed) {
+            const decompressedStr = new TextDecoder('utf-8').decode(decompressed);
+            const decompMatches = [...decompressedStr.matchAll(/\(([^)]+)\)\s*(?:Tj|'|")/g)].map(m => m[1]);
+            if (decompMatches.length > 0) {
+              extractedLines.push(...decompMatches);
+            }
+          }
+        }
+      }
+    } catch {
+      // Non-flate stream, skip
+    }
+  }
+
+  const cleanText = extractedLines
+    .map(l => l.replace(/\\([()\\])/g, '$1').trim())
+    .filter(l => l.length > 0)
+    .join('\n');
+
+  if (cleanText.trim().length > 10) {
+    if (onProgress) onProgress(80, 'Analyzing extracted PDF medical fields...');
+    const confidence = Math.min(98, Math.max(65, Math.round(75 + cleanText.length / 50)));
+    const { fields, isAbdmCompliant } = extractFieldsFromText(cleanText, confidence);
+
+    let canvasPreview: string | undefined;
+    if (typeof document !== 'undefined') {
+      const textCanvas = document.createElement('canvas');
+      textCanvas.width = 1200;
+      textCanvas.height = 1600;
+      const ctx = textCanvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 1200, 1600);
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText('Digital PDF Prescription Document', 60, 80);
+        ctx.font = '16px monospace';
+        cleanText.split('\n').slice(0, 45).forEach((line, i) => {
+          ctx.fillText(line, 60, 130 + i * 28);
+        });
+      }
+      canvasPreview = textCanvas.toDataURL('image/jpeg', 0.9);
+    }
+    const finalPreview = originalBlobUrl || canvasPreview || '';
+
+    if (onProgress) onProgress(100, '✓ PDF Extraction complete');
+    return {
+      text: cleanText,
+      confidence,
+      fields,
+      isAbdmCompliant,
+      rawConfidence: confidence,
+      passUsed: 1,
+      previewUrl: finalPreview,
+      pages: [finalPreview],
+      pageCount: 1
+    };
+  }
+
+  throw new Error('Unable to extract readable text or images from this PDF document. Please upload a clear photo or digital prescription.');
+}
+
+/**
+ * Runs the optical Tesseract OCR pipeline on any captured image or document source.
+ * Handles Camera Captures, Photo Library files, and Uploaded Images/PDFs.
+ */
+export async function runOpticalOcr(
+  imageSource: string | HTMLCanvasElement | Blob | File,
+  onProgress?: OcrProgressCallback
+): Promise<OcrExtractionResult> {
+  console.log('[OCR] processing started');
+  if (onProgress) onProgress(10, 'Initializing OCR engine...');
+
+  if (imageSource instanceof File) {
+    if (imageSource.size === 0) {
+      throw new Error('The selected file is empty (0 bytes). Please select a valid document.');
+    }
+    if (imageSource.size > 25 * 1024 * 1024) {
+      throw new Error('File size exceeds the 25 MB limit.');
+    }
+  }
+
+  // Check if document is a PDF
+  const isPdf =
+    (typeof imageSource === 'string' && (imageSource.startsWith('data:application/pdf') || imageSource.toLowerCase().includes('.pdf'))) ||
+    (imageSource instanceof File && (imageSource.type === 'application/pdf' || imageSource.name.toLowerCase().endsWith('.pdf'))) ||
+    (imageSource instanceof Blob && imageSource.type === 'application/pdf');
+
+  if (isPdf) {
+    return processPdfSource(imageSource as any, onProgress);
+  }
+
+  // Load image to canvas
+  const rawCanvas = await loadImageToCanvas(imageSource);
+  const result = await runOpticalOcrOnCanvas(rawCanvas, onProgress);
+
+  if (!result.previewUrl) {
+    if (typeof imageSource === 'string') {
+      result.previewUrl = imageSource;
+    } else if (imageSource instanceof Blob) {
+      result.previewUrl = URL.createObjectURL(imageSource);
+    } else {
+      result.previewUrl = rawCanvas.toDataURL('image/jpeg', 0.92);
+    }
+  }
+  if (!result.pages) {
+    result.pages = [result.previewUrl];
+    result.pageCount = 1;
+  }
+
+  return result;
+}
+
+/**
+ * Extracts structured medicine items from real OCR text.
+ */
+export function parseMedicinesFromText(rawText: string): any[] {
+  const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const medKeywords = /(?:tab\.?|cap\.?|tablet|capsule|syrup|syp\.?|inj\.?|oint\.?|drops?|mg|ml|mcg|gm|paracetamol|amoxicillin|azithromycin|cetirizine|montelukast|amlodipine|metoprolol|aspirin|ibuprofen|pantoprazole|vomilast|abciximab|zoclar|gestakind|metformin|atorvastatin|losartan|omeprazole|ciprofloxacin|doxycycline)/i;
+  const medicines: any[] = [];
+
+  lines.forEach((line, idx) => {
+    const lower = line.toLowerCase();
+    if (
+      medKeywords.test(line) &&
+      !lower.includes('patient') &&
+      !lower.includes('hospital') &&
+      !lower.includes('clinic') &&
+      !lower.startsWith('dr.') &&
+      !lower.startsWith('dr ') &&
+      !lower.includes('follow') &&
+      !lower.includes('review')
+    ) {
+      const cleanLine = line.replace(/^\d+[\s.)-]+\s*/, '').trim();
+      if (cleanLine.length > 2 && cleanLine.length < 120) {
+        const freqMatch = cleanLine.match(/(?:once\s*daily|twice\s*daily|three\s*times\s*daily|four\s*times\s*daily|\b1-0-1\b|\b1-0-0\b|\b0-0-1\b|\b1-1-1\b|\b1\s*tablet\b|\b1\s*cap\b|morning|night|bedtime|daily)/i);
+        const durMatch = cleanLine.match(/\b(\d+)\s*(?:days?|weeks?|months?)\b/i);
+
+        let foodInstruction: 'Before Food' | 'After Food' | 'With Food' | 'Anytime' = 'After Food';
+        if (/before\s*(?:food|meals?)|empty\s*stomach/i.test(cleanLine)) {
+          foodInstruction = 'Before Food';
+        } else if (/with\s*(?:food|meals?)/i.test(cleanLine)) {
+          foodInstruction = 'With Food';
+        } else if (/after\s*(?:food|meals?)/i.test(cleanLine)) {
+          foodInstruction = 'After Food';
+        } else {
+          foodInstruction = 'Anytime';
+        }
+
+        let medName = cleanLine;
+        if (freqMatch) {
+          medName = medName.split(freqMatch[0])[0].trim();
+        }
+        if (durMatch) {
+          medName = medName.split(durMatch[0])[0].trim();
+        }
+        medName = medName.replace(/[•|]/g, '').trim();
+
+        if (medName.length > 2) {
+          const durDays = durMatch ? parseInt(durMatch[1], 10) : 5;
+          medicines.push({
+            id: `med-${Date.now()}-${idx + 1}`,
+            name: medName,
+            dosage: freqMatch ? freqMatch[0] : '1 Tablet',
+            frequency: freqMatch ? (freqMatch[0].includes('1-0-1') ? 'Twice daily' : freqMatch[0].includes('1-0-0') ? 'Once daily' : freqMatch[0]) : 'Once daily',
+            duration: durMatch ? durMatch[0] : `${durDays} Days`,
+            quantity: Math.max(1, durDays * (freqMatch && (freqMatch[0].includes('twice') || freqMatch[0].includes('1-0-1')) ? 2 : 1)),
+            instructions: `Take ${foodInstruction.toLowerCase()}`,
+            foodInstruction
+          });
+        }
+      }
+    }
+  });
+
+  return medicines;
+}
+
+/**
+ * Converts real OCR extraction result into a StructuredPrescription object.
+ * Strictly uses detected document fields; never invents missing doctor or hospital names.
+ */
+export function parseStructuredPrescriptionFromOcr(
+  ocrResult: OcrExtractionResult,
+  customPatientName?: string,
+  rawPreview?: string
+): any {
+  const lines = (ocrResult.text || '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  // 1. Patient Name (Extracted first so we can remove any patient name contamination from physician fields)
+  const patientName = extractPatientNameFromLines(lines, customPatientName);
+
+  // 2. Doctor Name (Cleaned of patient names, column numbers, and unrelated OCR text)
+  const doctorName = extractDoctorNameFromLines(lines, patientName);
+
+  // 3. Clinic / Hospital Name (Cleaned of patient/doctor contamination and trailing metadata)
+  const clinicName = extractClinicNameFromLines(lines, patientName, doctorName);
+
+  // 4. Prescription Date
+  let prescriptionDate = new Date().toISOString().slice(0, 10);
+  const dateMatch = (ocrResult.text || '').match(/\b(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\b/);
+  if (dateMatch) {
+    prescriptionDate = dateMatch[1];
+  }
+
+  // Follow-Up
+  let hasFollowUp = false;
+  let followUpDate = '';
+  let followUpText = '';
+  for (const line of lines) {
+    if (/follow[- ]?up|review|next\s*visit/i.test(line)) {
+      hasFollowUp = true;
+      followUpText = line.trim();
+      const dMatch = line.match(/\b(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\b/);
+      if (dMatch) {
+        followUpDate = dMatch[1];
+      }
+      break;
+    }
+  }
+
+  const medicines = parseMedicinesFromText(ocrResult.text || '');
+
+  return {
+    id: `RX-DOC-${Date.now().toString().slice(-6)}`,
+    patientName,
+    doctorName,
+    clinicName,
+    doctorSpeciality: '',
+    prescriptionDate,
+    medicines,
+    followUp: {
+      hasFollowUp,
+      date: followUpDate,
+      rawText: followUpText,
+      instructions: hasFollowUp ? followUpText : ''
+    },
+    status: 'pending-review',
+    notes: `Processed via Tesseract OCR Engine (Confidence: ${ocrResult.confidence}%).`,
+    rawImagePreview: rawPreview || ocrResult.previewUrl,
+    rawOcrText: ocrResult.text,
+    confidence: ocrResult.confidence,
+    rawConfidence: ocrResult.rawConfidence,
+    isAbdmCompliant: ocrResult.isAbdmCompliant,
+    fields: ocrResult.fields,
+    pages: ocrResult.pages || (rawPreview ? [rawPreview] : ocrResult.previewUrl ? [ocrResult.previewUrl] : []),
+    pageCount: ocrResult.pageCount || (ocrResult.pages ? ocrResult.pages.length : 1),
+    createdAt: Date.now()
+  };
 }

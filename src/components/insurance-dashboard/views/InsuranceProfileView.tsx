@@ -5,29 +5,49 @@ import {
   AlertTriangle, History, Check, X, FileCheck, Building2, CreditCard 
 } from 'lucide-react';
 import { useInsuranceWorkflow, type InsurancePolicyRecord, type InsuranceClaim } from '../../../utils/insuranceWorkflowStorage';
+import { showGlobalToast } from '../../common/GlobalToastManager';
+import { CashlessGuaranteeLetterModal } from '../../insurance/CashlessGuaranteeLetterModal';
+import { ClaimSettlementReceiptModal } from '../../insurance/ClaimSettlementReceiptModal';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface InsuranceProfileViewProps {
   insuranceId: string | null;
   onNavigate: (id: string) => void;
 }
 
-export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insuranceId, onNavigate }) => {
+export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insuranceId: initialInsuranceId, onNavigate }) => {
   const { records, updateCurrentClaimStatus, updateDocumentStatus } = useInsuranceWorkflow();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'policy' | 'current' | 'past' | 'documents' | 'timeline' | 'coverage'>('current');
-  
-  const record = records.find(r => r.insuranceId === insuranceId || r.patientName.toLowerCase() === (insuranceId || '').toLowerCase()) || records[0];
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(initialInsuranceId);
+
+  React.useEffect(() => {
+    if (initialInsuranceId) {
+      setSelectedRecordId(initialInsuranceId);
+    }
+  }, [initialInsuranceId]);
+
+  const effectiveId = selectedRecordId || initialInsuranceId;
+  const record = (effectiveId && records.find(r => 
+    r.insuranceId === effectiveId || 
+    r.patientName.toLowerCase() === effectiveId.toLowerCase() ||
+    (r.currentClaim && r.currentClaim.claimId.toLowerCase() === effectiveId.toLowerCase())
+  ))
+    || records.find(r => r.currentClaim && (r.currentClaim.status === 'New' || r.currentClaim.status === 'Under Review'))
+    || records.find(r => r.currentClaim !== null)
+    || records[0];
 
   if (!record) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
         <Search className="w-16 h-16 text-slate-600 dark:text-slate-300 mb-4" />
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">No Record Selected</h2>
-        <p className="text-slate-500">Please search for an Insurance ID first.</p>
+        <h2 className="text-xl font-black text-slate-900 dark:text-white">{t('No Record Selected')}</h2>
+        <p className="text-slate-500">{t('Please search for an Insurance ID first.')}</p>
         <button 
           onClick={() => onNavigate('search')}
-          className="mt-6 px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg"
+          className="mt-6 px-6 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg cursor-pointer"
         >
-          Go to Search
+          {t('Go to Search')}
         </button>
       </div>
     );
@@ -42,16 +62,33 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
             {record.patientName.charAt(0)}
           </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">{record.patientName}</h1>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">{t(record.patientName)}</h1>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold text-slate-500">Insurance ID: {record.insuranceId}</span>
+              <span className="text-sm font-bold text-slate-500">{t('Insurance ID')}: {record.insuranceId}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
               <span className="text-sm font-black text-emerald-600 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active Policy
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> {t('Active Policy')}
               </span>
             </div>
           </div>
         </div>
+
+        {records.length > 1 && (
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 p-2 rounded-2xl border border-slate-200 dark:border-slate-700/60 self-stretch sm:self-auto">
+            <span className="text-xs font-bold text-slate-500 pl-2">{t('Select Claim')}:</span>
+            <select
+              value={record.insuranceId}
+              onChange={(e) => setSelectedRecordId(e.target.value)}
+              className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              {records.map(r => (
+                <option key={r.insuranceId} value={r.insuranceId}>
+                  {r.patientName} {r.currentClaim ? `• ${r.currentClaim.claimId} (${r.currentClaim.status})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* 2. Navigation Tabs */}
@@ -67,14 +104,14 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === tab.id 
                 ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-600 dark:text-slate-300'
             }`}
           >
             <tab.icon className="w-4 h-4" />
-            <span>{tab.label}</span>
+            <span>{t(tab.label)}</span>
             {tab.badge !== undefined && tab.badge > 0 && (
               <span className="ml-1 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">
                 {tab.badge}
@@ -111,15 +148,20 @@ export const InsuranceProfileView: React.FC<InsuranceProfileViewProps> = ({ insu
 
 const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: InsurancePolicyRecord, updateCurrentClaimStatus: any }) => {
   const claim = record.currentClaim;
+  const { t } = useLanguage();
   const [showApproval, setShowApproval] = useState(false);
   const [approveAmount, setApproveAmount] = useState(claim?.submittedAmount.toString() || '');
+  const [showLetterModal, setShowLetterModal] = useState(false);
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const [showSettlementConfirm, setShowSettlementConfirm] = useState(false);
+  const [settlementRemarks, setSettlementRemarks] = useState('Hospital final discharge invoice verified against IRDAI tariff ceiling. Direct RTGS transfer cleared.');
 
   if (!claim) {
     return (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
         <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">No Active Claims</h2>
-        <p className="text-slate-500">All claims for this policy have been settled.</p>
+        <h2 className="text-xl font-black text-slate-900 dark:text-white">{t('No Active Claims')}</h2>
+        <p className="text-slate-500">{t('All claims for this policy have been settled.')}</p>
       </div>
     );
   }
@@ -141,8 +183,10 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
     const amt = parseFloat(approveAmount);
     if (amt === claim.submittedAmount) {
       updateCurrentClaimStatus(record.insuranceId, 'Approved', amt, 'Claim ACCEPTED & Cashless Pre-Auth Approved for Full Amount');
+      showGlobalToast(`✓ Claim ${claim.claimId} approved for ₹${amt.toLocaleString()}! Patient portal updated in real-time.`, 'success', 'Claim Approved');
     } else {
       updateCurrentClaimStatus(record.insuranceId, 'Partially Approved', amt, `Claim ACCEPTED with Partial Approval: ₹${amt.toLocaleString()}`);
+      showGlobalToast(`Claim ${claim.claimId} partially approved for ₹${amt.toLocaleString()}. Patient notified.`, 'info', 'Partial Approval');
     }
     setShowApproval(false);
   };
@@ -150,11 +194,15 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
   const handleDecline = (e: React.FormEvent) => {
     e.preventDefault();
     updateCurrentClaimStatus(record.insuranceId, 'Rejected', 0, `Claim DECLINED: ${declineReason}`);
+    showGlobalToast(`Claim ${claim.claimId} declined. Decision sent to Patient Portal.`, 'warning', 'Claim Declined');
     setShowDecline(false);
   };
 
-  const handleSettle = () => {
-    updateCurrentClaimStatus(record.insuranceId, 'Settled', claim.approvedAmount, 'Payment Processed & Settled directly with Hospital');
+  const handleConfirmSettle = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateCurrentClaimStatus(record.insuranceId, 'Settled', claim.approvedAmount, `Hospital Direct Settlement Disbursed: ${settlementRemarks}`);
+    showGlobalToast(`Claim ${claim.claimId} settled with ${claim.hospital}! Direct hospital billing cleared.`, 'success', 'Claim Settled');
+    setShowSettlementConfirm(false);
   };
 
   return (
@@ -168,31 +216,33 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
               <span className="text-xs font-mono font-black text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">
                 {claim.claimId}
               </span>
-              <span className="text-xs font-bold text-slate-500">Patient: {record.patientName}</span>
+              <span className="text-xs font-bold text-slate-500">{t('Patient')}: {t(record.patientName)}</span>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{claim.hospital}</h2>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{t(claim.hospital)}</h2>
             <p className="text-xs font-bold text-slate-500">
-              {claim.treatment} • Submitted: {claim.timeline[0]?.date} • Patient ID: {record.patientId}
+              {t(claim.treatment)} • {t('Submitted')}: {claim.timeline[0]?.date} • Patient ID: {record.patientId}
             </p>
           </div>
           <div className="text-left md:text-right">
-            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Claim Amount</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">{t('Claim Amount')}</p>
             <p className="text-3xl font-black text-amber-600 dark:text-amber-500">₹{claim.submittedAmount.toLocaleString()}</p>
             <span className={`inline-block mt-2 px-3 py-1 font-black text-xs uppercase tracking-wider rounded-md ${
-              claim.status === 'Approved' || claim.status === 'Settled'
+              claim.status === 'Approved'
                 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'
+                : claim.status === 'Settled'
+                ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-cyan-300'
                 : claim.status === 'Rejected'
                 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300'
                 : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20'
             }`}>
-              {claim.status}
+              {claim.status === 'Settled' ? `✓ ${t('Settled')}` : t(claim.status)}
             </span>
           </div>
         </div>
 
         {/* Workflow Tracker */}
         <div className="relative z-10 mb-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-          <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Processing Status</h3>
+          <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">{t('Processing Status')}</h3>
           <div className="flex justify-between items-center relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
             {steps.map((step, i) => (
@@ -204,7 +254,7 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
                 </div>
                 <span className={`absolute top-10 text-[10px] font-bold whitespace-nowrap ${
                   step.done ? 'text-amber-600 dark:text-amber-500' : 'text-slate-500 dark:text-slate-400'
-                }`}>{step.label}</span>
+                }`}>{t(step.label)}</span>
               </div>
             ))}
           </div>
@@ -217,29 +267,72 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
               onClick={() => setShowApproval(true)}
               className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer text-xs"
             >
-              <Check className="w-4 h-4" /> Accept & Approve Claim
+              <Check className="w-4 h-4" /> {t('Accept & Approve Claim')}
             </button>
             <button 
               onClick={() => setShowDecline(true)}
               className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-rose-500/20 cursor-pointer text-xs"
             >
-              <X className="w-4 h-4" /> Decline / Reject Claim
+              <X className="w-4 h-4" /> {t('Decline / Reject Claim')}
             </button>
           </div>
         )}
 
         {(claim.status === 'Approved' || claim.status === 'Partially Approved') && (
-          <div className="relative z-10 pt-12 flex flex-col sm:flex-row gap-4 justify-between items-center border-t border-slate-100 dark:border-slate-800 mt-8">
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1">Approved Cashless Amount</p>
+          <div className="relative z-10 pt-10 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center border-t border-slate-100 dark:border-slate-800 mt-8">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">{t('Approved Cashless Amount')}</p>
               <p className="text-2xl font-black text-emerald-600">₹{claim.approvedAmount.toLocaleString()}</p>
+              <p className="text-xs text-slate-500 font-mono">
+                {t('Pre-Auth Token:')} <strong className="text-slate-800 dark:text-slate-200">{claim.preAuthCode || 'AUTH-84920-APOLLO'}</strong>
+              </p>
             </div>
-            <button 
-              onClick={handleSettle}
-              className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition-colors flex items-center gap-2 cursor-pointer text-xs"
-            >
-              <CreditCard className="w-5 h-5" /> Process Direct Hospital Settlement
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button 
+                type="button"
+                onClick={() => setShowLetterModal(true)}
+                className="px-5 py-3 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 text-blue-700 dark:text-cyan-300 font-black rounded-xl transition-colors flex items-center gap-2 cursor-pointer text-xs border border-blue-200 dark:border-blue-800"
+              >
+                <FileText className="w-4 h-4" /> {t('View Pre-Auth Guarantee Letter')}
+              </button>
+              <button 
+                type="button"
+                onClick={() => setShowSettlementConfirm(true)}
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl transition-colors flex items-center gap-2 cursor-pointer text-xs shadow-md shadow-emerald-500/20"
+              >
+                <CreditCard className="w-4 h-4" /> {t('Process Direct Hospital Settlement')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {claim.status === 'Settled' && (
+          <div className="relative z-10 pt-10 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center border-t border-slate-100 dark:border-slate-800 mt-8">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                <CheckCircle2 className="w-3.5 h-3.5" /> {t('Direct Hospital Settlement Disbursed')}
+              </span>
+              <p className="text-2xl font-black text-slate-900 dark:text-white">₹{(claim.approvedAmount || claim.submittedAmount).toLocaleString()}</p>
+              <p className="text-xs text-slate-500 font-mono">
+                {t('Txn Ref:')} <strong className="text-slate-800 dark:text-slate-200">{claim.settlementTxnId || 'TXN-IRDAI-984210'}</strong>
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button 
+                type="button"
+                onClick={() => setShowLetterModal(true)}
+                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer text-xs"
+              >
+                <FileText className="w-4 h-4" /> {t('Pre-Auth Letter')}
+              </button>
+              <button 
+                type="button"
+                onClick={() => setShowSettlementModal(true)}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer text-xs shadow-md"
+              >
+                <CheckCircle2 className="w-4 h-4" /> {t('View Settlement Voucher')}
+              </button>
+            </div>
           </div>
         )}
 
@@ -252,11 +345,11 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
             onSubmit={handleApprove}
           >
             <h3 className="text-sm font-black text-emerald-600 uppercase flex items-center gap-2">
-              <Check className="w-4 h-4" /> Accept Claim & Grant Cashless Pre-Auth
+              <Check className="w-4 h-4" /> {t('Accept Claim & Grant Cashless Pre-Auth')}
             </h3>
             <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
               <div className="flex-1">
-                <label className="text-xs font-bold text-slate-500 mb-2 block">Approved Amount (₹)</label>
+                <label className="text-xs font-bold text-slate-500 mb-2 block">{t('Approved Amount (₹)')}</label>
                 <input 
                   type="number" 
                   value={approveAmount}
@@ -311,30 +404,114 @@ const CurrentClaimTab = ({ record, updateCurrentClaimStatus }: { record: Insuran
             </div>
           </motion.form>
         )}
+
+        {/* Settlement Confirmation Form */}
+        {showSettlementConfirm && (
+          <motion.form 
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            className="relative z-10 pt-8 mt-8 border-t border-slate-100 dark:border-slate-800 space-y-4"
+            onSubmit={handleConfirmSettle}
+          >
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <CreditCard className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">
+                  Hospital Direct Electronic Settlement Clearance
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Execute direct electronic funds transfer to {claim.hospital} and generate zero-dues discharge clearance certificate.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs font-mono">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Hospital Payee:</span>
+                <strong className="text-slate-900 dark:text-white">{claim.hospital}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Disbursement Amount:</span>
+                <strong className="text-emerald-600 dark:text-emerald-400 text-sm font-black">
+                  ₹{(claim.approvedAmount || claim.submittedAmount).toLocaleString('en-IN')}
+                </strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Settlement Channel:</span>
+                <strong className="text-blue-600 dark:text-cyan-400">IRDAI Real-time RTGS / NEFT Clearinghouse</strong>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-500 mb-1.5 block">Audit & Clearing Remarks:</label>
+              <textarea
+                value={settlementRemarks}
+                onChange={(e) => setSettlementRemarks(e.target.value)}
+                rows={2}
+                className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 outline-none font-bold text-slate-900 dark:text-white text-xs"
+                required
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="submit" 
+                className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl cursor-pointer text-xs shadow-md shadow-emerald-500/20"
+              >
+                Confirm Direct Settlement & Disburse Payout
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setShowSettlementConfirm(false)} 
+                className="px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl cursor-pointer text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.form>
+        )}
+
+        {/* MODALS */}
+        <CashlessGuaranteeLetterModal
+          isOpen={showLetterModal}
+          onClose={() => setShowLetterModal(false)}
+          record={record}
+          claim={claim}
+        />
+
+        <ClaimSettlementReceiptModal
+          isOpen={showSettlementModal}
+          onClose={() => setShowSettlementModal(false)}
+          record={record}
+          claim={claim}
+        />
       </div>
     </div>
   );
 };
 
 const PolicyTab = ({ record }: { record: InsurancePolicyRecord }) => {
+  const { t } = useLanguage();
   const percentUsed = Math.round((record.usedCoverage / record.coverageAmount) * 100);
   
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
       <div>
-        <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Policy Details</h3>
-        <p className="text-2xl font-black text-slate-900 dark:text-white">{record.policyName}</p>
-        <p className="text-sm font-bold text-slate-500 mt-1">Policy No: {record.policyNumber} • Valid till {record.policyEndDate}</p>
+        <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">{t('Policy Details')}</h3>
+        <p className="text-2xl font-black text-slate-900 dark:text-white">{t(record.policyName)}</p>
+        <p className="text-sm font-bold text-slate-500 mt-1">{t('insurance.search.policy_number', 'Policy No')}: {record.policyNumber} • {t('insurance.search.validity', 'Valid till')} {record.policyEndDate}</p>
       </div>
 
       <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
         <div className="flex justify-between items-end mb-4">
           <div>
-            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">Total Coverage</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('insurance.search.total_coverage', 'Total Coverage')}</p>
             <p className="text-3xl font-black text-slate-900 dark:text-white">₹{record.coverageAmount.toLocaleString()}</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">Remaining</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('insurance.search.remaining_limit', 'Remaining')}</p>
             <p className="text-xl font-black text-emerald-600">₹{record.remainingCoverage.toLocaleString()}</p>
           </div>
         </div>
@@ -349,13 +526,14 @@ const PolicyTab = ({ record }: { record: InsurancePolicyRecord }) => {
 };
 
 const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolicyRecord, updateDocumentStatus: any }) => {
+  const { t } = useLanguage();
   const docs = record.currentClaim?.documents || [];
   
   if (docs.length === 0) return <p className="p-6 text-slate-500 font-bold">No documents attached to current claim.</p>;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Document Verification</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">{t('Document Verification', 'Document Verification')}</h3>
       <div className="space-y-3">
         {docs.map(doc => (
           <div key={doc.id} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
@@ -364,8 +542,8 @@ const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolic
                 {doc.status === 'Verified' ? <CheckCircle2 className="w-5 h-5" /> : doc.status === 'Missing' ? <AlertTriangle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
               </div>
               <div>
-                <p className="font-black text-slate-900 dark:text-white">{doc.name}</p>
-                <p className="text-xs font-bold text-slate-500">Uploaded by {doc.uploadedBy} • {doc.uploadDate}</p>
+                <p className="font-black text-slate-900 dark:text-white">{t(doc.name)}</p>
+                <p className="text-xs font-bold text-slate-500">Uploaded by {t(doc.uploadedBy)} • {doc.uploadDate}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -373,14 +551,14 @@ const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolic
                 doc.status === 'Verified' ? 'bg-emerald-50 text-emerald-600' : 
                 doc.status === 'Missing' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'
               }`}>
-                {doc.status}
+                {t(doc.status)}
               </span>
               {doc.status === 'Missing' && (
                 <button 
                   onClick={() => updateDocumentStatus(record.insuranceId, doc.id, 'Verified')}
-                  className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-black text-xs rounded-lg transition-colors"
+                  className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-black text-xs rounded-lg transition-colors cursor-pointer"
                 >
-                  Mark Verified
+                  {t('Mark Verified', 'Mark Verified')}
                 </button>
               )}
             </div>
@@ -392,19 +570,20 @@ const DocumentsTab = ({ record, updateDocumentStatus }: { record: InsurancePolic
 };
 
 const CoverageTab = ({ record }: { record: InsurancePolicyRecord }) => {
+  const { t } = useLanguage();
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Coverage & Benefits</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">{t('Coverage & Benefits', 'Coverage & Benefits')}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(record.benefits).map(([key, val]) => (
           <div key={key} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
-            <span className="font-bold text-slate-700 dark:text-slate-300 capitalize">{key}</span>
+            <span className="font-bold text-slate-700 dark:text-slate-300 capitalize">{t(key)}</span>
             <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md flex items-center gap-1 ${
               val === 'Covered' ? 'bg-emerald-50 text-emerald-600' : 
               val === 'Partial' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
             }`}>
               {val === 'Covered' ? <Check className="w-3 h-3" /> : val === 'Partial' ? <span className="text-[14px] leading-none">◐</span> : <X className="w-3 h-3" />}
-              {val}
+              {t(val)}
             </span>
           </div>
         ))}
@@ -414,9 +593,10 @@ const CoverageTab = ({ record }: { record: InsurancePolicyRecord }) => {
 };
 
 const PastClaimsTab = ({ record }: { record: InsurancePolicyRecord }) => {
+  const { t } = useLanguage();
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">Past Claim History</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-6">{t('Past Claim History', 'Past Claim History')}</h3>
       {record.claims.length === 0 ? (
         <p className="text-slate-500 font-bold">No past claims found.</p>
       ) : (
@@ -425,14 +605,14 @@ const PastClaimsTab = ({ record }: { record: InsurancePolicyRecord }) => {
             <div key={claim.claimId} className="flex flex-col sm:flex-row justify-between sm:items-center p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 gap-4">
               <div>
                 <p className="font-black text-slate-900 dark:text-white text-lg">{claim.claimId}</p>
-                <p className="text-sm font-bold text-slate-500">{claim.hospital} • {claim.treatment}</p>
+                <p className="text-sm font-bold text-slate-500">{t(claim.hospital)} • {t(claim.treatment)}</p>
                 <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">{claim.admissionDate} - {claim.dischargeDate}</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-sm font-bold text-slate-500 line-through">₹{claim.submittedAmount.toLocaleString()}</p>
                 <p className="text-xl font-black text-emerald-600 mb-2">₹{claim.approvedAmount.toLocaleString()}</p>
                 <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
-                  {claim.status}
+                  {t(claim.status)}
                 </span>
               </div>
             </div>
@@ -444,13 +624,14 @@ const PastClaimsTab = ({ record }: { record: InsurancePolicyRecord }) => {
 };
 
 const TimelineTab = ({ record }: { record: InsurancePolicyRecord }) => {
+  const { t } = useLanguage();
   const events = record.currentClaim?.timeline || [];
   
   if (events.length === 0) return <p className="p-6 text-slate-500 font-bold">No timeline events available.</p>;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm max-w-3xl mx-auto">
-      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-8 text-center">Claim Timeline</h3>
+      <h3 className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-8 text-center">{t('Claim Timeline', 'Claim Timeline')}</h3>
       <div className="relative pl-6 sm:pl-8">
         <div className="absolute left-[39px] sm:left-[51px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800 z-0"></div>
         <div className="space-y-8">
@@ -469,10 +650,10 @@ const TimelineTab = ({ record }: { record: InsurancePolicyRecord }) => {
               </div>
               <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex-1">
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-black text-slate-900 dark:text-white">{event.action}</h3>
+                  <h3 className="font-black text-slate-900 dark:text-white">{t(event.action)}</h3>
                   <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-100">{event.date}</span>
                 </div>
-                <p className="text-xs font-bold text-slate-500">{event.role} • {event.time}</p>
+                <p className="text-xs font-bold text-slate-500">{t(event.role)} • {event.time}</p>
               </div>
             </motion.div>
           ))}

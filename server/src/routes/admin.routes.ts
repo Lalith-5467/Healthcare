@@ -10,6 +10,8 @@ import {
   deleteUserController,
   updateUserStatusController,
   updateUserRoleController,
+  resetUserPasswordController,
+  getAuditLogsController,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -65,5 +67,40 @@ router.patch(
   requireRole(Role.SUPER_ADMIN),
   updateUserRoleController
 );
+
+// 8. Shared System Settings & Configuration (ADMIN & SUPER_ADMIN)
+import {
+  getAdminSettings,
+  updateSettings,
+  publishDraftSettings,
+  resetSettingsToDefault,
+  getRbacMatrix,
+  updateRbacMatrix,
+  createRoleAnnouncement,
+  updateRoleAnnouncement,
+  deleteRoleAnnouncement,
+  toggleRoleAnnouncement,
+  updateRoleWidgets,
+  resetRoleWidgets,
+} from '../controllers/settings.controller';
+
+router.get('/settings', requireRole(Role.ADMIN, Role.SUPER_ADMIN), getAdminSettings);
+router.put('/settings', requireRole(Role.ADMIN, Role.SUPER_ADMIN), updateSettings);
+router.post('/settings/publish', requireRole(Role.SUPER_ADMIN), publishDraftSettings);
+router.post('/settings/reset', requireRole(Role.SUPER_ADMIN), resetSettingsToDefault);
+router.get('/roles-permissions/matrix', requireRole(Role.ADMIN, Role.SUPER_ADMIN), getRbacMatrix);
+router.put('/roles-permissions/matrix', requireRole(Role.SUPER_ADMIN), updateRbacMatrix);
+router.post('/settings/dashboards/:role/announcements', requireRole(Role.ADMIN, Role.SUPER_ADMIN), createRoleAnnouncement);
+router.put('/settings/dashboards/:role/announcements/:id', requireRole(Role.ADMIN, Role.SUPER_ADMIN), updateRoleAnnouncement);
+router.delete('/settings/dashboards/:role/announcements/:id', requireRole(Role.ADMIN, Role.SUPER_ADMIN), deleteRoleAnnouncement);
+router.patch('/settings/dashboards/:role/announcements/:id/toggle', requireRole(Role.ADMIN, Role.SUPER_ADMIN), toggleRoleAnnouncement);
+router.put('/settings/dashboards/:role/widgets', requireRole(Role.ADMIN, Role.SUPER_ADMIN), updateRoleWidgets);
+router.post('/settings/dashboards/:role/widgets/reset', requireRole(Role.ADMIN, Role.SUPER_ADMIN), resetRoleWidgets);
+
+// 9. Reset User Password (ADMIN & SUPER_ADMIN)
+router.post('/users/:id/reset-password', requireRole(Role.ADMIN, Role.SUPER_ADMIN), resetUserPasswordController);
+
+// 10. Audit Logs Stream (ADMIN & SUPER_ADMIN)
+router.get('/audit-logs', requireRole(Role.ADMIN, Role.SUPER_ADMIN), getAuditLogsController);
 
 export default router;

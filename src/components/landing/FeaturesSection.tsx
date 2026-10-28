@@ -5,12 +5,10 @@ import {
   Pill, 
   QrCode, 
   ShieldAlert, 
-  Sparkles, 
   CheckCircle2, 
   ArrowRight,
   Lock,
   HeartPulse,
-  Clock,
   Check,
   AlertTriangle,
   Flame,
@@ -22,30 +20,16 @@ import {
   BellRing
 } from 'lucide-react';
 import { SpotlightCard } from '../ui/SpotlightCard';
+import { useSiteConfig } from '../../context/ConfigContext';
 
 interface FeaturesSectionProps {
   onExploreFeature?: (featureId: string) => void;
 }
 
 export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeature }) => {
+  const { landing } = useSiteConfig();
+  const fCfg = landing.features;
   const [activeTab, setActiveTab] = useState(0);
-  const [doseTaken, setDoseTaken] = useState(false);
-  const [countdown, setCountdown] = useState(872); // seconds (14m 32s)
-  const [isAccessRevoked, setIsAccessRevoked] = useState(false);
-
-  // Countdown timer for Doctor Share demo
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 900));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatCountdown = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}m ${s < 10 ? '0' : ''}${s}s`;
-  };
 
   const featureCategories = [
     {
@@ -171,6 +155,10 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
   ];
 
   const activeFeature = featureCategories[activeTab];
+  const rawTitle = fCfg?.title?.trim();
+  const titlePrefix = (!rawTitle || rawTitle.toLowerCase().includes('cutting-edge'))
+    ? 'Features Designed for'
+    : rawTitle;
 
   return (
     <section id="features" className="py-12 sm:py-16 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#090e1a] dark:via-[#0b1120] dark:to-[#090e1a] text-slate-900 dark:text-white relative overflow-hidden transition-colors duration-300">
@@ -182,17 +170,6 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
         
         {/* SECTION HEADER */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00a896]/15 border border-[#00a896]/30 text-[#00a896] dark:text-cyan-300 text-xs font-black uppercase tracking-wider shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-[#00a896] animate-pulse" />
-            <span>Interactive Health Modules</span>
-          </motion.div>
-
           <motion.h2 
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -200,9 +177,9 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight"
           >
-            Features Designed for <br />
+            {titlePrefix} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00a896] via-teal-500 to-cyan-500">
-              Your Total Healthcare Journey
+              {fCfg?.highlightTitle || 'Your Total Healthcare Journey'}
             </span>
           </motion.h2>
 
@@ -213,7 +190,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium"
           >
-            From lifetime medical document storage to automated pill alerts and instant doctor sharing — explore how MediCare empowers you every day.
+            {fCfg?.subtitle || 'From lifetime medical document storage to automated pill alerts and instant doctor sharing — explore how MediCare empowers you every day.'}
           </motion.p>
         </div>
 
@@ -343,41 +320,41 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                   
                   {/* 1. DIGITAL HEALTH RECORDS MOCKUP */}
                   {activeFeature.id === 'phr-locker' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-teal-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-slate-950 border border-teal-500/20 dark:border-teal-500/30 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl space-y-5 relative overflow-hidden">
                       {/* SIMULATED SCANNING LASER */}
                       <motion.div 
                         animate={{ y: [0, 240, 0] }}
                         transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                        className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,1)] pointer-events-none z-20"
+                        className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-500 dark:via-cyan-400 to-transparent shadow-[0_0_12px_rgba(34,211,238,0.8)] pointer-events-none z-20"
                       />
 
                       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
-                          <FileCheck2 className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Encrypted Medical Vault</span>
+                          <FileCheck2 className="w-4 h-4 text-teal-600 dark:text-cyan-400" />
+                          <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 font-mono">Encrypted Medical Vault</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 font-mono">
                           ABDM Verified
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-900 dark:text-white">Pathology Lab Diagnostics.pdf</span>
-                          <span className="text-[10px] text-teal-400 font-mono font-bold">2.4 MB · AES-256</span>
+                          <span className="text-[10px] text-teal-600 dark:text-teal-400 font-mono font-bold">2.4 MB · AES-256</span>
                         </div>
                         <div className="flex flex-wrap gap-2 text-[10px] font-mono">
-                          <span className="px-2 py-0.5 rounded-md bg-teal-500/20 text-cyan-300 border border-teal-500/30">Lipid Profile</span>
-                          <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">HbA1c: 5.6%</span>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Normal</span>
+                          <span className="px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-500/20 text-teal-700 dark:text-cyan-300 border border-teal-200 dark:border-teal-500/30">Lipid Profile</span>
+                          <span className="px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30">HbA1c: 5.6%</span>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30">Normal</span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
                             <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
-                            <strong className="text-xs font-black text-teal-300 mt-0.5 block">{st.value}</strong>
+                            <strong className="text-xs font-black text-teal-600 dark:text-teal-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
                       </div>
@@ -386,22 +363,22 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 2. MEDICINE REMINDERS MOCKUP */}
                   {activeFeature.id === 'med-reminder' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-purple-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-slate-950 border border-purple-500/20 dark:border-purple-500/30 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl space-y-5 relative overflow-hidden">
                       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
-                          <BellRing className="w-4 h-4 text-purple-400" />
-                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Daily Dosage Schedule</span>
+                          <BellRing className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 font-mono">Daily Dosage Schedule</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 font-mono">
                           99.4% Adherence
                         </span>
                       </div>
 
                       <div className="space-y-2.5">
                         {/* DOSE 1 */}
-                        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/30">
                               <Check className="w-4 h-4 stroke-[3]" />
                             </div>
                             <div>
@@ -409,42 +386,31 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">08:00 AM · After Breakfast</span>
                             </div>
                           </div>
-                          <span className="text-[10px] font-black text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded">Taken</span>
+                          <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 font-mono bg-emerald-100/70 dark:bg-emerald-500/10 px-2 py-0.5 rounded">Taken</span>
                         </div>
 
-                        {/* DOSE 2 (INTERACTIVE) */}
-                        <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/40 flex items-center justify-between ring-1 ring-purple-500/30">
+                        {/* DOSE 2 (STATIC SHOWCASE) */}
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-purple-200 dark:border-purple-500/40 flex items-center justify-between ring-1 ring-purple-500/20 dark:ring-purple-500/30">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
-                              doseTaken 
-                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                                : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                            }`}>
+                            <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-200 dark:border-purple-500/30">
                               <Pill className="w-4 h-4" />
                             </div>
                             <div>
                               <span className="text-xs font-black text-slate-900 dark:text-white block">Vitamin D3 60k UI</span>
-                              <span className="text-[10px] text-purple-300 font-mono">01:30 PM · Due Now</span>
+                              <span className="text-[10px] text-purple-600 dark:text-purple-300 font-mono">01:30 PM · After Lunch</span>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => setDoseTaken(!doseTaken)}
-                            className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg border transition-all cursor-pointer ${
-                              doseTaken 
-                                ? 'bg-emerald-500 text-white border-emerald-400' 
-                                : 'bg-purple-500 hover:bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/30'
-                            }`}
-                          >
-                            {doseTaken ? 'Taken ✓' : 'Mark Taken'}
-                          </button>
+                          <span className="px-2.5 py-1 text-[10px] font-black uppercase rounded-md font-mono bg-purple-100/80 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 select-none pointer-events-none">
+                            Due Now
+                          </span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
                             <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
-                            <strong className="text-xs font-black text-purple-300 mt-0.5 block">{st.value}</strong>
+                            <strong className="text-xs font-black text-purple-600 dark:text-purple-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
                       </div>
@@ -453,25 +419,18 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 3. DOCTOR & CLINIC SHARING MOCKUP */}
                   {activeFeature.id === 'doctor-share' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-cyan-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-slate-950 border border-cyan-500/20 dark:border-cyan-500/30 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl space-y-5 relative overflow-hidden">
                       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
-                          <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Active Consent Session</span>
+                          <Radio className="w-4 h-4 text-cyan-600 dark:text-cyan-400 animate-pulse" />
+                          <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 font-mono">Active Consent Session</span>
                         </div>
-                        <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full font-mono border ${
-                          isAccessRevoked 
-                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
-                            : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                        }`}>
-                          {isAccessRevoked ? 'Session Revoked' : `Expires in ${formatCountdown(countdown)}`}
-                        </span>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs border border-cyan-500/30">
+                            <div className="w-8 h-8 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 flex items-center justify-center font-bold text-xs border border-cyan-200 dark:border-cyan-500/30">
                               DR
                             </div>
                             <div>
@@ -479,24 +438,17 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
                               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Apollo Cardiology · OTP Verified</span>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => setIsAccessRevoked(!isAccessRevoked)}
-                            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                              isAccessRevoked 
-                                ? 'bg-teal-500 text-white border-teal-400' 
-                                : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border-rose-500/30'
-                            }`}
-                          >
-                            {isAccessRevoked ? 'Re-Grant' : 'Revoke Access'}
-                          </button>
+                          <span className="text-[10px] font-black uppercase px-3 py-1.5 rounded-lg bg-teal-600 text-white border border-teal-500 select-none pointer-events-none shadow-xs">
+                            Re-Grant
+                          </span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
                             <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
-                            <strong className="text-xs font-black text-cyan-300 mt-0.5 block">{st.value}</strong>
+                            <strong className="text-xs font-black text-cyan-600 dark:text-cyan-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
                       </div>
@@ -505,38 +457,38 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ onExploreFeatu
 
                   {/* 4. EMERGENCY SOS PASS MOCKUP */}
                   {activeFeature.id === 'emergency-sos' && (
-                    <div className="p-6 sm:p-7 rounded-2xl bg-slate-950 border border-rose-500/30 text-slate-900 dark:text-white shadow-2xl space-y-5 relative overflow-hidden">
+                    <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-slate-950 border border-rose-500/20 dark:border-rose-500/30 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl space-y-5 relative overflow-hidden">
                       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5">
                         <div className="flex items-center gap-2">
-                          <ShieldAlert className="w-4 h-4 text-rose-400 animate-pulse" />
-                          <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 font-mono">Offline Emergency QR Matrix</span>
+                          <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 animate-pulse" />
+                          <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 font-mono">Offline Emergency QR Matrix</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+                        <span className="text-[11px] font-medium text-rose-600 dark:text-rose-400 font-mono">
                           Zero-Latency SOS
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-rose-950/60 via-slate-900 to-slate-900 border border-rose-500/40 space-y-3">
+                      <div className="p-4 rounded-xl bg-rose-50/70 dark:bg-gradient-to-br dark:from-rose-950/60 dark:via-slate-900 dark:to-slate-900 border border-rose-200 dark:border-rose-500/40 space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="text-[10px] font-bold uppercase text-rose-300 font-mono">Primary Patient</span>
+                            <span className="text-[10px] font-bold uppercase text-rose-600 dark:text-rose-300 font-mono">Primary Patient</span>
                             <h4 className="text-sm font-black text-slate-900 dark:text-white">Rahul Sharma · 34 Yrs</h4>
                           </div>
-                          <span className="px-3 py-1 rounded-lg bg-rose-500 text-white font-black text-xs shadow-md">
+                          <span className="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs shadow-md">
                             Blood: O+
                           </span>
                         </div>
                         <div className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
-                          <div><strong className="text-rose-400 font-mono">Allergies:</strong> Penicillin, Sulfa, Peanuts</div>
-                          <div><strong className="text-teal-400 font-mono">ICE Contact:</strong> Dr. Sen (+91 98765 43210)</div>
+                          <div><strong className="text-rose-600 dark:text-rose-400 font-mono">Allergies:</strong> Penicillin, Sulfa, Peanuts</div>
+                          <div><strong className="text-teal-600 dark:text-teal-400 font-mono">ICE Contact:</strong> Dr. Sen (+91 98765 43210)</div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2.5 text-center">
                         {activeFeature.previewStats.map((st, i) => (
-                          <div key={i} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                          <div key={i} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
                             <span className="text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 font-mono block">{st.label}</span>
-                            <strong className="text-xs font-black text-rose-300 mt-0.5 block">{st.value}</strong>
+                            <strong className="text-xs font-black text-rose-600 dark:text-rose-300 mt-0.5 block">{st.value}</strong>
                           </div>
                         ))}
                       </div>

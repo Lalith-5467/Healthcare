@@ -6,25 +6,56 @@ interface AddPolicyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddPolicy: (newPolicy: InsurancePolicy) => void;
+  defaultHolderName?: string;
 }
 
 export const AddPolicyModal: React.FC<AddPolicyModalProps> = ({
   isOpen,
   onClose,
   onAddPolicy,
+  defaultHolderName,
 }) => {
+  const resolveInitialHolderName = (): string => {
+    if (defaultHolderName && defaultHolderName.trim()) {
+      return defaultHolderName.trim();
+    }
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    return '';
+  };
+
   const [step, setStep] = useState(1);
   const [providerName, setProviderName] = useState('');
   const [planName, setPlanName] = useState('');
   const [policyType, setPolicyType] = useState<'Family Floater' | 'Individual' | 'Employer' | 'Government' | 'Senior Citizen'>('Individual');
   const [policyNumber, setPolicyNumber] = useState('');
-  const [policyHolder, setPolicyHolder] = useState('Lalith Patel');
+  const [policyHolder, setPolicyHolder] = useState(resolveInitialHolderName);
   const [startDate] = useState('2026-01-01');
   const [expiryDate] = useState('2026-12-31');
   const [coverageAmount, setCoverageAmount] = useState<number>(500000);
   const [premiumAmount, setPremiumAmount] = useState<number>(1800);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setPolicyHolder(resolveInitialHolderName());
+      setStep(1);
+      setErrors({});
+    }
+  }, [isOpen, defaultHolderName]);
 
   if (!isOpen) return null;
 

@@ -31,7 +31,8 @@ import {
 import { PatientAccessRequestsModal } from '../components/dashboard/PatientAccessRequestsModal';
 import { RecentPrescriptionTrackCard } from '../components/dashboard/RecentPrescriptionTrackCard';
 import { socketService } from '../services/socketService';
-import { healthShareApi } from '../services/healthShareApi';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
+import { useSiteConfig } from '../context/ConfigContext';
 
 import { ProfileView } from '../components/profile';
 import { RecordsView } from '../components/records';
@@ -102,12 +103,55 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
   }, [initialNavId]);
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [accessRequestsModalOpen, setAccessRequestsModalOpen] = useState(false);
   const [showShorts, setShowShorts] = useState(false);
-  const [dismissedRequestIds, setDismissedRequestIds] = useState<Set<string>>(new Set());
+  const [selectedShortId, setSelectedShortId] = useState<string | undefined>(undefined);
   const mainScrollRef = useRef<HTMLDivElement>(null);
+
+  let patientWidgets: any = {};
+  try {
+    const siteConfig = useSiteConfig();
+    patientWidgets = siteConfig.dashboards?.patient?.widgets || {};
+  } catch {}
+
+  const sectionGridClass = showShorts 
+    ? "grid grid-cols-1 gap-6" 
+    : "grid grid-cols-1 lg:grid-cols-2 gap-6";
+
+  const [livePatientProfile, setLivePatientProfile] = useState<any>(null);
+
+  // Fetch actual patient profile from backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    import('../services/apiClient').then(({ apiClient }) => {
+      apiClient.get<any>('/profile/patient').then((res) => {
+        if (res && res.data && res.data.fullName && isMounted) {
+          const fn = res.data.fullName.trim();
+          setLivePatientProfile(res.data);
+          localStorage.setItem('patient_user_name', fn);
+          const currentAppUserStr = localStorage.getItem('app_user');
+          let currentParsed: any = {};
+          try {
+            if (currentAppUserStr) currentParsed = JSON.parse(currentAppUserStr);
+          } catch {}
+          const merged = {
+            ...currentParsed,
+            ...(user || {}),
+            name: fn,
+            role: 'Patient',
+            abhaId: res.data.abhaId || res.data.user?.abhaId || currentParsed.abhaId,
+            bloodGroup: res.data.bloodGroup || currentParsed.bloodGroup,
+            gender: res.data.gender || currentParsed.gender,
+          };
+          localStorage.setItem('patient_user', JSON.stringify(merged));
+          localStorage.setItem('app_user', JSON.stringify(merged));
+        }
+      }).catch(() => {});
+    });
+    return () => { isMounted = false; };
+  }, [user]);
 
   const effectiveUser: UserProfile = React.useMemo(() => {
     const isDoctorOrStaff = (name?: string): boolean => {
@@ -115,6 +159,8 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       const lower = name.toLowerCase().trim();
       return (
         lower === 'patient' ||
+        lower === 'ananya sharma' ||
+        lower === 'ananya' ||
         lower.startsWith('dr.') ||
         lower.startsWith('dr ') ||
         lower.includes('doctor') ||
@@ -128,18 +174,32 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       );
     };
 
-    let resolvedName = user?.name || '';
+    let resolvedName = livePatientProfile?.fullName?.trim() || '';
+
+    if (!resolvedName || isDoctorOrStaff(resolvedName)) {
+      resolvedName = user?.name || '';
+    }
+
     if (!resolvedName || isDoctorOrStaff(resolvedName)) {
       try {
         const custom = localStorage.getItem('patient_user_name');
         if (custom && custom.trim() && !isDoctorOrStaff(custom)) {
           resolvedName = custom.trim();
         } else {
-          const prof = localStorage.getItem('user_profile_data');
-          if (prof) {
-            const parsed = JSON.parse(prof);
+          const patientUser = localStorage.getItem('patient_user');
+          if (patientUser) {
+            const parsed = JSON.parse(patientUser);
             if (parsed?.name && !isDoctorOrStaff(parsed.name)) {
               resolvedName = parsed.name.trim();
+            }
+          }
+          if (!resolvedName || isDoctorOrStaff(resolvedName)) {
+            const prof = localStorage.getItem('user_profile_data');
+            if (prof) {
+              const parsed = JSON.parse(prof);
+              if (parsed?.name && !isDoctorOrStaff(parsed.name)) {
+                resolvedName = parsed.name.trim();
+              }
             }
           }
           if (!resolvedName || isDoctorOrStaff(resolvedName)) {
@@ -154,64 +214,35 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
         }
       } catch {}
     }
+
     if (!resolvedName || isDoctorOrStaff(resolvedName)) {
-      resolvedName = 'Ananya Sharma';
+      resolvedName = user?.email ? user.email.split('@')[0] : 'Patient';
     }
+
     return {
       ...(user || {}),
       name: resolvedName,
-      email: user?.email || '',
-      role: user?.role || 'Patient',
-      abhaId: user?.abhaId || '91-8472-9104-5821@abdm',
-      bloodGroup: user?.bloodGroup || 'O+',
+      email: user?.email || livePatientProfile?.user?.email || '',
+      role: 'Patient',
+      abhaId: livePatientProfile?.abhaId || user?.abhaId || '91-8472-9104-5821@abdm',
+      bloodGroup: livePatientProfile?.bloodGroup || user?.bloodGroup || 'O+',
       age: user?.age || 30,
     };
-  }, [user]);
+  }, [user, livePatientProfile]);
 
-  // Simulated short initial dashboard loading
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Real-time Socket.IO and Fallback Polling for Incoming Doctor Access Requests
+  // Connect socket and listen for requests modal trigger
   useEffect(() => {
     socketService.connect();
 
-    const unsubHealth = socketService.subscribeToHealthShareEvents((payload) => {
-      if (
-        payload.status === 'PENDING' ||
-        payload.event?.includes('request-created') ||
-        payload.event?.includes('request_created')
-      ) {
-        setAccessRequestsModalOpen(true);
-        showToast(t('toast.doctorAccessReq', '🚨 Doctor Access Request received! Please review consent.'), 'info');
-      }
-    });
-
-    const checkPendingRequests = async () => {
-      try {
-        const reqs = await healthShareApi.getPatientRequests();
-        const pending = reqs.filter((r) => r.status === 'PENDING');
-        if (pending.length > 0) {
-          const hasNewPending = pending.some((p) => !dismissedRequestIds.has(p.id));
-          if (hasNewPending) {
-            setAccessRequestsModalOpen(true);
-          }
-        }
-      } catch {
-        // Silently handle
-      }
+    const handleOpenModal = () => {
+      setAccessRequestsModalOpen(true);
     };
-
-    checkPendingRequests();
-    const interval = setInterval(checkPendingRequests, 3500);
+    window.addEventListener('open_access_requests_modal', handleOpenModal);
 
     return () => {
-      unsubHealth();
-      clearInterval(interval);
+      window.removeEventListener('open_access_requests_modal', handleOpenModal);
     };
-  }, [dismissedRequestIds]);
+  }, []);
 
   const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     showGlobalToast(msg, type);
@@ -225,6 +256,12 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       return;
     }
     const targetId = (id === 'appointment') ? 'appointments' : (id === 'medicine') ? 'medicines' : (id === 'video-consultation') ? 'consultation' : (id === 'reminder') ? 'reminders' : (id === 'notification') ? 'notifications' : (id === 'health-analytics') ? 'analytics' : (id === 'family-connect') ? 'family' : (id === 'health-checkup') ? 'checkup' : (id === 'nearby-hospitals') ? 'hospitals' : id;
+
+    if (targetId === 'health-shorts') {
+      setShowShorts(true);
+      return;
+    }
+
     setActiveNavId(targetId);
     localStorage.setItem('app_active_nav_id', targetId);
 
@@ -269,46 +306,8 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       onOpenEmergencyModal();
     } else if (targetId === 'abha') {
       onOpenAbhaModal();
-    } else if (targetId === 'profile') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.profile', 'My Health Profile')));
-    } else if (targetId === 'records') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.records', 'Medical Records')));
-    } else if (targetId === 'scan') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.scan', 'Scan & Upload')));
-    } else if (targetId === 'appointments') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.appointments', 'Appointments')));
-    } else if (targetId === 'medicines') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.medicines', 'Medicines')));
-    } else if (targetId === 'pharmacy') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.pharmacy', 'Pharmacy Tracking')));
-    } else if (targetId === 'consultation') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.consultation', 'Video Consultation')));
-    } else if (targetId === 'reminders' || targetId === 'notifications') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.reminders', 'Reminders & Notifications')));
-    } else if (targetId === 'analytics' || targetId === 'health-analytics') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.analytics', 'Health Analytics')));
-    } else if (targetId === 'family' || targetId === 'family-connect') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.family', 'Family Connect')));
-    } else if (targetId === 'checkup' || targetId === 'health-checkup') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.checkup', 'Health Check-Up')));
-    } else if (targetId === 'dashboard') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.dashboard', 'Dashboard Overview')));
-    } else if (targetId === 'lab-test') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.labtest', 'Lab Test & Diagnostics')));
-    } else if (targetId === 'diet-plan') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.diet', 'Diet & Nutrient Plans')));
-    } else if (targetId === 'report-insights') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.insights', 'Report Insights & AI')));
-    } else if (targetId === 'nurse-booking') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.nurse', 'In-Home Nurse Booking')));
-    } else if (targetId === 'caregiver-booking') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.caregiver', 'Caregiver / Home Care Booking')));
-    } else if (targetId === 'janitor-booking') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.janitor', 'Janitor Booking')));
-    } else if (targetId === 'security-privacy') {
-      showToast(t('toast.switchedTo', 'Switched to {{module}}').replace('{{module}}', t('nav.security', 'Security & Privacy')));
-    } else {
-      showToast(t('toast.selectedModule', 'Selected {{module}} module').replace('{{module}}', targetId));
+    } else if (targetId === 'doctor-access' || targetId === 'access-requests' || targetId === 'consents') {
+      setAccessRequestsModalOpen(true);
     }
   };
 
@@ -338,7 +337,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       {/* MAIN DASHBOARD WORKSPACE (ISOLATED FULL-APP SCROLL CONTAINER) */}
       <div 
         ref={mainScrollRef}
-        className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800"
+        className="flex-1 min-w-0 overflow-x-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 transition-all duration-300"
       >
         <div className="w-full max-w-[1600px] mx-auto pt-4 sm:pt-6 pb-16 px-4 sm:px-6 lg:px-8">
 
@@ -392,7 +391,7 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
             user={effectiveUser}
             onNavigate={handleSelectNav}
           />
-        ) : activeNavId === 'pharmacy' ? (
+        ) : (activeNavId === 'pharmacy' || activeNavId === 'orders') ? (
           <PharmacyView
             user={effectiveUser}
             onNavigate={handleSelectNav}
@@ -482,20 +481,28 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
               onNavigateHome={() => handleSelectNav('home')}
               onNavigate={handleSelectNav}
               onLogout={onLogout}
+              isShortsOpen={showShorts}
             />
 
+            {/* ROLE-SPECIFIC ANNOUNCEMENT BANNER */}
+            <DashboardAnnouncementBanner role="patient" />
+
             {/* 2. PRIMARY HEALTH SCORE & ABDM ACCESS HERO CARDS */}
-            <DashboardStatsGrid onNavigate={handleSelectNav} />
+            <DashboardStatsGrid 
+              onNavigate={handleSelectNav} 
+              isShortsOpen={showShorts}
+            />
 
             {/* 2.5 LIVE VERIFIED PRESCRIPTION & PHARMACY TRACKING CARD */}
             <RecentPrescriptionTrackCard
               onNavigate={handleSelectNav}
               onToast={showToast}
+              isShortsOpen={showShorts}
             />
 
             {/* 3. HEALTH OVERVIEW HERO GRID (HEALTH SCORE + HEALTH ACCESS) */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <HealthScoreCard />
+            <section className={sectionGridClass}>
+              {patientWidgets.healthScore !== false && <HealthScoreCard />}
               <HealthAccessCard
                 abhaId={effectiveUser.abhaId}
                 userName={effectiveUser.name}
@@ -504,13 +511,20 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
               />
             </section>
 
-            {/* NEW: HEALTH SHORTS CARD */}
-            <section>
-              <HealthShortsCard onOpenShorts={() => setShowShorts(true)} />
-            </section>
+            {/* HEALTH SHORTS CARD */}
+            {patientWidgets.healthShorts !== false && (
+              <section>
+                <HealthShortsCard
+                  onOpenShorts={(videoId) => {
+                    setSelectedShortId(videoId);
+                    setShowShorts(true);
+                  }}
+                />
+              </section>
+            )}
 
             {/* 4. TODAY'S FOCUS & UPCOMING APPOINTMENT */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <TodaysFocusGrid
                 onNavigate={handleSelectNav}
                 onToast={showToast}
@@ -522,13 +536,13 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
             </section>
 
             {/* 5. HEALTH SNAPSHOT & INSIGHT */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <HealthSnapshotGrid />
               <HealthInsightCard onNavigate={handleSelectNav} />
             </section>
 
             {/* 6. MEDICATIONS & HEALTH PROGRESS CHART */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <MedicationListCard
                 onNavigate={handleSelectNav}
                 onToast={showToast}
@@ -543,19 +557,19 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
             <AIAssistantDashboardCard onNavigate={handleSelectNav} />
 
             {/* 9. INSURANCE & FAMILY CONNECT */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <InsuranceSummaryCard onNavigate={handleSelectNav} />
               <FamilyConnectCard onNavigate={handleSelectNav} />
             </section>
 
             {/* 10. NEARBY HOSPITALS & EMERGENCY SOS */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <NearbyHospitalsCard onNavigate={handleSelectNav} />
               <EmergencyQuickCard onOpenEmergency={onOpenEmergencyModal} />
             </section>
 
             {/* 11. RECENT RECORDS & ACTIVITY TIMELINE */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className={sectionGridClass}>
               <RecentRecordsCard
                 onNavigate={handleSelectNav}
                 onToast={showToast}
@@ -580,20 +594,20 @@ const DashboardPageInner: React.FC<DashboardPageProps> = ({
       {/* PATIENT DOCTOR ACCESS REQUESTS & CONSENT MODAL */}
       <PatientAccessRequestsModal
         isOpen={accessRequestsModalOpen}
-        onClose={() => {
-          setAccessRequestsModalOpen(false);
-          // Query pending requests and mark current IDs as dismissed for the session
-          healthShareApi.getPatientRequests().then((reqs) => {
-            const pendingIds = reqs.filter((r) => r.status === 'PENDING').map((r) => r.id);
-            setDismissedRequestIds(new Set(pendingIds));
-          }).catch(() => {});
-        }}
+        onClose={() => setAccessRequestsModalOpen(false)}
         onToast={showToast}
       />
 
       <AnimatePresence>
         {showShorts && (
-          <HealthShortsView onClose={() => setShowShorts(false)} patientHealthInfo={effectiveUser.name} />
+          <HealthShortsView 
+            onClose={() => {
+              setShowShorts(false);
+              setSelectedShortId(undefined);
+            }} 
+            initialVideoId={selectedShortId}
+            patientHealthInfo={effectiveUser.name} 
+          />
         )}
       </AnimatePresence>
     </div>

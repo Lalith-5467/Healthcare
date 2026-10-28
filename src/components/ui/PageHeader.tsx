@@ -18,6 +18,18 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   rightElement,
   className = ''
 }) => {
+  // Determine route context: preserve badge on the main Patient Dashboard overview while removing from all subpages
+  const pathname = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+  const isMainDashboard = 
+    pathname === '/' || 
+    pathname === '/dashboard' || 
+    pathname === '/user' || 
+    pathname === '/user/' || 
+    pathname === '/user/dashboard';
+
+  // Exclude badge from all Patient Dashboard subpages (e.g. scans, appointments, records, medicines, pharmacy, etc.)
+  const shouldRenderBadge = Boolean(badgeText) && isMainDashboard && !badgeText?.toLowerCase().includes('digitizer');
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -10 }}
@@ -36,7 +48,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             {title}
           </motion.h1>
 
-          {badgeText && (
+          {shouldRenderBadge && (
             <motion.span
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

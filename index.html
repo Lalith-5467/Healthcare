@@ -8,17 +8,30 @@
     <meta name="description" content="MediCare is a world-class healthcare provider committed to delivering medical services with patient-centered care and advanced technology." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://www.youtube.com">
+    <link rel="preconnect" href="https://www.google.com">
+    <link rel="preconnect" href="https://i.ytimg.com">
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Tamil:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       (function() {
         try {
-          var saved = localStorage.getItem('medicare-theme');
+          var saved = localStorage.getItem('medicare-theme') || localStorage.getItem('theme-landing');
           if (saved === 'dark') {
             document.documentElement.classList.remove('light');
             document.documentElement.classList.add('dark');
-          } else {
+          } else if (saved === 'light') {
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
+          } else {
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+              document.documentElement.classList.remove('light');
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+              document.documentElement.classList.add('light');
+            }
           }
         } catch (e) {
           document.documentElement.classList.remove('dark');

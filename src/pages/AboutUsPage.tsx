@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 
 import { CountUp } from '../components/ui/CountUp';
+import { useSiteConfig } from '../context/ConfigContext';
 
 interface AboutUsPageProps {
   onNavigateHome: () => void;
@@ -160,15 +161,15 @@ const leadership = [
     role: 'Chief Medical Officer',
     credentials: 'MD, DM (Cardiology), AIIMS New Delhi',
     specialty: 'Clinical Governance & Digital Health Standards',
-    img: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
+    img: '/doctors/dr_rajesh_varma.jpg',
     badge: '20+ Yrs Clinical Exp',
   },
   {
-    name: 'Priya Sharma',
+    name: 'Dr. Priya Sharma',
     role: 'Head of Health Privacy & Architecture',
     credentials: 'M.Tech, Stanford Fellow in Cryptography',
     specialty: 'ABDM Protocols & Zero-Knowledge Enclaves',
-    img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80',
+    img: '/doctors/dr_priya_sharma.jpg',
     badge: 'Data Security Pioneer',
   },
   {
@@ -176,15 +177,15 @@ const leadership = [
     role: 'Director of Emergency Care & Trauma',
     credentials: 'MBBS, MRCEM (UK), Emergency Medicine',
     specialty: 'Golden-Hour SOS Systems & Paramedic Workflows',
-    img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
+    img: '/doctors/dr_ananya_iyer.jpg',
     badge: 'Trauma Care Expert',
   },
   {
-    name: 'Karthik Ramanathan',
+    name: 'Dr. Amit Patel',
     role: 'VP of AI & Health Informatics',
     credentials: 'PhD in Medical AI, IISc Bengaluru',
     specialty: 'OCR Prescription Parsing & Predictive Analytics',
-    img: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+    img: '/doctors/dr_amit_patel.jpg',
     badge: 'Health AI Researcher',
   },
   {
@@ -192,7 +193,7 @@ const leadership = [
     role: 'Head of Telemedicine & Digital Surgery',
     credentials: 'MS, MCh (Neurosurgery), PGIMER Chandigarh',
     specialty: 'Remote Surgical Telemetry & Real-Time Haptic Protocols',
-    img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80',
+    img: '/doctors/dr_vikram_malhotra.jpg',
     badge: 'Tele-Health Pioneer',
   },
 ];
@@ -202,6 +203,26 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   onStartJourney, 
   onExploreFeatures 
 }) => {
+  let aboutConfig: any = null;
+  let brandingConfig: any = null;
+  try {
+    const siteConfig = useSiteConfig();
+    aboutConfig = siteConfig.landing?.about;
+    brandingConfig = siteConfig.branding;
+  } catch {}
+
+  const badge = aboutConfig?.badge || 'ABOUT MEDICARE';
+  const title = aboutConfig?.title || 'Discover the Future of Connected Healthcare';
+  const description = aboutConfig?.description || 'MediCare brings patients, doctors, hospitals, and emergency healthcare services together through one simple, secure, and connected digital healthcare ecosystem.';
+  const videoUrl = aboutConfig?.videoUrl || '/about_us_.mp4';
+  const videoPoster = aboutConfig?.videoPosterUrl || aboutConfig?.imageUrl || '/about-us-phr.jpg';
+  const videoTitle = aboutConfig?.videoTitle || 'See How MediCare Connects Healthcare';
+  const videoDescription = aboutConfig?.videoDescription || 'Discover how MediCare brings people, healthcare professionals, and essential healthcare services together in one connected ecosystem.';
+  const showVideo = aboutConfig?.showVideo !== false && Boolean(videoUrl);
+  const missionImageUrl = aboutConfig?.missionImageUrl || '/mission_3d_target.jpg';
+  const visionImageUrl = aboutConfig?.visionImageUrl || '/vision_3d_ecosystem.jpg';
+  const primaryColor = brandingConfig?.primaryColor || '#00a896';
+
   const [activeStoryTab, setActiveStoryTab] = useState<'mission' | 'journey' | 'security'>('mission');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [activeLeadershipIndex, setActiveLeadershipIndex] = useState(0);
@@ -243,7 +264,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden font-sans">
+    <div id="about-us-page" className="min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden font-sans">
       
       {/* =========================================================================
           SECTION 1 — PREMIUM ABOUT US HERO
@@ -267,22 +288,35 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               className="lg:col-span-6 space-y-6 text-left"
             >
               {/* SMALL ROUNDED BADGE */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#00a896]" />
-                <span>ABOUT MEDICARE</span>
+              <div 
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-xs"
+                style={{
+                  backgroundColor: `${primaryColor}15`,
+                  color: primaryColor,
+                  borderColor: `${primaryColor}30`,
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" style={{ color: primaryColor }} />
+                <span>{badge}</span>
               </div>
 
               {/* MAIN HEADING */}
               <h1 className="text-4xl sm:text-5xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
-                Discover the Future of{' '}
-                <span className="text-[#00a896] dark:text-cyan-400">
-                  Connected Healthcare
-                </span>
+                {title.includes('Healthcare') ? (
+                  title
+                ) : (
+                  <>
+                    {title}{' '}
+                    <span style={{ color: primaryColor }}>
+                      Healthcare Platform
+                    </span>
+                  </>
+                )}
               </h1>
 
               {/* SUPPORTING TEXT */}
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium max-w-xl">
-                MediCare brings patients, doctors, hospitals, and emergency healthcare services together through one simple, secure, and connected digital healthcare ecosystem.
+                {description}
               </p>
 
               {/* HERO BUTTONS */}
@@ -519,95 +553,108 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       {/* =========================================================================
           SECTION 2 — INTRODUCTION VIDEO SECTION
           ========================================================================= */}
-      <section 
-        id="about-video"
-        className="py-20 lg:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#0b1120] dark:via-slate-900/70 dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 relative overflow-hidden"
-      >
-        {/* DECORATIVE HEALTHCARE THEMED BACKGROUND AMBIENCE */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[450px] bg-gradient-to-tr from-teal-400/10 via-[#00a896]/10 to-cyan-400/10 blur-3xl pointer-events-none rounded-full" />
-        
-        {/* SUBTLE ECG WAVE LINE BACKGROUND ACCENT */}
-        <svg 
-          className="absolute inset-x-0 top-1/3 w-full h-32 opacity-15 pointer-events-none text-[#00a896]" 
-          viewBox="0 0 1200 120" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="1.5"
+      {showVideo && (
+        <section 
+          id="about-video"
+          className="py-20 lg:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-[#0b1120] dark:via-slate-900/70 dark:to-[#0b1120] border-b border-slate-200/80 dark:border-slate-800/80 relative overflow-hidden"
         >
-          <path d="M0,60 L200,60 L220,60 L230,20 L240,100 L250,40 L260,75 L270,60 L600,60 L620,60 L630,15 L640,105 L650,35 L660,80 L670,60 L1200,60" />
-        </svg>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+          {/* DECORATIVE HEALTHCARE THEMED BACKGROUND AMBIENCE */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[450px] bg-gradient-to-tr from-teal-400/10 via-[#00a896]/10 to-cyan-400/10 blur-3xl pointer-events-none rounded-full" />
           
-          {/* SECTION HEADING */}
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 border border-teal-500/30 text-xs font-black uppercase tracking-wider">
-              <Activity className="w-3.5 h-3.5" />
-              <span>OUR STORY</span>
-            </span>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-              See How MediCare Connects Healthcare
-            </h2>
-
-            <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
-              Discover how MediCare brings people, healthcare professionals, and essential healthcare services together in one connected ecosystem.
-            </p>
-          </div>
-
-          {/* LARGE CENTERED VIDEO CARD */}
-          <motion.div 
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-6xl mx-auto rounded-[28px] overflow-hidden shadow-2xl shadow-teal-500/10 border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
+          {/* SUBTLE ECG WAVE LINE BACKGROUND ACCENT */}
+          <svg 
+            className="absolute inset-x-0 top-1/3 w-full h-32 opacity-15 pointer-events-none text-[#00a896]" 
+            viewBox="0 0 1200 120" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="1.5"
           >
-            <div className="aspect-video w-full relative bg-slate-950 flex items-center justify-center">
-              
-              {/* VIDEO PLAYER */}
-              <video
-                ref={videoRef}
-                src="/about_us_.mp4"
-                controls={isPlayingVideo}
-                playsInline
-                className="w-full h-full object-cover rounded-[26px]"
-                onEnded={() => setIsPlayingVideo(false)}
+            <path d="M0,60 L200,60 L220,60 L230,20 L240,100 L250,40 L260,75 L270,60 L600,60 L620,60 L630,15 L640,105 L650,35 L660,80 L670,60 L1200,60" />
+          </svg>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+            
+            {/* SECTION HEADING */}
+            <div className="text-center max-w-3xl mx-auto space-y-3">
+              <span 
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider"
+                style={{
+                  backgroundColor: `${primaryColor}15`,
+                  color: primaryColor,
+                  border: `1px solid ${primaryColor}30`,
+                }}
               >
-                Your browser does not support the video tag.
-              </video>
+                <Activity className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                <span>OUR STORY</span>
+              </span>
 
-              {/* INTERACTIVE PREVIEW OVERLAY (SHOWN BEFORE PLAY) */}
-              {!isPlayingVideo && (
-                <div 
-                  onClick={handlePlayVideo}
-                  className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-slate-950/40 backdrop-blur-xs flex flex-col items-center justify-center text-center p-6 cursor-pointer group/overlay transition-all"
-                >
-                  {/* PLAY BUTTON WITH PULSING GLOW & HOVER MOVEMENT */}
-                  <motion.div 
-                    whileHover={{ scale: 1.12 }}
-                    whileTap={{ scale: 0.94 }}
-                    className="relative mb-5"
-                  >
-                    <div className="absolute inset-0 rounded-full bg-[#00a896] blur-xl opacity-60 group-hover/overlay:opacity-90 animate-pulse" />
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#00a896] via-teal-500 to-cyan-400 text-slate-900 dark:text-white flex items-center justify-center shadow-2xl shadow-teal-500/40 relative z-10 border-2 border-white/40">
-                      <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-slate-900 dark:text-white ml-1" />
-                    </div>
-                  </motion.div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                {videoTitle}
+              </h2>
 
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight drop-shadow-md">
-                    Watch Our Introduction
-                  </h3>
-                  <p className="text-xs sm:text-sm text-teal-200 mt-1 font-medium drop-shadow">
-                    Click to play the 1080p MediCare platform walkthrough
-                  </p>
-                </div>
-              )}
+              <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
+                {videoDescription}
+              </p>
             </div>
-          </motion.div>
 
-        </div>
-      </section>
+            {/* LARGE CENTERED VIDEO CARD */}
+            <motion.div 
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="w-full max-w-6xl mx-auto rounded-[28px] overflow-hidden shadow-2xl shadow-teal-500/10 border-2 border-teal-500/30 dark:border-teal-500/40 bg-slate-900 relative group"
+            >
+              <div className="aspect-video w-full relative bg-slate-950 flex items-center justify-center">
+                
+                {/* VIDEO PLAYER */}
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  poster={videoPoster}
+                  controls={isPlayingVideo}
+                  playsInline
+                  className="w-full h-full object-cover rounded-[26px]"
+                  onEnded={() => setIsPlayingVideo(false)}
+                  onError={(e: any) => {
+                    e.currentTarget.src = '/about_us_.mp4';
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
+
+                {/* INTERACTIVE PREVIEW OVERLAY (SHOWN BEFORE PLAY) */}
+                {!isPlayingVideo && (
+                  <div 
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-slate-950/40 backdrop-blur-xs flex flex-col items-center justify-center text-center p-6 cursor-pointer group/overlay transition-all"
+                  >
+                    {/* PLAY BUTTON WITH PULSING GLOW & HOVER MOVEMENT */}
+                    <motion.div 
+                      whileHover={{ scale: 1.12 }}
+                      whileTap={{ scale: 0.94 }}
+                      className="relative mb-5"
+                    >
+                      <div className="absolute inset-0 rounded-full bg-[#00a896] blur-xl opacity-60 group-hover/overlay:opacity-90 animate-pulse" />
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#00a896] via-teal-500 to-cyan-400 text-white flex items-center justify-center shadow-2xl shadow-teal-500/40 relative z-10 border-2 border-white/40">
+                        <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-white ml-1" />
+                      </div>
+                    </motion.div>
+
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                      Watch Our Introduction
+                    </h3>
+                    <p className="text-xs sm:text-sm text-teal-200 mt-1 font-medium drop-shadow">
+                      Click to play the MediCare platform walkthrough
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+          </div>
+        </section>
+      )}
 
       {/* =========================================================================
           SECTION 3 — INTERACTIVE STORY & MISSION / VISION / SECURITY TABS
@@ -672,9 +719,12 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   {/* AMBIENT 3D BACKGROUND LAYER WITH GRADIENT OVERLAY */}
                   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                     <img 
-                      src="/mission_3d_target.jpg" 
-                      alt="" 
+                      src={missionImageUrl} 
+                      alt="Mission" 
                       className="w-full h-full object-cover opacity-20 dark:opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700" 
+                      onError={(e: any) => {
+                        e.currentTarget.src = '/mission_3d_target.jpg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-teal-50/85 to-white/95 dark:from-slate-900/90 dark:via-teal-950/80 dark:to-slate-900/95 backdrop-blur-[2px]" />
                   </div>
@@ -726,9 +776,12 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   {/* AMBIENT 3D BACKGROUND LAYER WITH GRADIENT OVERLAY */}
                   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                     <img 
-                      src="/vision_3d_ecosystem.jpg" 
-                      alt="" 
+                      src={visionImageUrl} 
+                      alt="Vision" 
                       className="w-full h-full object-cover opacity-20 dark:opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700" 
+                      onError={(e: any) => {
+                        e.currentTarget.src = '/vision_3d_ecosystem.jpg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-sky-50/85 to-white/95 dark:from-slate-900/90 dark:via-sky-950/80 dark:to-slate-900/95 backdrop-blur-[2px]" />
                   </div>
@@ -828,38 +881,42 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
                 transition={{ duration: 0.4 }}
-                className="p-8 sm:p-10 rounded-3xl bg-slate-900 text-white border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden space-y-8"
+                className="p-8 sm:p-10 rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-teal-500/25 dark:border-slate-800 shadow-xl dark:shadow-2xl relative overflow-hidden space-y-8"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                {/* AMBIENT GLOW ACCENTS */}
+                <div className="absolute -top-16 -right-16 w-56 h-56 bg-teal-400/10 dark:bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-cyan-400/10 dark:bg-cyan-500/15 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
                   <div className="lg:col-span-7 space-y-4">
-                    <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30 inline-flex items-center gap-2">
-                      <Lock className="w-3.5 h-3.5" />
+                    <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-teal-50 dark:bg-teal-500/20 text-[#00a896] dark:text-teal-300 border border-teal-200 dark:border-teal-500/30 inline-flex items-center gap-2 font-mono shadow-xs">
+                      <Lock className="w-3.5 h-3.5 text-[#00a896] dark:text-teal-300" />
                       <span>Cryptographic Sovereignty</span>
                     </span>
-                    <h3 className="text-2xl sm:text-3xl font-black">
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                       Zero-Knowledge Enclaves & Patient Consent Engine
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                       MediCare is built around zero-trust architectural principles. Medical files are client-side encrypted before cloud transmission. Every record access by doctors requires an affirmative OTP consent transaction logged permanently in the ABDM audit trail.
                     </p>
                   </div>
 
                   <div className="lg:col-span-5 grid grid-cols-2 gap-3.5 font-mono">
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                      <span className="text-[10px] text-teal-300 font-bold font-sans">ENCRYPTION</span>
-                      <strong className="text-sm text-slate-900 dark:text-white block">AES-256 GCM</strong>
+                    <div className="p-4 rounded-2xl bg-teal-50/80 dark:bg-white/5 border border-teal-200/80 dark:border-white/10 shadow-xs space-y-1">
+                      <span className="text-[10px] text-teal-700 dark:text-teal-300 font-bold font-sans">ENCRYPTION</span>
+                      <strong className="text-sm text-slate-900 dark:text-white block font-mono">AES-256 GCM</strong>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                      <span className="text-[10px] text-cyan-300 font-bold font-sans">KEY EXCHANGE</span>
-                      <strong className="text-sm text-slate-900 dark:text-white block">ECDH Curve25519</strong>
+                    <div className="p-4 rounded-2xl bg-cyan-50/80 dark:bg-white/5 border border-cyan-200/80 dark:border-white/10 shadow-xs space-y-1">
+                      <span className="text-[10px] text-cyan-700 dark:text-cyan-300 font-bold font-sans">KEY EXCHANGE</span>
+                      <strong className="text-sm text-slate-900 dark:text-white block font-mono">ECDH Curve25519</strong>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                      <span className="text-[10px] text-purple-300 font-bold font-sans">GOVERNMENT GRID</span>
-                      <strong className="text-sm text-slate-900 dark:text-white block">ABDM Gateway</strong>
+                    <div className="p-4 rounded-2xl bg-purple-50/80 dark:bg-white/5 border border-purple-200/80 dark:border-white/10 shadow-xs space-y-1">
+                      <span className="text-[10px] text-purple-700 dark:text-purple-300 font-bold font-sans">GOVERNMENT GRID</span>
+                      <strong className="text-sm text-slate-900 dark:text-white block font-mono">ABDM Gateway</strong>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                      <span className="text-[10px] text-amber-300 font-bold font-sans">AUDITABILITY</span>
-                      <strong className="text-sm text-slate-900 dark:text-white block">Immutable Logs</strong>
+                    <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-white/5 border border-amber-200/80 dark:border-white/10 shadow-xs space-y-1">
+                      <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold font-sans">AUDITABILITY</span>
+                      <strong className="text-sm text-slate-900 dark:text-white block font-mono">Immutable Logs</strong>
                     </div>
                   </div>
                 </div>
@@ -950,18 +1007,14 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
       {/* =========================================================================
           SECTION 5 — PLATFORM MILESTONES & TELEMETRY WITH ANIMATED COUNTUP
           ========================================================================= */}
-      <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-700 to-cyan-700 text-slate-900 dark:text-white shadow-2xl relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-r from-[#00a896] via-teal-700 to-cyan-700 text-white shadow-2xl relative overflow-hidden">
         {/* BACKGROUND ORB ACCENTS */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-900/40 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
-            <span className="text-xs font-black uppercase tracking-widest text-teal-100 bg-white/15 px-4 py-1 rounded-full border border-white/20 inline-flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5" />
-              <span>Real-Time Health Telemetry</span>
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm">
               Trusted Across Indian Healthcare
             </h2>
           </div>
@@ -974,20 +1027,20 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-white/10 backdrop-blur-md border border-white/20 p-6 sm:p-7 rounded-[22px] space-y-2 shadow-xl hover:bg-white/15 transition-all"
+                className="bg-white/15 backdrop-blur-md border border-white/25 p-6 sm:p-7 rounded-[22px] space-y-2 shadow-xl hover:bg-white/20 transition-all"
               >
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white font-mono flex items-center justify-center">
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-mono flex items-center justify-center drop-shadow-sm">
                   <CountUp
                     to={st.target}
                     from={0}
                     separator={st.separator || ''}
                     duration={2.2}
-                    className="font-black"
+                    className="font-black text-white"
                   />
-                  {st.suffix && <span>{st.suffix}</span>}
+                  {st.suffix && <span className="text-white">{st.suffix}</span>}
                 </div>
-                <h4 className="text-sm font-black text-slate-900 dark:text-white">{st.label}</h4>
-                <p className="text-[11px] font-medium text-teal-100/90 leading-tight">{st.subtext}</p>
+                <h4 className="text-sm font-black text-white drop-shadow-xs">{st.label}</h4>
+                <p className="text-[11px] font-medium text-teal-100 leading-tight">{st.subtext}</p>
               </motion.div>
             ))}
           </div>
@@ -1014,7 +1067,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
           {/* 3D HORIZONTAL COVER-FLOW CAROUSEL FOR LEADERSHIP */}
           <div 
-            className="relative w-full max-w-7xl mx-auto h-[540px] flex items-center justify-center overflow-hidden select-none"
+            className="relative w-full max-w-7xl mx-auto h-[395px] flex items-center justify-center overflow-hidden select-none"
             onMouseEnter={() => setIsLeadershipHovered(true)}
             onMouseLeave={() => setIsLeadershipHovered(false)}
             style={{ perspective: '1400px' }}
@@ -1057,28 +1110,28 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 if (diff === 0) {
                   xOffset = 0;
-                  zOffset = 80;
+                  zOffset = 40;
                   scale = 1.02;
                   rotateY = 0;
                   zIndex = 40;
                   opacity = 1.0;
-                  filter = 'blur(0px) brightness(1.04)';
+                  filter = 'none';
                 } else if (Math.abs(diff) === 1) {
-                  xOffset = diff * 320;
-                  zOffset = -35;
-                  scale = 0.88;
-                  rotateY = diff * -18;
+                  xOffset = diff * 380;
+                  zOffset = -20;
+                  scale = 0.94;
+                  rotateY = diff * -6;
                   zIndex = 25;
-                  opacity = 0.85;
-                  filter = 'blur(0.4px) brightness(0.88)';
+                  opacity = 0.92;
+                  filter = 'none';
                 } else if (Math.abs(diff) === 2) {
-                  xOffset = diff * 540;
-                  zOffset = -130;
-                  scale = 0.72;
-                  rotateY = diff * -30;
+                  xOffset = diff * 740;
+                  zOffset = -90;
+                  scale = 0.82;
+                  rotateY = diff * -12;
                   zIndex = 10;
-                  opacity = 0.45;
-                  filter = 'blur(1.5px) brightness(0.7)';
+                  opacity = 0.4;
+                  filter = 'none';
                 }
 
                 return (
@@ -1105,9 +1158,9 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       }
                     }}
                     style={{ transformStyle: 'preserve-3d' }}
-                    className={`absolute w-[290px] sm:w-[320px] md:w-[330px] h-[470px] rounded-[22px] bg-slate-950 overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
+                    className={`absolute w-[290px] sm:w-[315px] md:w-[325px] h-[355px] sm:h-[360px] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-500 ${
                       isCenter
-                        ? 'border-2 border-cyan-400 dark:border-cyan-300 shadow-[0_25px_60px_-15px_rgba(0,168,150,0.45)] ring-4 ring-teal-500/25'
+                        ? 'border-2 border-teal-500 dark:border-cyan-300 shadow-[0_25px_60px_-15px_rgba(0,168,150,0.35)] ring-4 ring-teal-500/25'
                         : 'border border-slate-200 dark:border-slate-700/80 shadow-xl hover:border-teal-400/60'
                     }`}
                   >
@@ -1116,53 +1169,59 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none z-20" />
                     )}
 
-                    {/* POSTER IMAGE AREA WITH CINEMATIC GRADIENT FADE */}
-                    <div className="h-72 overflow-hidden relative">
+                    {/* 1. CRYSTAL-CLEAR EXECUTIVE DOCTOR PORTRAIT (PROPORTIONAL 200px HEIGHT & CENTER-18% FRAMING) */}
+                    <div className="h-[195px] sm:h-[200px] w-full overflow-hidden relative bg-slate-100 dark:bg-slate-800 shrink-0">
                       <img 
                         src={mem.img} 
                         alt={mem.name} 
-                        className={`w-full h-full object-cover object-[center_top] transition-transform duration-700 ease-out ${isCenter ? 'scale-105' : 'scale-100'}`}
+                        className={`w-full h-full object-cover object-[center_18%] transition-transform duration-700 ease-out ${isCenter ? 'scale-105' : 'scale-100'}`}
+                        loading="lazy"
+                        onError={(e: any) => {
+                          e.currentTarget.src = '/about_us_healthcare.jpg';
+                        }}
                       />
                       
-                      {/* DARK-TO-TRANSPARENT CINEMATIC GRADIENT OVERLAY */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-                      
+                      {/* SUBTLE CARD HEADER SCRIM */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent pointer-events-none" />
+
                       {/* TOP CORNER FLOATING BADGE CHIP */}
-                      <div className="absolute top-3.5 right-3.5 z-10">
+                      <div className="absolute top-3 right-3 z-10">
                         <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full backdrop-blur-md font-mono shadow-md transition-colors ${
                           isCenter 
-                            ? 'bg-slate-950/90 text-cyan-300 border border-cyan-400/50 ring-2 ring-cyan-400/20' 
-                            : 'bg-slate-950/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                            ? 'bg-white/95 dark:bg-slate-900/90 text-[#00a896] dark:text-cyan-300 border border-teal-500/40 ring-2 ring-teal-400/20' 
+                            : 'bg-white/90 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                         }`}>
                           {mem.badge}
                         </span>
                       </div>
-
-                      {/* OVERLAID NAME AND TITLE */}
-                      <div className="absolute bottom-3 left-4 right-4 text-slate-900 dark:text-white z-10">
-                        <h4 className="text-lg font-black tracking-tight drop-shadow-md">{mem.name}</h4>
-                        <p className="text-xs text-teal-300 font-bold drop-shadow-xs">{mem.role}</p>
-                      </div>
                     </div>
 
-                    {/* LOWER INFORMATION CONTENT */}
-                    <div className="p-5 bg-slate-950 space-y-3 flex-1 flex flex-col justify-between border-t border-slate-200 dark:border-slate-800/80">
-                      <div className="space-y-1.5">
-                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono">
-                          {mem.credentials}
+                    {/* 2. CARD CONTENT WITH COMPACT, PROFESSIONAL SPACING (ZERO DEAD SPACE) */}
+                    <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 flex-1 flex flex-col justify-between text-left">
+                      <div className="space-y-1">
+                        <div>
+                          <h4 className="text-base sm:text-[17px] font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+                            {mem.name}
+                          </h4>
+                          <p className="text-xs font-bold text-[#00a896] dark:text-teal-400">
+                            {mem.role}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed line-clamp-2">
+                        <span className="text-[10px] font-black uppercase text-teal-800 dark:text-teal-300 tracking-wider font-mono block">
+                          {mem.credentials}
+                        </span>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed line-clamp-2">
                           {mem.specialty}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-[11px] font-bold text-teal-400">
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-black text-teal-700 dark:text-teal-400">
                         <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 stroke-[2.5]" />
                           <span>Verified Clinical Advisor</span>
                         </div>
                         {!isCenter && (
-                          <span className="text-[10px] text-cyan-300 font-mono underline hover:text-cyan-200">Focus</span>
+                          <span className="text-xs text-teal-700 dark:text-cyan-300 font-mono font-bold hover:underline">Focus</span>
                         )}
                       </div>
                     </div>

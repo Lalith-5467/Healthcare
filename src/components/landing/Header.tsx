@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll } from 'framer-motion';
 import { 
   Menu, 
   X, 
   Activity, 
-  Search,
   FileText,
   Clock,
   Pill,
@@ -16,9 +15,16 @@ import {
   Bot,
   UserCheck,
   Watch,
-  ArrowRight
+  ArrowRight,
+  Home,
+  Building2,
+  Sparkles,
+  Stethoscope,
+  ShieldCheck
 } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { Logo } from '../ui/Logo';
+import { useSiteConfig } from '../../context/ConfigContext';
 
 interface HeaderProps {
   onNavigate: (sectionId: string) => void;
@@ -26,6 +32,7 @@ interface HeaderProps {
   userName?: string;
   onLogout?: () => void;
   showProgressBar?: boolean;
+  currentPage?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -33,21 +40,43 @@ export const Header: React.FC<HeaderProps> = ({
   isLoggedIn = false,
   userName,
   onLogout,
-  showProgressBar = true
+  showProgressBar: showProgressBarProp = true,
+  currentPage = 'home'
 }) => {
+  let headerConfig: any = null;
+  try {
+    const siteConfig = useSiteConfig();
+    headerConfig = siteConfig.header;
+  } catch {}
+
+  const isLandingPage = currentPage === 'home';
+  const showProgressBar = isLandingPage && (headerConfig?.showProgressBar !== undefined 
+    ? headerConfig.showProgressBar 
+    : showProgressBarProp);
+
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(currentPage || 'home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Sync activeTab when currentPage changes
+  useEffect(() => {
+    if (currentPage) {
+      setActiveTab(currentPage);
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
 
+      // Only perform scroll-spy navigation tracking on the home/landing page
+      if (currentPage && currentPage !== 'home') {
+        return;
+      }
+
       // SCROLL-SPY ACTIVE NAV TAB DETECTION
-      const sectionIds = ['home', 'about', 'features', 'doctors', 'abha'];
+      const sectionIds = ['home', 'features', 'doctors', 'abha'];
       const scrollPosition = window.scrollY + 140;
 
       for (let i = sectionIds.length - 1; i >= 0; i--) {
@@ -67,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
     window.addEventListener('scroll', handleScroll);
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [currentPage]);
 
   const megaMenuServices = [
     {
@@ -142,21 +171,24 @@ export const Header: React.FC<HeaderProps> = ({
     },
   ];
 
-  const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About Us' },
-    { id: 'services', label: 'Services', isMega: true },
-    { id: 'features', label: 'Features' },
-    { id: 'doctors', label: 'Doctors' },
-    { id: 'abha', label: 'ABHA' },
-  ];
+  const navItems = (headerConfig?.navItems && headerConfig.navItems.length > 0)
+    ? headerConfig.navItems
+        .filter((item: any) => item.visible !== false)
+        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+        .map((item: any) => ({
+          ...item,
+          isMega: item.id === 'services' || Boolean(item.isMega),
+        }))
+    : [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About Us' },
+        { id: 'services', label: 'Services', isMega: true },
+        { id: 'features', label: 'Features' },
+        { id: 'doctors', label: 'Doctors' },
+        { id: 'abha', label: 'ABHA' },
+      ];
 
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
 
   const handleNavClick = (id: string) => {
     setActiveTab(id);
@@ -167,11 +199,11 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-      {/* ANIMATED SCROLL PROGRESS BAR */}
+      {/* NORMAL SCROLL PROGRESS BAR (FLAT, NO GLOW, NO ANIMATION) */}
       {showProgressBar && (
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#00a896] via-teal-400 to-cyan-400 origin-left z-50 shadow-[0_0_12px_#00a896]"
-          style={{ scaleX }}
+          className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00a896] origin-left z-50 pointer-events-none"
+          style={{ scaleX: scrollYProgress }}
         />
       )}
 
@@ -188,25 +220,15 @@ export const Header: React.FC<HeaderProps> = ({
           {/* BRAND LOGO */}
           <button
             onClick={() => handleNavClick('home')}
-            className="flex items-center gap-3 text-left focus:outline-none group cursor-pointer shrink-0"
+            className="flex items-center text-left focus:outline-none group cursor-pointer shrink-0"
             aria-label="MediCare Home"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#00a896] flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform shrink-0">
-              <Activity className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
-                Medi<span className="text-[#00a896]">Care</span>
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
-                Healthcare & Medical
-              </span>
-            </div>
+            <Logo variant="auto" />
           </button>
 
           {/* DESKTOP NAV LINKS */}
           <nav className="hidden lg:flex items-center gap-7 relative">
-            {navItems.map((item) => {
+            {navItems.map((item: any) => {
               const isActive = activeTab === item.id;
               if (item.isMega) {
                 return (
@@ -290,33 +312,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* RIGHT ACTIONS */}
           <div className="hidden lg:flex items-center space-x-3 shrink-0">
-            {/* SEARCH ICON BUTTON */}
-            <div className="relative">
-              <button
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="w-10 h-10 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer"
-                title="Search health records and features"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
-              {searchOpen && (
-                <div className="absolute right-0 top-full mt-2 w-72 p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 z-50">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                    <Search className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Search records, SOS, medicine..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-xs text-slate-900 dark:text-white outline-none"
-                      autoFocus
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* THEME TOGGLE */}
             <div className="flex items-center">
@@ -358,11 +353,13 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
+
+
       {/* MOBILE MENU DRAWER */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 p-6 shadow-xl animate-in slide-in-from-top duration-200 max-h-[85vh] overflow-y-auto">
           <nav className="flex flex-col space-y-3">
-            {navItems.map((item) => (
+            {navItems.map((item: any) => (
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}

@@ -165,25 +165,60 @@ export class DashboardService {
       };
     }
 
-    // ADMIN
-    const [totalUsers, totalPatients, totalDoctors, totalPharmacies, totalPrescriptions, totalOrders] =
-      await Promise.all([
-        prisma.user.count(),
-        prisma.patient.count(),
-        prisma.doctor.count(),
-        prisma.pharmacy.count(),
-        prisma.prescription.count(),
-        prisma.pharmacyOrder.count(),
-      ]);
-
-    return {
-      role: Role.ADMIN,
+    // ADMIN & SUPER_ADMIN (Comprehensive Real System Intelligence)
+    const [
       totalUsers,
       totalPatients,
       totalDoctors,
+      totalNurses,
+      totalPharmacists,
+      totalCaregivers,
+      totalInsurance,
       totalPharmacies,
       totalPrescriptions,
       totalOrders,
+      totalAppointments,
+      totalRecords,
+      userRoleGroups,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.patient.count(),
+      prisma.doctor.count(),
+      prisma.nurse.count(),
+      prisma.pharmacist.count(),
+      prisma.caregiver.count(),
+      prisma.insuranceProvider.count(),
+      prisma.pharmacy.count(),
+      prisma.prescription.count(),
+      prisma.pharmacyOrder.count(),
+      prisma.appointment.count(),
+      prisma.medicalRecord.count(),
+      prisma.user.groupBy({
+        by: ['role'],
+        _count: { id: true },
+      }),
+    ]);
+
+    const roleDistribution: Record<string, number> = {};
+    for (const group of userRoleGroups) {
+      roleDistribution[group.role] = group._count.id;
+    }
+
+    return {
+      role: role === Role.SUPER_ADMIN ? Role.SUPER_ADMIN : Role.ADMIN,
+      totalUsers,
+      totalPatients,
+      totalDoctors,
+      totalNurses,
+      totalPharmacists,
+      totalCaregivers,
+      totalInsurance,
+      totalPharmacies,
+      totalPrescriptions,
+      totalOrders,
+      totalAppointments,
+      totalRecords,
+      roleDistribution,
       systemHealth: 'Optimal',
     };
   }
