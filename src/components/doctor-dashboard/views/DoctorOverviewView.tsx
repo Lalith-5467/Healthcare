@@ -8,6 +8,7 @@ import {
 import { getGreeting } from '../../../utils/greeting';
 import { healthShareApi, type AccessRequestItem } from '../../../services/healthShareApi';
 import { socketService } from '../../../services/socketService';
+import { apiClient } from '../../../services/apiClient';
 import { useLanguage } from '../../../context/LanguageContext';
 import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
@@ -60,12 +61,9 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/doctor/dashboard');
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setDashboardData(result.data);
-        }
+      const result = await apiClient.get("/doctor/dashboard");
+      if (result && result.success) {
+        setDashboardData(result.data);
       }
     } catch (err: any) {
       console.warn('Dashboard data fetch error:', err?.message);
