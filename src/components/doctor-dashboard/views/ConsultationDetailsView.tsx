@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { apiClient } from '../../../services/apiClient';
 import { ChevronLeft, Calendar, User, FileText, Pill, Activity, Syringe, ClipboardList, AlertCircle, Video, Stethoscope, Beaker, MapPin } from 'lucide-react';
 
 interface ConsultationDetailsViewProps {
@@ -16,8 +17,7 @@ export const ConsultationDetailsView: React.FC<ConsultationDetailsViewProps> = (
     const fetchDetails = async () => {
       if (!appointmentId) return;
       try {
-        const response = await fetch(`http://localhost:5000/api/consultations/${appointmentId}`);
-        const result = await response.json();
+        const result = await apiClient.get(`/consultations/${appointmentId}`);
         if (result.success) {
           setData(result.data);
         }
@@ -34,10 +34,7 @@ export const ConsultationDetailsView: React.FC<ConsultationDetailsViewProps> = (
     if (!appointmentId) return;
     setStarting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/consultations/${appointmentId}/start`, {
-        method: 'POST'
-      });
-      const result = await response.json();
+      const result = await apiClient.post(`/consultations/${appointmentId}/start`);
       if (result.success) {
         onNavigate('consultation-workspace');
       } else {
