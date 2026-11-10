@@ -4,7 +4,7 @@
  */
 
 // Use direct backend URL on port 5000 in dev, or VITE_API_URL if configured
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && window.location.origin ? `${window.location.origin}/api` : 'http://localhost:5000/api');
 
 export interface ApiResponse<T = any> {
   success: boolean;
