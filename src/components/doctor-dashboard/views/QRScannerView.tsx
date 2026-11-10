@@ -96,12 +96,13 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
     }
     setIsCameraActive(false);
   }, []);
 
   // Request camera and initialize video stream with session-guarded concurrency and device-aware constraints
-  const startCamera = useCallback(async () => {
+    const startCamera = useCallback(async () => {
     const sessionId = ++cameraSessionIdRef.current;
     setCameraError(null);
     setErrorMessage(null);
@@ -115,10 +116,9 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
     ) {
       const msg = tRef.current(
         "doctor.scan.insecure_context",
-        "Camera access requires a secure connection (HTTPS or localhost). Please open this app via http://localhost:3000."
+        "Camera access requires a secure connection (HTTPS or localhost)."
       );
       setCameraError(msg);
-      setErrorMessage(msg);
       setIsCameraActive(false);
       return;
     }
@@ -134,12 +134,11 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         "Camera scanning is not supported by this browser. Please use Chrome, Edge, or Firefox."
       );
       setCameraError(msg);
-      setErrorMessage(msg);
       setIsCameraActive(false);
       return;
     }
 
-    // Stop any existing stream before creating a new one
+    // Stop any existing stream before creating a new one to prevent resource leaks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => {
         try {
@@ -152,6 +151,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
     }
 
     try {
@@ -166,7 +166,6 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
               "Camera permission was denied. Please allow camera access in your browser site settings and try again."
             );
             setCameraError(msg);
-            setErrorMessage(msg);
             setIsCameraActive(false);
             return;
           }
@@ -175,48 +174,90 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         }
       }
 
-      // 4. Device-aware constraint selection
+      // 4. Device-aware constraint selection with multi-tiered fallbacks
       const isMobile =
         typeof navigator !== 'undefined' &&
         /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 
-      let stream: MediaStream | null = null;
+      const constraintTiers: MediaStreamConstraints[] = isMobile
+        ? [
+            // Tier 1 (Mobile): Prefer rear environment camera with HD
+            {
+              video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              },
+              audio: false,
+            },
+            // Tier 2 (Mobile): Environment camera without strict resolution
+            {
+              video: { facingMode: { ideal: "environment" } },
+              audio: false,
+            },
+            // Tier 3 (Mobile Fallback): Front/user-facing camera if no rear camera exists
+            {
+              video: { facingMode: "user" },
+              audio: false,
+            },
+            // Tier 4 (Mobile Final): Any available video track
+            {
+              video: true,
+              audio: false,
+            },
+          ]
+        : [
+            // Tier 1 (Desktop): User-facing camera with ideal HD
+            {
+              video: {
+                facingMode: { ideal: "user" },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              },
+              audio: false,
+            },
+            // Tier 2 (Desktop): User-facing without strict resolution
+            {
+              video: { facingMode: { ideal: "user" } },
+              audio: false,
+            },
+            // Tier 3 (Desktop Final): Standard video input
+            {
+              video: true,
+              audio: false,
+            },
+          ];
 
-      if (isMobile) {
-        // Mobile device: Prefer rear environment camera
+      let stream: MediaStream | null = null;
+      let lastErr: any = null;
+
+      for (const candidate of constraintTiers) {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: { ideal: "environment" },
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            },
-            audio: false,
-          });
-        } catch {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false,
-          });
+          stream = await navigator.mediaDevices.getUserMedia(candidate);
+          if (stream) {
+            break;
+          }
+        } catch (candidateErr: any) {
+          lastErr = candidateErr;
+          // If the user actively denied permission, do not keep looping prompts
+          if (
+            candidateErr.name === 'NotAllowedError' ||
+            candidateErr.name === 'PermissionDeniedError'
+          ) {
+            throw candidateErr;
+          }
+          // If camera is already in use by another app, trying other constraints won't help
+          if (
+            candidateErr.name === 'NotReadableError' ||
+            candidateErr.name === 'TrackStartError'
+          ) {
+            throw candidateErr;
+          }
         }
-      } else {
-        // Desktop / Laptop (e.g. Integrated Camera):
-        // On laptops, requesting { facingMode: { ideal: "environment" } } can cause Windows Media Foundation
-        // to fail with NotFoundError. Request standard video constraints directly:
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            },
-            audio: false,
-          });
-        } catch {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false,
-          });
-        }
+      }
+
+      if (!stream) {
+        throw lastErr || new Error('No camera stream available');
       }
 
       // Check if session was superseded or component unmounted during getUserMedia
@@ -242,6 +283,8 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
         video.playsInline = true;
         video.autoplay = true;
         video.muted = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('muted', 'true');
 
         const startPlayback = async () => {
           if (sessionId !== cameraSessionIdRef.current || !isMountedRef.current) return;
@@ -272,19 +315,28 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
 
       console.error('[QR] Camera access error:', err);
 
-      let friendlyMsg = tRef.current("doctor.scan.camera_unknown", "Unable to start the camera. Please try again.");
+      let friendlyMsg = tRef.current(
+        "doctor.scan.camera_unknown",
+        "Unable to start the camera. Please check your camera settings and try again."
+      );
 
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         friendlyMsg = tRef.current(
           "doctor.scan.permission_denied",
-          "Camera permission was denied. Please allow camera access in your browser site settings and try again."
+          "Camera permission was denied. Please allow camera access in your browser site settings and click Retry."
         );
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
         friendlyMsg = tRef.current(
           "doctor.scan.camera_in_use",
-          "The camera is currently being used by another application (e.g. Teams, Zoom, WhatsApp, or Windows Camera). Please close it and click Retry Camera."
+          "The camera is currently being used by another application (e.g. Teams, Zoom, WhatsApp, or Windows Camera). Please close it and click Retry."
+        );
+      } else if (err.name === 'OverconstrainedError') {
+        friendlyMsg = tRef.current(
+          "doctor.scan.camera_constrained",
+          "The requested camera settings are not supported by your camera hardware. Please click Retry."
         );
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        // Enumerate devices after permission request has already been attempted
         let hasCameraDevice = false;
         try {
           if (navigator.mediaDevices?.enumerateDevices) {
@@ -301,17 +353,24 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
             "Camera hardware was detected, but the video stream could not be started. Check if your laptop privacy shutter (slider) is closed or disabled in Windows settings."
           );
         } else {
-          friendlyMsg = tRef.current("doctor.scan.no_camera", "No camera was detected on this device. Please connect a webcam and try again.");
+          friendlyMsg = tRef.current(
+            "doctor.scan.no_camera",
+            "No camera was detected on this device. Please connect a webcam or check if your laptop camera privacy shutter is closed."
+          );
         }
-      } else if (err.name === 'OverconstrainedError') {
+      } else if (err.name === 'SecurityError') {
         friendlyMsg = tRef.current(
-          "doctor.scan.camera_constrained",
-          "The requested camera resolution is not supported by your camera hardware. Please click Retry Camera."
+          "doctor.scan.insecure_context",
+          "Camera access requires a secure connection (HTTPS or localhost)."
+        );
+      } else if (err.name === 'AbortError') {
+        friendlyMsg = tRef.current(
+          "doctor.scan.camera_abort",
+          "Camera initialization was aborted. Please click Retry."
         );
       }
 
       setCameraError(friendlyMsg);
-      setErrorMessage(friendlyMsg);
       setIsCameraActive(false);
     }
   }, []);
@@ -852,13 +911,32 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                   {cameraError ? (
-                    <div className="flex flex-col items-center justify-center max-w-xs text-center p-3 pointer-events-auto">
-                      <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mb-2.5 border border-rose-500/30">
-                        <AlertCircle className="w-6 h-6" />
+                    <div className="flex flex-col items-center justify-center max-w-sm text-center p-4 pointer-events-auto bg-slate-900/95 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-md z-20">
+                      <div className="w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mb-2 border border-rose-500/20">
+                        <AlertCircle className="w-5 h-5 text-rose-400" />
                       </div>
-                      <p className="text-xs font-bold text-rose-200 mb-3">
+                      <p className="text-xs font-semibold text-slate-200 mb-3 px-2 leading-relaxed">
                         {cameraError}
                       </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full mb-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="py-2 px-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload QR File</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDemoScan}
+                          disabled={isScanning}
+                          className="py-2 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                          <span>{isScanning ? 'Loading...' : 'Test Sample QR'}</span>
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -866,10 +944,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
                           setErrorMessage(null);
                           startCamera();
                         }}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
+                        className="text-[11px] font-semibold text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1.5 pt-1 cursor-pointer"
                       >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        {t("doctor.scan.retry_camera", "Retry Camera")}
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Retry Camera Connection</span>
                       </button>
                     </div>
                   ) : (
@@ -892,11 +970,20 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
               </div>
             </div>
 
-            {/* Error banner */}
-            {errorMessage && (
-              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border-t border-b border-rose-200 dark:border-rose-800/60 flex items-center gap-3 text-rose-700 dark:text-rose-300 text-xs font-bold">
-                <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
-                <span>{errorMessage}</span>
+            {/* Error banner - Only for non-camera general errors */}
+            {errorMessage && errorMessage !== cameraError && (
+              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border-t border-b border-rose-200 dark:border-rose-800/60 flex items-center justify-between gap-3 text-rose-700 dark:text-rose-300 text-xs font-bold">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+                  <span>{errorMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setErrorMessage(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-sm font-bold px-2 py-1"
+                >
+                  ✕
+                </button>
               </div>
             )}
 

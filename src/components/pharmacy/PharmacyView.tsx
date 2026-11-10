@@ -89,7 +89,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
     try {
       const [liveOrders, livePharmaciesRes] = await Promise.all([
         fetchPatientPharmacyOrders().catch(() => null),
-        pharmacyApi.getPharmacies().catch(() => null),
+        pharmacyApi.getAvailablePharmacies().catch(() => pharmacyApi.getPharmacies().catch(() => null)),
       ]);
 
       if (livePharmaciesRes && livePharmaciesRes.data && livePharmaciesRes.data.length > 0) {

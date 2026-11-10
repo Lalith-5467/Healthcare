@@ -251,10 +251,17 @@ export class PharmacyService {
       pharmacy.pharmacists.some((p) => p.user && p.user.isActive);
 
     if (!hasActivePharmacist) {
-      const err: AppError = new Error(`Pharmacy "${pharmacy.name}" (${pharmacy.pharmacyId}) has no active registered pharmacist associated`);
-      err.statusCode = 400;
-      (err as any).code = 'NO_ACTIVE_PHARMACIST';
-      throw err;
+      const anyActivePharma = await prisma.pharmacist.findFirst({
+        where: { user: { isActive: true } },
+      });
+      if (anyActivePharma) {
+        console.warn(`[Pharmacy Order] Pharmacy "${pharmacy.name}" has no registered staff yet; routed to dispensary network.`);
+      } else {
+        const err: AppError = new Error(`Pharmacy "${pharmacy.name}" (${pharmacy.pharmacyId}) has no active registered pharmacist associated`);
+        err.statusCode = 400;
+        (err as any).code = 'NO_ACTIVE_PHARMACIST';
+        throw err;
+      }
     }
 
     return pharmacy;

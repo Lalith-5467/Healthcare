@@ -36,6 +36,60 @@ const CATEGORIES = [
   'Preventive Health'
 ] as const;
 
+const POPULAR_SEARCH_SUGGESTIONS = [
+  // Health, Heart, Hand, Hygiene, Headache, Hormone, Healing, Herbal
+  'Hand Pressure Points',
+  'Hand Acupressure for Healing',
+  'Heart Health & Cardio Fitness',
+  'Healthy Diet & Nutrition Tips',
+  'High Blood Pressure Relief',
+  'Headache & Migraine Home Remedies',
+  'Hormonal Balance & Wellness',
+  'Herbal Kashayam & Natural Immunity',
+  'Healing Foods for Gut & Digestion',
+  'Home Remedies for Cough & Cold',
+  'Hydration & Water Therapy',
+  'Health Checkup & Vital Monitoring',
+  'Hair Fall & Scalp Health Remedies',
+  'Hypertension Diet & Low Sodium Meals',
+  'Heavy Legs & Varicose Vein Exercises',
+  
+  // Diabetes & Blood Sugar
+  'Diabetes Control & Diet Plan',
+  'Diabetic Foot Care Tips',
+  'Daily Blood Sugar Control',
+  
+  // Kidney, Liver & Lungs
+  'Kidney Health & Cleansing Foods',
+  'Liver Detox Foods & Green Juices',
+  'Lung Capacity & Deep Breathing Pranayama',
+  
+  // Weight & Fitness
+  'Weight Loss Diet & Fat Burning',
+  'Morning Yoga for Flexibility',
+  'Back Pain Relief Exercises',
+  'Fat Loss Full Body Workout',
+  'Core & Abs Home Workout',
+  'Knee Pain Relief & Joint Mobility',
+  'Post-Meal Walking for Digestion',
+  
+  // Traditional & Nattu Maruthuvam
+  'Nattu Maruthuvam Traditional Remedies',
+  'Kashayam for Immunity & Fever',
+  'Siddha & Ayurveda Herbal Tips',
+  'Paatti Vaithiyam Home Secrets',
+  'Turmeric & Ginger Anti-inflammatory Tea',
+  
+  // Lifestyle & Wellness
+  'Stress Relief & Meditation',
+  'Deep Sleep & Insomnia Solutions',
+  'Thyroid Care & Yoga Exercises',
+  'Immunity Booster Drinks',
+  'Digestion & Acidity Relief',
+  'Eye Strain Relief & Screen Detox',
+  'Cholesterol Lowering Foods'
+];
+
 type CategoryTab = (typeof CATEGORIES)[number];
 
 const getCategoryIcon = (category: string) => {
@@ -149,6 +203,8 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [liveApiSuggestions, setLiveApiSuggestions] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [tapFeedback, setTapFeedback] = useState<{ type: 'play' | 'pause'; id: number } | null>(null);
 
@@ -181,6 +237,29 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({
       setDebouncedQuery(searchQuery.trim());
     }, 400);
     return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fast live YouTube-style autocomplete fetch (150ms debounce)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) {
+      setLiveApiSuggestions([]);
+      return;
+    }
+
+    let isCurrent = true;
+    const timer = setTimeout(() => {
+      healthShortsApi.getSuggestions(q).then((items) => {
+        if (isCurrent && items && items.length > 0) {
+          setLiveApiSuggestions(items);
+        }
+      }).catch(() => {});
+    }, 150);
+
+    return () => {
+      isCurrent = false;
+      clearTimeout(timer);
+    };
   }, [searchQuery]);
 
   // Dynamically fetch health shorts when category or debounced query changes
@@ -449,6 +528,81 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({
     }
   };
 
+  const handleSelectSuggestion = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setDebouncedQuery(suggestion.trim());
+    setIsSearchFocused(false);
+    setActiveVideoIndex(0);
+    setIsPlaying(true);
+    setNextPageToken(undefined);
+    setHasMore(true);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  };
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setDebouncedQuery(searchQuery.trim());
+    setIsSearchFocused(false);
+    setActiveVideoIndex(0);
+    setIsPlaying(true);
+    setNextPageToken(undefined);
+    setHasMore(true);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  };
+
+  const matchingSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) {
+      // When user clicks the search input before typing, show top trending health topics
+      return POPULAR_SEARCH_SUGGESTIONS.slice(0, 8);
+    }
+
+    const combined: string[] = [];
+
+    // 1. YouTube Live API suggestions (highest relevance and natural phrases like YouTube search)
+    if (liveApiSuggestions.length > 0) {
+      liveApiSuggestions.forEach(item => {
+        if (item && !combined.some(c => c.toLowerCase() === item.toLowerCase())) {
+          combined.push(item);
+        }
+      });
+    }
+
+    // 2. Candidate pool from curated health dictionary & video titles currently in view
+    const prefixMatches: string[] = [];
+    const containsMatches: string[] = [];
+
+    const candidateSet = new Set<string>(POPULAR_SEARCH_SUGGESTIONS);
+    videos.forEach(v => {
+      if (v.title && v.title.length > 5 && v.title.length < 65) {
+        candidateSet.add(v.title);
+      }
+    });
+
+    candidateSet.forEach(item => {
+      const lower = item.toLowerCase();
+      const words = lower.split(/\s+/);
+      if (lower.startsWith(q) || words.some(w => w.startsWith(q))) {
+        prefixMatches.push(item);
+      } else if (lower.includes(q)) {
+        containsMatches.push(item);
+      }
+    });
+
+    [...prefixMatches, ...containsMatches].forEach(item => {
+      if (!combined.some(c => c.toLowerCase() === item.toLowerCase())) {
+        combined.push(item);
+      }
+    });
+
+    // Provide 8 to 10 comprehensive YouTube-like search suggestions
+    return combined.slice(0, 10);
+  }, [searchQuery, liveApiSuggestions, videos]);
+
   const handleResetFilters = () => {
     setSelectedCategory('For You');
     setSearchQuery('');
@@ -549,28 +703,98 @@ export const HealthShortsView: React.FC<HealthShortsViewProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 relative z-30"
             >
-              <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search fitness, diabetes, diet, yoga..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearchSubmit();
+                    }
+                  }}
                   className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-teal-500"
                   autoFocus
                 />
                 {searchQuery && (
                   <button
                     type="button"
-                    onClick={() => handleSearchChange('')}
+                    onClick={() => {
+                      handleSearchChange('');
+                      setIsSearchFocused(false);
+                    }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
                 )}
-              </div>
+
+                {/* SEARCH SUGGESTIONS DROPDOWN */}
+                <AnimatePresence>
+                  {isSearchFocused && matchingSuggestions.length > 0 && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setIsSearchFocused(false)} 
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl z-50 overflow-hidden max-h-[300px] overflow-y-auto"
+                      >
+                        <div className="p-1 space-y-0.5">
+                          {searchQuery.trim().length === 0 && (
+                            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                              Trending Health Searches
+                            </div>
+                          )}
+                          {matchingSuggestions.map((suggestion, idx) => {
+                            const q = searchQuery.trim().toLowerCase();
+                            const lower = suggestion.toLowerCase();
+                            const matchIndex = q ? lower.indexOf(q) : -1;
+
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => handleSelectSuggestion(suggestion)}
+                                className="w-full px-3 py-2 text-left text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center justify-between transition-colors cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-2.5 truncate">
+                                  <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-500 shrink-0 transition-colors" />
+                                  <span className="truncate">
+                                    {matchIndex >= 0 ? (
+                                      <>
+                                        <span className="font-bold text-teal-600 dark:text-teal-400">
+                                          {suggestion.slice(matchIndex, matchIndex + q.length)}
+                                        </span>
+                                        <span>
+                                          {suggestion.slice(matchIndex + q.length)}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      suggestion
+                                    )}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 font-mono transition-opacity shrink-0 ml-2">
+                                  Search
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>

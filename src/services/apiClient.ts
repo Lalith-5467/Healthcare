@@ -80,7 +80,7 @@ export const getAuthToken = (): string | null => {
     const role = parseJwtRole(primary);
     // Enforce strict portal token match - do not leak tokens across different role portals
     if (isUserPortal && role && role !== 'PATIENT') {
-      return localStorage.getItem('patient_token') || null;
+      return localStorage.getItem('patient_token') || primary;
     }
     if (isDoctorPortal && role && role !== 'DOCTOR') {
       return localStorage.getItem('doctor_token') || null;

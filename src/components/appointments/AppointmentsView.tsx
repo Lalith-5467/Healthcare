@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import {
@@ -54,6 +54,37 @@ interface AppointmentsViewProps {
   onNavigate: (page: string) => void;
 }
 
+const calculateTimeLeft = (apt?: Appointment | null) => {
+  if (!apt) return { hours: 0, minutes: 0, seconds: 0, formatted: '00h : 00m : 00s', isReady: false, hasFutureTime: false };
+
+  let targetMs = apt.timestamp;
+  if (!targetMs || isNaN(targetMs)) {
+    try {
+      const parsed = new Date(`${apt.date} ${apt.time}`).getTime();
+      if (!isNaN(parsed)) targetMs = parsed;
+    } catch {}
+  }
+
+  if (!targetMs) return { hours: 0, minutes: 0, seconds: 0, formatted: '00h : 00m : 00s', isReady: true, hasFutureTime: false };
+
+  const diff = targetMs - Date.now();
+  if (diff <= 0) {
+    return { hours: 0, minutes: 0, seconds: 0, formatted: '00h : 00m : 00s', isReady: true, hasFutureTime: false };
+  }
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const formatted = days > 0
+    ? `${days}d : ${String(hours).padStart(2, '0')}h : ${String(minutes).padStart(2, '0')}m`
+    : `${String(hours).padStart(2, '0')}h : ${String(minutes).padStart(2, '0')}m : ${String(seconds).padStart(2, '0')}s`;
+
+  return { hours, minutes, seconds, formatted, isReady: false, hasFutureTime: true };
+};
+
 export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
   user: _user,
   onNavigate,
@@ -64,6 +95,12 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
 
   // APPOINTMENTS STATE (Live from MySQL)
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
+
+  const nextAppointment = useMemo(() => {
+    return appointments.find(
+      (a) => a.status === 'Confirmed' || a.status === 'Starting Soon' || a.status === 'Ready to Join'
+    );
+  }, [appointments]);
 
   // TAB & SEARCH STATES
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'cancelled'>('upcoming');
@@ -137,12 +174,8 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     }
   };
 
-  // COUNTDOWN TIMER STATE
-  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
-    hours: 1,
-    minutes: 42,
-    seconds: 18
-  });
+  // COUNTDOWN TIMER STATE (Accurately calculates real remaining time)
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(INITIAL_APPOINTMENTS[0]));
 
   // Load from MySQL Backend API on mount
   useEffect(() => {
@@ -173,22 +206,18 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     };
   }, []);
 
-  // Real-time Countdown timer tick
+  // Real-time Countdown timer tick synced with real appointment date/time
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: 59, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return prev;
-      });
-    }, 1000);
+    if (!nextAppointment) return;
+
+    const tick = () => {
+      setTimeLeft(calculateTimeLeft(nextAppointment));
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [nextAppointment]);
 
   // Toast Helper
   const showToast = (msg: string) => {
@@ -387,9 +416,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
     return true;
   });
 
-  const nextAppointment = appointments.find(
-    (a) => a.status === 'Confirmed' || a.status === 'Starting Soon' || a.status === 'Ready to Join'
-  );
+  // nextAppointment derived above via useMemo
 
   return (
     <div className="max-w-7xl mx-auto space-y-7 animate-in fade-in duration-300 pb-16 font-sans">
@@ -443,54 +470,50 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
       {/* 2. NEXT APPOINTMENT HIGHLIGHT HERO CARD */}
       {nextAppointment && (
         <div
-          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-white"
-          style={{
-            background: 'linear-gradient(135deg, #092038 0%, #005c53 50%, #00423a 100%)',
-            border: '1.5px solid rgba(20,184,166,.35)'
-          }}
+          className="rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 bg-gradient-to-br from-teal-50/95 via-cyan-50/70 to-emerald-50/90 dark:from-slate-900 dark:via-[#003831] dark:to-slate-900 border border-teal-200/90 dark:border-teal-500/30 text-slate-900 dark:text-white"
         >
           {/* BACKGROUND AMBIENT GLOW */}
-          <div className="absolute -top-12 -right-12 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-teal-400/20 dark:bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-cyan-400/20 dark:bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-start gap-4 relative z-10">
             <div className="relative">
               <img
                 src={nextAppointment.doctorPhoto}
                 alt={nextAppointment.doctorName}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-teal-400/60 shadow-lg shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#00a896]/30 dark:border-teal-400/60 shadow-md shrink-0 cursor-pointer hover:scale-105 transition-transform"
                 onClick={() => {
                   const doc = MOCK_DOCTORS.find((d) => d.id === nextAppointment.doctorId) || MOCK_DOCTORS[0];
                   setDoctorDrawerTarget(doc);
                 }}
               />
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-slate-900 rounded-full animate-pulse" title="Doctor Online" />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full animate-pulse" title="Doctor Online" />
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-teal-400/20 text-teal-200 border border-teal-400/40 rounded-full font-mono">
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-[#00a896]/15 text-[#00796b] dark:bg-teal-400/20 dark:text-teal-200 border border-[#00a896]/30 dark:border-teal-400/40 rounded-full font-mono">
                   Next Appointment
                 </span>
-                <span className="text-[10px] font-mono font-bold text-cyan-200 flex items-center gap-1">
-                  {nextAppointment.type === 'Video' ? <Video className="w-3 h-3 text-cyan-300" /> : <Building2 className="w-3 h-3 text-cyan-300" />}
+                <span className="text-[10px] font-mono font-bold text-teal-700 dark:text-cyan-200 flex items-center gap-1">
+                  {nextAppointment.type === 'Video' ? <Video className="w-3 h-3 text-[#00a896] dark:text-cyan-300" /> : <Building2 className="w-3 h-3 text-[#00a896] dark:text-cyan-300" />}
                   {nextAppointment.type} Consultation
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">{nextAppointment.doctorName}</h3>
-              <p className="text-xs font-bold text-teal-200 flex items-center gap-1.5">
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">{nextAppointment.doctorName}</h3>
+              <p className="text-xs font-bold text-teal-800 dark:text-teal-200 flex items-center gap-1.5">
                 <span>{nextAppointment.speciality}</span>
                 <span>•</span>
-                <span className="text-teal-300/80 font-normal">{nextAppointment.hospital}</span>
+                <span className="text-slate-600 dark:text-teal-300/80 font-normal">{nextAppointment.hospital}</span>
               </p>
 
-              <div className="flex items-center gap-3 text-xs text-white/90 pt-1.5 font-medium">
-                <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg">
-                  <Calendar className="w-3.5 h-3.5 text-teal-300" />
+              <div className="flex items-center gap-3 text-xs pt-1.5 font-medium">
+                <span className="flex items-center gap-1.5 bg-white/80 dark:bg-white/10 text-slate-700 dark:text-white/90 px-3 py-1 rounded-xl border border-teal-200/70 dark:border-white/10 shadow-xs">
+                  <Calendar className="w-3.5 h-3.5 text-[#00a896] dark:text-teal-300" />
                   {nextAppointment.date}
                 </span>
-                <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg font-mono text-cyan-200 font-bold">
-                  <Clock className="w-3.5 h-3.5 text-teal-300" />
+                <span className="flex items-center gap-1.5 bg-white/80 dark:bg-white/10 text-teal-900 dark:text-cyan-200 px-3 py-1 rounded-xl border border-teal-200/70 dark:border-white/10 shadow-xs font-mono font-bold">
+                  <Clock className="w-3.5 h-3.5 text-[#00a896] dark:text-teal-300" />
                   {nextAppointment.time}
                 </span>
               </div>
@@ -498,13 +521,15 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
           </div>
 
           {/* COUNTDOWN & ACTIONS */}
-          <div className="self-stretch md:self-auto flex flex-col sm:flex-row md:flex-col items-end justify-between gap-3.5 border-t md:border-t-0 border-teal-700/40 pt-4 md:pt-0 relative z-10">
+          <div className="self-stretch md:self-auto flex flex-col sm:flex-row md:flex-col items-end justify-between gap-3.5 border-t md:border-t-0 border-teal-200/60 dark:border-teal-700/40 pt-4 md:pt-0 relative z-10">
             {/* LIVE COUNTDOWN DISPLAY */}
-            <div className="bg-slate-950/60 border border-teal-500/30 px-5 py-2 rounded-2xl flex items-center gap-3 text-center self-stretch sm:self-auto justify-center shadow-inner backdrop-blur-sm">
+            <div className="bg-white/90 dark:bg-slate-950/60 border border-teal-200/90 dark:border-teal-500/30 px-5 py-2.5 rounded-2xl flex items-center gap-3 text-center self-stretch sm:self-auto justify-center shadow-xs backdrop-blur-sm">
               <div>
-                <span className="text-[9px] uppercase font-bold text-teal-300/80 block font-mono">Starts In</span>
-                <div className="font-mono text-base font-extrabold text-cyan-300">
-                  {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
+                <span className="text-[9px] uppercase font-bold text-teal-700 dark:text-teal-300/80 block font-mono">
+                  {timeLeft.hasFutureTime ? 'Starts In' : 'Status'}
+                </span>
+                <div className="font-mono text-base font-extrabold text-teal-900 dark:text-cyan-300">
+                  {timeLeft.hasFutureTime ? timeLeft.formatted : 'Confirmed'}
                 </div>
               </div>
             </div>
@@ -514,15 +539,15 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({
               {nextAppointment.type === 'Video' && (
                 <button
                   onClick={() => onNavigate('video-consultation')}
-                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-950 bg-teal-300 hover:bg-teal-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:scale-102"
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-extrabold text-xs text-white bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-teal-600 hover:to-teal-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-102"
                 >
-                  <Video className="w-4 h-4 text-slate-950" />
+                  <Video className="w-4 h-4 text-white" />
                   <span>Join Consultation</span>
                 </button>
               )}
               <button
                 onClick={() => setDetailDrawerTarget(nextAppointment)}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer border border-white/20"
+                className="px-4 py-2.5 rounded-xl bg-white/90 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-white text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-white/20 shadow-xs"
               >
                 View Details
               </button>

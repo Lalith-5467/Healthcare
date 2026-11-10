@@ -41,26 +41,22 @@ export const healthShortsApi = {
       const q = encodeURIComponent(query.trim());
       const cat = encodeURIComponent(category.trim());
       const pt = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
-      const res = await apiClient.get<any>(
+      const res = await apiClient.get<HealthShortsResponse>(
         `/health-shorts/search?q=${q}&category=${cat}&limit=${limit}${pt}`
       );
-      const resData = res as any;
-      const videos: DynamicHealthShort[] = Array.isArray(resData?.videos)
-        ? resData.videos
-        : Array.isArray(resData?.data?.videos)
-        ? resData.data.videos
-        : [];
-      const nextPageToken: string | undefined = resData?.nextPageToken || resData?.data?.nextPageToken;
-
-      return {
-        videos,
-        nextPageToken
-      };
+      if (res && res.videos && Array.isArray(res.videos)) {
+        return {
+          videos: res.videos,
+          nextPageToken: res.nextPageToken
+        };
+      }
+      return { videos: [], nextPageToken: undefined };
     } catch (err) {
       console.error('[HealthShortsApi search error]:', err);
       return { videos: [], nextPageToken: undefined };
     }
   },
+
 
   /**
    * Get dynamic feed for a category tab
@@ -68,19 +64,36 @@ export const healthShortsApi = {
   getCategoryFeed: async (category: string = 'For You', limit: number = 4): Promise<DynamicHealthShort[]> => {
     try {
       const cat = encodeURIComponent(category.trim());
-      const res = await apiClient.get<any>(
+      const res = await apiClient.get<HealthShortsResponse>(
         `/health-shorts/feed?category=${cat}&limit=${limit}`
       );
-      const resData = res as any;
-      const videos: DynamicHealthShort[] = Array.isArray(resData?.videos)
-        ? resData.videos
-        : Array.isArray(resData?.data?.videos)
-        ? resData.data.videos
-        : [];
-      return videos;
+      if (res && res.videos && Array.isArray(res.videos)) {
+        return res.videos;
+      }
+      return [];
     } catch (err) {
       console.error('[HealthShortsApi feed error]:', err);
       return [];
     }
+  },
+
+  /**
+   * Fetch live YouTube-style autocomplete suggestions
+   */
+  getSuggestions: async (query: string): Promise<string[]> => {
+    if (!query || !query.trim()) return [];
+    try {
+      const q = encodeURIComponent(query.trim());
+      const res = await apiClient.get<{ success: boolean; suggestions: string[] }>(
+        `/health-shorts/suggest?q=${q}`
+      );
+      if (res && Array.isArray(res.suggestions)) {
+        return res.suggestions;
+      }
+      return [];
+    } catch (err) {
+      return [];
+    }
   }
 };
+

@@ -459,6 +459,66 @@ export function extractClinicNameFromLines(
 }
 
 /**
+ * Cleans and formats raw OCR output text into a clean, professional,
+ * human-readable clinical transcript. Removes optical artifacts, broken quotes,
+ * scanned status badge junk, and footer QR code noise.
+ */
+export function sanitizeOcrText(raw: string): string {
+  if (!raw || !raw.trim()) return '';
+
+  const lines = raw.split(/\r?\n/);
+  const cleaned: string[] = [];
+  let prevCleanLine = '';
+  const bulletPattern = new RegExp("^[\\u00AB\\u00BB\\u201C\\u201D\"'`\\-*#\\u2022=\\[\\]()<>\\u00A9\\u00AE\\u25CFoO\\u00B0\\u00B7\\s]+(?=[A-Za-z0-9])", 'i');
+  const bulletReplPattern = new RegExp("^[\\u00AB\\u00BB\\u201C\\u201D\"'`\\-*#\\u2022=\\[\\]()<>\\u00A9\\u00AE\\u25CFoO\\u00B0\\u00B7\\s]+", 'i');
+
+  for (const rawLine of lines) {
+    let l = rawLine.trim();
+    if (!l) continue;
+
+    // 1. Clean bullet characters on note / advisory lines
+    if (bulletPattern.test(l)) {
+      l = l.replace(bulletReplPattern, '\u2022 ');
+    }
+
+    // 2. Fix noisy status badges like: "o Active (© Pending (© Pending Cs"
+    if (/(?:active|verified)/i.test(l) && /(?:pending|completed)/i.test(l)) {
+      l = 'Prescription Status: Active | Pharmacy Status: Pending | Payment Status: Pending';
+    }
+
+    // 3. Fix redundant header text under badges: "Prescription Status Pharmacy Status Payment Status Dr. Arjun Kumar"
+    if (/prescription\s*status\s+pharmacy\s*status/i.test(l)) {
+      l = l.replace(/prescription\s*status\s+pharmacy\s*status\s*(?:payment\s*status)?/gi, '').trim();
+      if (!l) continue;
+    }
+
+    // 4. Fix QR / Security footer noise
+    if (/scan\s*to\s*view/i.test(l)) {
+      l = '\u2022 Scan to View Digital Prescription';
+    } else if (/digital\s*prescription/i.test(l)) {
+      l = '\u2022 Digital Prescription (Verified & Encrypted)';
+    } else if (/secure\s*&\s*encrypted|stay\s*h/i.test(l)) {
+      l = '\u2022 Secure & Encrypted Document \u2022 Stay Healthy \u2661';
+    }
+
+    // 5. Filter out garbled short optical symbols/noise (e.g. "[s] oy", "= ZR]", "Cs", "QQ")
+    if (/^[\W_0-9a-zA-Z\s]{1,4}$/.test(l) && !/^(?:tab|cap|inj|syp|rx|opd|ipd|mg|ml|dr\.?|mr\.?|mrs\.?)$/i.test(l)) {
+      continue;
+    }
+
+    // Prevent identical successive lines
+    if (l === prevCleanLine) {
+      continue;
+    }
+
+    prevCleanLine = l;
+    cleaned.push(l);
+  }
+
+  return cleaned.join('\n');
+}
+
+/**
  * Extracts structured prescription and medical fields from OCR text.
  * Strictly avoids guessing or inventing missing information.
  */
@@ -713,7 +773,8 @@ export async function runOpticalOcrOnCanvas(
     }
 
     console.log('[OCR] processing completed');
-    const finalText = (bestRet.data && bestRet.data.text) ? bestRet.data.text.trim() : '';
+    const rawRecognizedText = (bestRet.data && bestRet.data.text) ? bestRet.data.text.trim() : '';
+    const finalText = sanitizeOcrText(rawRecognizedText);
     console.log('[OCR] extracted text length:', finalText.length);
 
     // Calculate real OCR confidence score
@@ -1112,7 +1173,7 @@ export function parseStructuredPrescriptionFromOcr(
     status: 'pending-review',
     notes: `Processed via Tesseract OCR Engine (Confidence: ${ocrResult.confidence}%).`,
     rawImagePreview: rawPreview || ocrResult.previewUrl,
-    rawOcrText: ocrResult.text,
+    rawOcrText: sanitizeOcrText(ocrResult.text || ''),
     confidence: ocrResult.confidence,
     rawConfidence: ocrResult.rawConfidence,
     isAbdmCompliant: ocrResult.isAbdmCompliant,

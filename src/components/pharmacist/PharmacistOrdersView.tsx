@@ -829,39 +829,62 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                           </>
                         )}
 
-                        {(order.deliveryType === 'HOME_DELIVERY' || order.deliveryType === 'DELIVERY') && order.paymentStatus === 'PAID' && (
+                        {(() => {
+                          const dt = String(order.deliveryType || '').toUpperCase().replace(/[\s_-]+/g, '');
+                          const isHomeDeliv = dt === 'HOMEDELIVERY' || dt === 'DELIVERY';
+                          return isHomeDeliv ? (
+                            <button
+                              type="button"
+                              disabled={actionLoadingId === order.id}
+                              onClick={() => handleAdvanceStatus(order.id, 'OUT_FOR_DELIVERY')}
+                              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              {actionLoadingId === order.id ? (
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Truck className="w-4 h-4" />
+                              )}
+                              <span>Out for Delivery</span>
+                            </button>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
+
+                    {/* 5. OUT FOR DELIVERY: Mark Completed with Cash on Delivery support */}
+                    {isDelivery && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {order.paymentStatus !== 'PAID' && (
                           <button
                             type="button"
                             disabled={actionLoadingId === order.id}
-                            onClick={() => handleAdvanceStatus(order.id, 'OUT_FOR_DELIVERY')}
-                            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            onClick={() => handleConfirmCashPayment(order.id, 'Cash collected on delivery')}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            title="Confirm cash payment collected upon delivery"
                           >
                             {actionLoadingId === order.id ? (
                               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                             ) : (
-                              <Truck className="w-4 h-4" />
+                              <CreditCard className="w-4 h-4" />
                             )}
-                            <span>Out for Delivery</span>
+                            <span>Confirm Delivery Payment (₹{Number(order.totalAmount || 0).toFixed(2)})</span>
                           </button>
                         )}
+                        <button
+                          type="button"
+                          disabled={actionLoadingId === order.id || order.paymentStatus !== 'PAID'}
+                          onClick={() => handleAdvanceStatus(order.id, 'COMPLETED')}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                          title={order.paymentStatus !== 'PAID' ? 'Confirm cash payment first before completing' : 'Mark order completed'}
+                        >
+                          {actionLoadingId === order.id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4" />
+                          )}
+                          <span>Mark Completed</span>
+                        </button>
                       </div>
-                    )}
-
-                    {/* 5. OUT FOR DELIVERY: Mark Completed */}
-                    {isDelivery && (
-                      <button
-                        type="button"
-                        disabled={actionLoadingId === order.id}
-                        onClick={() => handleAdvanceStatus(order.id, 'COMPLETED')}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                      >
-                        {actionLoadingId === order.id ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Check className="w-4 h-4" />
-                        )}
-                        <span>Mark Completed</span>
-                      </button>
                     )}
 
                     {/* 6. DISPENSED STATUS INDICATOR */}

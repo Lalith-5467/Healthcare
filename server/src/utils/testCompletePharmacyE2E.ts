@@ -133,6 +133,14 @@ async function testCompletePharmacyE2E() {
   ];
 
   for (const step of statuses) {
+    if (step.target === 'DELIVERED' || step.target === 'COMPLETED') {
+      await fetch(`${BASE_URL}/pharmacy-orders/${pharmacyOrderId}/confirm-cash`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${pharmacistToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: 'Counter payment verified for test' }),
+      });
+    }
+
     // 6a. Pharmacist updates status
     const updateRes = await fetch(`${BASE_URL}${step.endpoint}`, {
       method: step.method,

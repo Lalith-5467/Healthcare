@@ -46,6 +46,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [allergyAddTrigger, setAllergyAddTrigger] = useState(0);
+
+  const handleOpenAllergy = () => {
+    setAllergyAddTrigger((prev) => prev + 1);
+    const el = document.getElementById('allergies-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const resolvePatientName = (u?: any, dbName?: string): string => {
     if (dbName && dbName.trim()) {
@@ -266,7 +275,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="flex-1 min-w-0">
               <ProfileCompletionCard
                 onOpenEdit={() => setEditDrawerOpen(true)}
-                onOpenAllergy={() => showToast('Scroll down to Allergies section to add info')}
+                onOpenAllergy={handleOpenAllergy}
               />
             </div>
           </section>
@@ -298,7 +307,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           {/* 5. ALLERGIES & CHRONIC CONDITIONS GRID */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AllergiesSection onToast={showToast} />
+            <AllergiesSection onToast={showToast} openAddModalTrigger={allergyAddTrigger} />
             <ChronicConditionsSection onToast={showToast} />
           </section>
 

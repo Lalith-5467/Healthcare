@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import { 
   searchHealthShortsController, 
-  getHealthShortsFeedController 
+  getHealthShortsFeedController,
+  getHealthShortsSuggestionsController
 } from '../controllers/healthShorts.controller';
 
 const router = Router();
+
+// Real-time YouTube-style search autocomplete suggestions: /api/health-shorts/suggest?q=hand
+router.get('/suggest', getHealthShortsSuggestionsController);
 
 // Dynamic Search endpoint: /api/health-shorts/search?q=fitness
 router.get('/search', searchHealthShortsController);

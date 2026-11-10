@@ -268,6 +268,7 @@ export const prescriptionApi = {
 
 export const pharmacyApi = {
   getPharmacies: () => apiClient.get<any[]>('/pharmacies'),
+  getAvailablePharmacies: () => apiClient.get<any[]>('/pharmacies/available'),
   getPharmacyOrders: (patientId?: string) =>
     apiClient.get<any[]>(patientId ? `/pharmacy-orders?patientId=${patientId}` : '/pharmacy-orders'),
   getPharmacyOrderById: (id: string) => apiClient.get<any>(`/pharmacy-orders/${id}`),
