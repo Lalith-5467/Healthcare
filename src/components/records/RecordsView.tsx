@@ -20,6 +20,7 @@ import { DeleteRecordModal } from './DeleteRecordModal';
 import { RecordsSkeleton } from './RecordsSkeleton';
 import { recordApi } from '../../services/dhrApis';
 import { safeLocalStorageSet } from '../../utils/safeStorage';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -39,6 +40,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   user,
   onNavigateScan
 }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -289,19 +291,21 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-6 w-full">
       {/* TOAST FEEDBACK NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {loading ? (
         <RecordsSkeleton />
@@ -356,11 +360,11 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
                 <FileQuestion className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">No Medical Records Found</h3>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('records.no_records_found', 'No Medical Records Found')}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   {searchQuery || activeFilterCount > 0
-                    ? 'Try clearing your search query or adjusting active filters.'
-                    : 'Upload or scan your first health document to get started.'}
+                    ? t('records.no_records_sub_filter', 'Try clearing your search query or adjusting active filters.')
+                    : t('records.no_records_sub', 'Upload or scan your first health document to get started.')}
                 </p>
               </div>
               <div className="flex justify-center gap-3 pt-2">
@@ -373,7 +377,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
                     }}
                     className="px-4 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs cursor-pointer"
                   >
-                    Clear Search & Filters
+                    {t('records.clear_filters', 'Clear Search & Filters')}
                   </button>
                 )}
                 <button
@@ -381,7 +385,7 @@ export const RecordsView: React.FC<RecordsViewProps> = ({
                   className="px-5 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs shadow-md cursor-pointer flex items-center gap-1.5"
                 >
                   <Upload className="w-4 h-4" />
-                  <span>Upload Record</span>
+                  <span>{t('records.upload_record', 'Upload Record')}</span>
                 </button>
               </div>
             </div>

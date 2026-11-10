@@ -228,7 +228,9 @@ const BiometricTrendChart: React.FC<BiometricTrendChartProps> = ({
           {/* Interactive Tooltip Card */}
           {hoveredIdx !== null && validData[hoveredIdx] && (
             <div className="absolute top-2 right-2 bg-slate-900 text-white text-[10px] font-bold p-2.5 rounded-xl shadow-xl border border-slate-700 backdrop-blur-md pointer-events-none z-20 space-y-1">
-              <p className="text-teal-400 font-black">{validData[hoveredIdx].date}, {validData[hoveredIdx].time}</p>
+              <p className="text-teal-400 font-black">
+                {validData[hoveredIdx].date || (validData[hoveredIdx].recordedAt ? new Date(validData[hoveredIdx].recordedAt).toLocaleDateString() : 'Today')}, {validData[hoveredIdx].time || (validData[hoveredIdx].recordedAt ? new Date(validData[hoveredIdx].recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
+              </p>
               {series.map(s => (
                 <div key={`tt-${s.key}`} className="flex items-center justify-between gap-3">
                   <span className="text-slate-400">{s.label}:</span>
@@ -334,6 +336,8 @@ export const CaregiverVitalsView: React.FC = () => {
 
     const newReading: VitalEntity = {
       id: `demo-vital-${Date.now()}`,
+      patientId: activeWard.id,
+      recordedAt: new Date().toISOString(),
       date: 'Today',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       rawTimestamp: Date.now(),
@@ -344,7 +348,7 @@ export const CaregiverVitalsView: React.FC = () => {
       oxygenSaturation: oxygenSaturation ? parseInt(oxygenSaturation, 10) : undefined,
       heartRate: heartRate ? parseInt(heartRate, 10) : undefined,
       temperature: temperature ? parseFloat(temperature) : undefined,
-      weight: weight ? parseFloat(weight) : undefined,
+      weightKg: weight ? parseFloat(weight) : undefined,
       notes: notes || 'Caregiver observation logged.',
       status: 'normal'
     };
@@ -363,19 +367,21 @@ export const CaregiverVitalsView: React.FC = () => {
     <div className="space-y-6 select-none pb-12">
       
       {/* TOAST */}
-      <AnimatePresence>
-        {toastMsg && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 backdrop-blur-xl"
-          >
-            <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
-            <span className="text-xs font-bold">{toastMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 backdrop-blur-xl"
+            >
+              <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+              <span className="text-xs font-bold">{toastMsg}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* HEADER & CONTROLS */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -676,13 +682,13 @@ export const CaregiverVitalsView: React.FC = () => {
                 {currentVitals.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
                     <td className="py-3 px-3 font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      {v.date}, {v.time}
+                      {v.date || (v.recordedAt ? new Date(v.recordedAt).toLocaleDateString() : 'Today')}, {v.time || (v.recordedAt ? new Date(v.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.systolicBp ? `${v.systolicBp}/${v.diastolicBp} mmHg` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
-                      {v.bloodSugar ? `${v.bloodSugar} mg/dL (${v.sugarType})` : '—'}
+                      {v.bloodSugar ? `${v.bloodSugar} mg/dL${v.sugarType ? ` (${v.sugarType})` : ''}` : '—'}
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700 dark:text-slate-200">
                       {v.oxygenSaturation ? `${v.oxygenSaturation}%` : '—'}
@@ -699,7 +705,7 @@ export const CaregiverVitalsView: React.FC = () => {
                         v.status === 'elevated' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' :
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
                       }`}>
-                        {v.status}
+                        {v.status || 'normal'}
                       </span>
                     </td>
                   </tr>

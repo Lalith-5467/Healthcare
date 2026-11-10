@@ -11,9 +11,9 @@ interface MedicationListCardProps {
 export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNavigate, onToast }) => {
   const { t } = useLanguage();
   const [meds, setMeds] = useState([
-    { id: 1, name: 'Amoxicillin 500mg', dosage: '1 Capsule after lunch', time: '12:00 PM', taken: true, takenTime: '11:58 AM' },
-    { id: 2, name: 'Metformin 10mg', dosage: '1 Tablet after dinner', time: '06:00 PM', taken: false, takenTime: null },
-    { id: 3, name: 'Atorvastatin 5mg', dosage: '1 Tablet before sleep', time: '09:00 PM', taken: false, takenTime: null }
+    { id: 1, name: 'Amoxicillin 500mg', dosage: t('meds_card.after_lunch', '1 Capsule after lunch'), time: '12:00 PM', taken: true, takenTime: '11:58 AM' },
+    { id: 2, name: 'Metformin 10mg', dosage: t('meds_card.after_dinner', '1 Tablet after dinner'), time: '06:00 PM', taken: false, takenTime: null },
+    { id: 3, name: 'Atorvastatin 5mg', dosage: t('meds_card.before_sleep', '1 Tablet before sleep'), time: '09:00 PM', taken: false, takenTime: null }
   ]);
 
   const handleMarkTaken = (id: number, name: string) => {
@@ -43,13 +43,13 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('overview.today_reminders', "Today's Medicines")}
             </h3>
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">Pill Tracker & Daily Reminders</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">{t('meds_card.subtitle', 'Pill Tracker & Daily Reminders')}</span>
           </div>
         </div>
 
         {/* ADHERENCE BADGE */}
         <div className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-extrabold font-mono shadow-sm">
-          <span>Adherence: {adherencePercent}%</span>
+          <span>{t('meds_card.adherence', 'Adherence')}: {adherencePercent}%</span>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
             {m.taken ? (
               <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 shrink-0 font-mono">
                 <Check className="w-4 h-4" />
-                <span>Taken {m.takenTime}</span>
+                <span>{t('meds_card.taken', 'Taken')} {m.takenTime}</span>
               </span>
             ) : (
               <motion.button
@@ -88,7 +88,7 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
                 onClick={() => handleMarkTaken(m.id, m.name)}
                 className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-sm transition-all shrink-0 cursor-pointer"
               >
-                Mark Taken
+                {t('meds_card.mark_taken', 'Mark Taken')}
               </motion.button>
             )}
           </div>
@@ -101,9 +101,9 @@ export const MedicationListCard: React.FC<MedicationListCardProps> = ({ onNaviga
           onClick={() => onNavigate('medicines')}
           className="font-extrabold text-[#00a896] hover:underline cursor-pointer font-sans"
         >
-          Manage All Medicines →
+          {t('meds_card.manage_all', 'Manage All Medicines →')}
         </button>
-        <span className="text-xs text-slate-600 dark:text-slate-300 font-bold">3 Doses Scheduled</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300 font-bold">{t('meds_card.doses_scheduled', '3 Doses Scheduled')}</span>
       </div>
     </motion.div>
   );

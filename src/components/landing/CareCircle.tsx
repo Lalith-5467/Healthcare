@@ -15,7 +15,27 @@ interface CareCircleProps {
 }
 
 export const CareCircle: React.FC<CareCircleProps> = ({ onManageConsent }) => {
+  const patientDisplayName = React.useMemo(() => {
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    return 'Ragul Kumar';
+  }, []);
 
+  const patientInitials = React.useMemo(() => {
+    return patientDisplayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'RK';
+  }, [patientDisplayName]);
 
   const notifications = [
     {
@@ -85,9 +105,9 @@ export const CareCircle: React.FC<CareCircleProps> = ({ onManageConsent }) => {
               <div className="py-6 flex items-center justify-around relative">
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-14 h-14 rounded-2xl bg-[#0f3980] text-slate-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-md">
-                    LP
+                    {patientInitials}
                   </div>
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">Lalith Patel</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">{patientDisplayName}</span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Patient</span>
                 </div>
 

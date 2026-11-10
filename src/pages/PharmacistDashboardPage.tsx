@@ -14,10 +14,11 @@ import { ScheduleAuditView } from '../components/pharmacist/ScheduleAuditView';
 import { PharmacyBillingView } from '../components/pharmacist/PharmacyBillingView';
 import { PharmacySettingsView } from '../components/pharmacist/PharmacySettingsView';
 import { PharmacistNotificationPopover } from '../components/pharmacist/PharmacistNotificationPopover';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
 import { notificationApi } from '../services/dhrApis';
 import { showGlobalToast } from '../components/common/GlobalToastManager';
 import { getPharmacyOrders } from '../utils/healthWorkflowStorage';
-import { INITIAL_MEDICINE_STOCK } from '../components/pharmacy/pharmacyData';
+import { INITIAL_MEDICINE_STOCK, getPharmacyStock } from '../components/pharmacy/pharmacyData';
 
 interface PharmacistDashboardPageProps {
   user?: {
@@ -25,6 +26,9 @@ interface PharmacistDashboardPageProps {
     email: string;
     role: string;
     abhaId?: string;
+    hospitalAffiliation?: string;
+    pharmacyId?: string;
+    pharmacyName?: string;
   };
   initialNavId?: string;
   onLogout: () => void;
@@ -42,7 +46,6 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const loadUnreadCount = async () => {
     try {
@@ -72,31 +75,48 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
     );
   };
 
-  // Resolve logged-in username dynamically from user prop or localStorage
+  // Resolve logged-in username & pharmacy dynamically from user prop or localStorage
   const effectiveUser = React.useMemo(() => {
     let candidateName = (user?.role?.toLowerCase?.().includes('pharmacist') && !isDoctorOrPatient(user?.name)) ? user?.name : undefined;
-    if (!candidateName) {
-      try {
+    let candidateHospital = user?.hospitalAffiliation || (user as any)?.pharmacyName;
+    let candidatePharmacyId = (user as any)?.pharmacyId;
+
+    try {
+      if (!candidateName) {
         const storedName = localStorage.getItem('pharmacist_user_name');
         if (storedName && !isDoctorOrPatient(storedName)) {
           candidateName = storedName;
-        } else {
-          const savedUser = localStorage.getItem('app_user');
-          if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            if (parsed?.name && (parsed?.role?.toLowerCase?.().includes('pharmacist') || !parsed?.role) && !isDoctorOrPatient(parsed.name)) {
-              candidateName = parsed.name;
-            }
-          }
         }
-      } catch {}
-    }
+      }
+      if (!candidateHospital) {
+        candidateHospital = localStorage.getItem('pharmacist_pharmacy_name') || undefined;
+      }
+      if (!candidatePharmacyId) {
+        candidatePharmacyId = localStorage.getItem('pharmacist_pharmacy_id') || undefined;
+      }
+
+      const savedUser = localStorage.getItem('app_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (!candidateName && parsed?.name && (parsed?.role?.toLowerCase?.().includes('pharmacist') || !parsed?.role) && !isDoctorOrPatient(parsed.name)) {
+          candidateName = parsed.name;
+        }
+        if (!candidateHospital && (parsed?.hospitalAffiliation || parsed?.pharmacyName)) {
+          candidateHospital = parsed.hospitalAffiliation || parsed.pharmacyName;
+        }
+        if (!candidatePharmacyId && parsed?.pharmacyId) {
+          candidatePharmacyId = parsed.pharmacyId;
+        }
+      }
+    } catch {}
 
     return {
-      name: candidateName || 'Suresh Nair, R.Ph',
+      name: candidateName || 'Registered Pharmacist',
       email: (user?.role?.toLowerCase?.().includes('pharmacist') && user?.email) || 'pharmacist@health.com',
       role: 'Pharmacist',
-      abhaId: user?.abhaId || 'RPH-TN-2018-994'
+      abhaId: user?.abhaId || 'RPH-TN-2018-994',
+      hospitalAffiliation: candidateHospital || 'Dispensary Hub',
+      pharmacyId: candidatePharmacyId
     };
   }, [user]);
 
@@ -108,10 +128,13 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
 
   const [targetOrderId, setTargetOrderId] = useState<string | null>(null);
 
-  const showToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
-    setToastMessage(msg);
-    showGlobalToast(msg, type);
-    setTimeout(() => setToastMessage(null), 3500);
+  const showToast = (
+    msg: string,
+    type: 'success' | 'info' | 'warning' | 'error' = 'success',
+    title?: string,
+    eventKey?: string
+  ) => {
+    showGlobalToast(msg, type, title, eventKey);
   };
 
   const handleSelectNav = (id: string, filterSubtab?: string, targetOrder?: string) => {
@@ -147,8 +170,9 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
       return pName.includes(q) || id.includes(q) || items.includes(q);
     }).slice(0, 3);
 
-    // 2. Matched Medicines
-    const matchedMedicines = INITIAL_MEDICINE_STOCK.filter((m) => {
+    // 2. Matched Medicines (scoped strictly to this pharmacy's stock)
+    const pharmacyStock = getPharmacyStock(effectiveUser.pharmacyId);
+    const matchedMedicines = pharmacyStock.filter((m: any) => {
       return m.medicineName.toLowerCase().includes(q) || m.dosage.toLowerCase().includes(q);
     }).slice(0, 3);
 
@@ -161,13 +185,21 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
       { name: 'Telmisartan + Spironolactone', hazard: 'Hyperkalemia Risk' }
     ].filter(i => i.name.toLowerCase().includes(q) || i.hazard.toLowerCase().includes(q)).slice(0, 2);
 
-    // 4. Matched Patients
-    const matchedPatients = [
-      { name: 'Lalith Patel', abha: '91-8472-9104-5821', blood: 'O+' },
-      { name: 'Ragul Kumar', abha: '91-4829-1094-3321', blood: 'B+' },
-      { name: 'Akshara Sharma', abha: '91-3829-4401-9921', blood: 'A+' },
-      { name: 'Anita Sharma', abha: 'CG-8421-9902@abdm', blood: 'AB+' }
-    ].filter(p => p.name.toLowerCase().includes(q) || p.abha.toLowerCase().includes(q)).slice(0, 2);
+    // 4. Matched Patients (extracted only from real orders belonging to this pharmacy)
+    const patientMap = new Map<string, { name: string; abha: string; blood: string }>();
+    allOrders.forEach((o: any) => {
+      const pName = o.patient?.fullName || o.patientName;
+      if (pName && !patientMap.has(pName)) {
+        patientMap.set(pName, {
+          name: pName,
+          abha: o.patient?.abhaId || o.sourcePrescriptionId || 'Verified',
+          blood: o.patient?.bloodGroup || 'ABDM Verified'
+        });
+      }
+    });
+    const matchedPatients = Array.from(patientMap.values())
+      .filter(p => p.name.toLowerCase().includes(q) || p.abha.toLowerCase().includes(q))
+      .slice(0, 2);
 
     const total = matchedOrders.length + matchedMedicines.length + knownInteractions.length + matchedPatients.length;
 
@@ -226,7 +258,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
             </div>
             
             <div className="hidden 2xl:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
-              <Building2 className="w-3.5 h-3.5 text-[#00a896]" /> Apollo Central Dispensary
+              <Building2 className="w-3.5 h-3.5 text-[#00a896]" /> {effectiveUser.hospitalAffiliation || 'Dispensary Hub'}
             </div>
           </div>
         </div>
@@ -495,21 +527,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
 
         {/* MAIN PHARMACIST WORKSPACE SCROLL CONTAINER */}
         <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070c18] p-4 sm:p-6 lg:p-8">
-          
-          {/* TOAST FEEDBACK */}
-          <AnimatePresence>
-            {toastMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{toastMessage}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <DashboardAnnouncementBanner role="pharmacist" />
 
           {/* TOP PHARMACIST WORKSPACE HEADER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -518,7 +536,7 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-500/15 text-[#00a896] dark:text-cyan-300 font-mono border border-teal-500/20">
                   Dispensary Operations
                 </span>
-                <span className="text-xs text-slate-400 font-mono">• Apollo Central Hub</span>
+                <span className="text-xs text-slate-400 font-mono">• {effectiveUser.hospitalAffiliation || 'Dispensary Hub'}</span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                 {activeNavId === 'dashboard'
@@ -570,9 +588,9 @@ export const PharmacistDashboardPage: React.FC<PharmacistDashboardPageProps> = (
                   onToast={showToast}
                 />
               ) : activeNavId === 'medicines' ? (
-                <PharmacistMedicinesTab />
+                <PharmacistMedicinesTab user={effectiveUser} />
               ) : activeNavId === 'patients' ? (
-                <PharmacistPatientsTab />
+                <PharmacistPatientsTab user={effectiveUser} />
               ) : activeNavId === 'drug-interaction' ? (
                 <DrugInteractionView />
               ) : activeNavId === 'supplier-orders' ? (

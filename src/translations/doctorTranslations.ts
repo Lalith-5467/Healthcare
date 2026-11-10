@@ -366,7 +366,6 @@ export const doctorTranslations: Record<string, Record<string, string>> = {
     "doctor.scan.back_dashboard": "Back to Dashboard",
     
     // Patient Data
-    "doctor.patients.blood_group": "Blood Group",
     "doctor.patients.years": "Yrs",
     "doctor.patients.male": "Male",
     "doctor.patients.female": "Female",
@@ -740,7 +739,6 @@ export const doctorTranslations: Record<string, Record<string, string>> = {
     "doctor.scan.back_dashboard": "டாஷ்போர்டுக்குத் திரும்பு",
     
     // Patient Data
-    "doctor.patients.blood_group": "இரத்த வகை",
     "doctor.patients.years": "ஆண்டுகள்",
     "doctor.patients.male": "ஆண்",
     "doctor.patients.female": "பெண்",

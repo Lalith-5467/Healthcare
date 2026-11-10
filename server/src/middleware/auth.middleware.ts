@@ -21,18 +21,32 @@ export const authenticate = async (
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       // In development, recover active user session from referer/headers to prevent blocking scans
       if (config.nodeEnv === 'development') {
+        const portalHeader = ((req.headers['x-portal-role'] as string) || '').toUpperCase();
         const referer = (req.headers.referer || req.headers.origin || '').toLowerCase();
-        let targetRole = 'PATIENT';
-        if (referer.includes('/doctor')) targetRole = 'DOCTOR';
-        else if (referer.includes('/nurse')) targetRole = 'NURSE';
-        else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
-        else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
-        else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
-        else if (referer.includes('/admin')) targetRole = 'ADMIN';
+        let targetRole = portalHeader || 'PATIENT';
+        if (!portalHeader) {
+          if (referer.includes('/doctor')) targetRole = 'DOCTOR';
+          else if (referer.includes('/nurse')) targetRole = 'NURSE';
+          else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
+          else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
+          else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
+          else if (referer.includes('/admin')) targetRole = 'ADMIN';
+        }
 
-        const fallbackUser = await prisma.user.findFirst({
-          where: { role: targetRole as any, isActive: true },
-        });
+        let fallbackUser: any = null;
+        if (targetRole === 'DOCTOR') {
+          const doctorEmail = req.headers['x-doctor-email'] as string | undefined;
+          if (doctorEmail) {
+            fallbackUser = await prisma.user.findFirst({
+              where: { email: doctorEmail, role: Role.DOCTOR, isActive: true },
+            });
+          }
+        }
+        if (!fallbackUser) {
+          fallbackUser = await prisma.user.findFirst({
+            where: { role: targetRole as any, isActive: true },
+          });
+        }
 
         if (fallbackUser) {
           req.user = {
@@ -67,18 +81,32 @@ export const authenticate = async (
       decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
     } catch (err: unknown) {
       if (config.nodeEnv === 'development') {
+        const portalHeader = ((req.headers['x-portal-role'] as string) || '').toUpperCase();
         const referer = (req.headers.referer || req.headers.origin || '').toLowerCase();
-        let targetRole = 'PATIENT';
-        if (referer.includes('/doctor')) targetRole = 'DOCTOR';
-        else if (referer.includes('/nurse')) targetRole = 'NURSE';
-        else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
-        else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
-        else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
-        else if (referer.includes('/admin')) targetRole = 'ADMIN';
+        let targetRole = portalHeader || 'PATIENT';
+        if (!portalHeader) {
+          if (referer.includes('/doctor')) targetRole = 'DOCTOR';
+          else if (referer.includes('/nurse')) targetRole = 'NURSE';
+          else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
+          else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
+          else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
+          else if (referer.includes('/admin')) targetRole = 'ADMIN';
+        }
 
-        const fallbackUser = await prisma.user.findFirst({
-          where: { role: targetRole as any, isActive: true },
-        });
+        let fallbackUser: any = null;
+        if (targetRole === 'DOCTOR') {
+          const doctorEmail = req.headers['x-doctor-email'] as string | undefined;
+          if (doctorEmail) {
+            fallbackUser = await prisma.user.findFirst({
+              where: { email: doctorEmail, role: Role.DOCTOR, isActive: true },
+            });
+          }
+        }
+        if (!fallbackUser) {
+          fallbackUser = await prisma.user.findFirst({
+            where: { role: targetRole as any, isActive: true },
+          });
+        }
 
         if (fallbackUser) {
           req.user = {
@@ -128,19 +156,29 @@ export const authenticate = async (
 
     // In development, recover active user session from referer/headers if there's a portal mismatch
     if (config.nodeEnv === 'development') {
+      const portalHeader = ((req.headers['x-portal-role'] as string) || '').toUpperCase();
       const referer = (req.headers.referer || req.headers.origin || '').toLowerCase();
       let expectedRole: Role | null = null;
-      if (referer.includes('/pharmacist')) expectedRole = Role.PHARMACIST;
-      else if (referer.includes('/doctor')) expectedRole = Role.DOCTOR;
-      else if (referer.includes('/nurse')) expectedRole = Role.NURSE;
-      else if (referer.includes('/caregiver')) expectedRole = Role.CAREGIVER;
-      else if (referer.includes('/insurance')) expectedRole = Role.INSURANCE_PROVIDER;
-      else if (referer.includes('/user')) expectedRole = Role.PATIENT;
+      if (portalHeader === 'DOCTOR' || referer.includes('/doctor')) expectedRole = Role.DOCTOR;
+      else if (portalHeader === 'NURSE' || referer.includes('/nurse')) expectedRole = Role.NURSE;
+      else if (portalHeader === 'PHARMACIST' || referer.includes('/pharmacist')) expectedRole = Role.PHARMACIST;
+      else if (portalHeader === 'CAREGIVER' || referer.includes('/caregiver')) expectedRole = Role.CAREGIVER;
+      else if (portalHeader === 'INSURANCE_PROVIDER' || referer.includes('/insurance')) expectedRole = Role.INSURANCE_PROVIDER;
+      else if (portalHeader === 'PATIENT' || referer.includes('/user')) expectedRole = Role.PATIENT;
 
       if (expectedRole && user.role !== expectedRole && user.role !== Role.SUPER_ADMIN && user.role !== Role.ADMIN) {
-        const portalFallbackUser = await prisma.user.findFirst({
-          where: { role: expectedRole, isActive: true },
-        });
+        let portalFallbackUser: any = null;
+        if (expectedRole === Role.DOCTOR) {
+          const doctorEmail = (req.headers['x-doctor-email'] as string) || 'dr.arjun.kumar@apollocentral.in';
+          portalFallbackUser = await prisma.user.findFirst({
+            where: { email: doctorEmail, role: Role.DOCTOR, isActive: true },
+          });
+        }
+        if (!portalFallbackUser) {
+          portalFallbackUser = await prisma.user.findFirst({
+            where: { role: expectedRole, isActive: true },
+          });
+        }
         if (portalFallbackUser) {
           req.user = {
             id: portalFallbackUser.id,

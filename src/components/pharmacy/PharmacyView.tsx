@@ -13,19 +13,21 @@ import {
   RotateCcw,
   Compass,
   Check,
-  Package
+  Package,
+  CreditCard,
+  Wallet,
+  Eye,
 } from 'lucide-react';
 import type { Pharmacy, StockItem, PharmacyOrder, LinkedPrescription } from './pharmacyData';
 import {
   INITIAL_PHARMACIES,
-  INITIAL_MEDICINE_STOCK,
-  INITIAL_ORDERS,
-  INITIAL_PRESCRIPTIONS
+  INITIAL_MEDICINE_STOCK
 } from './pharmacyData';
 import {
   getPharmacyOrders as getStoredPharmacyOrders,
   getLinkedPrescriptions as getStoredLinkedPrescriptions,
-  getLatestWorkflow
+  getLatestWorkflow,
+  clearLatestWorkflowResult
 } from '../../utils/healthWorkflowStorage';
 import type { ExtendedPharmacyOrder } from '../../utils/healthWorkflowStorage';
 import { RefillModal } from './RefillModal';
@@ -36,6 +38,7 @@ import { CancelOrderModal } from './CancelOrderModal';
 import { fetchPatientPharmacyOrders, DHR_STATUS_PERCENT, DHR_STATUS_DISPLAY } from '../../services/pharmacyOrderApi';
 import { socketService } from '../../services/socketService';
 import { pharmacyApi } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -55,14 +58,15 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [_loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // STATE & LOCALSTORAGE PERSISTENCE (Live from MySQL)
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES);
   const [stockItems] = useState<StockItem[]>(INITIAL_MEDICINE_STOCK);
-  const [orders, setOrders] = useState<ExtendedPharmacyOrder[]>(INITIAL_ORDERS as ExtendedPharmacyOrder[]);
-  const [prescriptions, setPrescriptions] = useState<LinkedPrescription[]>(INITIAL_PRESCRIPTIONS);
+  const [orders, setOrders] = useState<ExtendedPharmacyOrder[]>([]);
+  const [prescriptions, setPrescriptions] = useState<LinkedPrescription[]>([]);
 
   // SEARCH & FILTERS
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,12 +82,14 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const [detailPharmacy, setDetailPharmacy] = useState<Pharmacy | null>(null);
   const [trackingOrder, setTrackingOrder] = useState<PharmacyOrder | null>(null);
   const [cancelOrderTarget, setCancelOrderTarget] = useState<PharmacyOrder | null>(null);
+  const [initialPayModal, setInitialPayModal] = useState<boolean>(false);
+  const [initialPayMethod, setInitialPayMethod] = useState<'ONLINE_UPI' | 'CARD' | 'NET_BANKING' | 'CASH_AT_PHARMACY'>('ONLINE_UPI');
 
   const loadAllData = async () => {
     try {
       const [liveOrders, livePharmaciesRes] = await Promise.all([
         fetchPatientPharmacyOrders().catch(() => null),
-        pharmacyApi.getPharmacies().catch(() => null),
+        pharmacyApi.getAvailablePharmacies().catch(() => pharmacyApi.getPharmacies().catch(() => null)),
       ]);
 
       if (livePharmaciesRes && livePharmaciesRes.data && livePharmaciesRes.data.length > 0) {
@@ -108,10 +114,10 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
         const mappedLive: ExtendedPharmacyOrder[] = liveOrders.map((bo) => ({
           id: bo.id,
           date: bo.orderedAt ? new Date(bo.orderedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
-          pharmacyName: bo.pharmacy?.name || '—',
+          pharmacyName: bo.pharmacy?.name || 'Apollo Central Pharmacy',
           pharmacyId: bo.pharmacyId || bo.pharmacy?.pharmacyId || '—',
           sourcePrescriptionId: bo.prescriptionId || '—',
-          doctorName: 'Attending Physician',
+          doctorName: bo.prescription?.doctor?.fullName || 'Attending Physician',
           patientName: bo.patient?.fullName || '—',
           clinicName: 'Clinical Healthcare Centre',
           items: (bo.items || []).map((it) => ({
@@ -119,22 +125,27 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
             dosage: it.dosage,
             quantity: it.quantity,
             unitPrice: Number(it.unitPrice) || 0,
+            subtotal: Number(it.subtotal) || (Number(it.quantity) * (Number(it.unitPrice) || 0)),
           })),
           deliveryMethod: (bo.deliveryType as any) || 'Home Delivery',
           deliveryAddress: bo.deliveryAddress || '—',
           totalAmount: Number(bo.totalAmount) || 0,
           status: bo.status as any,
+          paymentStatus: bo.paymentStatus || 'PENDING',
+          paymentMethod: bo.paymentMethod || null,
+          paidAt: bo.paidAt || null,
+          payments: bo.payments || [],
           estimatedDelivery: 'Standard Delivery',
           progressPercent:
             DHR_STATUS_PERCENT[bo.status] ?? (bo.status === 'PENDING' ? 20 : 0),
         }));
         setOrders(mappedLive);
       } else {
-        const loadedOrders = getStoredPharmacyOrders();
+        const loadedOrders = getStoredPharmacyOrders().filter((o) => !o.id.startsWith('RX-ORD-7740') && !o.id.startsWith('RX-ORD-9104') && !o.id.startsWith('RX-ORD-8821'));
         setOrders(loadedOrders);
       }
     } catch {
-      const loadedOrders = getStoredPharmacyOrders();
+      const loadedOrders = getStoredPharmacyOrders().filter((o) => !o.id.startsWith('RX-ORD-7740') && !o.id.startsWith('RX-ORD-9104') && !o.id.startsWith('RX-ORD-8821'));
       setOrders(loadedOrders);
     }
     const loadedPrescriptions = getStoredLinkedPrescriptions();
@@ -145,7 +156,23 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   useEffect(() => {
     loadAllData();
     socketService.connect();
-    const unsubSocket = socketService.subscribeToOrderUpdates(() => {
+    const unsubSocket = socketService.subscribeToOrderUpdates((payload: any) => {
+      setOrders((prev) => {
+        const index = prev.findIndex((o) => o.id === payload.orderId);
+        if (index >= 0) {
+          const updatedList = [...prev];
+          updatedList[index] = {
+            ...updatedList[index],
+            status: payload.status,
+            paymentStatus: payload.paymentStatus || updatedList[index].paymentStatus,
+            paymentMethod: payload.paymentMethod !== undefined ? payload.paymentMethod : updatedList[index].paymentMethod,
+            totalAmount: payload.totalAmount || updatedList[index].totalAmount,
+            progressPercent: DHR_STATUS_PERCENT[payload.status] ?? updatedList[index].progressPercent,
+          };
+          return updatedList;
+        }
+        return prev;
+      });
       loadAllData();
     });
 
@@ -163,12 +190,16 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               const targetRxId = latestWf.prescription?.id;
               const matching = live.find(
                 (o) => (o.id === targetId || o.prescriptionId === targetRxId) &&
-                       o.status !== 'COMPLETED' && o.status !== 'DELIVERED' &&
-                       o.status !== 'DECLINED' && o.status !== 'CANCELLED'
+                       !isTerminalStatus(o.status)
               );
               if (matching) {
                 setTrackingOrder(matching as any);
+              } else {
+                // If the latest workflow order has reached terminal status, clear it so it doesn't auto-reopen
+                clearLatestWorkflowResult();
               }
+            } else {
+              clearLatestWorkflowResult();
             }
           })
           .catch(() => {});
@@ -220,7 +251,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   // Helper status inspector
   const isTerminalStatus = (status?: string) => {
     const s = (status || '').toUpperCase();
-    return s === 'COMPLETED' || s === 'DELIVERED' || s === 'CANCELLED' || s === 'DECLINED' || s === 'DECLINED BY PHARMACIST';
+    return s === 'COMPLETED' || s === 'DELIVERED' || s === 'DISPENSED' || s === 'CANCELLED' || s === 'DECLINED' || s === 'DECLINED BY PHARMACIST';
   };
 
   // METRICS (Strict database-backed)
@@ -229,7 +260,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   const pendingOrdersCount = orders.filter((o) => !isTerminalStatus(o.status)).length;
   const completedOrdersCount = orders.filter((o) => {
     const s = (o.status || '').toUpperCase();
-    return s === 'COMPLETED' || s === 'DELIVERED';
+    return s === 'COMPLETED' || s === 'DELIVERED' || s === 'DISPENSED';
   }).length;
 
   const lowStockItem = stockItems.find((s) => s.stockLevel === 'Low Stock') || stockItems[0];
@@ -249,25 +280,27 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST FEEDBACK */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Pharmacy Orders & Refill Hub"
-        subtitle="Manage your medicine refills and keep track of your pharmacy orders."
-        badgeText="Digital Refill Hub"
+        title={t('pharmacy.title', 'Pharmacy Orders & Refill Hub')}
+        subtitle={t('pharmacy.subtitle', 'Manage your medicine refills and keep track of your pharmacy orders.')}
+        badgeText={t('pharmacy.badge', 'Digital Refill Hub')}
         badgeIcon={<Truck className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto">
@@ -279,7 +312,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-extrabold text-xs border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Clock className="w-4 h-4 text-[#00a896] dark:text-cyan-400" />
-              <span>Order History</span>
+              <span>{t('pharmacy.order_history', 'Order History')}</span>
             </button>
             <button
               onClick={() => {
@@ -289,7 +322,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Pill className="w-4 h-4" />
-              <span>New Refill</span>
+              <span>{t('pharmacy.new_refill', 'New Refill')}</span>
             </button>
           </div>
         }
@@ -299,20 +332,20 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Active Medicines</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.active_medicines', 'Active Medicines')}</span>
             <div className="p-2 rounded-xl bg-teal-500/10 text-[#00a896] dark:text-cyan-400 border border-teal-500/20">
               <Pill className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{activeStockCount}</span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">Tracked</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">{t('pharmacy.tracked', 'Tracked')}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-amber-500/30 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">Low Stock Alert</span>
+            <span className="text-xs font-bold text-amber-700 dark:text-amber-400">{t('pharmacy.low_stock_alert', 'Low Stock Alert')}</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
               <AlertCircle className="w-4 h-4" />
             </div>
@@ -325,27 +358,27 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Pending Orders</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.pending_orders', 'Pending Orders')}</span>
             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:teal-400 border border-teal-500/20">
               <Truck className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{pendingOrdersCount}</span>
-            <span className="text-[10px] text-teal-700 dark:text-teal-300 font-bold">In transit</span>
+            <span className="text-[10px] text-teal-700 dark:text-teal-300 font-bold">{t('pharmacy.in_transit', 'In transit')}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 rounded-3xl space-y-2 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Completed Orders</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('pharmacy.completed_orders', 'Completed Orders')}</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">{completedOrdersCount}</span>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">Delivered</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">{t('status.delivered', 'Delivered')}</span>
           </div>
         </div>
       </div>
@@ -358,24 +391,24 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-extrabold text-xs uppercase tracking-wider">
                 <AlertCircle className="w-4 h-4" />
-                <span>Medicine Running Low</span>
+                <span>{t('pharmacy.running_low', 'Medicine Running Low')}</span>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
-                Low Stock
+                {t('pharmacy.low_stock', 'Low Stock')}
               </span>
             </div>
 
             <div>
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">{lowStockItem.medicineName} ({lowStockItem.dosage})</h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-                <strong className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">{lowStockItem.currentQuantity} tablets remaining</strong> • Estimated supply: <strong className="text-slate-900 dark:text-white font-extrabold">{lowStockItem.supplyDays} days</strong>
+                <strong className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">{lowStockItem.currentQuantity} {t('pharmacy.tablets_remaining', 'tablets remaining')}</strong> • {t('pharmacy.estimated_supply', 'Estimated supply')}: <strong className="text-slate-900 dark:text-white font-extrabold">{lowStockItem.supplyDays} {t('common.days', 'days')}</strong>
               </p>
             </div>
 
             {/* SUPPLY PROGRESS BAR */}
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between text-[11px] font-bold">
-                <span className="text-slate-600 dark:text-slate-400">Medicine Supply</span>
+                <span className="text-slate-600 dark:text-slate-400">{t('pharmacy.med_supply', 'Medicine Supply')}</span>
                 <span className="text-amber-700 dark:text-amber-400 font-mono font-extrabold">20%</span>
               </div>
               <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -397,7 +430,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
             className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-slate-950 bg-amber-500 hover:bg-amber-400 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <Truck className="w-4 h-4" />
-            <span>Request Refill for {lowStockItem.medicineName}</span>
+            <span>{t('pharmacy.request_refill', 'Request Refill')}</span>
           </button>
         </div>
 
@@ -408,7 +441,7 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[#00a896] dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider">
                   <Truck className="w-4 h-4" />
-                  <span>Live Refill Order</span>
+                  <span>{t('pharmacy.live_refill', 'Live Refill Order')}</span>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                   activePendingOrder.status === 'PENDING'
@@ -646,68 +679,179 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
 
         {/* ORDER LOGS LIST */}
         <div className="space-y-3 font-mono">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-sans"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{order.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    order.status === 'Delivered'
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                      : order.status === 'Declined by Pharmacist' || order.status === 'Cancelled'
-                      ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
-                      : order.status === 'Processing'
-                      ? 'bg-blue-500/15 text-blue-700 dark:text-cyan-300 border border-blue-500/30'
-                      : order.status === 'Pending Pharmacist Verification'
-                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                      : 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border border-teal-500/30'
-                  }`}>
-                    {order.status === 'Processing' ? 'Processing • Verified by Pharmacist' : order.status}
-                  </span>
-                  {order.sourcePrescriptionId && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono">
-                      Source: Prescription #{order.sourcePrescriptionId}
+          {orders.map((order) => {
+            const rawStatus = (order.status || 'PENDING').toString().toUpperCase();
+            const isPaid = order.paymentStatus === 'PAID';
+            const isPendingPayment = !isPaid;
+            const isDispensed = rawStatus === 'DISPENSED';
+            const isDelivered = rawStatus === 'DELIVERED';
+            const isCompleted = rawStatus === 'COMPLETED';
+            const isDeclined = rawStatus === 'DECLINED' || rawStatus === 'CANCELLED' || rawStatus.includes('DECLIN');
+            const isProcessing = rawStatus === 'PREPARING' || rawStatus === 'PROCESSING';
+            const isWaiting = rawStatus === 'PENDING' || rawStatus.includes('VERIFICATION');
+            const isReady = rawStatus === 'READY' || rawStatus === 'READY_FOR_PICKUP';
+
+            return (
+              <div
+                key={order.id}
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 p-4 sm:p-5 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs font-sans hover:border-[#00a896]/40 transition-colors"
+              >
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
+                      #{order.id}
                     </span>
-                  )}
-                </div>
-                <p className="text-slate-600 dark:text-slate-400 font-medium">
-                  {order.date} • <strong className="text-slate-900 dark:text-slate-200 font-extrabold">{order.pharmacyName}</strong> ({order.deliveryMethod})
-                  {order.doctorName ? ` • Prescribed by ${order.doctorName}` : ''}
-                </p>
-                {order.status === 'Declined by Pharmacist' && order.declineReason && (
-                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold">
-                    Reason: {order.declineReason} {order.pharmacistNotes ? `(${order.pharmacistNotes})` : ''}
+
+                    {/* STATUS BADGE */}
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                        isDispensed || isDelivered || isCompleted
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                          : isDeclined
+                          ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                          : isReady
+                          ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                          : isProcessing
+                          ? 'bg-blue-500/15 text-blue-700 dark:text-cyan-300 border-blue-500/30'
+                          : isWaiting
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                          : 'bg-teal-500/15 text-teal-700 dark:text-cyan-300 border-teal-500/30'
+                      }`}
+                    >
+                      ● {DHR_STATUS_DISPLAY[rawStatus] || order.status}
+                    </span>
+
+                    {/* PAYMENT STATUS BADGE */}
+                    {isPaid ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        <span>PAID {order.paymentMethod ? `(${order.paymentMethod.replace(/_/g, ' ')})` : ''}</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+                        <Clock className="w-3 h-3 text-amber-500" />
+                        <span>PAYMENT PENDING</span>
+                      </span>
+                    )}
+
+                    {order.sourcePrescriptionId && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-500/10 text-[#00a896] dark:text-cyan-300 border border-teal-500/20 font-mono">
+                        Rx: #{order.sourcePrescriptionId}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-slate-600 dark:text-slate-400 font-medium">
+                    {order.date} • <strong className="text-slate-900 dark:text-slate-200 font-extrabold">{order.pharmacyName}</strong> ({order.deliveryMethod})
+                    {order.doctorName ? ` • Prescribed by ${order.doctorName}` : ''}
                   </p>
-                )}
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                  Items: {order.items.map((i) => `${i.name} (${i.quantity})`).join(', ')}
-                </p>
-              </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-200 dark:border-slate-700/60 pt-2 sm:pt-0">
-                <span className="font-mono font-extrabold text-amber-700 dark:text-amber-400 text-sm">₹{order.totalAmount}</span>
+                  {order.status === 'Declined by Pharmacist' && order.declineReason && (
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold">
+                      Reason: {order.declineReason} {order.pharmacistNotes ? `(${order.pharmacistNotes})` : ''}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setTrackingOrder(order)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-extrabold transition-colors cursor-pointer"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleReorder(order)}
-                    className="px-3 py-1.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reorder</span>
-                  </button>
+                  {/* PRESCRIBED MEDICINES WITH REAL QUANTITIES */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase font-mono mr-1">
+                      Medicines ({order.items.length}):
+                    </span>
+                    {order.items.map((it, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1 shadow-2xs"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00a896]" />
+                        <span>{it.name}</span>
+                        <span className="font-mono text-slate-400 font-black text-[10px]">× {it.quantity}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AMOUNT & ACTIONS */}
+                <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-start sm:items-center lg:items-end xl:items-center justify-between gap-3 border-t lg:border-t-0 border-slate-200 dark:border-slate-700/60 pt-3 lg:pt-0 shrink-0">
+                  <div className="text-left sm:text-right lg:text-right">
+                    <span className="text-[10px] text-slate-400 font-mono block">Total Amount</span>
+                    <span className="font-mono font-black text-amber-700 dark:text-amber-400 text-base">
+                      ₹{Number(order.totalAmount || 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {isPendingPayment && !isDeclined ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTrackingOrder(order);
+                            setInitialPayModal(true);
+                            setInitialPayMethod('ONLINE_UPI');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer hover:scale-102"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Pay Now</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTrackingOrder(order);
+                            setInitialPayModal(true);
+                            setInitialPayMethod('CASH_AT_PHARMACY');
+                          }}
+                          className="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 font-extrabold text-xs border border-amber-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                          title="Pay cash to pharmacist when collecting medicines at the counter"
+                        >
+                          <Wallet className="w-3.5 h-3.5" />
+                          <span>Pay at Pharmacy</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTrackingOrder(order);
+                            setInitialPayModal(false);
+                          }}
+                          className="px-3 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-extrabold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View Order</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTrackingOrder(order);
+                            setInitialPayModal(false);
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs border border-teal-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>View Order</span>
+                        </button>
+
+                        {(isCompleted || isDelivered || isDispensed) && (
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(order)}
+                            className="px-3.5 py-2 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reorder</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -816,8 +960,13 @@ export const PharmacyView: React.FC<PharmacyViewProps> = ({
       <OrderTrackingModal
         order={trackingOrder}
         isOpen={!!trackingOrder}
-        onClose={() => setTrackingOrder(null)}
+        onClose={() => {
+          setTrackingOrder(null);
+          setInitialPayModal(false);
+        }}
         onOpenCancelModal={(order) => setCancelOrderTarget(order)}
+        initialOpenPaymentModal={initialPayModal}
+        initialPaymentMethodChoice={initialPayMethod}
       />
 
       <CancelOrderModal

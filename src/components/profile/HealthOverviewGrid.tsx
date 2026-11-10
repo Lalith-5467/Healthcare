@@ -1,6 +1,7 @@
 import React from 'react';
 import { Droplet, Ruler, Scale, Gauge, Heart, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface HealthOverviewGridProps {
   bloodGroup?: string;
@@ -19,14 +20,17 @@ export const HealthOverviewGrid: React.FC<HealthOverviewGridProps> = ({
   heartRate = '72 BPM',
   bp = '120/80'
 }) => {
+  const { t } = useLanguage();
+
   const cards = [
-    { label: 'Blood Group', value: bloodGroup, status: 'ABDM Verified', icon: Droplet, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20' },
-    { label: 'Height', value: height, status: 'Recorded', icon: Ruler, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
-    { label: 'Weight', value: weight, status: 'Stable', icon: Scale, color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
-    { label: 'BMI Index', value: bmi.toString(), status: 'Normal', icon: Gauge, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
-    { label: 'Heart Rate', value: heartRate, status: 'Resting', icon: Heart, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20' },
-    { label: 'Blood Pressure', value: bp, status: 'Optimal', icon: Activity, color: 'text-teal-500 bg-teal-500/10 border-teal-500/20' }
+    { label: t('profile.blood_group', 'Blood Group'), value: bloodGroup, status: t('profile.abdm_verified', 'ABDM Verified'), icon: Droplet, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20' },
+    { label: t('profile.height', 'Height'), value: height, status: t('profile.recorded', 'Recorded'), icon: Ruler, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
+    { label: t('profile.weight', 'Weight'), value: weight, status: t('profile.stable', 'Stable'), icon: Scale, color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
+    { label: t('profile.bmi_index', 'BMI Index'), value: bmi.toString(), status: t('profile.normal', 'Normal'), icon: Gauge, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
+    { label: t('profile.heart_rate', 'Heart Rate'), value: heartRate, status: t('profile.resting', 'Resting'), icon: Heart, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20' },
+    { label: t('profile.blood_pressure', 'Blood Pressure'), value: bp, status: t('profile.optimal', 'Optimal'), icon: Activity, color: 'text-teal-500 bg-teal-500/10 border-teal-500/20' }
   ];
+
 
   return (
     <div className="relative h-full p-6 rounded-3xl bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-teal-500/10 hover:border-teal-500/30 dark:hover:shadow-teal-400/5 group">
@@ -76,7 +80,7 @@ export const HealthOverviewGrid: React.FC<HealthOverviewGridProps> = ({
       <div className="relative z-10 flex flex-col h-full space-y-4">
         <h2 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
           <Activity className="w-4 h-4 text-teal-500" />
-          Health Overview
+          {t('profile.health_overview', 'Health Overview')}
         </h2>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-4 flex-1 mt-4">

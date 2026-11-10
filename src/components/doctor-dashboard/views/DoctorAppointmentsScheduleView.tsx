@@ -1,3 +1,4 @@
+import { apiClient } from '../../../services/apiClient';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -142,8 +143,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
   React.useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/appointments/schedule');
-        const data = await response.json();
+        const data = await apiClient.get("/appointments/schedule");
         if (data.success) {
           setSlots(data.data);
         }
@@ -252,6 +252,7 @@ export const DoctorAppointmentsScheduleView: React.FC<DoctorAppointmentsSchedule
       
       // Search filter
       if (searchQuery) {
+        const query = searchQuery.toLowerCase();
         const localizedName = getLocalizedName(apt.patientName, t);
         const matchesName = localizedName.toLowerCase().includes(query) || apt.patientName.toLowerCase().includes(query);
         const matchesId = apt.patientId.toLowerCase().includes(query);

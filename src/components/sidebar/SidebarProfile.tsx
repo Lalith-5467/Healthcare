@@ -61,7 +61,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
       {/* PROFILE TRIGGER CARD */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Patient Profile Options"
+        aria-label={t('profileOptions', 'Patient Profile Options')}
         className={`w-full p-2 rounded-2xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-800/80 transition-all flex items-center gap-3 cursor-pointer ${
           isCollapsed ? 'justify-center' : 'justify-between'
         }`}
@@ -77,7 +77,7 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
             <div className="flex flex-col text-left min-w-0">
               <span className="text-xs font-black text-slate-900 dark:text-white truncate">{user?.name || 'Patient'}</span>
               <span className="text-[10px] text-slate-600 dark:text-slate-400 truncate">
-                {user?.age ? `${user.age} Years` : ''}{user?.age && user?.bloodGroup ? ' • ' : ''}{user?.bloodGroup || ''}
+                {user?.age ? `${user.age} ${t('years', 'Years')}` : ''}{user?.age && user?.bloodGroup ? ' • ' : ''}{user?.bloodGroup || ''}
               </span>
             </div>
           )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import { CheckCircle2, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import type {
   ChatMessage,
   ChatConversation,
@@ -43,6 +44,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // CHAT STATE
@@ -211,26 +213,28 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 pb-24 text-xs font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER & DISCLAIMER */}
       <div className="space-y-3 pb-2">
         <PageHeader
-          title="AI Health Assistant"
-          subtitle="Your smart healthcare companion for everyday health guidance and appointment prep."
-          badgeText="Demo Assistant Mode"
+          title={t('ai.title', 'AI Health Assistant')}
+          subtitle={t('ai.subtitle', 'Your smart healthcare companion for everyday health guidance and appointment prep.')}
+          badgeText={t('ai.badge', 'Demo Assistant Mode')}
           badgeIcon={<ShieldCheck className="w-3.5 h-3.5" />}
           rightElement={
             <div className="flex items-center gap-3">
@@ -238,7 +242,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
                 onClick={() => onNavigate('more-features')}
                 className="px-4 py-2.5 rounded-xl font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
               >
-                <span>Back to Features</span>
+                <span>{t('ai.back_to_features', 'Back to Features')}</span>
               </button>
             </div>
           }
@@ -247,7 +251,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
         {/* DISCLAIMER BANNER */}
         <div className="p-3 bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-2 font-mono shadow-sm">
           <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-          <span>This AI assistant provides general health information and is not a substitute for a qualified healthcare professional.</span>
+          <span>{t('ai.disclaimer', 'This AI assistant provides general health information and is not a substitute for a qualified healthcare professional.')}</span>
         </div>
       </div>
 

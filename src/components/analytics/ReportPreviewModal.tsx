@@ -15,6 +15,24 @@ export const ReportPreviewModal: React.FC<ReportPreviewModalProps> = ({
   const [downloading, setDownloading] = useState(false);
   const [downloadedMsg, setDownloadedMsg] = useState<string | null>(null);
 
+  const patientDisplayName = React.useMemo(() => {
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    return 'Ragul Kumar';
+  }, []);
+
   if (!isOpen) return null;
 
   const handleDownloadPDF = () => {
@@ -75,7 +93,7 @@ export const ReportPreviewModal: React.FC<ReportPreviewModalProps> = ({
         {/* REPORT CONTENT BODY */}
         <div className="space-y-4 text-xs">
           <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono space-y-2">
-            <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Patient Name:</span><strong className="text-slate-900 dark:text-white font-sans">Lalith Patel</strong></div>
+            <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Patient Name:</span><strong className="text-slate-900 dark:text-white font-sans">{patientDisplayName}</strong></div>
             <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">ABHA ID:</span><strong className="text-[#00a896] dark:text-cyan-300">91-8472-9104-5821@abdm</strong></div>
             <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Timeframe:</span><strong className="text-slate-900 dark:text-white">{dateRange}</strong></div>
             <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-400 font-sans">Generated On:</span><strong className="text-slate-900 dark:text-white">24 Aug 2026</strong></div>

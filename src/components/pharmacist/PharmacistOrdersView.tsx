@@ -14,13 +14,16 @@ import {
   Truck,
   Package,
   Radio,
+  CreditCard,
 } from 'lucide-react';
 import {
   fetchPharmacistOrders,
   acceptPharmacyOrder,
   declinePharmacyOrder,
   updatePharmacyOrderStatus,
+  confirmPharmacistCashPayment,
   DHR_STATUS_DISPLAY,
+  type BackendPharmacyOrder,
 } from '../../services/pharmacyOrderApi';
 import { socketService, type OrderStatusUpdatePayload } from '../../services/socketService';
 import { PharmacistPrescriptionModal } from './PharmacistPrescriptionModal';
@@ -36,8 +39,57 @@ interface PharmacistOrdersViewProps {
   initialFilter?: string;
   targetOrderId?: string | null;
   onClearTargetOrder?: () => void;
-  onToast: (msg: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
+  onToast: (msg: string, type?: 'success' | 'info' | 'warning' | 'error', title?: string, eventKey?: string) => void;
 }
+
+export const getOrderStatusToast = (orderId: string, status: string): { title: string; message: string } => {
+  const shortId = orderId ? orderId.slice(-6) : '';
+  const norm = (status || '').toUpperCase();
+
+  switch (norm) {
+    case 'ACCEPTED':
+      return {
+        title: 'Order Accepted',
+        message: `Order #${shortId} was accepted successfully.`,
+      };
+    case 'PREPARING':
+      return {
+        title: 'Order Updated',
+        message: `Order #${shortId} moved to Preparing.`,
+      };
+    case 'READY':
+    case 'READY_FOR_PICKUP':
+      return {
+        title: 'Order Ready',
+        message: `Order #${shortId} is ready for delivery.`,
+      };
+    case 'OUT_FOR_DELIVERY':
+      return {
+        title: 'Out for Delivery',
+        message: `Order #${shortId} is out for delivery.`,
+      };
+    case 'COMPLETED':
+    case 'DISPENSED':
+    case 'DELIVERED':
+      return {
+        title: 'Order Completed',
+        message: `Order #${shortId} has been completed.`,
+      };
+    case 'DECLINED':
+    case 'CANCELLED':
+      return {
+        title: 'Order Declined',
+        message: `Order #${shortId} was declined.`,
+      };
+    default: {
+      const friendlyName = status ? (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace(/_/g, ' ')) : 'Updated';
+      return {
+        title: 'Order Updated',
+        message: `Order #${shortId} moved to ${friendlyName}.`,
+      };
+    }
+  }
+};
 
 export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
   user: _user,
@@ -59,29 +111,43 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
   const [declineTargetOrder, setDeclineTargetOrder] = useState<any | null>(null);
 
   // Authoritative REST order loader
-  const loadOrders = async () => {
+  const loadOrders = async (silentParam?: boolean | unknown) => {
+    const silent = silentParam === true;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setErrorMessage(null);
       const data = await fetchPharmacistOrders();
       setOrders(data || []);
     } catch (err: any) {
       console.error('Failed to load pharmacist orders:', err);
       // Fallback is handled in fetchPharmacistOrders, but if any exception occurs, gracefully clear error
-      setOrders([]);
+      if (!silent) setOrders([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadOrders();
 
+    // Resilient cross-module & cross-tab polling fallback (3.5s interval)
+    const pollInterval = setInterval(() => {
+      loadOrders(true);
+    }, 3500);
+
     // Cross-module & cross-tab workflow listener
     const handleWorkflowUpdate = () => {
-      loadOrders();
+      loadOrders(true);
     };
     window.addEventListener('health_workflow_updated', handleWorkflowUpdate);
+
+    // Cross-tab storage listener (e.g. order submitted in patient tab)
+    const handleStorageUpdate = (e: StorageEvent) => {
+      if (e.key === 'health_workflow_last_updated' || e.key === 'pharmacy_order_updated') {
+        loadOrders(true);
+      }
+    };
+    window.addEventListener('storage', handleStorageUpdate);
 
     // Socket.IO Realtime synchronization
     socketService.connect();
@@ -90,7 +156,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       setIsRealtimeActive(connected);
       if (connected) {
         // Re-sync on reconnection
-        loadOrders();
+        loadOrders(true);
       }
     });
 
@@ -103,24 +169,31 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
             ...updatedList[index],
             status: payload.status,
             updatedAt: payload.updatedAt,
+            paymentStatus: payload.paymentStatus || updatedList[index].paymentStatus,
+            paymentMethod: payload.paymentMethod !== undefined ? payload.paymentMethod : updatedList[index].paymentMethod,
           };
           return updatedList;
         } else {
           // A brand new order was routed to this pharmacy!
-          loadOrders();
+          loadOrders(true);
           return prev;
         }
       });
 
       if (payload.previousStatus === 'NEW') {
-        onToast(`🔔 New Medicine Order: #${payload.orderId.slice(-6)}`);
+        const eventKey = `order-${payload.orderId.toLowerCase()}-new`;
+        onToast(`New medicine order #${payload.orderId.slice(-6)} received.`, 'info', 'New Order', eventKey);
       } else {
-        onToast(`Order #${payload.orderId.slice(-6)} updated to ${payload.status}`);
+        const { title, message } = getOrderStatusToast(payload.orderId, payload.status);
+        const eventKey = `order-${payload.orderId.toLowerCase()}-${(payload.status || '').toLowerCase()}`;
+        onToast(message, 'info', title, eventKey);
       }
     });
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('health_workflow_updated', handleWorkflowUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
       unsubConn();
       unsubOrders();
     };
@@ -141,7 +214,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       if (matched) {
         setActiveFilter('All');
         setSelectedRxOrder(matched);
-        onToast(`Viewing Order #${matched.id.slice(-6)} (${matched.patient?.fullName || 'Patient'})`);
+        onToast(`Viewing Order #${matched.id.slice(-6)} (${matched.patient?.fullName || 'Patient'})`, 'info', 'Order Selected', `order-${matched.id.toLowerCase()}-view`);
         setTimeout(() => {
           const el = document.getElementById(`order-card-${matched.id}`);
           if (el) {
@@ -165,7 +238,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
   const preparingCount = orders.filter((o) => normalize(o.status) === 'PREPARING').length;
   const readyCount = orders.filter((o) => normalize(o.status) === 'READY' || normalize(o.status) === 'READY_FOR_PICKUP').length;
   const deliveryCount = orders.filter((o) => normalize(o.status) === 'OUT_FOR_DELIVERY').length;
-  const completedCount = orders.filter((o) => normalize(o.status) === 'COMPLETED' || normalize(o.status) === 'DELIVERED').length;
+  const completedCount = orders.filter((o) => normalize(o.status) === 'COMPLETED' || normalize(o.status) === 'DELIVERED' || normalize(o.status) === 'DISPENSED').length;
   const declinedCount = orders.filter((o) => normalize(o.status) === 'DECLINED' || normalize(o.status) === 'CANCELLED').length;
 
   // HANDLE ACCEPT ORDER
@@ -174,7 +247,9 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       setActionLoadingId(orderId);
       const updated = await acceptPharmacyOrder(orderId);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: 'ACCEPTED' } : o)));
-      onToast(`✓ Order #${orderId.slice(-6)} Accepted!`, 'success');
+      const { title, message } = getOrderStatusToast(orderId, 'ACCEPTED');
+      const eventKey = `order-${orderId.toLowerCase()}-accepted`;
+      onToast(message, 'success', title, eventKey);
       window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
       console.error('Accept order failed:', err);
@@ -193,7 +268,9 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       const fullReason = notes ? `${reason} - ${notes}` : reason;
       const updated = await declinePharmacyOrder(orderId, fullReason);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: 'DECLINED' } : o)));
-      onToast(`✕ Order #${orderId.slice(-6)} Declined.`, 'info');
+      const { title, message } = getOrderStatusToast(orderId, 'DECLINED');
+      const eventKey = `order-${orderId.toLowerCase()}-declined`;
+      onToast(message, 'info', title, eventKey);
       window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
       console.error('Decline order failed:', err);
@@ -211,13 +288,45 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
       setActionLoadingId(orderId);
       const updated = await updatePharmacyOrderStatus(orderId, nextStatus);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated, status: nextStatus } : o)));
-      onToast(`✓ Order #${orderId.slice(-6)} moved to ${nextStatus}!`, 'success');
+      const { title, message } = getOrderStatusToast(orderId, nextStatus);
+      const eventKey = `order-${orderId.toLowerCase()}-${nextStatus.toLowerCase()}`;
+      onToast(message, 'success', title, eventKey);
       window.dispatchEvent(new Event('health_workflow_updated'));
     } catch (err: any) {
       console.error('Advance status failed:', err);
       const errorMsg = err?.message || 'Unable to update this order status. Please try again.';
       onToast(errorMsg, 'error');
       loadOrders();
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // CONFIRM CASH PAYMENT AT PHARMACY COUNTER
+  const handleConfirmCashPayment = async (orderId: string, notes?: string) => {
+    try {
+      setActionLoadingId(orderId);
+      const updated = await confirmPharmacistCashPayment(orderId, notes || 'Cash payment received at pharmacy counter');
+      const updatedOrder: BackendPharmacyOrder = ('order' in updated && updated.order) ? updated.order : (updated as any);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId
+            ? { ...o, ...updatedOrder, paymentStatus: 'PAID', paymentMethod: 'CASH_AT_PHARMACY' }
+            : o
+        )
+      );
+      if (selectedRxOrder && selectedRxOrder.id === orderId) {
+        setSelectedRxOrder((prev: any) =>
+          prev ? { ...prev, ...updatedOrder, paymentStatus: 'PAID', paymentMethod: 'CASH_AT_PHARMACY' } : null
+        );
+      }
+      const eventKey = `order-${orderId.toLowerCase()}-cash-payment`;
+      onToast(`Cash payment of ₹${Number(updatedOrder.totalAmount || 0).toFixed(2)} recorded and verified.`, 'success', 'Payment Verified', eventKey);
+      window.dispatchEvent(new Event('health_workflow_updated'));
+    } catch (err: any) {
+      console.error('Cash confirmation failed:', err);
+      const errorMsg = err?.message || 'Failed to record cash payment.';
+      onToast(errorMsg, 'error');
     } finally {
       setActionLoadingId(null);
     }
@@ -239,7 +348,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
     } else if (activeFilter === 'Out for Delivery') {
       if (st !== 'OUT_FOR_DELIVERY') return false;
     } else if (activeFilter === 'Completed') {
-      if (st !== 'COMPLETED' && st !== 'DELIVERED') return false;
+      if (st !== 'COMPLETED' && st !== 'DELIVERED' && st !== 'DISPENSED') return false;
     } else if (activeFilter === 'Declined') {
       if (st !== 'DECLINED' && st !== 'CANCELLED') return false;
     }
@@ -531,14 +640,30 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                           </div>
                         )}
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                          Patient: <strong className="text-slate-900 dark:text-slate-100 font-extrabold text-xs">{patientDisplayName}</strong> • Created: <span className="font-mono">{createdTime}</span>
+                          Patient: <strong className="text-slate-900 dark:text-slate-100 font-extrabold text-xs">{patientDisplayName}</strong>{order.patientId ? <span className="font-mono text-[10px] text-slate-400 ml-1">({order.patientId})</span> : null} • Created: <span className="font-mono">{createdTime}</span>
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* STATUS BADGE */}
-                  <div className="flex items-center gap-2">
+                  {/* STATUS & PAYMENT BADGES */}
+                  <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700">
+                      ₹{Number(order.totalAmount || 0).toFixed(2)}
+                    </span>
+
+                    {order.paymentStatus === 'PAID' ? (
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold font-mono bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 flex items-center gap-1 shadow-xs">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        <span>PAID {order.paymentMethod ? `(${order.paymentMethod.replace(/_/g, ' ')})` : ''}</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold font-mono bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1 shadow-xs">
+                        <Clock className="w-3 h-3 text-amber-500" />
+                        <span>PAYMENT PENDING</span>
+                      </span>
+                    )}
+
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-extrabold font-mono border ${
                         isPending
@@ -553,6 +678,8 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                           ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/40'
                           : isDeclined
                           ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40'
+                          : rawStatus === 'DISPENSED'
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 ring-1 ring-emerald-500/50'
                           : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
                       }`}
                     >
@@ -657,38 +784,133 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
                       </button>
                     )}
 
-                    {/* 4. READY: Out for Delivery */}
+                    {/* 4. READY: Dispense Medicines / Cash Confirmation / Delivery */}
                     {isReady && (
-                      <button
-                        type="button"
-                        disabled={actionLoadingId === order.id}
-                        onClick={() => handleAdvanceStatus(order.id, 'OUT_FOR_DELIVERY')}
-                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                      >
-                        {actionLoadingId === order.id ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {order.paymentStatus === 'PAID' ? (
+                          <button
+                            type="button"
+                            disabled={actionLoadingId === order.id}
+                            onClick={() => handleAdvanceStatus(order.id, 'COMPLETED')}
+                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                          >
+                            {actionLoadingId === order.id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                            <span>Dispense & Complete</span>
+                          </button>
                         ) : (
-                          <Truck className="w-4 h-4" />
+                          <>
+                            <button
+                              type="button"
+                              disabled={actionLoadingId === order.id}
+                              onClick={() => handleConfirmCashPayment(order.id)}
+                              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                              title="Record and confirm cash payment collected at counter"
+                            >
+                              {actionLoadingId === order.id ? (
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CreditCard className="w-4 h-4" />
+                              )}
+                              <span>Confirm Cash (₹{Number(order.totalAmount || 0).toFixed(2)})</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={true}
+                              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-not-allowed flex items-center gap-1.5 opacity-60"
+                              title="Cannot dispense until payment is verified"
+                            >
+                              <span>Dispense (Unpaid)</span>
+                            </button>
+                          </>
                         )}
-                        <span>Out for Delivery</span>
-                      </button>
+
+                        {(() => {
+                          const dt = String(order.deliveryType || '').toUpperCase().replace(/[\s_-]+/g, '');
+                          const isHomeDeliv = dt === 'HOMEDELIVERY' || dt === 'DELIVERY';
+                          return isHomeDeliv ? (
+                            <button
+                              type="button"
+                              disabled={actionLoadingId === order.id}
+                              onClick={() => handleAdvanceStatus(order.id, 'OUT_FOR_DELIVERY')}
+                              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              {actionLoadingId === order.id ? (
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Truck className="w-4 h-4" />
+                              )}
+                              <span>Out for Delivery</span>
+                            </button>
+                          ) : null;
+                        })()}
+                      </div>
                     )}
 
-                    {/* 5. OUT FOR DELIVERY: Mark Completed */}
+                    {/* 5. OUT FOR DELIVERY: Mark Completed with Cash on Delivery support */}
                     {isDelivery && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {order.paymentStatus !== 'PAID' && (
+                          <button
+                            type="button"
+                            disabled={actionLoadingId === order.id}
+                            onClick={() => handleConfirmCashPayment(order.id, 'Cash collected on delivery')}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            title="Confirm cash payment collected upon delivery"
+                          >
+                            {actionLoadingId === order.id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <CreditCard className="w-4 h-4" />
+                            )}
+                            <span>Confirm Delivery Payment (₹{Number(order.totalAmount || 0).toFixed(2)})</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          disabled={actionLoadingId === order.id || order.paymentStatus !== 'PAID'}
+                          onClick={() => handleAdvanceStatus(order.id, 'COMPLETED')}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                          title={order.paymentStatus !== 'PAID' ? 'Confirm cash payment first before completing' : 'Mark order completed'}
+                        >
+                          {actionLoadingId === order.id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4" />
+                          )}
+                          <span>Mark Completed</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 6. DISPENSED STATUS INDICATOR */}
+                    {rawStatus === 'DISPENSED' && (
                       <button
                         type="button"
                         disabled={actionLoadingId === order.id}
                         onClick={() => handleAdvanceStatus(order.id, 'COMPLETED')}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        title="Mark order strictly as COMPLETED"
                       >
                         {actionLoadingId === order.id ? (
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                         ) : (
-                          <Check className="w-4 h-4" />
+                          <CheckCircle2 className="w-4 h-4" />
                         )}
-                        <span>Mark Completed</span>
+                        <span>Finalize Completion</span>
                       </button>
+                    )}
+
+                    {/* 7. COMPLETED STATUS INDICATOR */}
+                    {rawStatus === 'COMPLETED' && (
+                      <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-xs font-extrabold border border-emerald-500/30 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span>Order Completed</span>
+                      </span>
                     )}
                   </div>
                 </div>
@@ -705,6 +927,7 @@ export const PharmacistOrdersView: React.FC<PharmacistOrdersViewProps> = ({
         onClose={() => setSelectedRxOrder(null)}
         onAccept={(id) => handleAcceptOrder(id)}
         onOpenDecline={(ord) => setDeclineTargetOrder(ord)}
+        onConfirmCashPayment={handleConfirmCashPayment}
       />
 
       {/* DECLINE CONFIRMATION DIALOG */}

@@ -10,6 +10,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useInsuranceWorkflow } from '../../utils/insuranceWorkflowStorage';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface InsuranceSidebarProps {
   activeNav: string;
@@ -19,32 +20,33 @@ interface InsuranceSidebarProps {
 
 export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, onNavigate, user }) => {
   const { records } = useInsuranceWorkflow();
+  const { t } = useLanguage();
   const pendingReviewCount = records.filter(r => r.currentClaim !== null && r.currentClaim.status === 'Under Review').length;
 
   const officerName = user?.name || 'Insurance Officer';
 
   const NAV_ITEMS = [
-    { id: 'dashboard', label: 'Command Center', icon: Home },
+    { id: 'dashboard', label: t('insurance.sidebar.command_center', 'Command Center'), icon: Home },
     { 
       id: 'search', 
-      label: 'Search Policy ID', 
+      label: t('insurance.sidebar.search_policy_id', 'Search Policy ID'), 
       icon: Search,
       special: true
     },
     { 
       id: 'claims', 
-      label: 'Claims & Approvals', 
+      label: t('insurance.sidebar.claims_approvals', 'Claims & Approvals'), 
       icon: FileText,
-      badge: pendingReviewCount > 0 ? `${pendingReviewCount} Active` : undefined,
+      badge: pendingReviewCount > 0 ? `${pendingReviewCount} ${t('insurance.sidebar.active', 'Active')}` : undefined,
       badgeColor: 'bg-amber-500'
     },
-    { id: 'preauth', label: 'Cashless Pre-Auth', icon: CheckSquare },
-    { id: 'policies', label: 'Policies Directory', icon: ShieldCheck },
-    { id: 'hospitals', label: 'Network Hospitals', icon: Building2 },
-    { id: 'settlements', label: 'Settlements & Payouts', icon: CreditCard },
+    { id: 'preauth', label: t('insurance.sidebar.cashless_preauth', 'Cashless Pre-Auth'), icon: CheckSquare },
+    { id: 'policies', label: t('insurance.sidebar.policies_directory', 'Policies Directory'), icon: ShieldCheck },
+    { id: 'hospitals', label: t('insurance.sidebar.network_hospitals', 'Network Hospitals'), icon: Building2 },
+    { id: 'settlements', label: t('insurance.sidebar.settlements_payouts', 'Settlements & Payouts'), icon: CreditCard },
     
-    { category: 'TPA Clearinghouse' },
-    { id: 'settings', label: 'TPA Desk Settings', icon: Settings }
+    { category: t('insurance.sidebar.clearinghouse', 'TPA Clearinghouse') },
+    { id: 'settings', label: t('insurance.sidebar.tpa_settings', 'TPA Desk Settings'), icon: Settings }
   ];
 
   return (
@@ -56,15 +58,15 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-cyan-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              TPA Clearinghouse
+              {t('insurance.sidebar.clearinghouse', 'TPA Clearinghouse')}
             </span>
             <span className="text-[10px] font-mono font-semibold text-slate-400">TPA-8821</span>
           </div>
           <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-            {officerName}
+            {t(officerName)}
           </p>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
-            Star Health & Apollo Cashless Hub
+            {t('insurance.sidebar.cashless_hub', 'Star Health & Apollo Cashless Hub')}
           </p>
         </div>
       </div>
@@ -73,7 +75,7 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
       <nav className="flex-1 px-3 py-3 space-y-1">
         <div className="px-3 pb-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Claims Operations
+            {t('insurance.sidebar.claims_ops', 'Claims Operations')}
           </span>
         </div>
 
@@ -145,7 +147,7 @@ export const InsuranceSidebar: React.FC<InsuranceSidebarProps> = ({ activeNav, o
       <div className="p-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
-          <span className="truncate">ABDM Insurance Clearinghouse</span>
+          <span className="truncate">{t('insurance.sidebar.abdm_clearinghouse', 'ABDM Insurance Clearinghouse')}</span>
         </div>
       </div>
     </aside>

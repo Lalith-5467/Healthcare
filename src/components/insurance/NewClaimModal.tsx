@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { X, FileText, Upload, Check, Sparkles, ShieldCheck, Lock, Smartphone, RefreshCw, KeyRound, AlertCircle } from 'lucide-react';
+import { 
+  X, FileText, Upload, Check, Sparkles, ShieldCheck, Lock, 
+  Smartphone, RefreshCw, KeyRound, AlertCircle, Zap, Send, ArrowRight, ExternalLink 
+} from 'lucide-react';
 import type { InsuranceClaim } from './insuranceData';
 
 interface NewClaimModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddClaim: (newClaim: InsuranceClaim) => void;
+  onOpenInsurancePortal?: () => void;
+  patientName?: string;
+  insuranceId?: string;
 }
 
 export const NewClaimModal: React.FC<NewClaimModalProps> = ({
   isOpen,
   onClose,
   onAddClaim,
+  onOpenInsurancePortal,
+  patientName = 'Ragul Kumar',
+  insuranceId = 'INS-MC-2026-10245',
 }) => {
   const [step, setStep] = useState(1);
   const [treatmentType, setTreatmentType] = useState<'Hospitalization' | 'Outpatient' | 'Diagnostic Tests' | 'Medicines' | 'Emergency Care'>('Hospitalization');
@@ -20,14 +29,21 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
   const [description, setDescription] = useState('Emergency admission for fever, dehydration & cardiac telemetry review');
   const [attachedFiles, setAttachedFiles] = useState<string[]>(['Hospital_Bill_Receipt.pdf', 'Discharge_Summary.pdf', 'Doctor_Prescription.pdf']);
   const [submitting, setSubmitting] = useState(false);
+  const [submittedClaim, setSubmittedClaim] = useState<InsuranceClaim | null>(null);
 
-  // OTP Authentication States
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [otpVerified, setOtpVerified] = useState(false);
+  // OTP Authentication States (pre-filled with valid token for immediate flow)
+  const [otp, setOtp] = useState(['8', '4', '9', '2', '0', '1']);
+  const [otpVerified, setOtpVerified] = useState(true);
   const [otpError, setOtpError] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(28);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setStep(1);
+    setSubmittedClaim(null);
+    onClose();
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -55,6 +71,7 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
 
   const handleAutoFillOtp = () => {
     setOtp(['8', '4', '9', '2', '0', '1']);
+    setOtpVerified(true);
     setOtpError(null);
   };
 
@@ -69,13 +86,9 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
     setStep(5); // Proceed to final confirmation
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
+  const createClaimPayload = (): InsuranceClaim => {
     const claimId = `CLM-2026-${Math.floor(10000 + Math.random() * 90000)}`;
-
-    const newClaim: InsuranceClaim = {
+    return {
       id: claimId,
       claimNumber: claimId,
       hospitalName,
@@ -92,17 +105,47 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
         { stage: '4. Cashless Final Decision', date: 'Pending Signoff', completed: false, active: false }
       ]
     };
+  };
+
+  // Express 1-click submit directly sends the request to insurance portal
+  const handleQuickExpressSubmit = () => {
+    setSubmitting(true);
+    const newClaim = createClaimPayload();
 
     setTimeout(() => {
       setSubmitting(false);
       onAddClaim(newClaim);
-      onClose();
-    }, 900);
+      setSubmittedClaim(newClaim);
+      setStep(6);
+    }, 700);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const newClaim = createClaimPayload();
+
+    setTimeout(() => {
+      setSubmitting(false);
+      onAddClaim(newClaim);
+      setSubmittedClaim(newClaim);
+      setStep(6);
+    }, 800);
+  };
+
+  const handleOpenInsurance = () => {
+    if (onOpenInsurancePortal) {
+      onOpenInsurancePortal();
+    } else {
+      window.history.pushState(null, '', '/insurance/overview');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      handleClose();
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans select-none">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 font-sans select-none">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-slate-900 dark:text-white max-h-[92vh] overflow-y-auto">
         
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -115,48 +158,93 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
                 Cashless Claim Pre-Authorization
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Step {step} of 5 • Authenticated Policyholder Verification
+                {step === 6 ? 'Request Transmitted • Live Desk Sync' : `Step ${step} of 5 • Connected to Insurance Portal`}
               </p>
             </div>
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* STEP 1: CLAIM TYPE */}
+        {/* STEP 1: CLAIM TYPE & 1-CLICK EXPRESS DISPATCH */}
         {step === 1 && (
           <div className="space-y-4 text-xs">
-            <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-2">
-              Select Claim Category
-            </label>
-            <div className="space-y-2">
-              {(['Hospitalization', 'Emergency Care', 'Diagnostic Tests', 'Medicines & Pharmacy', 'Outpatient Surgery'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTreatmentType(t as any)}
-                  className={`w-full p-3.5 rounded-2xl border text-left font-bold transition-all cursor-pointer ${
-                    treatmentType === (t as any)
-                      ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/40 shadow-xs'
-                      : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+            {/* EXPRESS DISPATCH BANNER */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/15 via-cyan-500/10 to-blue-500/15 border-2 border-teal-500/30 dark:border-teal-500/20 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <Zap className="w-4 h-4 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                    ⚡ Express 1-Click Dispatch to Insurance Portal
+                  </h4>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                    Instantly sends ₹{claimedAmount.toLocaleString()} cashless pre-auth request directly to IRDAI Insurance TPA Clearinghouse desk.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleQuickExpressSubmit}
+                disabled={submitting}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#00a896] to-teal-600 hover:from-[#00897b] hover:to-teal-500 text-white font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-75"
+              >
+                {submitting ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin" />
+                    <span>Transmitting Request to Insurance Portal...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Quick Send to Insurance Portal (1-Click)</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">or customize claim details</span>
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-2">
+                Select Claim Category
+              </label>
+              <div className="space-y-2">
+                {(['Hospitalization', 'Emergency Care', 'Diagnostic Tests', 'Medicines & Pharmacy', 'Outpatient Surgery'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTreatmentType(t as any)}
+                    className={`w-full p-3.5 rounded-2xl border text-left font-bold transition-all cursor-pointer ${
+                      treatmentType === (t as any)
+                        ? 'bg-teal-500/15 text-[#00a896] dark:text-cyan-300 border-teal-500/40 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => setStep(2)}
-                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer"
+                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer flex items-center gap-1.5"
               >
-                Continue to Hospital Details →
+                <span>Continue to Hospital Details</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -210,9 +298,10 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
               </button>
               <button
                 onClick={() => setStep(3)}
-                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer"
+                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer flex items-center gap-1.5"
               >
-                Upload Documents →
+                <span>Upload Documents</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -256,9 +345,10 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
               </button>
               <button
                 onClick={() => setStep(4)}
-                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer"
+                className="py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md cursor-pointer flex items-center gap-1.5"
               >
-                Proceed to OTP Verification →
+                <span>Proceed to OTP Verification</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -275,14 +365,17 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
                 Policyholder Security Verification
               </h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-300 max-w-sm mx-auto">
-                A 6-digit cryptographic OTP has been sent to your registered mobile number <strong className="font-mono text-slate-900 dark:text-white">+91 98765 43210</strong> (ABHA: 91-8472-9104-5821@abdm).
+                A 6-digit cryptographic OTP has been linked to your registered mobile number <strong className="font-mono text-slate-900 dark:text-white">+91 98765 43210</strong> (ABHA: 91-8472-9104-5821@abdm).
               </p>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 font-bold text-[10px]">
+                <Check className="w-3 h-3" /> Auto-Verified ABDM Health ID Token
+              </div>
             </div>
 
             {/* OTP 6 BOXES */}
             <div>
               <label className="block text-center font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
-                Enter 6-Digit OTP
+                6-Digit Security OTP
               </label>
               <div className="flex justify-center gap-2 sm:gap-3">
                 {otp.map((digit, i) => (
@@ -293,7 +386,7 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
-                    className="w-11 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-center font-black text-lg text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition-all"
+                    className="w-11 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-teal-500/40 dark:border-teal-400/40 text-center font-black text-lg text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition-all shadow-2xs"
                   />
                 ))}
               </div>
@@ -310,13 +403,13 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
               <button
                 type="button"
                 onClick={handleAutoFillOtp}
-                className="text-teal-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1"
+                className="text-teal-600 dark:text-cyan-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <KeyRound className="w-3.5 h-3.5" /> 1-Click Auto-Fill (849201)
+                <KeyRound className="w-3.5 h-3.5" /> Re-Fill Master Token (849201)
               </button>
 
               <span className="text-slate-400 font-medium">
-                Resend OTP in 00:{resendTimer}s
+                Token Active (00:{resendTimer}s)
               </span>
             </div>
 
@@ -349,7 +442,7 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 font-mono">
               <div className="flex justify-between">
                 <span className="text-slate-500 font-sans">Patient / Holder:</span>
-                <strong className="text-slate-900 dark:text-white">Ragul Kumar (INS-MC-2026-10245)</strong>
+                <strong className="text-slate-900 dark:text-white">{patientName} ({insuranceId})</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-sans">Hospital / Facility:</span>
@@ -366,6 +459,10 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-500 font-sans">Documents Linked:</span>
                 <strong className="text-slate-900 dark:text-white">{attachedFiles.length} files attached</strong>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-slate-500 font-sans">Target Clearinghouse:</span>
+                <strong className="text-blue-600 dark:text-cyan-400">IRDAI Insurance Portal TPA Desk</strong>
               </div>
             </div>
 
@@ -385,17 +482,82 @@ export const NewClaimModal: React.FC<NewClaimModalProps> = ({
                 {submitting ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    <span>Transmitting to Insurance Desk...</span>
+                    <span>Transmitting to Insurance Portal...</span>
                   </>
                 ) : (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Send className="w-4 h-4" />
                     <span>Dispatch Claim to Insurance Portal</span>
                   </>
                 )}
               </button>
             </div>
           </form>
+        )}
+
+        {/* STEP 6: DISPATCH SUCCESS & DIRECT INSURANCE PORTAL ACCESS */}
+        {step === 6 && submittedClaim && (
+          <div className="space-y-6 text-center animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/30">
+              <Check className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="inline-block text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-300 dark:border-emerald-800">
+                ✓ Request Sent to Insurance Portal
+              </span>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                Cashless Claim Transmitted!
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
+                Claim <strong className="font-mono text-slate-900 dark:text-white">{submittedClaim.claimNumber}</strong> is now live in the Insurance Clearinghouse queue for review.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-left space-y-2 font-mono text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Claim ID:</span>
+                <strong className="text-blue-600 dark:text-cyan-400">{submittedClaim.claimNumber}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Status:</span>
+                <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded font-bold text-[10px]">
+                  Under Review by TPA Incharge
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Hospital:</span>
+                <strong className="text-slate-900 dark:text-white truncate max-w-[200px]">{submittedClaim.hospitalName}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Amount:</span>
+                <strong className="text-amber-700 dark:text-amber-400 font-bold">₹{submittedClaim.claimedAmount.toLocaleString()}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Review Officer:</span>
+                <strong className="text-slate-900 dark:text-white">Dr. Vikas Verma, TPA Head</strong>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 pt-2 font-sans">
+              <button
+                type="button"
+                onClick={handleOpenInsurance}
+                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-black text-xs shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02]"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Open Insurance Portal (Review & Approve Claim Now)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Close & View in Patient Claim Tracker
+              </button>
+            </div>
+          </div>
         )}
 
       </div>

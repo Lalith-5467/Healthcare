@@ -66,6 +66,10 @@ export interface PharmacyOrder {
   status: PharmacyOrderStatus;
   estimatedDelivery: string; // e.g. "Today, 10:45 AM – 11:15 AM"
   progressPercent: number; // 0 to 100
+  paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | string;
+  paymentMethod?: string | null;
+  paidAt?: string | null;
+  payments?: any[];
 }
 
 export interface LinkedPrescription {
@@ -79,7 +83,7 @@ export interface LinkedPrescription {
 
 export const INITIAL_PHARMACIES: Pharmacy[] = [
   {
-    id: 'DHR-PH-00124',
+    id: 'PHARM-1',
     name: 'Apollo Central Pharmacy',
     rating: 4.9,
     reviewCount: 512,
@@ -93,7 +97,7 @@ export const INITIAL_PHARMACIES: Pharmacy[] = [
     isPreferred: true
   },
   {
-    id: 'DHR-PH-00125',
+    id: 'PHARM-2',
     name: 'MedPlus Pharmacy',
     rating: 4.8,
     reviewCount: 342,
@@ -301,3 +305,35 @@ export const INITIAL_PRESCRIPTIONS: LinkedPrescription[] = [
     associatedMedicines: ['Amlodipine', 'Omeprazole']
   }
 ];
+
+/**
+ * Scoped Pharmacy Inventory & Stock Helper
+ * Only the default Apollo Central Pharmacy seed had initial demo stock;
+ * All newly registered pharmacies start with 0 stock until they add formulations.
+ */
+export const getPharmacyStock = (pharmacyId?: string): StockItem[] => {
+  if (!pharmacyId) return [];
+  const key = `pharmacy_stock_${pharmacyId}`;
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  // Only the legacy seed Apollo Central pharmacy defaults to INITIAL_MEDICINE_STOCK if never set
+  if (pharmacyId === 'PHARM-1' || pharmacyId === 'cmtmazq560000i08c78x8znjw') {
+    return INITIAL_MEDICINE_STOCK;
+  }
+  return [];
+};
+
+export const savePharmacyStock = (pharmacyId: string, stock: StockItem[]): boolean => {
+  if (!pharmacyId) return false;
+  const key = `pharmacy_stock_${pharmacyId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify(stock));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('health_workflow_updated'));
+    }
+    return true;
+  } catch {}
+  return false;
+};

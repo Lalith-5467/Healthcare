@@ -4,6 +4,8 @@ import {
   createPharmacyOrderSchema,
   declinePharmacyOrderSchema,
   updatePharmacyOrderStatusSchema,
+  processPaymentSchema,
+  confirmCashPaymentSchema,
 } from '../utils/validators';
 
 export const createPharmacyOrderController = async (
@@ -144,6 +146,79 @@ export const updatePharmacyOrderStatusController = async (
     res.status(200).json({
       success: true,
       message: `Pharmacy order status updated successfully to ${data.status}`,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPharmacyOrderBillController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await PharmacyOrderService.getPharmacyOrderBill(
+      id,
+      req.user!
+    );
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const processPharmacyOrderPaymentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const validated = processPaymentSchema.parse(req.body);
+    const data = await PharmacyOrderService.processPharmacyOrderPayment(
+      id,
+      validated,
+      req.user!,
+      req.ip
+    );
+
+    res.status(200).json({
+      success: true,
+      message: data.order.paymentStatus === 'PAID'
+        ? 'Payment verified and confirmed successfully'
+        : 'Payment initiated / recorded as pending counter collection',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmCashPaymentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { notes } = confirmCashPaymentSchema.parse(req.body);
+    const data = await PharmacyOrderService.confirmCashPayment(
+      id,
+      req.user!,
+      notes,
+      req.ip
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Cash payment confirmed at pharmacy counter. Order is now ready for dispensing.',
       data,
     });
   } catch (error) {

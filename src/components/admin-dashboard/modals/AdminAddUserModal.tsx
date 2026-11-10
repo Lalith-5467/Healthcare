@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -18,7 +18,11 @@ import {
   Calendar,
   Lock,
   Briefcase,
-  ChevronDown
+  ChevronDown,
+  Pill,
+  HeartHandshake,
+  Check,
+  UserCheck
 } from 'lucide-react';
 import { adminApi } from '../../../services/dhrApis';
 
@@ -48,6 +52,82 @@ const roleToDbMap: Record<AdminRoleOption, string> = {
   Admin: 'ADMIN',
 };
 
+export interface RoleOptionItem {
+  key: AdminRoleOption;
+  label: string;
+  badge: string;
+  description: string;
+  icon: React.ElementType;
+  iconColor: string;
+  badgeBg: string;
+}
+
+const ROLE_OPTIONS: RoleOptionItem[] = [
+  {
+    key: 'Patient',
+    label: 'Patient',
+    badge: 'OPD & Inpatient',
+    description: 'Personal health records, vitals, prescriptions & ABHA linkage',
+    icon: User,
+    iconColor: 'text-teal-600 dark:text-teal-400',
+    badgeBg: 'bg-teal-50 dark:bg-teal-950/70 border-teal-200/80 dark:border-teal-800/60',
+  },
+  {
+    key: 'Doctor',
+    label: 'Doctor',
+    badge: 'Clinical Practitioner',
+    description: 'Consultations, medical diagnosis, clinical prescriptions & OPD',
+    icon: Stethoscope,
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    badgeBg: 'bg-blue-50 dark:bg-blue-950/70 border-blue-200/80 dark:border-blue-800/60',
+  },
+  {
+    key: 'Nurse',
+    label: 'Nurse',
+    badge: 'Inpatient Care',
+    description: 'Vitals telemetry, inpatient wards & clinical duty care',
+    icon: Heart,
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    badgeBg: 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-200/80 dark:border-emerald-800/60',
+  },
+  {
+    key: 'Pharmacist',
+    label: 'Pharmacist',
+    badge: 'Pharmacy & Dispensing',
+    description: 'Prescription fulfillment, dispensary & inventory control',
+    icon: Pill,
+    iconColor: 'text-purple-600 dark:text-purple-400',
+    badgeBg: 'bg-purple-50 dark:bg-purple-950/70 border-purple-200/80 dark:border-purple-800/60',
+  },
+  {
+    key: 'Caregiver',
+    label: 'Caregiver',
+    badge: 'Family Support',
+    description: 'Assigned dependent monitoring & authorized family care',
+    icon: HeartHandshake,
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    badgeBg: 'bg-amber-50 dark:bg-amber-950/70 border-amber-200/80 dark:border-amber-800/60',
+  },
+  {
+    key: 'Insurance',
+    label: 'Insurance / TPA',
+    badge: 'Claims & Coverage',
+    description: 'Policy claims processing, pre-auth & cashless approvals',
+    icon: Building,
+    iconColor: 'text-indigo-600 dark:text-indigo-400',
+    badgeBg: 'bg-indigo-50 dark:bg-indigo-950/70 border-indigo-200/80 dark:border-indigo-800/60',
+  },
+  {
+    key: 'Admin',
+    label: 'Admin',
+    badge: 'Hospital Governance',
+    description: 'Hospital management, staff roster & administrative governance',
+    icon: Shield,
+    iconColor: 'text-rose-600 dark:text-rose-400',
+    badgeBg: 'bg-rose-50 dark:bg-rose-950/70 border-rose-200/80 dark:border-rose-800/60',
+  },
+];
+
 export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
   isOpen,
   onClose,
@@ -55,8 +135,24 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
   showToast,
 }) => {
   const [selectedRole, setSelectedRole] = useState<AdminRoleOption | ''>('');
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const currentRoleConfig = useMemo(() => {
+    return ROLE_OPTIONS.find(r => r.key === selectedRole);
+  }, [selectedRole]);
 
   // --- SECTION 1: PERSONAL INFORMATION ---
   const [fullName, setFullName] = useState('');
@@ -254,6 +350,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
     setAdminDepartment('');
     setAdminDesignation('');
     setSelectedRole('');
+    setIsRoleDropdownOpen(false);
     setAbhaId('');
     setTemporaryPassword('Password@123');
     setAccountStatus('ACTIVE');
@@ -349,7 +446,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
       await adminApi.createUser(payload);
 
       if (showToast) {
-        showToast(`User ${fullName} created successfully as ${selectedRole} in MySQL database.`, 'success');
+        showToast(`User "${fullName}" registered successfully as ${selectedRole}.`, 'success');
       }
 
       resetForm();
@@ -389,18 +486,18 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
           {/* MODAL HEADER */}
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <div className="w-10 h-10 rounded-2xl bg-[#00a896]/10 border border-[#00a896]/20 flex items-center justify-center text-[#00a896] dark:text-[#2dd4bf]">
                 <UserPlus className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                   Create Role-Aware User Account
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#00a896]/10 text-[#00a896] dark:text-[#2dd4bf] border border-[#00a896]/20">
                     {selectedRole ? (selectedRole === 'Insurance' ? 'Insurance / TPA' : selectedRole) : 'Select a Role'}
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  Add user directly into MySQL database with complete role profile schema
+                  Create verified user account with complete role profile credentials
                 </p>
               </div>
             </div>
@@ -428,31 +525,137 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
             )}
 
             {/* TARGET SYSTEM ROLE SELECTOR */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                Target System Role <span className="text-rose-500">*</span>
+            <div ref={roleDropdownRef} className="relative z-30">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span>Target System Role</span>
+                  <span className="text-rose-500 font-black">*</span>
+                </span>
+                {currentRoleConfig && (
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    Active schema: <strong className="text-slate-900 dark:text-white">{currentRoleConfig.label}</strong>
+                  </span>
+                )}
               </label>
-              <div className="relative">
-                <select
-                  required
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as AdminRoleOption)}
-                  className={`w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold ${!selectedRole ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'} focus:outline-none focus:border-blue-500 cursor-pointer appearance-none pr-10`}
-                >
-                  <option value="" disabled hidden>Select a system role</option>
-                  <option value="">Select a system role</option>
-                  <option value="Patient">Patient</option>
-                  <option value="Doctor">Doctor</option>
-                  <option value="Nurse">Nurse</option>
-                  <option value="Pharmacist">Pharmacist</option>
-                  <option value="Caregiver">Caregiver</option>
-                  <option value="Insurance">Insurance / TPA</option>
-                  <option value="Admin">Admin</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400 dark:text-slate-500">
-                  <ChevronDown className="w-4 h-4" />
+
+              {/* Custom High-Contrast Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsRoleDropdownOpen(prev => !prev)}
+                className={`w-full p-3 rounded-2xl bg-white dark:bg-slate-800/95 border transition-all cursor-pointer flex items-center justify-between text-left shadow-xs ${
+                  isRoleDropdownOpen 
+                    ? 'border-[#00a896] ring-3 ring-[#00a896]/15' 
+                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {currentRoleConfig ? (
+                    <>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${currentRoleConfig.badgeBg} ${currentRoleConfig.iconColor}`}>
+                        <currentRoleConfig.icon className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black text-slate-900 dark:text-white">
+                            {currentRoleConfig.label}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 font-mono">
+                            {currentRoleConfig.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium truncate mt-0.5">
+                          {currentRoleConfig.description}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-700 dark:text-slate-200 shrink-0">
+                        <UserCheck className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">
+                          Select a system role
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          Choose permissions & clinical credential schema
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
+
+                <div className="pl-3 shrink-0 flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180 bg-teal-50 dark:bg-teal-950/60 text-[#00796b]' : ''}`}>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+              </button>
+
+              {/* Dropdown Menu Popup */}
+              <AnimatePresence>
+                {isRoleDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl shadow-slate-950/20 p-2 z-50 max-h-80 overflow-y-auto space-y-1"
+                  >
+                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
+                      <span>Available System Roles ({ROLE_OPTIONS.length})</span>
+                      <span className="text-[10px] text-slate-400">Click to select</span>
+                    </div>
+
+                    {ROLE_OPTIONS.map((opt) => {
+                      const isSelected = selectedRole === opt.key;
+                      const IconComp = opt.icon;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => {
+                            setSelectedRole(opt.key);
+                            setIsRoleDropdownOpen(false);
+                          }}
+                          className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group ${
+                            isSelected
+                              ? 'bg-teal-50/90 dark:bg-teal-950/50 border border-teal-200/80 dark:border-teal-800/60 shadow-2xs'
+                              : 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs ${opt.badgeBg} ${opt.iconColor}`}>
+                              <IconComp className="w-4.5 h-4.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-sm font-black ${isSelected ? 'text-[#00796b] dark:text-teal-300' : 'text-slate-900 dark:text-white'}`}>
+                                  {opt.label}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-200/70 dark:border-slate-700/60">
+                                  {opt.badge}
+                                </span>
+                              </div>
+                              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-1">
+                                {opt.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          {isSelected ? (
+                            <div className="w-6 h-6 rounded-full bg-[#00a896] text-white flex items-center justify-center shrink-0 ml-2 shadow-xs">
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 group-hover:border-slate-400 flex items-center justify-center shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* SECTION 1: PERSONAL INFORMATION */}
@@ -514,11 +717,10 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
                       onChange={(e) => setGender(e.target.value)}
                       className="w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="" disabled hidden>Select Gender</option>
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
+                      <option value="" disabled className="text-slate-400 bg-white dark:text-slate-500 dark:bg-slate-800 font-medium">Select Gender</option>
+                      <option value="Male" className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">Male</option>
+                      <option value="Female" className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">Female</option>
+                      <option value="Other" className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">Other</option>
                     </select>
                   </div>
                 </div>
@@ -535,10 +737,9 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
                       onChange={(e) => setBloodGroup(e.target.value)}
                       className="w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="" disabled hidden>Select Blood Group</option>
-                      <option value="">Select Blood Group</option>
+                      <option value="" disabled className="text-slate-400 bg-white dark:text-slate-500 dark:bg-slate-800 font-medium">Select Blood Group</option>
                       {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
-                        <option key={bg} value={bg}>{bg}</option>
+                        <option key={bg} value={bg} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">{bg}</option>
                       ))}
                     </select>
                   </div>
@@ -1449,8 +1650,8 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
                     onChange={(e) => setAccountStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
                     className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                   >
-                    <option value="ACTIVE">ACTIVE (Authorized for Immediate Login)</option>
-                    <option value="INACTIVE">INACTIVE (Disabled)</option>
+                    <option value="ACTIVE" className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">ACTIVE (Authorized for Immediate Login)</option>
+                    <option value="INACTIVE" className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 font-bold">INACTIVE (Disabled)</option>
                   </select>
                 </div>
               </div>
@@ -1469,7 +1670,7 @@ export const AdminAddUserModal: React.FC<AdminAddUserModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-black text-xs shadow-lg shadow-[#00a896]/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

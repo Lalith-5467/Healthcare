@@ -14,7 +14,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
 
   const handleTakeMed = () => {
     setMedTaken(true);
-    onToast('✓ Amoxicillin 500mg marked as taken!');
+    onToast(t('focus.med_taken_toast', '✓ Amoxicillin 500mg marked as taken!'));
   };
 
   return (
@@ -25,7 +25,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             {t('card.todays_focus', "Today's Focus")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Your high-priority health tasks & scheduled activities for today.
+            {t('focus.subtitle', 'Your high-priority health tasks & scheduled activities for today.')}
           </p>
         </div>
       </div>
@@ -57,7 +57,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
               Amoxicillin 500mg
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              1 Capsule after lunch
+              {t('focus.dose_instruction', '1 Capsule after lunch')}
             </p>
           </div>
 
@@ -70,8 +70,8 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
               : { background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#1c1917', boxShadow: '0 3px 10px rgba(245,158,11,.3)' }}
           >
             {medTaken
-              ? <><Check className="w-3.5 h-3.5" /><span>Taken ✓</span></>
-              : <span>Take Dose Now</span>}
+              ? <><Check className="w-3.5 h-3.5" /><span>{t('focus.taken_done', 'Taken ✓')}</span></>
+              : <span>{t('focus.take_dose', 'Take Dose Now')}</span>}
           </button>
         </motion.div>
 
@@ -99,7 +99,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
               Dr. Rajesh Kumar
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              Cardiology Tele-Consult
+              {t('focus.cardiology_consult', 'Cardiology Tele-Consult')}
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
             style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', boxShadow: '0 3px 10px rgba(59,130,246,.3)' }}
           >
-            View Appointment
+            {t('focus.view_appointment', 'View Appointment')}
           </button>
         </motion.div>
 
@@ -127,16 +127,16 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             </div>
             <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full whitespace-nowrap"
               style={{ background: 'rgba(34,197,94,.12)', color: '#166534', border: '1px solid rgba(34,197,94,.25)' }}>
-              New Report
+              {t('focus.new_report', 'New Report')}
             </span>
           </div>
 
           <div className="my-2.5 space-y-0.5 relative z-10">
             <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
-              CBC & Blood Panel
+              {t('focus.cbc_blood', 'CBC & Blood Panel')}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              Lab Results Ready to View
+              {t('focus.lab_ready', 'Lab Results Ready to View')}
             </p>
           </div>
 
@@ -145,7 +145,7 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center cursor-pointer relative z-10"
             style={{ background: 'linear-gradient(135deg,#00a896,#059669)', boxShadow: '0 3px 10px rgba(0,168,150,.3)' }}
           >
-            View Lab Report
+            {t('focus.view_lab', 'View Lab Report')}
           </button>
         </motion.div>
 
@@ -174,26 +174,26 @@ export const TodaysFocusGrid: React.FC<TodaysFocusGridProps> = ({ onNavigate, on
             <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg,rgba(139,92,246,.4),rgba(99,102,241,.4))', border: '1px solid rgba(167,139,250,.3)', color: '#c4b5fd' }}>
               <Sparkles className="w-2.5 h-2.5" />
-              <span>AI Powered</span>
+              <span>{t('focus.ai_powered', 'AI Powered')}</span>
             </span>
           </div>
 
           <div className="my-2.5 space-y-0.5 relative z-10">
-            <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
-              Ask AI Assistant
+            <h4 className="text-xs sm:text-sm font-extrabold text-white leading-snug">
+              {t('focus.ask_ai_title', 'Ask AI Assistant')}
             </h4>
-            <p className="text-[11px] text-purple-300 font-medium">
-              Instant symptoms & lab insights
+            <p className="text-[11px] text-purple-200 font-medium">
+              {t('focus.ask_ai_desc', 'Instant symptoms & lab insights')}
             </p>
           </div>
 
           <button
             onClick={() => onNavigate('ai-assistant')}
-            className="w-full py-2 px-3 rounded-xl text-slate-900 dark:text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative z-10 hover:opacity-90"
+            className="w-full py-2 px-3 rounded-xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative z-10 hover:opacity-90"
             style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 3px 12px rgba(124,58,237,.4)' }}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Ask AI Companion</span>
+            <span>{t('focus.ask_ai_button', 'Ask AI Companion')}</span>
           </button>
         </motion.div>
 

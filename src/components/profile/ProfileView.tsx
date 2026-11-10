@@ -20,6 +20,8 @@ import type { ProfileFormData } from './EditProfileDrawer';
 import { ProfileSkeleton } from './ProfileSkeleton';
 import { QRModal } from '../dashboard/QRModal';
 
+import { useLanguage } from '../../context/LanguageContext';
+
 interface UserProfile {
   name: string;
   email: string;
@@ -39,74 +41,67 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   user,
   onNavigate
 }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [allergyAddTrigger, setAllergyAddTrigger] = useState(0);
 
-  const isInvalidPatientName = (name?: string): boolean => {
-    if (!name) return true;
-    const lower = name.toLowerCase().trim();
-    return (
-      lower === 'patient' ||
-      lower.startsWith('dr.') ||
-      lower.startsWith('dr ') ||
-      lower.includes('doctor') ||
-      lower.includes('arjun') ||
-      lower.includes('pharmacist') ||
-      lower.includes('r.ph') ||
-      lower.includes('suresh nair') ||
-      lower.includes('nurse') ||
-      lower.includes('admin') ||
-      lower.includes('caregiver')
-    );
+  const handleOpenAllergy = () => {
+    setAllergyAddTrigger((prev) => prev + 1);
+    const el = document.getElementById('allergies-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const resolvePatientName = (u?: any, dbName?: string): string => {
-    if (dbName && dbName.trim() && !isInvalidPatientName(dbName)) {
+    if (dbName && dbName.trim()) {
       return dbName.trim();
+    }
+    if (u?.name && u.name.trim()) {
+      return u.name.trim();
     }
     try {
       const custom = localStorage.getItem('patient_user_name');
-      if (custom && custom.trim() && !isInvalidPatientName(custom)) {
+      if (custom && custom.trim()) {
         return custom.trim();
       }
       const prof = localStorage.getItem('user_profile_data');
       if (prof) {
         const parsed = JSON.parse(prof);
-        if (parsed?.name && !isInvalidPatientName(parsed.name)) {
+        if (parsed?.name && parsed.name.trim()) {
           return parsed.name.trim();
         }
       }
       const appUser = localStorage.getItem('app_user');
       if (appUser) {
         const parsed = JSON.parse(appUser);
-        if (parsed?.name && !isInvalidPatientName(parsed.name)) {
+        if (parsed?.name && parsed.name.trim()) {
           return parsed.name.trim();
         }
       }
     } catch {}
 
-    if (u?.name && !isInvalidPatientName(u.name)) {
-      return u.name.trim();
-    }
-
-    return 'Ananya Sharma';
+    return '';
   };
 
   // Profile Form Data state initialized with user prop or session data
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileFormData>({
     name: resolvePatientName(user),
-    dob: (user as any)?.dateOfBirth ? new Date((user as any).dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '15 March 1994',
-    age: user?.age || 30,
-    gender: (user as any)?.gender || 'Male',
-    phone: (user as any)?.phone || '+91 98765 43210',
+    dob: (user as any)?.dateOfBirth
+      ? new Date((user as any).dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '',
+    age: user?.age || 0,
+    gender: (user as any)?.gender || '',
+    phone: (user as any)?.phone || '',
     email: user?.email || '',
-    location: (user as any)?.address || 'Chennai, India',
-    bloodGroup: user?.bloodGroup || 'O+',
-    height: (user as any)?.heightCm ? `${(user as any).heightCm} cm` : '174 cm',
-    weight: '72 kg',
-    patientId: user?.abhaId || 'HR-2026-00124'
+    location: (user as any)?.address || '',
+    bloodGroup: user?.bloodGroup || '',
+    height: (user as any)?.heightCm ? `${(user as any).heightCm} cm` : '',
+    weight: (user as any)?.weightKg ? `${(user as any).weightKg} kg` : '',
+    patientId: user?.abhaId || ''
   });
 
   // Fetch real patient profile from backend and sync with current user
@@ -121,23 +116,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           const p = res.data;
           const formattedDob = p.dateOfBirth
             ? new Date(p.dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
-            : '15 March 1994';
+            : '';
           const calculatedAge = p.dateOfBirth
             ? Math.max(1, new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear())
-            : (user?.age || 30);
+            : (user?.age || (p.age != null ? p.age : 0));
 
           setProfileData(prev => ({
             ...prev,
             name: resolvePatientName(user, p.fullName),
-            dob: formattedDob,
-            age: calculatedAge,
+            dob: formattedDob || prev.dob,
+            age: calculatedAge || prev.age,
             gender: p.gender || prev.gender,
             phone: p.emergencyContactPhone || p.familyPhone || (user as any)?.phone || prev.phone,
             email: user?.email || prev.email,
             location: p.address || prev.location,
             bloodGroup: p.bloodGroup || user?.bloodGroup || prev.bloodGroup,
             height: p.heightCm ? `${p.heightCm} cm` : prev.height,
-            patientId: user?.abhaId || p.id || prev.patientId
+            weight: p.weightKg ? `${p.weightKg} kg` : prev.weight,
+            patientId: user?.abhaId || p.abhaId || p.id || prev.patientId
           }));
         }
       } catch {
@@ -222,25 +218,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       console.warn('Backend profile update note:', backendErr);
     }
 
-    showToast('✓ Profile updated successfully.');
+    showToast(t('profile.updated_toast', '✓ Profile updated successfully.'));
   };
 
   return (
     <div className="space-y-6">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {loading ? (
         <ProfileSkeleton />
@@ -277,7 +275,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="flex-1 min-w-0">
               <ProfileCompletionCard
                 onOpenEdit={() => setEditDrawerOpen(true)}
-                onOpenAllergy={() => showToast('Scroll down to Allergies section to add info')}
+                onOpenAllergy={handleOpenAllergy}
               />
             </div>
           </section>
@@ -309,7 +307,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           {/* 5. ALLERGIES & CHRONIC CONDITIONS GRID */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AllergiesSection onToast={showToast} />
+            <AllergiesSection onToast={showToast} openAddModalTrigger={allergyAddTrigger} />
             <ChronicConditionsSection onToast={showToast} />
           </section>
 
@@ -336,6 +334,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         onClose={() => setQrModalOpen(false)}
         abhaId={profileData.patientId}
         userName={profileData.name}
+        patientId={(profileData as any)?.id || profileData.patientId}
       />
 
       {/* EDIT PROFILE SLIDE-IN DRAWER */}

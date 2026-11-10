@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { apiClient } from '../../../services/apiClient';
 import { ChevronLeft, Save, CheckCircle, Clock, Plus, AlertCircle, FileText, Activity, Pill, Beaker, Stethoscope, History } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
@@ -39,14 +40,12 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
     const fetchConsultation = async () => {
       if (!appointmentId) return;
       try {
-        let response = await fetch(`http://localhost:5000/api/consultations/${appointmentId}`);
-        let result = await response.json();
+        let result = await apiClient.get(`/consultations/${appointmentId}`);
         
         if (result.success) {
           // Auto-start if not exists
           if (!result.data.consultation) {
-            const startResp = await fetch(`http://localhost:5000/api/consultations/${appointmentId}/start`, { method: 'POST' });
-            const startResult = await startResp.json();
+            const startResult = await apiClient.post(`/consultations/${appointmentId}/start`);
             if (startResult.success) {
               result.data.consultation = startResult.data;
             }
@@ -76,19 +75,14 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
     if (!data?.consultation?.id) return;
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/consultations/${data.consultation.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const result = await apiClient.put(`/consultations/${data.consultation.id}`, {
           chiefComplaint: complaint,
           symptoms,
           clinicalNotes: notes,
           diagnosis,
           treatmentPlan: treatment,
           followUpInstructions: followUp
-        })
-      });
-      const result = await response.json();
+        });
       if (result.success) {
         setLastSaved(new Date());
       }
@@ -105,19 +99,14 @@ export const ConsultationWorkspaceView: React.FC<ConsultationWorkspaceViewProps>
       // First save draft to ensure latest data is there
       await handleSaveDraft();
       
-      const response = await fetch(`http://localhost:5000/api/consultations/${data.consultation.id}/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          medicines: addedRx.map(rx => ({
-            name: rx.medicine,
-            dosage: rx.dose,
-            frequency: rx.frequency,
-            durationDays: rx.duration
-          }))
-        })
+      const result = await apiClient.post(`/consultations/${data.consultation.id}/complete`, {
+        medicines: addedRx.map(rx => ({
+          name: rx.medicine,
+          dosage: rx.dose,
+          frequency: rx.frequency,
+          durationDays: rx.duration
+        }))
       });
-      const result = await response.json();
       if (result.success) {
         onNavigate('appointments');
       } else {

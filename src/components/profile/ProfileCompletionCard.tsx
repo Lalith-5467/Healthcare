@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check, AlertCircle, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface ProfileCompletionCardProps {
   onOpenEdit: () => void;
@@ -10,6 +11,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
   onOpenEdit,
   onOpenAllergy
 }) => {
+  const { t } = useLanguage();
   const completionPercentage = 82;
 
   return (
@@ -22,7 +24,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
             <Check className="w-4 h-4 text-slate-900 dark:text-white" strokeWidth={3} />
           </div>
           <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Profile Completion
+            {t('profile.completion', 'Profile Completion')}
           </h3>
         </div>
         <span className="text-base font-black text-[#00cba9]">{completionPercentage}%</span>
@@ -37,7 +39,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
       </div>
 
       <p className="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-        Complete your profile to improve your health experience and emergency readiness.
+        {t('profile.completion_desc', 'Complete your profile to improve your health experience and emergency readiness.')}
       </p>
 
       {/* ACTION BUTTONS (STACKED) */}
@@ -48,7 +50,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            <span>Add Emergency Contact</span>
+            <span>{t('profile.add_emergency_contact', 'Add Emergency Contact')}</span>
           </div>
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -59,7 +61,7 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            <span>Add Allergy Info</span>
+            <span>{t('profile.add_allergy_info', 'Add Allergy Info')}</span>
           </div>
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -67,3 +69,4 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
     </div>
   );
 };
+

@@ -16,14 +16,31 @@ import {
   Download
 } from 'lucide-react';
 import { useInsuranceWorkflow } from '../../utils/insuranceWorkflowStorage';
+import { CashlessGuaranteeLetterModal } from './CashlessGuaranteeLetterModal';
+import { ClaimSettlementReceiptModal } from './ClaimSettlementReceiptModal';
 
 interface LiveClaimTrackerCardProps {
   onOpenNewClaim: () => void;
+  patientInsuranceId?: string;
+  userName?: string;
 }
 
-export const LiveClaimTrackerCard: React.FC<LiveClaimTrackerCardProps> = ({ onOpenNewClaim }) => {
+export const LiveClaimTrackerCard: React.FC<LiveClaimTrackerCardProps> = ({ 
+  onOpenNewClaim,
+  patientInsuranceId,
+  userName
+}) => {
   const { records } = useInsuranceWorkflow();
-  const primaryRecord = records.find(r => r.insuranceId === 'INS-MC-2026-10245' || r.patientName === 'Ragul Kumar') || records[0];
+  const [copied, setCopied] = React.useState(false);
+  const [showLetterModal, setShowLetterModal] = React.useState(false);
+  const [showSettlementModal, setShowSettlementModal] = React.useState(false);
+
+  const primaryRecord = records.find(r => 
+    (patientInsuranceId && r.insuranceId.toLowerCase() === patientInsuranceId.toLowerCase()) ||
+    (userName && r.patientName.toLowerCase() === userName.toLowerCase()) ||
+    r.insuranceId === 'INS-MC-2026-10245' || 
+    r.patientName === 'Ragul Kumar'
+  ) || records[0];
 
   const currentClaim = primaryRecord?.currentClaim;
   const recentClaim = !currentClaim ? primaryRecord?.claims[0] : null;
@@ -81,12 +98,29 @@ export const LiveClaimTrackerCard: React.FC<LiveClaimTrackerCardProps> = ({ onOp
             <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
               Claim ID: <strong className="text-slate-900 dark:text-white font-black">{activeClaim.claimId}</strong>
             </span>
+            <div className="flex items-center gap-1.5 ml-1">
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-teal-500/10 text-teal-800 dark:text-cyan-300 border border-teal-500/20">
+                Card ID: {primaryRecord.insuranceId}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(primaryRecord.insuranceId);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="px-2 py-0.5 text-[10px] font-black rounded-md bg-teal-600 hover:bg-teal-500 text-white transition-all cursor-pointer shadow-xs"
+                title="Copy Insurance ID to lookup in Insurance Desk"
+              >
+                {copied ? '✓ Copied' : 'Copy ID'}
+              </button>
+            </div>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
             {activeClaim.hospital}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
-            {activeClaim.treatment} • Patient: <strong className="text-slate-800 dark:text-slate-200">{primaryRecord.patientName}</strong> (ID: {primaryRecord.insuranceId})
+            {activeClaim.treatment} • Patient: <strong className="text-slate-800 dark:text-slate-200">{primaryRecord.patientName}</strong> • Policy: <span className="font-mono">{primaryRecord.policyNumber}</span>
           </p>
         </div>
 
@@ -229,36 +263,78 @@ export const LiveClaimTrackerCard: React.FC<LiveClaimTrackerCardProps> = ({ onOp
         </div>
 
         {/* DECISION SUMMARY BANNER */}
-        {isApproved && (
+        {activeClaim.status === 'Settled' ? (
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Direct Cashless Payout Settled with <strong>{activeClaim.hospital}</strong>. Zero balance due.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowLetterModal(true)}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-[11px] cursor-pointer"
+              >
+                Pre-Auth Letter
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSettlementModal(true)}
+                className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1 cursor-pointer"
+              >
+                View Settlement Receipt
+              </button>
+            </div>
+          </div>
+        ) : isApproved ? (
           <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-bold">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Cashless Pre-Auth Approved. Direct hospital billing clearance code: <strong>AUTH-84920-APOLLO</strong>.</span>
+              <span>Cashless Pre-Auth Approved. Code: <strong>{activeClaim.preAuthCode || 'AUTH-84920-APOLLO'}</strong>.</span>
             </div>
             <button
-              onClick={() => alert(`Cashless Approval Letter generated for ${activeClaim.claimId}. Direct billing confirmed.`)}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1"
+              type="button"
+              onClick={() => setShowLetterModal(true)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" /> Download Letter
             </button>
           </div>
-        )}
+        ) : null}
 
         {isRejected && (
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200 font-bold">
               <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>Decline Reason: Missing itemized pharmacy bill. You can attach the missing invoice and request re-review.</span>
+              <span>
+                {activeClaim.timeline.slice().reverse().find(t => t.action.toLowerCase().includes('decline') || t.action.toLowerCase().includes('reject'))?.action || 'Decline Reason: Missing itemized pharmacy bill. You can attach the missing invoice and request re-review.'}
+              </span>
             </div>
             <button
+              type="button"
               onClick={onOpenNewClaim}
-              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[11px] shrink-0"
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[11px] shrink-0 cursor-pointer"
             >
               Re-upload & Appeal
             </button>
           </div>
         )}
       </div>
+
+      {/* MODALS */}
+      <CashlessGuaranteeLetterModal
+        isOpen={showLetterModal}
+        onClose={() => setShowLetterModal(false)}
+        record={primaryRecord}
+        claim={activeClaim}
+      />
+
+      <ClaimSettlementReceiptModal
+        isOpen={showSettlementModal}
+        onClose={() => setShowSettlementModal(false)}
+        record={primaryRecord}
+        claim={activeClaim}
+      />
 
     </motion.div>
   );

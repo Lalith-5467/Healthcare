@@ -81,11 +81,19 @@ export class AdminService {
         email: u.email,
         role: u.role,
         phone: u.phoneNumber,
+        phoneNumber: u.phoneNumber,
         abhaId: u.abhaId,
+        isActive: u.isActive,
         status: u.isActive ? 'ACTIVE' : 'INACTIVE',
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
         profile,
+        patient: u.patient,
+        doctor: u.doctor,
+        nurse: u.nurse,
+        pharmacist: u.pharmacist,
+        caregiver: u.caregiver,
+        insuranceProvider: u.insuranceProvider,
       };
     });
 
@@ -375,6 +383,7 @@ export class AdminService {
     supportEmail?: string;
     // Actor info
     actorId: string;
+    actorRole?: Role;
     ipAddress?: string;
   }) {
     const {
@@ -411,7 +420,15 @@ export class AdminService {
       providerName,
       supportPhone,
       supportEmail,
+      actorRole,
     } = data;
+
+    // Security check: Only SUPER_ADMIN can create another SUPER_ADMIN
+    if (role === Role.SUPER_ADMIN && actorRole !== Role.SUPER_ADMIN) {
+      const err: AppError = new Error('Access denied: Only Super Admin can provision another Super Admin account');
+      err.statusCode = 403;
+      throw err;
+    }
 
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -584,9 +601,11 @@ export class AdminService {
       fullName?: string;
       phoneNumber?: string;
       abhaId?: string;
+      password?: string;
       role?: Role;
       status?: string | boolean;
       actorId: string;
+      actorRole?: Role;
       ipAddress?: string;
     }
   ) {
@@ -642,7 +661,16 @@ export class AdminService {
       else if (typeof data.status === 'string') updateData.isActive = data.status.toUpperCase() === 'ACTIVE';
     }
 
+    if (data.password && data.password.trim().length > 0) {
+      updateData.passwordHash = await bcrypt.hash(data.password.trim(), 10);
+    }
+
     if (data.role && Object.values(Role).includes(data.role)) {
+      if (data.role !== user.role && data.actorRole !== Role.SUPER_ADMIN) {
+        const err: AppError = new Error('Access denied: Only Super Admin is authorized to change user roles');
+        err.statusCode = 403;
+        throw err;
+      }
       updateData.role = data.role;
     }
 
@@ -707,5 +735,169 @@ export class AdminService {
     });
 
     return { id, email: user.email, message: 'User deleted successfully' };
+  }
+
+  /**
+   * Reset user password (ADMIN & SUPER_ADMIN)
+   */
+  static async resetPassword(targetUserId: string, newPassword?: string, actorId?: string, ipAddress?: string) {
+    const user = await prisma.user.findUnique({ where: { id: targetUserId } });
+    if (!user) {
+      const err: AppError = new Error(`User with ID ${targetUserId} not found`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const passwordToSet = newPassword && newPassword.trim().length > 0 ? newPassword.trim() : 'Password@123';
+    const passwordHash = await bcrypt.hash(passwordToSet, 10);
+
+    await prisma.user.update({
+      where: { id: targetUserId },
+      data: { passwordHash },
+    });
+
+    await AuditService.log({
+      userId: actorId || null,
+      action: 'USER_PASSWORD_RESET',
+      entityType: 'users',
+      entityId: targetUserId,
+      ipAddress,
+      details: { email: user.email },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      message: 'Password reset successfully',
+    };
+  }
+
+  /**
+   * Paginated audit logs with search and filtering
+   */
+  static async getAuditLogs(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    module?: string;
+    action?: string;
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const page = Math.max(1, Number(options.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(options.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.AuditLogWhereInput = {};
+
+    if (options.module && options.module !== 'All') {
+      where.entityType = { contains: options.module };
+    }
+
+    if (options.action && options.action !== 'All') {
+      where.action = { contains: options.action };
+    }
+
+    if (options.userId) {
+      where.userId = options.userId;
+    }
+
+    if (options.startDate || options.endDate) {
+      where.createdAt = {};
+      if (options.startDate) {
+        where.createdAt.gte = new Date(options.startDate);
+      }
+      if (options.endDate) {
+        where.createdAt.lte = new Date(options.endDate);
+      }
+    }
+
+    if (options.search && options.search.trim()) {
+      const q = options.search.trim();
+      where.OR = [
+        { action: { contains: q } },
+        { entityType: { contains: q } },
+        { details: { contains: q } },
+        { ipAddress: { contains: q } },
+      ];
+    }
+
+    const [total, logs] = await Promise.all([
+      prisma.auditLog.count({ where }),
+      prisma.auditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              patient: { select: { fullName: true } },
+              doctor: { select: { fullName: true } },
+              nurse: { select: { fullName: true } },
+              pharmacist: { select: { fullName: true } },
+              caregiver: { select: { fullName: true } },
+              insuranceProvider: { select: { providerName: true } },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const sanitizedLogs = logs.map((log) => {
+      let safeDetails = log.details;
+      if (safeDetails) {
+        try {
+          const parsed = JSON.parse(safeDetails);
+          if (typeof parsed === 'object' && parsed !== null) {
+            delete parsed.password;
+            delete parsed.passwordHash;
+            delete parsed.token;
+            delete parsed.pin;
+            delete parsed.otp;
+            safeDetails = JSON.stringify(parsed);
+          }
+        } catch {
+          // ignore non-json
+        }
+      }
+
+      const userName =
+        log.user?.patient?.fullName ||
+        log.user?.doctor?.fullName ||
+        log.user?.nurse?.fullName ||
+        log.user?.pharmacist?.fullName ||
+        log.user?.caregiver?.fullName ||
+        log.user?.insuranceProvider?.providerName ||
+        (log.user ? log.user.email.split('@')[0] : 'System Gateway');
+
+      return {
+        id: log.id,
+        userId: log.userId,
+        userName,
+        userEmail: log.user?.email || null,
+        userRole: log.user?.role || 'SYSTEM',
+        action: log.action,
+        entityType: log.entityType,
+        entityId: log.entityId,
+        ipAddress: log.ipAddress || '127.0.0.1',
+        details: safeDetails,
+        createdAt: log.createdAt,
+      };
+    });
+
+    return {
+      logs: sanitizedLogs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

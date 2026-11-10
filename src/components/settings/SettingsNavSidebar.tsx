@@ -14,6 +14,7 @@ import {
   Accessibility,
   Info
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export type SettingsSectionKey =
   | 'account'
@@ -45,17 +46,20 @@ export const SettingsNavSidebar: React.FC<SettingsNavSidebarProps> = ({
   activeSection,
   onSelectSection,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="font-sans">
       {/* DESKTOP VERTICAL NAVIGATION */}
       <div className="hidden md:flex flex-col space-y-1 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-4 shadow-xl text-xs">
         <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2 block font-mono">
-          Settings Menu
+          {t('settings.menu', 'Settings Menu')}
         </span>
 
         {SETTINGS_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.key;
+          const displayLabel = t(`settings.${item.key}`, item.label);
           return (
             <button
               key={item.key}
@@ -67,7 +71,7 @@ export const SettingsNavSidebar: React.FC<SettingsNavSidebarProps> = ({
               }`}
             >
               <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#00a896] opacity-80'}`} />
-              <span>{item.label}</span>
+              <span>{displayLabel}</span>
             </button>
           );
         })}
@@ -78,6 +82,7 @@ export const SettingsNavSidebar: React.FC<SettingsNavSidebarProps> = ({
         {SETTINGS_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.key;
+          const displayLabel = t(`settings.${item.key}`, item.label);
           return (
             <button
               key={item.key}
@@ -89,7 +94,7 @@ export const SettingsNavSidebar: React.FC<SettingsNavSidebarProps> = ({
               }`}
             >
               <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-[#00a896]'}`} />
-              <span>{item.label}</span>
+              <span>{displayLabel}</span>
             </button>
           );
         })}

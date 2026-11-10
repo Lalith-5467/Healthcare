@@ -29,7 +29,12 @@ const mockMeals = [
   { id: 5, type: "Dinner", name: "Roti with Paneer Sabzi", time: "08:30 PM", portion: "2 rotis, 1 cup sabzi", cal: 400, pro: 16, days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] }
 ];
 
-export function DietPlanView() {
+export interface DietPlanViewProps {
+  patientName?: string;
+  user?: any;
+}
+
+export function DietPlanView({ patientName, user }: DietPlanViewProps = {}) {
   // --- STATE ---
   type TabType = 'plan' | 'analysis' | 'history';
   const [activeTab, setActiveTab] = useState<TabType>('plan');
@@ -729,10 +734,10 @@ export function DietPlanView() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f1c] text-slate-900 dark:text-slate-200 pb-32">
       
       {/* TOAST */}
-      <div className="fixed bottom-24 right-8 z-[100] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
         <AnimatePresence>
           {toastMessage && (
-            <motion.div initial={{ opacity: 0, x: 50, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 20, scale: 0.9 }} className="px-6 py-4 rounded-2xl shadow-2xl font-bold flex items-center gap-3 text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 pointer-events-auto border border-slate-800 dark:border-slate-200">
+            <motion.div initial={{ opacity: 0, y: -16, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -16, scale: 0.96 }} className="px-6 py-4 rounded-2xl shadow-2xl font-bold flex items-center gap-3 text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 pointer-events-auto border border-slate-800 dark:border-slate-200">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 dark:text-emerald-500" />
               <span>{toastMessage}</span>
             </motion.div>

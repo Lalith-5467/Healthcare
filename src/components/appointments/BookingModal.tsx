@@ -361,14 +361,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <div className="space-y-5 text-xs">
             <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl flex items-center gap-3 border border-slate-200 dark:border-slate-700/60">
               <img
-                src={selectedDoctor?.photoUrl}
-                alt={selectedDoctor?.name}
+                src={selectedDoctor?.photoUrl || (selectedDoctor as any)?.image || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80'}
+                alt={selectedDoctor?.name || 'Doctor'}
                 className="w-11 h-11 rounded-xl object-cover border border-teal-500/30 shrink-0"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80';
+                }}
               />
               <div>
                 <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">{selectedDoctor?.name}</h4>
-                <p className="text-[11px] text-[#00a896] font-semibold">{selectedDoctor?.speciality}</p>
-                <p className="text-[10px] text-slate-500">{selectedDoctor?.hospital}</p>
+                <p className="text-[11px] text-[#00a896] font-semibold">{selectedDoctor?.speciality || (selectedDoctor as any)?.specialty || 'Healthcare Specialist'}</p>
+                <p className="text-[10px] text-slate-500">{selectedDoctor?.hospital || (selectedDoctor as any)?.location || 'Medicare Hospital'}</p>
               </div>
             </div>
 
@@ -567,7 +570,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2">
                 <span className="text-slate-500">Speciality:</span>
-                <span className="font-bold text-[#00a896]">{selectedDoctor?.speciality}</span>
+                <span className="font-bold text-[#00a896]">{selectedDoctor?.speciality || (selectedDoctor as any)?.specialty || 'General Physician'}</span>
               </div>
               <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2">
                 <span className="text-slate-500">Date & Time:</span>
@@ -579,7 +582,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2">
                 <span className="text-slate-500">Total Fee:</span>
-                <span className="font-mono font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">₹{selectedDoctor?.fee}</span>
+                <span className="font-mono font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">₹{selectedDoctor?.fee || (selectedDoctor as any)?.consultFee || 800}</span>
               </div>
             </div>
 

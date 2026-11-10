@@ -29,6 +29,7 @@ import { CancelConfirmModal } from './CancelConfirmModal';
 import { RecentUploadsSection } from './RecentUploadsSection';
 import { ScanTipsSection } from './ScanTipsSection';
 import { PrescriptionScannerTab } from './PrescriptionScannerTab';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfile {
   name: string;
@@ -48,6 +49,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
   user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   // MAIN MODE: 'prescription' | 'general'
   const [scanMode, setScanMode] = useState<'prescription' | 'general'>('prescription');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -92,6 +94,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
       }
     }
   }, []);
+
+  // Scanner modal only opens when explicitly requested by user (e.g. Start Scan button)
 
   // Helper to persist records
   const updateRecords = (newRecords: MedicalRecordItem[]) => {
@@ -159,7 +163,21 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      validateAndProcessFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (scanMode === 'prescription') {
+        setSelectedFile(file);
+      } else {
+        validateAndProcessFile(file);
+      }
+    }
+  };
+
+  const handleModalFileSelect = (file: File) => {
+    setScannerOpen(false);
+    if (scanMode === 'prescription') {
+      setSelectedFile(file);
+    } else {
+      validateAndProcessFile(file);
     }
   };
 
@@ -260,26 +278,26 @@ export const ScanView: React.FC<ScanViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto px-4 py-3 rounded-2xl bg-[#00a896] text-white font-bold text-xs shadow-2xl flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Scan & Digitization Hub"
-        subtitle="Extract prescriptions into actionable reminders & pharmacy workflows, or digitize diagnostic reports."
-        badgeText="Smart Health Digitizer"
-        badgeIcon={<Camera className="w-3.5 h-3.5" />}
+        title={t('scan.title', 'Scan & Digitization Hub')}
+        subtitle={t('scan.subtitle', 'Extract prescriptions into actionable reminders & pharmacy workflows, or digitize diagnostic reports.')}
         rightElement={
           <div className="flex items-center gap-2.5 self-stretch sm:self-auto font-sans">
             <button
@@ -287,7 +305,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <Upload className="w-4 h-4 text-[#00a896] dark:text-teal-400" />
-              <span>Browse File</span>
+              <span>{t('scan.browse_file', 'Browse File')}</span>
             </button>
 
             <button
@@ -295,7 +313,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <Scan className="w-4 h-4" />
-              <span>Start Scan</span>
+              <span>{t('scan.start_scan', 'Start Scan')}</span>
             </button>
           </div>
         }
@@ -313,7 +331,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>Prescription Scanner & Follow-up Workflow</span>
+          <span>{t('scan.tab_prescription', 'Prescription Scanner & Follow-up Workflow')}</span>
         </button>
 
         <button
@@ -326,13 +344,24 @@ export const ScanView: React.FC<ScanViewProps> = ({
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>General Document & Report Upload</span>
+          <span>{t('scan.tab_general', 'General Document & Report Upload')}</span>
         </button>
       </div>
+
+      {/* HIDDEN GLOBAL FILE INPUT */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
 
       {scanMode === 'prescription' ? (
         <PrescriptionScannerTab
           user={user}
+          selectedFileProp={selectedFile}
+          onClearSelectedFile={() => setSelectedFile(null)}
           capturedImage={capturedImage}
           onClearCapturedImage={() => setCapturedImage(null)}
           onNavigate={onNavigate}
@@ -341,15 +370,6 @@ export const ScanView: React.FC<ScanViewProps> = ({
         />
       ) : (
         <div className="space-y-6">
-
-      {/* HIDDEN FILE INPUT */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-        onChange={handleFileInputChange}
-        className="hidden"
-      />
 
       {/* 2. MAIN EXPERIENCE CONTROLS & SUCCESS STATE */}
       {flowStep === 'success' ? (
@@ -364,7 +384,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
           </div>
 
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Document Saved Successfully</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">{t('scan.doc_saved', 'Document Saved Successfully')}</h2>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed font-medium">
               Your medical document <strong className="text-[#00a896] dark:text-cyan-300">"{savedRecordTitle}"</strong> has been encrypted and added to your Medical Records database.
             </p>
@@ -376,7 +396,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
               className="w-full sm:w-auto py-2.5 px-5 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <FileText className="w-4 h-4" />
-              <span>View Medical Records</span>
+              <span>{t('scan.view_records', 'View Medical Records')}</span>
             </button>
 
             <button
@@ -384,14 +404,14 @@ export const ScanView: React.FC<ScanViewProps> = ({
               className="w-full sm:w-auto py-2.5 px-5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
             >
               <RefreshCw className="w-4 h-4 text-[#00a896]" />
-              <span>Scan Another Document</span>
+              <span>{t('scan.scan_another', 'Scan Another Document')}</span>
             </button>
           </div>
         </motion.div>
       ) : flowStep === 'info' ? (
         /* DOCUMENT INFORMATION FORM */
         <DocumentInfoForm
-          imageSrc={capturedImage}
+          imageSrc={capturedImage || (selectedFile ? URL.createObjectURL(selectedFile) : null)}
           fileName={selectedFile?.name || 'Scanned_Document_Aug2026.pdf'}
           fileSize={selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '2.4 MB'}
           onBack={handleBackPrompt}
@@ -419,21 +439,21 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-[#00a896] transition-colors">
-                    Camera Document Scanner
+                    {t('scan.camera_title', 'Camera Document Scanner')}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-medium">
-                    Auto-align and scan physical prescriptions, lab bills, discharge sheets, and medical records in seconds.
+                    {t('scan.camera_sub', 'Auto-align and scan physical prescriptions, lab bills, discharge sheets, and medical records in seconds.')}
                   </p>
                 </div>
 
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 font-medium">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#00a896] shrink-0" />
-                    <span>Auto-border cropping & deskewing</span>
+                    <span>{t('scan.camera_feat1', 'Auto-border cropping & deskewing')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 font-medium">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#00a896] shrink-0" />
-                    <span>Instant OCR text & vitals detection</span>
+                    <span>{t('scan.camera_feat2', 'Instant OCR text & vitals detection')}</span>
                   </div>
                 </div>
               </div>
@@ -448,7 +468,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
                   className="w-full py-2.5 px-4 rounded-xl font-extrabold text-xs text-white bg-[#00a896] hover:bg-[#00897b] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Scan className="w-4 h-4" />
-                  <span>Start Scan</span>
+                  <span>{t('scan.start_scan', 'Start Scan')}</span>
                 </button>
               </div>
             </div>
@@ -509,10 +529,10 @@ export const ScanView: React.FC<ScanViewProps> = ({
 
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                      Drag & Drop Medical Files
+                      {t('scan.dropzone_title', 'Drag & Drop Medical Files')}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                      or click to browse digital PDF reports, lab scans, or prescriptions
+                      {t('scan.dropzone_sub', 'or click to browse digital PDF reports, lab scans, or prescriptions')}
                     </p>
                   </div>
 
@@ -534,7 +554,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
                   <div className="pt-1">
                     <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-2xs border border-slate-200 dark:border-slate-700">
                       <FolderUp className="w-3.5 h-3.5" />
-                      <span>Browse from Device</span>
+                      <span>{t('scan.browse_device', 'Browse from Device')}</span>
                     </span>
                   </div>
                 </div>
@@ -551,8 +571,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
                 <Zap className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">Instant OCR Extraction</strong>
-                <span className="text-[10px] text-slate-500 font-medium block truncate">Auto-extracts vitals & lab results</span>
+                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">{t('scan.feature_ocr', 'Instant OCR Extraction')}</strong>
+                <span className="text-[10px] text-slate-500 font-medium block truncate">{t('scan.feature_ocr_sub', 'Auto-extracts vitals & lab results')}</span>
               </div>
             </div>
 
@@ -561,8 +581,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
                 <Lock className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">256-Bit Vault Security</strong>
-                <span className="text-[10px] text-slate-500 font-medium block truncate">ABDM HIPAA encrypted storage</span>
+                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">{t('scan.feature_security', '256-Bit Vault Security')}</strong>
+                <span className="text-[10px] text-slate-500 font-medium block truncate">{t('scan.feature_security_sub', 'ABDM HIPAA encrypted storage')}</span>
               </div>
             </div>
 
@@ -571,8 +591,8 @@ export const ScanView: React.FC<ScanViewProps> = ({
                 <FileCheck className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">Auto Categorization</strong>
-                <span className="text-[10px] text-slate-500 font-medium block truncate">Prescriptions, labs & health claims</span>
+                <strong className="text-xs font-extrabold text-slate-900 dark:text-white block truncate">{t('scan.feature_auto_cat', 'Auto Categorization')}</strong>
+                <span className="text-[10px] text-slate-500 font-medium block truncate">{t('scan.feature_auto_cat_sub', 'Prescriptions, labs & health claims')}</span>
               </div>
             </div>
           </div>
@@ -594,6 +614,7 @@ export const ScanView: React.FC<ScanViewProps> = ({
         isOpen={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onCapture={handleCameraCapture}
+        onSelectFile={handleModalFileSelect}
         onSwitchToUpload={() => {
           setScannerOpen(false);
           fileInputRef.current?.click();

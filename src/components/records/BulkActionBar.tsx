@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Share2, Trash2, X, CheckSquare } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface BulkActionBarProps {
   selectedCount: number;
@@ -21,6 +22,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
   onBulkShare,
   onBulkDelete
 }) => {
+  const { t } = useLanguage();
   if (selectedCount === 0) return null;
 
   return (
@@ -35,7 +37,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           <span className="w-6 h-6 rounded-full bg-[#00a896] text-white font-black flex items-center justify-center text-xs">
             {selectedCount}
           </span>
-          <span className="font-extrabold text-slate-900 dark:text-white">Records Selected</span>
+          <span className="font-extrabold text-slate-900 dark:text-white">{t('records.records_selected', 'Records Selected')}</span>
         </div>
 
         <button
@@ -43,7 +45,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold transition-all flex items-center gap-1 cursor-pointer"
         >
           <CheckSquare className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{selectedCount === totalCount ? 'Deselect All' : 'Select All'}</span>
+          <span>{selectedCount === totalCount ? t('records.deselect_all', 'Deselect All') : t('records.select_all', 'Select All')}</span>
         </button>
 
         <button
@@ -51,7 +53,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-bold transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <Download className="w-3.5 h-3.5" />
-          <span>Download</span>
+          <span>{t('common.download', 'Download')}</span>
         </button>
 
         <button
@@ -59,7 +61,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           className="px-3 py-1.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 font-bold transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span>Share</span>
+          <span>{t('records.share', 'Share')}</span>
         </button>
 
         <button
@@ -67,7 +69,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
           className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold transition-all flex items-center gap-1.5 cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          <span>Delete</span>
+          <span>{t('records.delete', 'Delete')}</span>
         </button>
 
         <button

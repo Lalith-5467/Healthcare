@@ -1,32 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import type { AllergyItem } from './AddAllergyModal';
 import { AddAllergyModal } from './AddAllergyModal';
+import { useLanguage } from '../../context/LanguageContext';
+
+const STORAGE_KEY = 'patient_profile_allergies';
+
+const DEFAULT_ALLERGIES: AllergyItem[] = [
+  { id: '1', name: 'Penicillin', severity: 'Moderate', reaction: 'Skin Rash & Hives', notes: 'Diagnosed 2018' },
+  { id: '2', name: 'Peanuts', severity: 'Severe', reaction: 'Anaphylactic throat swelling', notes: 'Requires EpiPen' }
+];
 
 interface AllergiesSectionProps {
   onToast: (msg: string) => void;
+  openAddModalTrigger?: number;
 }
 
-export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) => {
-  const [allergies, setAllergies] = useState<AllergyItem[]>([
-    { id: '1', name: 'Penicillin', severity: 'Moderate', reaction: 'Skin Rash & Hives', notes: 'Diagnosed 2018' },
-    { id: '2', name: 'Peanuts', severity: 'Severe', reaction: 'Anaphylactic throat swelling', notes: 'Requires EpiPen' }
-  ]);
+export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast, openAddModalTrigger }) => {
+  const { t } = useLanguage();
+  const [allergies, setAllergies] = useState<AllergyItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return DEFAULT_ALLERGIES;
+  });
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Trigger modal when requested from ProfileCompletionCard
+  useEffect(() => {
+    if (openAddModalTrigger && openAddModalTrigger > 0) {
+      setModalOpen(true);
+    }
+  }, [openAddModalTrigger]);
+
   const handleAdd = (item: AllergyItem) => {
-    setAllergies((prev) => [...prev, item]);
+    setAllergies((prev) => {
+      const updated = [...prev, item];
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     onToast(`Added allergy: ${item.name}`);
   };
 
   const handleDelete = (id: string, name: string) => {
-    setAllergies((prev) => prev.filter((a) => a.id !== id));
+    setAllergies((prev) => {
+      const updated = prev.filter((a) => a.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     onToast(`Removed allergy: ${name}`);
   };
 
   return (
     <>
-      <div className="p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4 font-sans">
+      <div id="allergies-section" className="p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4 font-sans scroll-mt-24 transition-all">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
@@ -34,29 +71,33 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) =
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Allergies & Sensitivities
+                {t('profile.allergies_title', 'Allergies & Sensitivities')}
               </h3>
-              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{allergies.length} Recorded Allergies</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                {allergies.length} {t('profile.recorded_allergies', 'Recorded Allergies')}
+              </span>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={() => setModalOpen(true)}
             className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Allergy</span>
+            <span>{t('profile.add_allergy', 'Add Allergy')}</span>
           </button>
         </div>
 
         {allergies.length === 0 ? (
           <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-slate-800 space-y-2">
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">No allergies recorded</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t('profile.no_allergies', 'No allergies recorded')}</p>
             <button
+              type="button"
               onClick={() => setModalOpen(true)}
               className="px-3 py-1.5 text-xs font-bold text-[#00a896] hover:underline cursor-pointer"
             >
-              + Add Allergy Information
+              + {t('profile.add_allergy', 'Add Allergy')}
             </button>
           </div>
         ) : (
@@ -93,6 +134,7 @@ export const AllergiesSection: React.FC<AllergiesSectionProps> = ({ onToast }) =
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => handleDelete(a.id, a.name)}
                     className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                     title="Remove Allergy"

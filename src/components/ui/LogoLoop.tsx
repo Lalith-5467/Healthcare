@@ -246,7 +246,10 @@ export const LogoLoop: React.FC<LogoLoopProps> = memo(
       () => ({
         '--logoloop-gap': `${gap}px`,
         '--logoloop-logoHeight': `${logoHeight}px`,
-        ...(fadeOutColor && { '--logoloop-fadeColor': fadeOutColor }),
+        ...(fadeOutColor && {
+          '--logoloop-fadeColor': fadeOutColor,
+          '--logoloop-fade-start': fadeOutColor,
+        }),
       }),
       [gap, logoHeight, fadeOutColor]
     );

@@ -9,7 +9,8 @@ import {
   Brain, 
   Settings,
   ShieldCheck,
-  Video
+  Video,
+  MapPin
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -45,21 +46,24 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavig
     <aside className="w-64 bg-white dark:bg-[#0b1120] border-r border-slate-200/90 dark:border-slate-800/80 flex flex-col h-[calc(100vh-4rem)] select-none font-sans overflow-y-auto">
       
       {/* PRACTITIONER HEADER CARD */}
-      <div className="p-4 border-b border-slate-100 dark:border-slate-800/80">
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+      <div className="p-3 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
               {t('doctor.sidebar.on_duty', 'ON DUTY · CLINIC')}
             </span>
-            <span className="text-[10px] font-mono font-bold text-slate-400">MCI-84920</span>
+            <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap shrink-0">
+              MCI-84920
+            </span>
           </div>
           <div>
             <p className="text-sm font-black text-slate-900 dark:text-white truncate tracking-tight">
               {doctorName}
             </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate mt-0.5">
-              Apollo Central · OPD Suite 402
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5 flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+              <span className="truncate">Apollo Central · OPD Suite 402</span>
             </p>
           </div>
         </div>

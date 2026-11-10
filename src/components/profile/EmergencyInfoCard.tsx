@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { ShieldAlert, PhoneCall, Building2, User, Edit3, Users, Stethoscope, ShieldPlus, HeartHandshake, AlertCircle } from 'lucide-react';
 import type { EmergencyInfoData } from './AddEmergencyModal';
 import { AddEmergencyModal } from './AddEmergencyModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface EmergencyInfoCardProps {
   onToast: (msg: string) => void;
 }
 
 export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast }) => {
+  const { t } = useLanguage();
   const [data, setData] = useState<EmergencyInfoData>({
     contactName: 'Anita L.',
     relationship: 'Mother',
@@ -37,9 +39,11 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Emergency Information
+                {t('profile.emergency_info', 'Emergency Information')}
               </h3>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">SOS First Responder Contacts</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                {t('emergency.contacts', 'SOS First Responder Contacts')}
+              </span>
             </div>
           </div>
 
@@ -48,7 +52,7 @@ export const EmergencyInfoCard: React.FC<EmergencyInfoCardProps> = ({ onToast })
             className="px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5" />
-            <span>Manage Info</span>
+            <span>{t('common.edit', 'Manage Info')}</span>
           </button>
         </div>
 

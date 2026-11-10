@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
@@ -10,6 +10,7 @@ import {
   EyeOff, 
   CheckCircle2, 
   ChevronLeft,
+  ChevronDown,
   LockKeyhole,
   Building2,
   AlertCircle
@@ -36,12 +37,24 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
   onSuccessLogin
 }) => {
   const [selectedRole, setSelectedRole] = useState<'Admin' | 'Super Admin'>('Super Admin');
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState('superadmin@dhr-medicare.in');
   const [password, setPassword] = useState('Admin@123');
   const [securityKey, setSecurityKey] = useState('SUPER-ROOT-001');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Role preset credentials helper
   const handleSelectRole = (role: 'Admin' | 'Super Admin') => {
@@ -129,7 +142,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between font-sans select-none relative">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between font-sans select-none relative selection:bg-[#00a896] selection:text-white">
       
       {/* SINGLE CENTERED CLEAN CARD (NO HEADER) */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
@@ -138,7 +151,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
           {/* BACK TO HOME LINK */}
           <button
             onClick={onNavigateHome}
-            className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer absolute top-6 left-6"
+            className="text-xs font-bold text-slate-400 hover:text-[#00a896] dark:hover:text-teal-400 transition-colors flex items-center gap-1.5 cursor-pointer absolute top-6 left-6"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Home</span>
@@ -146,11 +159,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
 
           {/* HEADER & DYNAMIC ROLE LOGO */}
           <div className="text-center space-y-2 pt-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-lg transition-all duration-300 ${
-              selectedRole === 'Super Admin'
-                ? 'bg-gradient-to-tr from-rose-600 via-pink-600 to-rose-500 text-white shadow-rose-500/30 ring-4 ring-rose-500/10'
-                : 'bg-gradient-to-tr from-blue-600 via-cyan-500 to-blue-500 text-white shadow-blue-500/30 ring-4 ring-blue-500/10'
-            }`}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 bg-[#00a896] text-white">
               {selectedRole === 'Super Admin' ? (
                 <KeyRound className="w-7 h-7" />
               ) : (
@@ -181,31 +190,69 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
           </AnimatePresence>
 
           {/* ROLE BASED ACCESS DROPDOWN SELECTOR */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" ref={dropdownRef}>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Select Role
             </label>
             <div className="relative">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                {selectedRole === 'Super Admin' ? (
-                  <KeyRound className="w-4 h-4 text-rose-500" />
-                ) : (
-                  <Shield className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-                )}
-              </div>
-              <select
-                value={selectedRole}
-                onChange={(e) => handleSelectRole(e.target.value as 'Admin' | 'Super Admin')}
-                className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setIsRoleDropdownOpen(prev => !prev)}
+                className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896] cursor-pointer transition-all"
               >
-                <option value="Admin">Admin</option>
-                <option value="Super Admin">Super Admin</option>
-              </select>
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  {selectedRole === 'Super Admin' ? (
+                    <KeyRound className="w-4 h-4 text-[#00a896]" />
+                  ) : (
+                    <Shield className="w-4 h-4 text-[#00a896]" />
+                  )}
+                </div>
+                <span>{selectedRole}</span>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180 text-[#00a896]' : ''}`} />
+                </div>
+              </button>
+
+              <AnimatePresence>
+                {isRoleDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 mt-1.5 p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-2xl z-50 space-y-1"
+                  >
+                    {(['Admin', 'Super Admin'] as const).map((role) => {
+                      const isSelected = selectedRole === role;
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => {
+                            handleSelectRole(role);
+                            setIsRoleDropdownOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#00a896] text-white shadow-xs'
+                              : 'text-slate-700 dark:text-slate-200 hover:bg-[#00a896]/10 hover:text-[#00a896]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {role === 'Super Admin' ? (
+                              <KeyRound className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#00a896]'}`} />
+                            ) : (
+                              <Shield className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#00a896]'}`} />
+                            )}
+                            <span>{role}</span>
+                          </div>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -221,7 +268,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@dhr-medicare.in"
-                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896]"
                 />
               </div>
             </div>
@@ -236,7 +283,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter administrator password"
-                  className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896]"
                 />
                 <button
                   type="button"
@@ -249,7 +296,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4 text-blue-600 dark:text-cyan-400" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4 h-4 text-[#00a896]" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -257,14 +304,14 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
             <div>
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Hardware Token / PIN</label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <KeyRound className="w-4 h-4 text-[#00a896] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
                   value={securityKey}
                   onChange={(e) => setSecurityKey(e.target.value)}
                   placeholder="e.g. SUPER-ROOT-001"
-                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold text-blue-600 dark:text-cyan-300 focus:outline-none focus:border-blue-500"
+                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold text-[#00a896] dark:text-[#00a896] focus:outline-none focus:border-[#00a896] focus:ring-1 focus:ring-[#00a896]"
                 />
               </div>
             </div>
@@ -272,11 +319,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full h-12 rounded-2xl font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 ${
-                selectedRole === 'Super Admin'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-rose-500/20'
-                  : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-blue-500/20'
-              } disabled:opacity-50 hover:scale-101`}
+              className="w-full h-12 rounded-2xl font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 bg-[#00a896] hover:bg-[#009686] active:bg-[#00897b] text-white shadow-[#00a896]/25 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
             >
               {isLoading ? (
                 <span>Authenticating Node...</span>

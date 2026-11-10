@@ -109,33 +109,33 @@ export const getLocalizedCondition = (cond: string, t: (key: string, fallback?: 
 
 export const getLocalizedName = (name: string, t: (key: string, fallback?: string) => string): string => {
   if (!name) return '';
-  const lower = name.toLowerCase();
-  if (lower.includes('arun raj')) return t('caregiver.name.arun_raj', 'Arun Raj');
-  if (lower.includes('ragul kumar') || lower.includes('ragul')) return t('caregiver.name.ragul_kumar', 'Ragul Kumar');
-  if (lower.includes('meena kumar') || lower.includes('meena')) return t('caregiver.name.meena_kumar', 'Meena Kumar');
-  if (lower.includes('aarav kumar') || lower.includes('aarav')) return t('caregiver.name.aarav_kumar', 'Aarav Kumar');
-  if (lower.includes('anita sharma') || lower.includes('anita')) return t('caregiver.name.anita_sharma', 'Anita Sharma');
-  if (lower.includes('lakshmi raj') || lower.includes('lakshmi')) return t('caregiver.name.lakshmi_raj', 'Lakshmi Raj');
-  if (lower.includes('anjali')) return t('caregiver.name.anjali', 'Anjali');
-  if (lower.includes('dr. rajesh varma') || lower.includes('rajesh varma')) return t('caregiver.name.dr_rajesh_varma', 'Dr. Rajesh Varma');
-  if (lower.includes('dr. priya sundaram') || lower.includes('priya sundaram')) return t('caregiver.name.dr_priya_sundaram', 'Dr. Priya Sundaram');
-  if (lower.includes('dr. ananya sen') || lower.includes('ananya sen')) return t('caregiver.name.dr_ananya_sen', 'Dr. Ananya Sen');
-  if (lower.includes('dr. vikram seth') || lower.includes('vikram seth')) return t('caregiver.name.dr_vikram_seth', 'Dr. Vikram Seth');
-  if (lower.includes('star health')) return t('caregiver.name.star_health', 'Star Health');
-  if (lower.includes('rajesh sharma')) return t('caregiver.name.rajesh_sharma', 'Rajesh Sharma');
+  const lower = name.toLowerCase().trim();
+  if (lower === 'arun raj') return t('caregiver.name.arun_raj', 'Arun Raj');
+  if (lower === 'ragul kumar') return t('caregiver.name.ragul_kumar', 'Ragul Kumar');
+  if (lower === 'meena kumar') return t('caregiver.name.meena_kumar', 'Meena Kumar');
+  if (lower === 'aarav kumar') return t('caregiver.name.aarav_kumar', 'Aarav Kumar');
+  if (lower === 'anita sharma') return t('caregiver.name.anita_sharma', 'Anita Sharma');
+  if (lower === 'lakshmi raj') return t('caregiver.name.lakshmi_raj', 'Lakshmi Raj');
+  if (lower === 'anjali') return t('caregiver.name.anjali', 'Anjali');
+  if (lower === 'dr. rajesh varma' || lower === 'rajesh varma') return t('caregiver.name.dr_rajesh_varma', 'Dr. Rajesh Varma');
+  if (lower === 'dr. priya sundaram' || lower === 'priya sundaram') return t('caregiver.name.dr_priya_sundaram', 'Dr. Priya Sundaram');
+  if (lower === 'dr. ananya sen' || lower === 'ananya sen') return t('caregiver.name.dr_ananya_sen', 'Dr. Ananya Sen');
+  if (lower === 'dr. vikram seth' || lower === 'vikram seth') return t('caregiver.name.dr_vikram_seth', 'Dr. Vikram Seth');
+  if (lower === 'star health') return t('caregiver.name.star_health', 'Star Health');
+  if (lower === 'rajesh sharma') return t('caregiver.name.rajesh_sharma', 'Rajesh Sharma');
   
   // Doctor Dashboard specific names
-  if (lower.includes('suresh menon') || lower.includes('suresh')) return t('caregiver.name.suresh_menon', 'Suresh Menon');
-  if (lower.includes('priya s') || lower.includes('priya')) return t('caregiver.name.priya_s', 'Priya S');
-  if (lower.includes('abinesh kumar') || lower.includes('abinesh')) return t('caregiver.name.abinesh_kumar', 'Abinesh Kumar');
-  if (lower.includes('meenakshi sundaram') || lower.includes('meenakshi')) return t('caregiver.name.meenakshi_sundaram', 'Mrs. Meenakshi Sundaram');
-  if (lower.includes('duvi@gmail.com') || lower.includes('duvi')) return t('caregiver.name.duvi', 'Duvi');
-  if (lower.includes('dr. sharmi') || lower.includes('sharmi')) return t('caregiver.name.dr_sharmi', 'Dr. Sharmi');
-  if (lower.includes('ananya sharma') || lower.includes('ananya')) return t('caregiver.name.ananya_sharma', 'Ananya Sharma');
+  if (lower === 'suresh menon') return t('caregiver.name.suresh_menon', 'Suresh Menon');
+  if (lower === 'priya s') return t('caregiver.name.priya_s', 'Priya S');
+  if (lower === 'abinesh kumar') return t('caregiver.name.abinesh_kumar', 'Abinesh Kumar');
+  if (lower === 'meenakshi sundaram' || lower === 'mrs. meenakshi sundaram') return t('caregiver.name.meenakshi_sundaram', 'Mrs. Meenakshi Sundaram');
+  if (lower === 'duvi@gmail.com' || lower === 'duvi') return t('caregiver.name.duvi', 'Duvi');
+  if (lower === 'dr. sharmi' || lower === 'sharmi') return t('caregiver.name.dr_sharmi', 'Dr. Sharmi');
+  if (lower === 'ananya sharma') return t('caregiver.name.ananya_sharma', 'Ananya Sharma');
   
-  if (lower.includes('test ward 1789627809169') || lower.includes('test ward')) return t('caregiver.name.test_ward', 'Test Ward 1789627809169');
-  if (lower.includes('akshara raman') || lower.includes('akshara')) return t('caregiver.name.akshara_raman', 'Akshara Raman');
-  if (lower.includes('lalith kumar') || lower.includes('lalith')) return t('caregiver.name.lalith_kumar', 'Lalith Kumar');
+  if (lower === 'test ward 1789627809169' || lower === 'test ward') return t('caregiver.name.test_ward', 'Test Ward 1789627809169');
+  if (lower === 'akshara raman') return t('caregiver.name.akshara_raman', 'Akshara Raman');
+  if (lower === 'lalith kumar') return t('caregiver.name.lalith_kumar', 'Lalith Kumar');
   
   if (lower === 'arun') return t('caregiver.name.arun', 'Arun');
   if (lower === 'siva') return t('caregiver.name.siva', 'Siva');

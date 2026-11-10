@@ -5,6 +5,7 @@ import {
   Plus, MoreVertical, X, Calendar, User, Phone, Mail, 
   MapPin, CheckCircle2, AlertTriangle, ChevronRight, Activity, ActivitySquare, BadgeCheck, Stethoscope, BriefcaseMedical
 } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
 
 // Sample Data
 const policies = [
@@ -108,6 +109,7 @@ const policies = [
 ];
 
 export const PoliciesDirectoryView: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
@@ -133,15 +135,15 @@ export const PoliciesDirectoryView: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Active':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {t('Active')}</span>;
       case 'Expiring Soon':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-200 dark:border-amber-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Expiring Soon</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-200 dark:border-amber-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> {t('Expiring Soon')}</span>;
       case 'Expired':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Expired</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> {t('Expired')}</span>;
       case 'Pending':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Pending</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {t('Pending')}</span>;
       case 'Cancelled':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Cancelled</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span> {t('Cancelled', 'Cancelled')}</span>;
       default:
         return null;
     }
@@ -175,26 +177,28 @@ export const PoliciesDirectoryView: React.FC = () => {
     <div className="space-y-6 pb-28 font-sans select-none max-w-7xl mx-auto">
       
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-[60] bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm border border-slate-700 dark:border-slate-200"
-          >
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            {toastMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm border border-slate-700 dark:border-slate-200"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              {toastMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Policies Directory</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('Policies Directory')}</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
-            Search, review, and manage all insurance policies across your network.
+            {t('Search, review, and manage all insurance policies across your network.')}
           </p>
         </div>
         
@@ -208,13 +212,13 @@ export const PoliciesDirectoryView: React.FC = () => {
               <ArrowDownToLine className="w-3.5 h-3.5" /> Import
             </button>
             <button className="px-4 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer">
-              <FileText className="w-3.5 h-3.5" /> Export Report
+              <FileText className="w-3.5 h-3.5" /> {t('Export Report')}
             </button>
             <button 
               onClick={() => setShowCreateModal(true)}
               className="px-5 py-2.5 rounded-xl font-black text-xs bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Plus className="w-4 h-4" /> Create Policy
+              <Plus className="w-4 h-4" /> {t('Create Policy', 'Create Policy')}
             </button>
           </div>
         </div>
@@ -239,7 +243,7 @@ export const PoliciesDirectoryView: React.FC = () => {
             </div>
             <div>
               <p className="text-3xl font-black text-slate-900 dark:text-white leading-none mb-1.5">{stat.value}</p>
-              <p className="text-xs text-slate-900 dark:text-slate-300 font-bold uppercase tracking-wider mb-2">{stat.label}</p>
+              <p className="text-xs text-slate-900 dark:text-slate-300 font-bold uppercase tracking-wider mb-2">{t(stat.label)}</p>
               <p className="text-[10px] font-bold text-slate-400">{stat.trend}</p>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { User, Phone, Mail, MapPin, Calendar, Edit3 } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PersonalInfoCardProps {
   name?: string;
@@ -19,17 +20,25 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
   gender = 'Male',
   phone = '+91 98765 43210',
   email = 'samson.l@abdm.in',
-  location = 'Chennai, India',
-  onOpenEdit
+  location = 'Chennai, India'
 }) => {
+  const { t } = useLanguage();
+
+  const localizedGender =
+    gender?.toLowerCase() === 'female'
+      ? t('profile.female', 'Female')
+      : gender?.toLowerCase() === 'male'
+      ? t('profile.male', 'Male')
+      : gender || t('common.other', 'Other');
+
   const fields = [
-    { label: 'Full Name', value: name, icon: User },
-    { label: 'Date of Birth', value: dob, icon: Calendar },
-    { label: 'Age', value: `${age} Years`, icon: Calendar },
-    { label: 'Gender', value: gender, icon: User },
-    { label: 'Phone Number', value: phone, icon: Phone },
-    { label: 'Email Address', value: email, icon: Mail },
-    { label: 'Location', value: location, icon: MapPin }
+    { label: t('profile.full_name', 'Full Name'), value: name, icon: User },
+    { label: t('profile.dob', 'Date of Birth'), value: dob, icon: Calendar },
+    { label: t('profile.age', 'Age'), value: `${age} ${t('common.years', 'Years')}`, icon: Calendar },
+    { label: t('profile.gender', 'Gender'), value: localizedGender, icon: User },
+    { label: t('profile.phone', 'Phone Number'), value: phone, icon: Phone },
+    { label: t('profile.email', 'Email Address'), value: email, icon: Mail },
+    { label: t('profile.location', 'Location'), value: location, icon: MapPin }
   ];
 
   return (
@@ -42,9 +51,11 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Personal Information
+              {t('profile.personal_info', 'Personal Information')}
             </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">Demographic & Contact Details</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              {t('profile.demographic_details', 'Demographic & Contact Details')}
+            </span>
           </div>
         </div>
       </div>
@@ -75,3 +86,4 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
     </div>
   );
 };
+

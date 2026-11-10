@@ -140,19 +140,21 @@ export const CaregiverOverviewView: React.FC<CaregiverOverviewViewProps> = ({ on
     <div className="space-y-6 select-none pb-16">
       
       {/* TOAST ALERT */}
-      <AnimatePresence>
-        {toastMsg && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 backdrop-blur-xl"
-          >
-            <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
-            <span className="text-xs font-bold">{toastMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-teal-500/40 flex items-center gap-3 backdrop-blur-xl"
+            >
+              <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+              <span className="text-xs font-bold">{toastMsg}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* TOP HERO BANNER */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-50/80 via-white to-cyan-50/80 dark:from-[#0b1b36] dark:via-[#092b49] dark:to-[#041a2e] p-6 sm:p-8 text-slate-900 dark:text-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-xl border border-transparent dark:border-slate-700/50">

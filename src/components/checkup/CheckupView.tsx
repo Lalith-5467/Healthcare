@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Stethoscope,
   Clock,
@@ -52,6 +53,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // MAIN STATE
@@ -155,25 +157,27 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16 font-sans">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Health Check-Up Packages"
-        subtitle="Complete a quick assessment to understand your current health status and vitals."
-        badgeText="Guided Assessment"
+        title={t('checkup.title', 'Health Check-Up Packages')}
+        subtitle={t('checkup.subtitle', 'Complete a quick assessment to understand your current health status and vitals.')}
+        badgeText={t('checkup.title', 'Guided Assessment')}
         badgeIcon={<Stethoscope className="w-3.5 h-3.5" />}
         rightElement={
           <div className="flex items-center gap-3 self-stretch sm:self-auto font-sans">
@@ -185,18 +189,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-slate-200/40 dark:shadow-none"
             >
               <Clock className="w-4 h-4 text-teal-500" />
-              <span>View History</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setIsQuickMode(false);
-                setWizardOpen(true);
-              }}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Activity className="w-4 h-4" />
-              <span>Start Assessment</span>
+              <span>{t('nav.records', 'Medical Records')}</span>
             </button>
           </div>
         }
@@ -214,7 +207,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               <Stethoscope className="w-3.5 h-3.5" />
               <span>Interactive Digital Health Check</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Start Your Health Check-Up</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{t('checkup.title', 'Start Your Health Check-Up')}</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
               Answer a few simple questions about your current health, wellness, sleep, hydration, and daily routine.
             </p>
@@ -244,18 +237,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
               className="w-full lg:w-auto px-8 py-4 rounded-2xl font-extrabold text-sm text-slate-900 dark:text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2.5 cursor-pointer hover:-translate-y-0.5"
             >
               <Play className="w-4 h-4 fill-white" />
-              <span>Start Check-Up (12 Steps)</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setIsQuickMode(true);
-                setWizardOpen(true);
-              }}
-              className="w-full lg:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 transition-all border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-slate-200/50 dark:shadow-none hover:-translate-y-0.5"
-            >
-              <Sparkles className="w-4 h-4 text-teal-500" />
-              <span>Quick Check-Up (2 min)</span>
+              <span>{t('checkup.book_now', 'Book Check-up')}</span>
             </button>
           </div>
         </div>
@@ -319,20 +301,30 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
           {categories.map((cat) => (
             <div key={cat.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-slate-800/60 p-5 rounded-3xl flex flex-col items-center text-center space-y-4 shadow-lg shadow-slate-200/40 dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
               <div className="relative w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100 dark:text-slate-800" />
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
                   <circle 
-                    cx="40" cy="40" r="34" 
+                    cx="40" 
+                    cy="40" 
+                    r="32" 
                     stroke="currentColor" 
                     strokeWidth="6" 
                     fill="transparent" 
-                    strokeDasharray={213.6} 
-                    strokeDashoffset={213.6 - (cat.progressPercentage / 100) * 213.6} 
+                    className="text-slate-100 dark:text-slate-800" 
+                  />
+                  <circle 
+                    cx="40" 
+                    cy="40" 
+                    r="32" 
+                    stroke="currentColor" 
+                    strokeWidth="6" 
+                    fill="transparent" 
+                    strokeDasharray={201.06} 
+                    strokeDashoffset={201.06 - (cat.progressPercentage / 100) * 201.06} 
                     strokeLinecap="round" 
                     className={`transition-all duration-1000 ease-out ${cat.status === 'Completed' ? 'text-emerald-400' : cat.status === 'In Progress' ? 'text-teal-400' : 'text-slate-200'}`} 
                   />
                 </svg>
-                <div className="absolute flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm">
+                <div className="absolute inset-0 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-teal-500 transition-colors drop-shadow-sm pointer-events-none">
                   {cat.iconName === 'Stethoscope' && <Stethoscope className="w-7 h-7" />}
                   {cat.iconName === 'Heart' && <Heart className="w-7 h-7" />}
                   {cat.iconName === 'Activity' && <Activity className="w-7 h-7" />}
@@ -378,7 +370,7 @@ export const CheckupView: React.FC<CheckupViewProps> = ({
       <div id="history-section" className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/60 dark:border-slate-800/60 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/50 dark:shadow-none">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Previous Check-Ups</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{t('nav.records', 'Previous Check-Ups')}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Review your past completed health assessments</p>
           </div>
 

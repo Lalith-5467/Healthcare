@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Activity, Moon, Footprints, Scale, Gauge, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Heart, Activity, Moon, Scale, Gauge, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { vitalApi, type VitalEntity } from '../../services/dhrApis';
+import { useLanguage } from '../../context/LanguageContext';
 
 /* Mini sparkline SVG — 5 data points, accent-colored */
 const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
@@ -23,6 +24,7 @@ const Sparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => {
 };
 
 export const HealthSnapshotGrid: React.FC = () => {
+  const { t } = useLanguage();
   const [vitalsList, setVitalsList] = useState<VitalEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,10 +56,10 @@ export const HealthSnapshotGrid: React.FC = () => {
   const metrics = useMemo(() => [
     {
       id: 'heart',
-      label: 'Heart Rate',
+      label: t('snapshot.heart_rate', 'Heart Rate'),
       value: latestVital?.heartRate ? `${latestVital.heartRate} BPM` : '-- / --',
-      status: latestVital?.heartRate ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: latestVital?.heartRate ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: false,
       icon: Heart,
       accent: '#f43f5e',
@@ -68,10 +70,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     },
     {
       id: 'bp',
-      label: 'Blood Pressure',
+      label: t('snapshot.blood_pressure', 'Blood Pressure'),
       value: (latestVital?.systolicBp && latestVital?.diastolicBp) ? `${latestVital.systolicBp}/${latestVital.diastolicBp}` : '-- / --',
-      status: (latestVital?.systolicBp && latestVital?.diastolicBp) ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: (latestVital?.systolicBp && latestVital?.diastolicBp) ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Activity,
       accent: '#06b6d4',
@@ -82,10 +84,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     },
     {
       id: 'spo2',
-      label: 'SpO2',
+      label: t('snapshot.spo2', 'SpO2'),
       value: latestVital?.oxygenSaturation ? `${latestVital.oxygenSaturation}%` : '-- / --',
-      status: latestVital?.oxygenSaturation ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: latestVital?.oxygenSaturation ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Moon,
       accent: '#818cf8',
@@ -96,10 +98,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     },
     {
       id: 'temp',
-      label: 'Temperature',
+      label: t('snapshot.temperature', 'Temperature'),
       value: latestVital?.temperature ? `${latestVital.temperature}°` : '-- / --',
-      status: latestVital?.temperature ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: latestVital?.temperature ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Gauge,
       accent: '#10b981',
@@ -110,10 +112,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     },
     {
       id: 'weight',
-      label: 'Body Weight',
+      label: t('snapshot.body_weight', 'Body Weight'),
       value: latestVital?.weightKg ? `${latestVital.weightKg} kg` : '-- / --',
-      status: latestVital?.weightKg ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: latestVital?.weightKg ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Scale,
       accent: '#14b8a6',
@@ -124,10 +126,10 @@ export const HealthSnapshotGrid: React.FC = () => {
     },
     {
       id: 'sugar',
-      label: 'Blood Sugar',
+      label: t('snapshot.blood_sugar', 'Blood Sugar'),
       value: latestVital?.bloodSugar ? `${latestVital.bloodSugar} mg/dL` : '-- / --',
-      status: latestVital?.bloodSugar ? 'Recorded' : 'No Data',
-      trend: 'Latest reading',
+      status: latestVital?.bloodSugar ? t('snapshot.status_recorded', 'Recorded') : t('snapshot.status_no_data', 'No Data'),
+      trend: t('snapshot.latest_reading', 'Latest reading'),
       isUp: true,
       icon: Gauge,
       accent: '#a855f7',
@@ -136,7 +138,7 @@ export const HealthSnapshotGrid: React.FC = () => {
       badgeClr: '#7e22ce',
       badgeBg: 'rgba(168,85,247,.08)',
     },
-  ], [latestVital]);
+  ], [latestVital, t]);
 
   return (
     <div
@@ -149,10 +151,10 @@ export const HealthSnapshotGrid: React.FC = () => {
       <div className="flex items-center justify-between relative z-10">
         <div>
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Today's Health Biometrics
+            {t('snapshot.title', "Today's Health Biometrics")}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            Real-time vitals snapshot.
+            {t('snapshot.subtitle', 'Real-time vitals snapshot.')}
           </p>
         </div>
         {isLoading && (

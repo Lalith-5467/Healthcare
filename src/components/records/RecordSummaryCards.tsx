@@ -1,6 +1,7 @@
 import React from 'react';
 import { Files, FlaskConical, Pill, Stethoscope, FileImage, Building2, Syringe } from 'lucide-react';
 import type { MedicalRecordItem } from './recordsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecordSummaryCardsProps {
   records: MedicalRecordItem[];
@@ -13,6 +14,8 @@ export const RecordSummaryCards: React.FC<RecordSummaryCardsProps> = ({
   selectedCategory,
   onSelectCategory
 }) => {
+  const { t } = useLanguage();
+
   const counts = {
     Total: records.length,
     Lab: records.filter((r) => r.type === 'Lab Report').length,
@@ -24,14 +27,15 @@ export const RecordSummaryCards: React.FC<RecordSummaryCardsProps> = ({
   };
 
   const cards = [
-    { key: 'All', label: 'Total Records', count: counts.Total || 24, icon: Files, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
-    { key: 'Lab Report', label: 'Lab Reports', count: counts.Lab || 8, icon: FlaskConical, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-    { key: 'Prescription', label: 'Prescriptions', count: counts.Prescription || 6, icon: Pill, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-    { key: 'Consultation', label: 'Consultations', count: counts.Consultation || 5, icon: Stethoscope, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
-    { key: 'Imaging', label: 'Imaging', count: counts.Imaging || 3, icon: FileImage, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    { key: 'Discharge', label: 'Discharge', count: counts.Discharge || 1, icon: Building2, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-    { key: 'Vaccination', label: 'Vaccination', count: counts.Vaccination || 2, icon: Syringe, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }
+    { key: 'All', label: t('records.total_records', 'Total Records'), count: counts.Total || 24, icon: Files, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+    { key: 'Lab Report', label: t('records.lab_reports', 'Lab Reports'), count: counts.Lab || 8, icon: FlaskConical, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+    { key: 'Prescription', label: t('records.prescriptions', 'Prescriptions'), count: counts.Prescription || 6, icon: Pill, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+    { key: 'Consultation', label: t('records.consultations', 'Consultations'), count: counts.Consultation || 5, icon: Stethoscope, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
+    { key: 'Imaging', label: t('records.imaging', 'Imaging'), count: counts.Imaging || 3, icon: FileImage, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+    { key: 'Discharge', label: t('records.discharge', 'Discharge'), count: counts.Discharge || 1, icon: Building2, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+    { key: 'Vaccination', label: t('records.vaccination', 'Vaccination'), count: counts.Vaccination || 2, icon: Syringe, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }
   ];
+
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">

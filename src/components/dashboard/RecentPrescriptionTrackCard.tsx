@@ -9,11 +9,13 @@ import { useLanguage } from '../../context/LanguageContext';
 interface RecentPrescriptionTrackCardProps {
   onNavigate: (page: string) => void;
   onToast?: (msg: string) => void;
+  isShortsOpen?: boolean;
 }
 
 export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardProps> = ({
   onNavigate,
-  onToast: _onToast
+  onToast: _onToast,
+  isShortsOpen = false
 }) => {
   const { t } = useLanguage();
   const [latestPrescription, setLatestPrescription] = useState<StructuredPrescription | null>(null);
@@ -32,6 +34,31 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
         (o) => o.sourcePrescriptionId === latest.id || o.id.includes(latest.id.replace('RX-DOC-', ''))
       );
       setLinkedOrder(match || null);
+
+      // Live backend check for real-time order & payment status
+      import('../../services/pharmacyOrderApi').then(({ fetchPatientPharmacyOrders }) => {
+        fetchPatientPharmacyOrders()
+          .then((liveOrders) => {
+            if (liveOrders && liveOrders.length > 0) {
+              const liveMatch = liveOrders.find(
+                (o) =>
+                  (match && o.id === match.id) ||
+                  o.prescriptionId === latest.id ||
+                  (match?.sourcePrescriptionId && o.prescriptionId === match.sourcePrescriptionId)
+              );
+              if (liveMatch) {
+                setLinkedOrder((prev: any) => ({
+                  ...prev,
+                  id: liveMatch.id,
+                  status: liveMatch.status,
+                  paymentStatus: liveMatch.paymentStatus,
+                  totalAmount: Number(liveMatch.totalAmount) || prev?.totalAmount || 0,
+                }));
+              }
+            }
+          })
+          .catch(() => {});
+      }).catch(() => {});
     } else {
       setLatestPrescription(null);
       setLinkedOrder(null);
@@ -67,6 +94,15 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
           <Check className="w-3.5 h-3.5" />
           <span>{t('card.pharmacy_status', 'Pharmacy Status')}: {rawStatus === 'OUT_FOR_DELIVERY' ? t('card.out_for_delivery', 'Out for Delivery') : t('card.ready_for_pickup', 'Ready for Pickup')}</span>
+        </span>
+      );
+    }
+
+    if (rawStatus === 'DISPENSED') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+          <Check className="w-3.5 h-3.5 text-emerald-500" />
+          <span>{t('card.pharmacy_status', 'Pharmacy Status')}: Dispensed</span>
         </span>
       );
     }
@@ -134,16 +170,29 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
             <span>{t('card.verified', 'Verified')}</span>
           </span>
           {getPharmacyStatusBadge()}
+          {linkedOrder && (
+            linkedOrder.paymentStatus === 'PAID' ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-mono">
+                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                <span>Paid</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
+                <Clock className="w-3 h-3 text-amber-500" />
+                <span>Payment Pending (₹{Number(linkedOrder.totalAmount || 0).toFixed(2)})</span>
+              </span>
+            )
+          )}
         </div>
       </div>
 
       {/* CONTENT SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-        <div className="md:col-span-8 space-y-1.5">
+      <div className={isShortsOpen ? "flex flex-col xl:flex-row xl:items-center justify-between gap-4" : "grid grid-cols-1 md:grid-cols-12 gap-4 items-center"}>
+        <div className={isShortsOpen ? "space-y-1.5 min-w-0" : "md:col-span-8 space-y-1.5"}>
           <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             <span>{t('card.prescription_details', 'Prescription Details')}:</span>
             <span className="font-extrabold text-slate-900 dark:text-white">
-              {latestPrescription.medicines.length} {t('meds.title', 'prescribed formulations')}
+              {latestPrescription.medicines.length} {t('presc.formulations', 'prescribed formulations')}
             </span>
           </div>
           <div className="text-xs text-slate-600 dark:text-slate-400 font-mono line-clamp-1">
@@ -151,13 +200,13 @@ export const RecentPrescriptionTrackCard: React.FC<RecentPrescriptionTrackCardPr
           </div>
           {linkedOrder && (
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Connected Pharmacy Order: <strong className="text-[#00a896] dark:text-cyan-300">#{linkedOrder.id}</strong> • Fulfillment Method: <strong>{linkedOrder.deliveryMethod}</strong>
+              {t('presc.connected_order', 'Connected Pharmacy Order')}: <strong className="text-[#00a896] dark:text-cyan-300">#{linkedOrder.id}</strong> • {t('presc.fulfillment_method', 'Fulfillment Method')}: <strong>{linkedOrder.deliveryMethod}</strong>
             </p>
           )}
         </div>
 
         {/* ACTIONS */}
-        <div className="md:col-span-4 flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 justify-end">
+        <div className={isShortsOpen ? "flex items-center gap-2 flex-wrap shrink-0" : "md:col-span-4 flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 justify-end"}>
           <button
             type="button"
             onClick={() => onNavigate('records')}

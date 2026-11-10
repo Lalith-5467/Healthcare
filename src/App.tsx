@@ -32,6 +32,7 @@ import { clearAuthToken } from './services/apiClient';
 import { socketService } from './services/socketService';
 import { showGlobalToast } from './components/common/GlobalToastManager';
 import { GlobalNotificationListener } from './components/common/GlobalNotificationListener';
+import { useSiteConfig } from './context/ConfigContext';
 
 const NAV_MAP: Record<string, string> = {
   'family-connect': 'family',
@@ -46,9 +47,16 @@ const NAV_MAP: Record<string, string> = {
   'hospitals': 'hospitals',
   'insurance': 'insurance',
   'more-features': 'more-features',
+  'emergency-sos': 'emergency',
   'emergency': 'emergency',
   'sos': 'emergency',
+  'abha': 'abha',
+  'doctors': 'appointments',
+  'services': 'dashboard',
+  'features': 'dashboard',
+  'about': 'about',
   'settings': 'settings',
+  'system-config': 'system-config',
   'ai-assistant': 'ai-assistant',
   'assistant': 'ai-assistant',
   'notifications': 'notifications',
@@ -77,7 +85,13 @@ const NAV_MAP: Record<string, string> = {
   'caregiver-booking': 'caregiver-booking',
   'janitor-booking': 'janitor-booking',
   'security': 'security-privacy',
-  'security-privacy': 'security-privacy'
+  'security-privacy': 'security-privacy',
+  'medical-records': 'records',
+  'caregiver': 'caregiver-booking',
+  'caregiver-portal': 'caregiver-booking',
+  'caregiver-features': 'caregiver-booking',
+  'pharmacists': 'pharmacists',
+  'caregivers': 'caregivers'
 };
 
 export const normalizeRole = (role?: string): string => {
@@ -213,7 +227,7 @@ const getInitialAppState = () => {
   const savedNav = localStorage.getItem('app_active_nav_id');
   const savedUser = localStorage.getItem('app_user');
   const savedLoggedIn = localStorage.getItem('app_is_logged_in');
-  const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || (isUserPath ? localStorage.getItem('patient_token') : null);
 
   let loggedIn = false;
   let userData: any = null;
@@ -261,18 +275,19 @@ const getInitialAppState = () => {
       role: 'Nurse',
     };
   } else if (isUserPath && userData && userData.role !== 'Patient') {
-    userData = {
-      name: 'Ananya Sharma',
-      email: 'ananya@health.com',
-      role: 'Patient',
-      abhaId: '91-9482-1102-4821',
-      bloodGroup: 'B+',
-      age: 29
-    };
+    const savedPatientUser = localStorage.getItem('patient_user');
+    if (savedPatientUser) {
+      try {
+        userData = JSON.parse(savedPatientUser);
+        if (userData && userData.role) {
+          userData.role = normalizeRole(userData.role);
+        }
+      } catch {}
+    }
   }
 
   let page: 'home' | 'about' | 'login' | 'register' | 'dashboard' = 'home';
-  let nav = target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard';
+  let nav = (isAdminPath && target) ? target : (target && NAV_MAP[target] ? NAV_MAP[target] : savedNav || 'dashboard');
 
   // Role detection for authentication forms
   let targetRole: 'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance' = 'patient';
@@ -291,7 +306,7 @@ const getInitialAppState = () => {
     page = 'login';
   } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
     page = 'register';
-  } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target])) {
+  } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
     if (loggedIn && userData) {
       // For admin paths, verify the logged-in user actually has admin role
       if (isAdminPath) {
@@ -301,6 +316,9 @@ const getInitialAppState = () => {
           page = 'login';
         } else {
           page = 'dashboard';
+          if (target) {
+            nav = target;
+          }
         }
       } else {
         page = 'dashboard';
@@ -312,7 +330,7 @@ const getInitialAppState = () => {
       page = 'login';
     }
   } else {
-    page = 'home';
+    page = loggedIn ? 'home' : 'login';
   }
 
   return { page, nav, loggedIn, userData, targetRole };
@@ -320,6 +338,7 @@ const getInitialAppState = () => {
 
 
 export const App: React.FC = () => {
+  const { landing } = useSiteConfig();
   const initialState = getInitialAppState();
 
   // Page & User States
@@ -369,7 +388,7 @@ export const App: React.FC = () => {
 
   // Session Restoration & Backend User Validation on Mount
   React.useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('patient_token');
     if (token) {
       authApi.getCurrentUser()
         .then((res) => {
@@ -408,6 +427,10 @@ export const App: React.FC = () => {
             };
             setUser(refreshedUser);
             localStorage.setItem('app_user', JSON.stringify(refreshedUser));
+            if (normalizedRole === 'Patient') {
+              localStorage.setItem('patient_user', JSON.stringify(refreshedUser));
+              localStorage.setItem('patient_user_name', refreshedUser.name);
+            }
             localStorage.setItem('app_is_logged_in', 'true');
           }
         })
@@ -423,22 +446,138 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Subscribe to Global Real-Time Notifications
+  // Subscribe to Global Real-Time Notifications (ONLY when authenticated and inside Dashboard)
   React.useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || currentPage !== 'dashboard') return;
 
-    const unsubscribe = socketService.subscribeToNotifications((notification: any) => {
-      // 1. Show professional toast popup
+    const currentRole = normalizeRole(user?.role);
+    const isPatient = currentRole === 'Patient';
+    const isDoctor = currentRole === 'Doctor';
+
+    const unsubscribeNotif = socketService.subscribeToNotifications((notification: any) => {
       if (notification.title && notification.message) {
-        showGlobalToast(`${notification.title}\n${notification.message}`, 'info');
+        const isAccessReq =
+          notification.type === 'ACCESS_REQUEST' ||
+          notification.category === 'Clinical Access' ||
+          notification.relatedModule === 'health-share' ||
+          (/access request/i.test(notification.title) && !/approved|rejected|declined/i.test(notification.title)) ||
+          /requested access to your health records/i.test(notification.message);
+
+        const isAccessApproved =
+          notification.type === 'ACCESS_APPROVED' ||
+          /approved your (health record|medical record|access)/i.test(notification.message) ||
+          /access request approved/i.test(notification.title);
+
+        const isAccessRejected =
+          notification.type === 'ACCESS_REJECTED' ||
+          /declined your (request|access)/i.test(notification.message) ||
+          /access request (rejected|declined)/i.test(notification.title);
+
+        if (isPatient && isAccessReq) {
+          // Handled exclusively by subscribeToHealthShareEvents below to avoid duplicate toasts
+        } else if (isDoctor && isAccessApproved) {
+          showGlobalToast(notification.message, 'success', 'Access Request Approved');
+        } else if (isDoctor && isAccessRejected) {
+          showGlobalToast(notification.message, 'warning', 'Access Request Declined');
+        } else if (!isDoctor && !isAccessReq) {
+          showGlobalToast(`${notification.title}\n${notification.message}`, 'info');
+        }
       }
       
-      // 2. Dispatch event to update the NotificationPopover badge immediately
+      // Dispatch event to update the NotificationPopover badge immediately
       window.dispatchEvent(new Event('notifications_updated'));
     });
 
-    return () => unsubscribe();
-  }, [isLoggedIn]);
+    const handleHealthShareEvent = (payload: any) => {
+      const eventType = payload.event || payload.type || '';
+      const isApproved = eventType.includes('approved') || payload.status === 'APPROVED';
+      const isRejected = eventType.includes('rejected') || payload.status === 'REJECTED';
+      const isCreated =
+        payload.status === 'PENDING' ||
+        eventType.includes('request-created') ||
+        eventType.includes('request_created');
+
+      if (isPatient && isCreated) {
+        const docData = payload.data || payload;
+        const reqId = payload.requestId || docData.requestId || docData.id;
+        const rawDocName = docData.doctorName || docData.doctor?.fullName || 'Doctor';
+        const formattedDoctorName = /^dr\.?\s+/i.test(rawDocName.trim()) ? rawDocName.trim() : `Dr. ${rawDocName.trim()}`;
+        showGlobalToast(
+          `${formattedDoctorName} has requested access to your health records for ${docData.purpose || 'Consultation'}.`,
+          'info',
+          'Medical Record Access Request',
+          `access-req-${reqId}`,
+          'Review Request',
+          () => {
+            window.dispatchEvent(new CustomEvent('open_access_requests_modal'));
+          },
+          {
+            isAccessRequest: true,
+            duration: 15000,
+            doctorName: formattedDoctorName,
+            doctorSpeciality: docData.doctorSpeciality || docData.doctor?.speciality,
+            doctorHospital: docData.doctorHospital || docData.doctor?.hospital,
+            purpose: docData.purpose || 'Patient Consultation',
+            permissionScope: docData.permissionScope || ['Vitals', 'Medical Records', 'Prescriptions', 'Lab Reports'],
+            requestedAt: docData.requestedAt || new Date().toISOString(),
+            requestId: reqId,
+            onReview: () => {
+              window.dispatchEvent(new CustomEvent('open_access_requests_modal'));
+            },
+          }
+        );
+        window.dispatchEvent(new Event('notifications_updated'));
+      } else if (isDoctor && isApproved) {
+        const patientName = payload.data?.patientName || 'Patient';
+        showGlobalToast(
+          `✓ ${patientName} approved your medical record access request. Clinical records are now unlocked.`,
+          'success',
+          'Access Request Approved'
+        );
+      } else if (isDoctor && isRejected) {
+        showGlobalToast(
+          'The patient declined your medical record access request.',
+          'warning',
+          'Access Request Declined'
+        );
+      }
+    };
+
+    const unsubscribeHealth = socketService.subscribeToHealthShareEvents(handleHealthShareEvent);
+
+    // Cross-tab BroadcastChannel listener
+    let crossBc: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        crossBc = new BroadcastChannel('health_share_channel');
+        crossBc.onmessage = (event) => {
+          if (event.data) {
+            handleHealthShareEvent(event.data);
+          }
+        };
+      } catch {}
+    }
+
+    // Window event listener for local dispatches
+    const handleLocalHealthEvent = (e: any) => {
+      if (e.detail) {
+        handleHealthShareEvent({
+          event: 'health-share:request-created',
+          status: 'PENDING',
+          data: e.detail,
+          requestId: e.detail.id,
+        });
+      }
+    };
+    window.addEventListener('health-share:request-created', handleLocalHealthEvent);
+
+    return () => {
+      unsubscribeNotif();
+      unsubscribeHealth();
+      crossBc?.close();
+      window.removeEventListener('health-share:request-created', handleLocalHealthEvent);
+    };
+  }, [isLoggedIn, user?.role, currentPage]);
 
   // Listen for local profile/user updates
   React.useEffect(() => {
@@ -483,6 +622,7 @@ export const App: React.FC = () => {
       const path = window.location.pathname.toLowerCase();
       const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
 
+      const isAdminPath = path.startsWith('/admin');
       const isUserPath = path.startsWith('/user');
       const isPharmacistPath = path.startsWith('/pharmacist');
       const isDoctorPath = path.startsWith('/doctor');
@@ -490,7 +630,9 @@ export const App: React.FC = () => {
       const isInsurancePath = path.startsWith('/insurance');
       const isCaregiverPath = path.startsWith('/caregiver');
 
-      const target = isPharmacistPath
+      const target = isAdminPath
+        ? path.replace('/admin/', '').replace('/admin', '')
+        : isPharmacistPath
         ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
         : isUserPath
         ? path.replace('/user/', '').replace('/user', '')
@@ -526,11 +668,20 @@ export const App: React.FC = () => {
         setCurrentPage('home');
       } else if (path === '/about') {
         setCurrentPage('about');
-      } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login') {
+      } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login' || path === '/admin/login') {
         setCurrentPage('login');
       } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
         setCurrentPage('register');
-      } else if (isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target])) {
+      } else if (isAdminPath) {
+        if (loggedIn) {
+          setCurrentPage('dashboard');
+          if (target) {
+            setInitialNavId(target);
+          }
+        } else {
+          setCurrentPage('login');
+        }
+      } else if (isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
         if (loggedIn) {
           setCurrentPage('dashboard');
           if (target && NAV_MAP[target]) {
@@ -540,7 +691,7 @@ export const App: React.FC = () => {
           setCurrentPage('login');
         }
       } else {
-        setCurrentPage('home');
+        setCurrentPage(loggedIn ? 'home' : 'login');
       }
     };
 
@@ -580,11 +731,18 @@ export const App: React.FC = () => {
       hospitalAffiliation: userData.hospitalAffiliation
     };
 
+    const pendingNav = localStorage.getItem('pending_nav_target');
+    const targetNav = pendingNav ? (NAV_MAP[pendingNav] || pendingNav) : 'dashboard';
+    if (pendingNav) {
+      localStorage.removeItem('pending_nav_target');
+    }
+
     setIsLoggedIn(true);
     setUser(newUser);
     setCurrentPage('dashboard');
-    setInitialNavId('dashboard');
+    setInitialNavId(targetNav);
     localStorage.setItem('app_current_page', 'dashboard');
+    localStorage.setItem('app_active_nav_id', targetNav);
     localStorage.setItem('app_is_logged_in', 'true');
     localStorage.setItem('app_user', JSON.stringify(newUser));
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -622,29 +780,138 @@ export const App: React.FC = () => {
   };
 
   const handleNavigate = (id: string) => {
-    if (id === 'about') {
-      setCurrentPage('about');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      return;
-    }
+    // 1. Explicit public page destinations
     if (id === 'login') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
       setCurrentPage('login');
+      window.history.pushState(null, '', '/login');
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
     if (id === 'register') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
       setCurrentPage('register');
+      window.history.pushState(null, '', '/register');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+    if (id === 'about-page' || id === 'about-us-page') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('about');
+      localStorage.setItem('app_current_page', 'about');
+      window.history.pushState(null, '', '/about');
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
 
-    if (NAV_MAP[id] || id === 'dashboard') {
-      const activeNav = NAV_MAP[id] || id;
-      setInitialNavId(activeNav);
+    // 2. Landing page sections: Smoothly scroll to the corresponding section under the header
+    const landingSectionIds = ['home', 'about', 'features', 'doctors', 'abha', 'partners', 'partnerLoop', 'cta'];
+    if (landingSectionIds.includes(id) || (typeof document !== 'undefined' && (document.getElementById(id) || document.getElementById(`${id}-section`)))) {
+      if (currentPage !== 'home') {
+        setCurrentPage('home');
+        window.history.pushState(null, '', '/');
+        setTimeout(() => {
+          scrollToSection(id);
+        }, 60);
+      } else {
+        scrollToSection(id);
+      }
+      return;
+    }
+
+    // 3. Feature showcase shortcuts from the Services dropdown (scroll to interactive features)
+    const featureShortcuts = [
+      'medical-records', 
+      'timeline', 
+      'medication', 
+      'doctor-sharing', 
+      'emergency-sos', 
+      'vitals', 
+      'caregiver', 
+      'ai-assistance', 
+      'home-care', 
+      'wearables', 
+      'health-analytics', 
+      'video-consultation', 
+      'insurance',
+      'services'
+    ];
+    if (featureShortcuts.includes(id)) {
+      if (currentPage !== 'home') {
+        setCurrentPage('home');
+        window.history.pushState(null, '', '/');
+        setTimeout(() => {
+          scrollToSection('features');
+        }, 60);
+      } else {
+        scrollToSection('features');
+      }
+      return;
+    }
+
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const isActuallyLoggedIn = Boolean(isLoggedIn && token);
+
+    // 4. Admin user priority! If user is admin/super-admin or on /admin, ALWAYS route within admin dashboard!
+    const isCurrentAdmin = (user?.role === 'Admin' || user?.role === 'Super Admin') || window.location.pathname.toLowerCase().startsWith('/admin');
+    if (isCurrentAdmin) {
+      if (id === 'home') {
+        setCurrentPage('home');
+        window.history.pushState(null, '', '/');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      setInitialNavId(id);
       setCurrentPage('dashboard');
+      localStorage.setItem('admin_active_nav_id', id);
+      const targetUrl = `/admin/${id}`;
+      if (window.location.pathname !== targetUrl) {
+        window.history.pushState(null, '', targetUrl);
+      }
+      return;
+    }
+
+    // 5. Authenticated user already on dashboard: route within their portal!
+    if (currentPage === 'dashboard') {
+      if (id === 'home') {
+        setCurrentPage('home');
+        window.history.pushState(null, '', '/');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const targetNav = NAV_MAP[id] || (id === 'doctors' ? 'appointments' : id);
+      setInitialNavId(targetNav);
+      return;
+    }
+
+    // 6. Unauthenticated protected action guard (only for dashboard actions, not public sections)
+    if (!isActuallyLoggedIn) {
+      const targetNav = NAV_MAP[id] || id;
+      try {
+        localStorage.setItem('pending_nav_target', targetNav);
+      } catch {}
+      setSelectedAuthRole('patient');
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('login');
+      window.history.pushState(null, '', '/login');
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
+
+    // 7. Authenticated user navigation to dashboard portal tab
+    const activeNav = NAV_MAP[id] || id;
+    setInitialNavId(activeNav);
+    setCurrentPage('dashboard');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
 
     if (currentPage !== 'home') {
       setCurrentPage('home');
@@ -664,14 +931,12 @@ export const App: React.FC = () => {
   const activeRole = normalizeRole(user?.role);
   const isPharmacist = activeRole === 'Pharmacist';
   const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
-  
-  const themeKey = currentPage === 'dashboard' ? 'theme-dashboard' : (currentPage === 'login' || currentPage === 'register') ? 'theme-auth' : 'theme-landing';
 
   return (
     <LanguageProvider>
-      <ThemeProvider key={themeKey} storageKey={themeKey}>
-        <GlobalToastManager />
-        <GlobalNotificationListener activeRole={activeRole} />
+      <ThemeProvider storageKey="medicare-theme">
+        <GlobalToastManager currentPage={currentPage} />
+        <GlobalNotificationListener activeRole={activeRole} isDashboard={currentPage === 'dashboard'} />
         <div className={`min-h-screen w-full overflow-x-hidden bg-white dark:bg-[#0b1120] text-slate-900 dark:text-white transition-colors duration-300 selection:bg-[#0f3980] selection:text-white ${showHeaderAndFooter ? 'pt-20' : ''}`}>
           
           {/* HEADER & TOP BAR (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
@@ -681,6 +946,8 @@ export const App: React.FC = () => {
               isLoggedIn={isLoggedIn}
               userName={user?.name}
               onLogout={handleLogout}
+              currentPage={currentPage}
+              showProgressBar={currentPage === 'home'}
             />
           )}
 
@@ -715,6 +982,20 @@ export const App: React.FC = () => {
             />
           ) : currentPage === 'dashboard' ? (
             (() => {
+              const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+              const isActuallyLoggedIn = Boolean(isLoggedIn && token);
+
+              if (!isActuallyLoggedIn) {
+                return (
+                  <LoginPage 
+                    initialRole={selectedAuthRole}
+                    onNavigateHome={() => handleNavigate('home')}
+                    onNavigate={handleNavigate}
+                    onSuccessLogin={handleSuccessLogin}
+                  />
+                );
+              }
+
               const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
               if (currentPortal === 'admin') {
                 return (
@@ -789,43 +1070,127 @@ export const App: React.FC = () => {
             })()
           ) : (
             <main>
-              {/* HERO SECTION */}
-              <Hero 
-                onStartJourney={() => handleNavigate('dashboard')} 
-                onSeeHowItWorks={() => handleNavigate('about')} 
-              />
+              {(() => {
+                const visibility = landing.sectionsVisibility || {
+                  hero: true,
+                  about: true,
+                  features: true,
+                  doctors: true,
+                  abha: true,
+                  partnerLoop: true,
+                  cta: true,
+                };
+                const order = (landing.sectionsOrder && landing.sectionsOrder.length > 0)
+                  ? landing.sectionsOrder
+                  : ['hero', 'about', 'features', 'doctors', 'abha', 'partners', 'cta'];
 
-              {/* ABOUT US PREVIEW */}
-              <AboutHospital 
-                onLearnMore={() => handleNavigate('about')} 
-              />
-
-              {/* FEATURES SECTION */}
-              <FeaturesSection 
-                onExploreFeature={() => handleNavigate('abha')} 
-              />
-
-              {/* MEET OUR DOCTORS */}
-              <DoctorSection 
-                onOpenDoctorPortal={() => handleNavigate('register')} 
-              />
-
-              {/* ABHA DIGITAL HEALTH CONNECTION */}
-              <ABHASection onManageConnection={() => setAbhaModalOpen(true)} />
-
-              {/* HEALTHCARE PARTNER NETWORKS LOGOLOOP */}
-              <PartnerLoopSection />
-
-              {/* FINAL HIGH-CONVERSION CTA */}
-              <FinalCTA 
-                onStartJourney={() => handleNavigate('register')} 
-                onExploreFeatures={() => handleNavigate('features')} 
-              />
+                return order.map((secId) => {
+                  switch (secId) {
+                    case 'hero':
+                      return (visibility.hero !== false && landing.hero?.enabled !== false) ? (
+                        <Hero 
+                          key="hero"
+                          onStartJourney={() => {
+                            const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+                            const isActuallyLoggedIn = Boolean(isLoggedIn && token);
+                            if (isActuallyLoggedIn) {
+                              handleNavigate('dashboard');
+                            } else {
+                              handleNavigate('register');
+                            }
+                          }} 
+                          onSeeHowItWorks={() => {
+                            handleNavigate('abha');
+                          }} 
+                        />
+                      ) : null;
+                    case 'about':
+                      return visibility.about !== false ? (
+                        <AboutHospital 
+                          key="about"
+                          onLearnMore={() => handleNavigate('about-page')} 
+                        />
+                      ) : null;
+                    case 'features':
+                      return visibility.features !== false ? (
+                        <FeaturesSection 
+                          key="features"
+                          onExploreFeature={(featId) => {
+                            handleNavigate(featId);
+                          }} 
+                        />
+                      ) : null;
+                    case 'doctors':
+                      return visibility.doctors !== false ? (
+                        <DoctorSection 
+                          key="doctors"
+                          onOpenDoctorPortal={(doctor) => {
+                            if (doctor) {
+                              try {
+                                localStorage.setItem('pending_booking_doctor', JSON.stringify({
+                                  id: doctor.id,
+                                  name: doctor.name,
+                                  speciality: doctor.specialty || doctor.department || 'General Physician',
+                                  photoUrl: doctor.image || '',
+                                  hospital: doctor.location || 'Medicare Hospital',
+                                  fee: parseInt(doctor.consultFee?.replace(/[^0-9]/g, '') || '800', 10),
+                                }));
+                              } catch {}
+                            }
+                            localStorage.setItem('pending_nav_target', 'appointments');
+                            setSelectedAuthRole('patient');
+                            handleNavigate('login');
+                          }} 
+                          onViewAllDoctors={() => {
+                            localStorage.setItem('pending_nav_target', 'appointments');
+                            setSelectedAuthRole('patient');
+                            handleNavigate('login');
+                          }}
+                        />
+                      ) : null;
+                    case 'abha':
+                      return visibility.abha !== false ? (
+                        <ABHASection 
+                          key="abha" 
+                          onManageConnection={() => handleNavigate('abha')} 
+                        />
+                      ) : null;
+                    case 'partners':
+                    case 'partnerLoop':
+                      return (visibility.partnerLoop !== false && (visibility as any).partners !== false) ? (
+                        <PartnerLoopSection key="partners" />
+                      ) : null;
+                    case 'cta':
+                      return visibility.cta !== false ? (
+                        <FinalCTA 
+                          key="cta"
+                          onStartJourney={() => {
+                            const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+                            const isActuallyLoggedIn = Boolean(isLoggedIn && token);
+                            if (isActuallyLoggedIn) {
+                              handleNavigate('dashboard');
+                            } else {
+                              handleNavigate('register');
+                            }
+                          }} 
+                          onExploreFeatures={() => handleNavigate('features')} 
+                        />
+                      ) : null;
+                    default:
+                      return null;
+                  }
+                });
+              })()}
             </main>
           )}
 
           {/* FOOTER (HIDE ON DASHBOARD, LOGIN & REGISTER) */}
-          {showHeaderAndFooter && <Footer onNavigate={handleNavigate} />}
+          {showHeaderAndFooter && (
+            <Footer 
+              onNavigate={handleNavigate} 
+              isLoggedIn={Boolean(isLoggedIn && (localStorage.getItem('token') || localStorage.getItem('auth_token')))} 
+            />
+          )}
 
           {/* MODALS */}
           <ABHAModal 

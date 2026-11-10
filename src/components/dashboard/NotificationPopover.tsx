@@ -13,13 +13,19 @@ import {
   ExternalLink,
   X,
   ShieldCheck,
-  Volume2
+  Volume2,
+  Stethoscope,
+  Check
 } from 'lucide-react';
 import type { NotificationLog } from '../reminders/remindersData';
 import { notificationApi } from '../../services/dhrApis';
+import { healthShareApi, type AccessRequestItem } from '../../services/healthShareApi';
+import { socketService } from '../../services/socketService';
 import { notificationVoiceService } from '../../services/notificationVoiceService';
 import { useLanguage } from '../../context/LanguageContext';
 import { PatientAccessRequestsModal } from './PatientAccessRequestsModal';
+import { updateInsuranceClaimStatus, getStoredInsuranceRecords } from '../../utils/insuranceWorkflowStorage';
+import { showGlobalToast } from '../common/GlobalToastManager';
 
 const formatTimeAgo = (dateStr?: string) => {
   if (!dateStr) return 'Just now';
@@ -37,15 +43,22 @@ interface NotificationPopoverProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigateToNotifications: () => void;
+  role?: string;
+  onNavigateToPatient360?: (patientId?: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   isOpen,
   onClose,
-  onNavigateToNotifications
+  onNavigateToNotifications,
+  role,
+  onNavigateToPatient360,
+  onNavigateTab,
 }) => {
   const { language, t } = useLanguage();
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
+  const [accessRequests, setAccessRequests] = useState<AccessRequestItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
 
@@ -87,62 +100,303 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     return { title, description };
   };
 
+  const isDoctorPortal = (role || '').toLowerCase() === 'doctor' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/doctor'));
+  const isNursePortal = (role || '').toLowerCase() === 'nurse' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/nurse'));
+  const isPharmacistPortal = (role || '').toLowerCase() === 'pharmacist' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/pharmacist'));
+  const isInsurancePortal = (role || '').toLowerCase() === 'insurance' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/insurance'));
+  const isAdminPortal = (role || '').toLowerCase() === 'admin' || (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin'));
+
+  let isPatientUser = !isDoctorPortal && !isNursePortal && !isPharmacistPortal && !isInsurancePortal && !isAdminPortal;
+  try {
+    const rawUser = localStorage.getItem('app_user');
+    if (rawUser && isPatientUser) {
+      const parsed = JSON.parse(rawUser);
+      isPatientUser = (parsed?.role || '').toLowerCase() === 'patient';
+    }
+  } catch {}
+
   const loadNotifications = async () => {
     try {
-      const res = await notificationApi.getNotifications();
-      if (res && res.data) {
-        const mapped: NotificationLog[] = res.data.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          description: n.message,
-          category: n.category || 'General',
-          timeAgo: formatTimeAgo(n.createdAt),
-          date: new Date(n.createdAt).toLocaleDateString(),
-          isRead: n.isRead,
-          relatedModule: n.relatedModule || 'dashboard',
-        }));
-        setNotifications(mapped);
-        return;
-      }
+      const [res, reqs] = await Promise.all([
+        notificationApi.getNotifications().catch(() => ({ data: [] })),
+        isPatientUser ? healthShareApi.getPatientRequests().catch(() => []) : Promise.resolve([]),
+      ]);
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      const pendingReqs = Array.isArray(reqs) ? reqs.filter((r) => r.status === 'PENDING') : [];
+      setAccessRequests(pendingReqs);
+
+      const mapped: NotificationLog[] = list.map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        description: n.message,
+        category: n.category || 'General',
+        timeAgo: formatTimeAgo(n.createdAt),
+        date: new Date(n.createdAt).toLocaleDateString(),
+        isRead: Boolean(n.isRead),
+        relatedModule: n.relatedModule || 'dashboard',
+      }));
+
+      // Ensure every pending health share request is in the notifications list without duplicate
+      pendingReqs.forEach((req) => {
+        const docName = req.doctorName || req.doctor?.fullName || 'Attending Doctor';
+        const spec = req.doctorSpeciality || req.doctor?.speciality || 'General Medicine';
+        const hosp = req.doctorHospital || req.doctor?.hospital || 'Apollo Multispeciality Hospitals';
+        const alreadyExists = mapped.some(
+          (n) => n.id === req.id || (n.description && n.description.includes(docName) && n.description.includes(req.purpose))
+        );
+        if (!alreadyExists) {
+          mapped.unshift({
+            id: req.id,
+            title: '🔔 Medical Record Access Request',
+            description: `${docName} (${spec} at ${hosp}) has requested access to your health records for ${req.purpose}.`,
+            category: 'Clinical Access',
+            timeAgo: formatTimeAgo(req.requestedAt),
+            date: new Date(req.requestedAt).toLocaleDateString(),
+            isRead: false,
+            relatedModule: 'health-share',
+          });
+        }
+      });
+
+      // Ensure local storage notifications (e.g. from real-time insurance workflows) are merged
+      try {
+        const localRaw = localStorage.getItem('medicare_notifications');
+        const localList = localRaw ? JSON.parse(localRaw) : [];
+        if (Array.isArray(localList)) {
+          localList.forEach((ln: any) => {
+            const alreadyExists = mapped.some((m) => m.id === ln.id || (m.title === ln.title && m.description === ln.message));
+            if (!alreadyExists) {
+              mapped.unshift({
+                id: ln.id,
+                title: ln.title,
+                description: ln.message,
+                category: ln.category || 'Insurance Pre-Auth',
+                timeAgo: formatTimeAgo(ln.createdAt),
+                date: ln.createdAt ? new Date(ln.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+                isRead: Boolean(ln.isRead),
+                relatedModule: ln.relatedModule || 'insurance',
+              });
+            }
+          });
+        }
+      } catch {}
+
+      setNotifications(mapped);
     } catch {
       // fallback if network error
     }
+  };
+
+  const handleAcceptClaimFromNotif = async (notifItem: NotificationLog) => {
+    let claimId = '';
+    const match = notifItem.title.match(/CLM-[A-Za-z0-9_-]+/i) || notifItem.description.match(/CLM-[A-Za-z0-9_-]+/i);
+    if (match) claimId = match[0];
+
+    const pool = getStoredInsuranceRecords();
+    const matchedRecord = pool.find(r => 
+      (r.currentClaim && (r.currentClaim.claimId === claimId || notifItem.description.includes(r.currentClaim.hospital))) ||
+      (r.insuranceId && notifItem.description.includes(r.patientName))
+    );
+
+    const insId = matchedRecord?.insuranceId || 'INS-MC-2026-10245';
+    const amt = matchedRecord?.currentClaim?.submittedAmount || 85000;
+
+    await updateInsuranceClaimStatus(insId, 'Approved', amt, 'Claim ACCEPTED & Cashless Pre-Auth Approved');
+    handleMarkRead(notifItem.id);
+    showGlobalToast(`✓ Claim ${claimId || ''} ACCEPTED & APPROVED for ₹${amt.toLocaleString('en-IN')}! Patient notified immediately.`, 'success', 'Claim Approved');
+    loadNotifications();
+  };
+
+  const handleDeclineClaimFromNotif = async (notifItem: NotificationLog) => {
+    let claimId = '';
+    const match = notifItem.title.match(/CLM-[A-Za-z0-9_-]+/i) || notifItem.description.match(/CLM-[A-Za-z0-9_-]+/i);
+    if (match) claimId = match[0];
+
+    const pool = getStoredInsuranceRecords();
+    const matchedRecord = pool.find(r => 
+      (r.currentClaim && (r.currentClaim.claimId === claimId || notifItem.description.includes(r.currentClaim.hospital))) ||
+      (r.insuranceId && notifItem.description.includes(r.patientName))
+    );
+
+    const insId = matchedRecord?.insuranceId || 'INS-MC-2026-10245';
+    const userReason = window.prompt("Reason for declining claim:", "Missing itemized hospital pharmacy breakdown & prescription");
+    if (userReason === null) return; // user cancelled prompt
+
+    const finalReason = userReason.trim() || 'Missing itemized hospital pharmacy breakdown & prescription';
+
+    await updateInsuranceClaimStatus(insId, 'Rejected', 0, `Claim DECLINED: ${finalReason}`);
+    handleMarkRead(notifItem.id);
+    showGlobalToast(`Claim ${claimId || ''} DECLINED. Rejection notice sent to patient.`, 'warning', 'Claim Declined');
+    loadNotifications();
   };
 
   useEffect(() => {
     loadNotifications();
     const handleUpdate = () => loadNotifications();
     window.addEventListener('notifications_updated', handleUpdate);
-    return () => window.removeEventListener('notifications_updated', handleUpdate);
+
+    const unsubNotif = socketService.subscribeToNotifications(() => {
+      loadNotifications();
+    });
+
+    const unsubHealth = socketService.subscribeToHealthShareEvents(() => {
+      loadNotifications();
+    });
+
+    return () => {
+      window.removeEventListener('notifications_updated', handleUpdate);
+      unsubNotif();
+      unsubHealth();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadNotifications();
+    }
   }, [isOpen]);
 
-  const handleMarkRead = (id: string, e?: React.MouseEvent) => {
+  const updateLocalStorageRead = (id?: string) => {
+    try {
+      const raw = localStorage.getItem('medicare_notifications');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          const updated = list.map((item: any) => {
+            if (!id || item.id === id) {
+              return { ...item, isRead: true, read: true };
+            }
+            return item;
+          });
+          localStorage.setItem('medicare_notifications', JSON.stringify(updated));
+        }
+      }
+    } catch {}
+
+    try {
+      const raw = localStorage.getItem('user_notifications');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          const updated = list.map((item: any) => {
+            if (!id || item.id === id) {
+              return { ...item, isRead: true };
+            }
+            return item;
+          });
+          localStorage.setItem('user_notifications', JSON.stringify(updated));
+        }
+      }
+    } catch {}
+  };
+
+  const removeLocalStorageNotif = (id: string) => {
+    try {
+      const raw = localStorage.getItem('medicare_notifications');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          localStorage.setItem('medicare_notifications', JSON.stringify(list.filter((item: any) => item.id !== id)));
+        }
+      }
+    } catch {}
+
+    try {
+      const raw = localStorage.getItem('user_notifications');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          localStorage.setItem('user_notifications', JSON.stringify(list.filter((item: any) => item.id !== id)));
+        }
+      }
+    } catch {}
+  };
+
+  const clearLocalStorageNotifs = (unreadOnly: boolean) => {
+    try {
+      if (unreadOnly) {
+        const raw = localStorage.getItem('medicare_notifications');
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            localStorage.setItem('medicare_notifications', JSON.stringify(list.filter((item: any) => Boolean(item.isRead || item.read))));
+          }
+        }
+        const rawUser = localStorage.getItem('user_notifications');
+        if (rawUser) {
+          const list = JSON.parse(rawUser);
+          if (Array.isArray(list)) {
+            localStorage.setItem('user_notifications', JSON.stringify(list.filter((item: any) => Boolean(item.isRead))));
+          }
+        }
+      } else {
+        localStorage.setItem('medicare_notifications', JSON.stringify([]));
+        localStorage.setItem('user_notifications', JSON.stringify([]));
+      }
+    } catch {}
+  };
+
+  const handleMarkRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    notificationApi.markAsRead(id).catch(() => {});
-    const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-    setNotifications(updated);
+    // 1. Optimistic update
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+
+    // 2. Persist to localStorage
+    updateLocalStorageRead(id);
+
+    // 3. Persist to server
+    try {
+      await notificationApi.markAsRead(id);
+    } catch (err) {
+      console.error('[NotificationPopover] Failed to mark as read:', err);
+    }
+
+    // 4. Dispatch event after database commit
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleMarkAllRead = () => {
-    notificationApi.markAllAsRead().catch(() => {});
-    const updated = notifications.map((n) => ({ ...n, isRead: true }));
-    setNotifications(updated);
+  const handleMarkAllRead = async () => {
+    // 1. Optimistic update
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+
+    // 2. Persist to localStorage
+    updateLocalStorageRead();
+
+    // 3. Persist to server
+    try {
+      await notificationApi.markAllAsRead();
+    } catch (err) {
+      console.error('[NotificationPopover] Failed to mark all as read:', err);
+    }
+
+    // 4. Dispatch event after database commit
     window.dispatchEvent(new Event('notifications_updated'));
   };
 
-  const handleClearAll = () => {
-    notificationApi.markAllAsRead().catch(() => {});
-    setNotifications([]);
-    window.dispatchEvent(new Event('notifications_updated'));
+  const handleClearAll = async () => {
+    try {
+      if (filter === 'unread') {
+        const unreadNotifs = notifications.filter((n) => !n.isRead);
+        clearLocalStorageNotifs(true);
+        await Promise.all(unreadNotifs.map((n) => notificationApi.deleteNotification(n.id).catch(() => null)));
+        setNotifications((prev) => prev.filter((n) => n.isRead));
+      } else {
+        clearLocalStorageNotifs(false);
+        await notificationApi.clearAllNotifications().catch(() => null);
+        setNotifications([]);
+      }
+      window.dispatchEvent(new Event('notifications_updated'));
+    } catch (err) {
+      console.error('Failed to clear notifications', err);
+    }
   };
 
   const handleRemoveSingle = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await notificationApi.deleteNotification(id);
-      const updated = notifications.filter((n) => n.id !== id);
-      setNotifications(updated);
+      removeLocalStorageNotif(id);
+      await notificationApi.deleteNotification(id).catch(() => null);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
       window.dispatchEvent(new Event('notifications_updated'));
     } catch (err) {
       console.error('Failed to delete notification', err);
@@ -194,9 +448,9 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                   <Bell className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Notifications</h3>
+                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{t('header.notifications_title', 'Notifications')}</h3>
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">
-                    {unreadCount > 0 ? `${unreadCount} unread alert${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+                    {unreadCount > 0 ? `${unreadCount} ${t('notif_pop.unread', 'unread')}` : t('notif_pop.all_caught_up', 'All caught up!')}
                   </p>
                 </div>
               </div>
@@ -220,7 +474,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  All ({notifications.length})
+                  {t('notif_pop.all', 'All')} ({notifications.length})
                 </button>
                 <button
                   onClick={() => setFilter('unread')}
@@ -230,7 +484,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  Unread ({unreadCount})
+                  {t('notif_pop.unread', 'Unread')} ({unreadCount})
                 </button>
               </div>
 
@@ -238,7 +492,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
-                    title="Mark all as read"
+                    title={t('notif_pop.mark_all_read', 'Mark all as read')}
                     className="p-1.5 rounded-lg text-[#00a896] dark:text-cyan-400 hover:bg-teal-500/10 cursor-pointer"
                   >
                     <CheckCheck className="w-4 h-4" />
@@ -247,7 +501,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 {notifications.length > 0 && (
                   <button
                     onClick={handleClearAll}
-                    title="Clear all"
+                    title={t('notif_pop.clear_all', 'Clear all')}
                     className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -261,12 +515,402 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
               {filteredNotifs.length === 0 ? (
                 <div className="py-8 text-center space-y-2">
                   <CheckCircle2 className="w-8 h-8 text-teal-500/40 mx-auto" />
-                  <p className="text-slate-600 dark:text-slate-400 font-bold">No notifications to show</p>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400">You're all up to date with your health updates.</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-bold">{t('notif_pop.no_notifications', 'No notifications to show')}</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400">{t('notif_pop.up_to_date', "You're all up to date with your health updates.")}</p>
                 </div>
               ) : (
                 filteredNotifs.map((notif) => {
                   const { title: displayTitle, description: displayDesc } = getLocalizedNotifText(notif.title, notif.description);
+                  const isAccessRequest = 
+                    isPatientUser && (
+                      notif.relatedModule === 'health-share' || 
+                      notif.category === 'Clinical Access' || 
+                      (notif.title.toLowerCase().includes('access request') && !notif.title.toLowerCase().includes('approved') && !notif.title.toLowerCase().includes('declined') && !notif.title.toLowerCase().includes('rejected')) ||
+                      notif.description.toLowerCase().includes('requested access to your health records')
+                    );
+
+                  let parsedDocName = '';
+                  let parsedSpeciality = '';
+                  let parsedHospital = '';
+                  let parsedPurpose = '';
+
+                  let matchedReq: AccessRequestItem | undefined = undefined;
+
+                  if (isAccessRequest) {
+                    const match = notif.description.match(/^([^(]+?)\s*\((.*?)\s+at\s+(.*?)\)\s+has requested access to your health records for\s+(.*?)\.?$/i);
+                    if (match) {
+                      parsedDocName = match[1].trim();
+                      parsedSpeciality = match[2].trim();
+                      parsedHospital = match[3].trim();
+                      parsedPurpose = match[4].trim();
+                    }
+
+                    matchedReq = accessRequests.find((r) => 
+                      r.id === notif.id || 
+                      (parsedDocName && (r.doctorName?.toLowerCase().includes(parsedDocName.toLowerCase()) || r.doctor?.fullName?.toLowerCase().includes(parsedDocName.toLowerCase()))) ||
+                      (parsedPurpose && r.purpose?.toLowerCase().includes(parsedPurpose.toLowerCase()))
+                    ) || (accessRequests.length === 1 ? accessRequests[0] : undefined);
+
+                    if (matchedReq) {
+                      parsedDocName = matchedReq.doctorName || matchedReq.doctor?.fullName || parsedDocName;
+                      parsedSpeciality = matchedReq.doctorSpeciality || matchedReq.doctor?.speciality || parsedSpeciality;
+                      parsedHospital = matchedReq.doctorHospital || matchedReq.doctor?.hospital || parsedHospital;
+                      parsedPurpose = matchedReq.purpose || parsedPurpose;
+                    }
+                  }
+
+                  const isPending = isAccessRequest && (!matchedReq || matchedReq.status === 'PENDING') && !notif.isRead;
+                  const displayScopes = (matchedReq?.permissionScope && matchedReq.permissionScope.length > 0)
+                    ? matchedReq.permissionScope
+                    : ['Vitals', 'Medical Records', 'Prescriptions', 'Lab Reports'];
+
+                  if (isAccessRequest) {
+                    return (
+                      <div
+                        key={notif.id}
+                        className={`p-3.5 transition-colors border-l-4 ${
+                          !isPending
+                            ? 'border-l-slate-300 dark:border-l-slate-700 bg-white dark:bg-slate-900'
+                            : 'border-l-amber-500 bg-amber-50/30 dark:bg-amber-950/20'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-xl bg-amber-100/70 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                            <Stethoscope className="w-4 h-4" />
+                          </div>
+
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                                  {displayTitle}
+                                </h4>
+                                {isPending ? (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60">
+                                    Pending
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    Resolved
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                                {notif.timeAgo}
+                              </span>
+                            </div>
+
+                            {/* Doctor details */}
+                            <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-[11px] space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-black text-slate-900 dark:text-white">
+                                  {parsedDocName || 'Attending Doctor'}
+                                </span>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                                  {notif.date}
+                                </span>
+                              </div>
+                              {(parsedSpeciality || parsedHospital) && (
+                                <p className="text-[10px] text-slate-600 dark:text-slate-300">
+                                  {[parsedSpeciality, parsedHospital].filter(Boolean).join(' • ')}
+                                </p>
+                              )}
+                              {parsedPurpose && (
+                                <p className="text-[10px] text-slate-600 dark:text-slate-300">
+                                  <span className="font-bold text-slate-500">Purpose:</span> {parsedPurpose}
+                                </p>
+                              )}
+                              <div className="pt-1 flex flex-wrap gap-1">
+                                {displayScopes.map((scope) => (
+                                  <span
+                                    key={scope}
+                                    className="px-1.5 py-0.2 rounded bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold text-[9px] border border-teal-200/60 dark:border-teal-800/40"
+                                  >
+                                    ✓ {scope}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-between pt-1">
+                              <div className="flex items-center gap-2">
+                                {isPending ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleMarkRead(notif.id);
+                                      setIsAccessModalOpen(true);
+                                    }}
+                                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-extrabold text-[11px] shadow-sm flex items-center gap-1 cursor-pointer transition-all"
+                                  >
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    <span>{t('requests.review_request', 'Review Request')}</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsAccessModalOpen(true)}
+                                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    <span>View Consents</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    handleMarkRead(notif.id, e);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-[11px] cursor-pointer transition-colors"
+                                >
+                                  <span>{t('common.dismiss', 'Dismiss')}</span>
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
+                                  }}
+                                  title={t('notif_pop.play_voice', 'Play voice announcement')}
+                                  className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 transition-all cursor-pointer"
+                                >
+                                  <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleRemoveSingle(notif.id, e)}
+                                  title={t('notif_pop.dismiss', 'Remove from list')}
+                                  className="p-1 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const isInsurancePortalUser = isInsurancePortal || (role || '').toLowerCase() === 'insurance';
+                  const isIncomingInsuranceClaim = 
+                    isInsurancePortalUser && 
+                    (notif.category === 'Insurance Pre-Auth' || notif.relatedModule === 'insurance' || notif.title.toLowerCase().includes('incoming cashless claim')) &&
+                    !notif.title.toLowerCase().includes('approved') &&
+                    !notif.title.toLowerCase().includes('declined') &&
+                    !notif.title.toLowerCase().includes('settled');
+
+                  const isInsuranceDecision = 
+                    (notif.category === 'Insurance Pre-Auth' || notif.relatedModule === 'insurance') &&
+                    (notif.title.toLowerCase().includes('approved') || notif.title.toLowerCase().includes('declined') || notif.title.toLowerCase().includes('settled'));
+
+                  const isApprovedClaim = notif.title.toLowerCase().includes('approved');
+
+                  if (isIncomingInsuranceClaim) {
+                    return (
+                      <div
+                        key={notif.id}
+                        className={`p-3.5 transition-colors border-l-4 ${
+                          !notif.isRead
+                            ? 'border-l-amber-500 bg-amber-50/40 dark:bg-amber-950/20'
+                            : 'border-l-slate-300 dark:border-l-slate-700 bg-white dark:bg-slate-900'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-xl bg-amber-100/70 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                            <ShieldAlert className="w-4 h-4" />
+                          </div>
+
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                                  {displayTitle}
+                                </h4>
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/60">
+                                  Decision Needed
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                                {notif.timeAgo}
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                              {displayDesc}
+                            </p>
+
+                            <div className="p-2 rounded-lg bg-amber-100/60 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-800/40 text-[10px] font-bold text-amber-900 dark:text-amber-300">
+                              ⚡ Action Required: Do you want to Accept or Decline this cashless claim?
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleAcceptClaimFromNotif(notif)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] shadow-xs flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>✓ Accept & Approve</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeclineClaimFromNotif(notif)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[11px] shadow-xs flex items-center gap-1 cursor-pointer transition-all"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span>✕ Decline</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkRead(notif.id);
+                                  onClose();
+                                  if (isPatientUser) {
+                                    if (onNavigateTab) {
+                                      onNavigateTab('insurance');
+                                    } else {
+                                      window.history.pushState(null, '', '/user/insurance');
+                                      window.dispatchEvent(new Event('popstate'));
+                                    }
+                                  } else if (window.location.pathname !== '/insurance') {
+                                    window.location.href = '/insurance';
+                                  }
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-bold text-[11px] cursor-pointer"
+                              >
+                                <span>Review</span>
+                              </button>
+
+                              <div className="ml-auto flex items-center gap-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
+                                  }}
+                                  title={t('notif_pop.play_voice', 'Play voice announcement')}
+                                  className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 transition-all cursor-pointer"
+                                >
+                                  <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleRemoveSingle(notif.id, e)}
+                                  title={t('notif_pop.dismiss', 'Remove from list')}
+                                  className="p-1 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (isInsuranceDecision) {
+                    return (
+                      <div
+                        key={notif.id}
+                        onClick={() => handleMarkRead(notif.id)}
+                        className={`p-3.5 transition-colors border-l-4 cursor-pointer ${
+                          isApprovedClaim
+                            ? 'border-l-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20'
+                            : 'border-l-rose-500 bg-rose-50/40 dark:bg-rose-950/20'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                            isApprovedClaim
+                              ? 'bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-rose-100/80 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400'
+                          }`}>
+                            {isApprovedClaim ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                          </div>
+
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                                  {displayTitle}
+                                </h4>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                                  isApprovedClaim
+                                    ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                                    : 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
+                                }`}>
+                                  {isApprovedClaim ? 'Claim Accepted' : 'Claim Declined'}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                                {notif.timeAgo}
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                              {displayDesc}
+                            </p>
+
+                            <div className="flex items-center justify-between pt-1">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkRead(notif.id);
+                                  onClose();
+                                  if (isPatientUser) {
+                                    if (onNavigateTab) {
+                                      onNavigateTab('insurance');
+                                    } else {
+                                      window.history.pushState(null, '', '/user/insurance');
+                                      window.dispatchEvent(new Event('popstate'));
+                                    }
+                                  } else if (window.location.pathname !== '/insurance') {
+                                    window.location.href = '/insurance';
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded-xl text-white font-extrabold text-[11px] shadow-xs flex items-center gap-1 cursor-pointer transition-all ${
+                                  isApprovedClaim
+                                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                                    : 'bg-slate-700 hover:bg-slate-600'
+                                }`}
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>{isApprovedClaim ? 'View Pre-Auth Approval' : 'View Policy Status'}</span>
+                              </button>
+
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
+                                  }}
+                                  title={t('notif_pop.play_voice', 'Play voice announcement')}
+                                  className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 transition-all cursor-pointer"
+                                >
+                                  <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleRemoveSingle(notif.id, e)}
+                                  title={t('notif_pop.dismiss', 'Remove from list')}
+                                  className="p-1 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={notif.id}
@@ -305,19 +949,19 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                         {!notif.isRead && (
                           <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
                         )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
-                            }}
-                          title="Play voice announcement"
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            notificationVoiceService.speakNotification(`${displayTitle}. ${displayDesc}`, language, notif.id, true);
+                          }}
+                          title={t('notif_pop.play_voice', 'Play voice announcement')}
                           className="p-1 rounded-lg text-teal-600 dark:text-cyan-400 hover:bg-teal-500/20 hover:scale-110 transition-all cursor-pointer"
                         >
                           <Volume2 className="w-3.5 h-3.5 text-[#00a896] dark:text-cyan-400" />
                         </button>
                         <button
                           onClick={(e) => handleRemoveSingle(notif.id, e)}
-                          title="Dismiss notification"
+                          title={t('notif_pop.dismiss', 'Dismiss notification')}
                           className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-opacity cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -338,7 +982,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                 }}
                 className="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#00a896] hover:text-white dark:hover:bg-[#00a896] text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>View All Notifications & Reminders</span>
+                <span>{t('notif_pop.view_all_reminders', 'View All Notifications & Reminders')}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -346,10 +990,12 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
         </div>
       </AnimatePresence>
 
-    <PatientAccessRequestsModal
-      isOpen={isAccessModalOpen}
-      onClose={() => setIsAccessModalOpen(false)}
-    />
+    {isPatientUser && (
+      <PatientAccessRequestsModal
+        isOpen={isAccessModalOpen}
+        onClose={() => setIsAccessModalOpen(false)}
+      />
+    )}
     </>
   );
 };

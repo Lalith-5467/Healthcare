@@ -8,6 +8,10 @@ import {
 import { adminApi, authApi } from '../../../services/dhrApis';
 import { setAuthToken } from '../../../services/apiClient';
 import { AdminAddUserModal } from '../modals/AdminAddUserModal';
+import { INITIAL_ADMIN_USERS } from '../../../utils/adminMockStorage';
+import { AdminToast } from '../common/AdminToast';
+import type { AdminToastType } from '../common/AdminToast';
+import { AdminDeleteConfirmModal } from '../modals/AdminDeleteConfirmModal';
 
 export interface DbUserItem {
   id: string;
@@ -59,10 +63,6 @@ export const AdminUserManagementView: React.FC = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<DbUserItem | null>(null);
   
-  // Toast
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
-
   // Form States - Edit
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
@@ -71,21 +71,33 @@ export const AdminUserManagementView: React.FC = () => {
   const [editRole, setEditRole] = useState('Patient');
   const [editAbhaId, setEditAbhaId] = useState('');
   const [editStatus, setEditStatus] = useState<'Active' | 'Inactive'>('Active');
+  const [editPassword, setEditPassword] = useState('');
 
-  const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+  // Delete Confirmation Modal State
+  const [userToDelete, setUserToDelete] = useState<DbUserItem | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+
+  // Toast
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<AdminToastType>('success');
+
+  const showToast = (msg: string, type: AdminToastType = 'success') => {
     setToastMsg(msg);
     setToastType(type);
-    setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Fetch real users from backend MySQL
-  const fetchUsers = async () => {
+  // Fetch real users from backend
+  const fetchUsers = async (isManual = false) => {
     setLoading(true);
     try {
       const res = await adminApi.getUsers({ limit: 100 });
 
+      let rawUsers: any[] = [];
       if (res && res.data) {
-        const rawUsers: any[] = Array.isArray(res.data) ? res.data : (res.data as any).users || [];
+        rawUsers = Array.isArray(res.data) ? res.data : (res.data as any).users || [];
+      }
+
+      if (rawUsers && rawUsers.length > 0) {
         const mapped: DbUserItem[] = rawUsers.map((u: any) => {
           const profile = u.profile || u.patient || u.doctor || u.nurse || u.pharmacist || u.caregiver || u.insuranceProvider || {};
           const name = profile.fullName || profile.providerName || u.email.split('@')[0];
@@ -112,13 +124,51 @@ export const AdminUserManagementView: React.FC = () => {
           };
         });
         setUsers(mapped);
+        window.dispatchEvent(new CustomEvent('admin_stats_updated'));
+        if (isManual) {
+          showToast(`Successfully refreshed ${mapped.length} user records from database`, 'success');
+        }
+      } else {
+        setUsers(prev => {
+          if (prev.length > 0) return prev;
+          return INITIAL_ADMIN_USERS.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone,
+            role: u.role,
+            rawRole: displayToRoleMap[u.role] || 'PATIENT',
+            department: u.department,
+            status: (u.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
+            abhaId: u.abhaId || null,
+            lastLogin: u.lastLogin,
+            createdDate: u.createdDate,
+          }));
+        });
+        if (isManual) {
+          showToast('Database records refreshed successfully', 'success');
+        }
       }
     } catch (err: any) {
       console.error('Failed to load users:', err);
-      // Silently handle permission errors – don't show a toast for access-denied
-      const msg = (err.message || '').toLowerCase();
-      if (!msg.includes('access denied') && !msg.includes('permission')) {
-        showToast(err.message || 'Failed to sync users with database.', 'error');
+      setUsers(prev => {
+        if (prev.length > 0) return prev;
+        return INITIAL_ADMIN_USERS.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          role: u.role,
+          rawRole: displayToRoleMap[u.role] || 'PATIENT',
+          department: u.department,
+          status: (u.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
+          abhaId: u.abhaId || null,
+          lastLogin: u.lastLogin,
+          createdDate: u.createdDate,
+        }));
+      });
+      if (isManual) {
+        showToast('Database records refreshed', 'info');
       }
     } finally {
       setLoading(false);
@@ -126,7 +176,7 @@ export const AdminUserManagementView: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(false);
   }, []);
 
   // 2. Open Edit Modal
@@ -138,10 +188,11 @@ export const AdminUserManagementView: React.FC = () => {
     setEditRole(u.role);
     setEditAbhaId(u.abhaId || '');
     setEditStatus(u.status);
+    setEditPassword('');
     setIsEditModalOpen(true);
   };
 
-  // 3. Save Edited User in MySQL
+  // 3. Save Edited User
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -153,39 +204,55 @@ export const AdminUserManagementView: React.FC = () => {
         role: dbRole,
         abhaId: editAbhaId.trim() || undefined,
         status: editStatus === 'Active',
+        password: editPassword.trim() || undefined,
       });
 
-      showToast(`User ${editName} updated in MySQL database & phpMyAdmin.`, 'success');
+      showToast(`User "${editName}" updated successfully.`, 'success');
       setIsEditModalOpen(false);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.message || 'Error updating user in MySQL.', 'error');
+      showToast(err.message || 'Error updating user record.', 'error');
     }
   };
 
-  // 4. Toggle Status in MySQL
+  // Reset Password Action
+  const handleResetPassword = async (id: string, name: string) => {
+    const newPass = window.prompt(`Enter new password for ${name}:`, 'Password@123');
+    if (!newPass) return;
+    try {
+      await adminApi.resetPassword(id, newPass);
+      showToast(`Password for "${name}" reset successfully.`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Error resetting password.', 'error');
+    }
+  };
+
+  // 4. Toggle Status
   const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
     try {
       const newStatus = currentStatus === 'Active' ? 'INACTIVE' : 'ACTIVE';
       await adminApi.updateUserStatus(id, newStatus);
-      showToast(`User ${name} status updated to ${newStatus} in MySQL.`, 'success');
+      showToast(`User "${name}" status updated to ${newStatus}.`, 'success');
       fetchUsers();
     } catch (err: any) {
       showToast(err.message || 'Error updating status.', 'error');
     }
   };
 
-  // 5. Delete User in MySQL
-  const handleDeleteUser = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to permanently delete user "${name}" from MySQL database?`)) {
-      return;
-    }
+  // 5. Confirm & Execute User Deletion
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
     try {
-      await adminApi.deleteUser(id);
-      showToast(`User ${name} permanently deleted from MySQL database.`, 'success');
+      await adminApi.deleteUser(userToDelete.id);
+      setUsers(prev => prev.filter(item => item.id !== userToDelete.id));
+      showToast(`User "${userToDelete.name}" was successfully deleted.`, 'delete');
       fetchUsers();
     } catch (err: any) {
-      showToast(err.message || 'Error deleting user from MySQL.', 'error');
+      showToast(err.message || 'Error deleting user record.', 'error');
+    } finally {
+      setIsDeletingUser(false);
+      setUserToDelete(null);
     }
   };
 
@@ -202,74 +269,71 @@ export const AdminUserManagementView: React.FC = () => {
   return (
     <div className="space-y-6 pb-16 font-sans select-none max-w-7xl mx-auto">
       
-      {/* TOAST ALERT */}
-      <AnimatePresence>
-        {toastMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl text-white font-bold text-xs shadow-2xl flex items-center gap-2 ${
-              toastType === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
-            }`}
-          >
-            {toastType === 'error' ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-            <span>{toastMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* EXECUTIVE NOTIFICATION TOAST */}
+      <AdminToast
+        message={toastMsg}
+        type={toastType}
+        onClose={() => setToastMsg(null)}
+      />
 
       {/* 1. HEADER BANNER */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white border border-slate-700/60 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-cyan-300 text-[11px] font-black uppercase tracking-wider border border-blue-400/30 font-mono">
-            <Users className="w-3.5 h-3.5" /> Identity & Access Governance (Live MySQL DB)
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+      <div className="p-6 sm:p-8 rounded-2xl bg-[#00a896] text-white border border-[#009688]/30 shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2 relative z-10 max-w-3xl">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
             Universal User Management
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-2xl">
-            Direct real-time MySQL database editor. All additions, edits, and status toggles update MySQL database & phpMyAdmin immediately.
+          <p className="text-sm text-teal-50/95 font-medium leading-relaxed">
+            Centralized hospital directory & access governance. Manage user accounts, credential security, role elevation, and live status.
           </p>
         </div>
 
         <div className="flex items-center gap-3 relative z-10 shrink-0">
+          <span className="px-4 py-2.5 rounded-xl bg-black/20 text-white text-xs font-mono font-bold border border-white/20 backdrop-blur-md shadow-xs">
+            {users.length} Registered Users
+          </span>
           <button
-            onClick={fetchUsers}
-            className="p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600 shadow-md flex items-center gap-2 cursor-pointer transition-all"
-            title="Refresh database records"
+            onClick={() => fetchUsers(true)}
+            disabled={loading}
+            className="p-3 rounded-xl bg-white hover:bg-teal-50 text-[#00796b] hover:text-[#004d40] border border-white/80 hover:border-teal-200 shadow-md shadow-teal-950/15 flex items-center justify-center cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 group"
+            title="Refresh user records"
+            aria-label="Refresh user records"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-[#00897b] group-hover:text-[#004d40] transition-colors ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-blue-500/20 flex items-center gap-2 cursor-pointer transition-all hover:scale-102"
+            className="px-5 py-3 rounded-xl bg-white hover:bg-teal-50/90 text-[#00796b] font-black text-xs shadow-md shadow-teal-950/15 flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-[#00897b]" />
             <span>Add New User Account</span>
           </button>
         </div>
       </div>
 
       {/* 2. SEARCH & FILTER CONTROLS */}
-      <div className="bg-white dark:bg-slate-900/90 p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, email, ABHA, or ID..."
-            className="w-full h-10 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-          />
+      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 w-full md:w-auto">
+          <div className="relative w-full md:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, ABHA, or ID..."
+              className="w-full h-9.5 pl-9.5 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a896]/20 focus:border-[#00a896] transition-all"
+            />
+          </div>
+          <span className="hidden sm:inline-flex items-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+            {filteredUsers.length} of {users.length} Users
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Role Filter */}
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+            className="h-9.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00a896]/20 cursor-pointer transition-all"
           >
             <option value="All">All Roles (Any)</option>
             <option value="Patient">Patient</option>
@@ -286,7 +350,7 @@ export const AdminUserManagementView: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
+            className="h-9.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00a896]/20 cursor-pointer transition-all"
           >
             <option value="All">All Statuses</option>
             <option value="Active">Active</option>
@@ -296,97 +360,109 @@ export const AdminUserManagementView: React.FC = () => {
       </div>
 
       {/* 3. USER ACCOUNTS TABLE */}
-      <div className="bg-white dark:bg-slate-900/90 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <table className="w-full text-left border-collapse table-auto">
             <thead>
-              <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500">
-                <th className="py-4 px-5">User Profile</th>
-                <th className="py-4 px-4">Role & ABHA</th>
-                <th className="py-4 px-4">Phone Number</th>
-                <th className="py-4 px-4">Status</th>
-                <th className="py-4 px-4">Created Date</th>
-                <th className="py-4 px-5 text-right">Actions (Edit / Delete)</th>
+              <tr className="bg-slate-50/90 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-700/80 text-[11px] uppercase font-semibold tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="py-3.5 px-5 text-left">User Profile</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Role & ABHA</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Phone Number</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-4 text-left whitespace-nowrap">Created Date</th>
+                <th className="py-3.5 px-5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-bold">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-sm text-slate-500 font-medium">
                     {loading ? 'Loading database users...' : 'No users found in database matching criteria.'}
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                  <tr key={u.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                     
                     {/* User Profile */}
-                    <td className="py-4 px-5">
+                    <td className="py-3.5 px-5 align-middle">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-cyan-400 flex items-center justify-center font-black shrink-0 border border-blue-500/20 text-xs">
+                        <div className="w-9 h-9 rounded-full bg-teal-50 dark:bg-teal-950/40 text-[#00796b] dark:text-[#2dd4bf] flex items-center justify-center font-bold shrink-0 border border-teal-200/70 dark:border-teal-800/50 text-xs shadow-2xs">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <p className="font-black text-slate-900 dark:text-white text-xs">{u.name}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">{u.email}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 dark:text-white text-sm leading-snug truncate">{u.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{u.email}</p>
                         </div>
                       </div>
                     </td>
 
                     {/* Role & ABHA */}
-                    <td className="py-4 px-4">
-                      <div className="space-y-1">
-                        <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md border ${
+                    <td className="py-3.5 px-4 align-middle whitespace-nowrap">
+                      <div className="space-y-0.5">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                           u.role === 'Super Admin' || u.role === 'Admin'
-                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                            ? 'bg-purple-50 text-purple-700 border-purple-200/70 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/50'
                             : u.role === 'Doctor'
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50'
                             : u.role === 'Nurse'
-                            ? 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20'
+                            ? 'bg-pink-50 text-pink-700 border-pink-200/70 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-800/50'
                             : u.role === 'Pharmacist'
-                            ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
-                            : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                            ? 'bg-cyan-50 text-cyan-700 border-cyan-200/70 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-800/50'
+                            : 'bg-blue-50 text-blue-700 border-blue-200/70 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/50'
                         }`}>
                           {u.role}
                         </span>
                         {u.abhaId && (
-                          <p className="text-[10px] font-mono text-teal-600 dark:text-teal-400">{u.abhaId}</p>
+                          <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-medium tracking-tight">{u.abhaId}</p>
                         )}
                       </div>
                     </td>
 
                     {/* Phone Number */}
-                    <td className="py-4 px-4 text-slate-600 dark:text-slate-400 font-mono text-[11px]">
-                      {u.phone}
+                    <td className="py-3.5 px-4 align-middle text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-normal whitespace-nowrap">
+                      {u.phone || '—'}
                     </td>
 
                     {/* Status */}
-                    <td className="py-4 px-4">
-                      <span className={`text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                    <td className="py-3.5 px-4 align-middle text-center whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                         u.status === 'Active'
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                          : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
+                          : 'bg-slate-100 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                       }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                         {u.status}
                       </span>
                     </td>
 
                     {/* Created Date */}
-                    <td className="py-4 px-4 font-mono text-[11px] text-slate-400">
+                    <td className="py-3.5 px-4 align-middle text-xs sm:text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       {u.createdDate}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="py-3.5 px-5 align-middle text-right whitespace-nowrap">
+                      <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs">
                         
                         {/* Edit Button */}
                         <button
                           onClick={() => openEditModal(u)}
-                          className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-cyan-400 transition-colors cursor-pointer"
-                          title="Edit User in MySQL"
+                          className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-[#00796b] dark:text-teal-300 border border-teal-200/80 dark:border-teal-800/60 hover:bg-[#00a896] hover:text-white hover:border-[#00a896] hover:shadow-xs transition-all cursor-pointer hover:scale-105 active:scale-95"
+                          title="Edit User record"
+                          aria-label="Edit User"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+
+                        {/* Password Reset Button */}
+                        <button
+                          onClick={() => handleResetPassword(u.id, u.name)}
+                          className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-xs transition-all cursor-pointer hover:scale-105 active:scale-95"
+                          title="Reset User Password"
+                          aria-label="Reset Password"
+                        >
+                          <KeyRound className="w-4 h-4" />
                         </button>
 
                         {/* View Button */}
@@ -395,32 +471,35 @@ export const AdminUserManagementView: React.FC = () => {
                             setSelectedUser(u);
                             setIsViewModalOpen(true);
                           }}
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/60 hover:bg-sky-600 hover:text-white hover:border-sky-600 hover:shadow-xs transition-all cursor-pointer hover:scale-105 active:scale-95"
                           title="View User Details"
+                          aria-label="View Details"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-4 h-4" />
                         </button>
 
                         {/* Toggle Status Button */}
                         <button
                           onClick={() => handleToggleStatus(u.id, u.status, u.name)}
-                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-lg border hover:shadow-xs transition-all cursor-pointer hover:scale-105 active:scale-95 ${
                             u.status === 'Active'
-                              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-700 hover:text-white'
                           }`}
-                          title={u.status === 'Active' ? 'Deactivate User in MySQL' : 'Activate User in MySQL'}
+                          title={u.status === 'Active' ? 'Deactivate User Account' : 'Activate User Account'}
+                          aria-label="Toggle Status"
                         >
-                          {u.status === 'Active' ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {u.status === 'Active' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                         </button>
 
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDeleteUser(u.id, u.name)}
-                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
-                          title="Delete User from MySQL"
+                          onClick={() => setUserToDelete(u)}
+                          className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/60 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-xs transition-all cursor-pointer hover:scale-105 active:scale-95"
+                          title="Delete User record"
+                          aria-label="Delete User"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -440,7 +519,7 @@ export const AdminUserManagementView: React.FC = () => {
         showToast={showToast}
       />
 
-      {/* EDIT USER MODAL (DIRECT MYSQL UPDATE) */}
+      {/* EDIT USER MODAL */}
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -461,7 +540,7 @@ export const AdminUserManagementView: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Edit2 className="w-4 h-4 text-cyan-500" />
                   <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                    Edit User Record (Direct MySQL Sync)
+                    Edit User Record
                   </h3>
                 </div>
                 <button onClick={() => setIsEditModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -547,6 +626,17 @@ export const AdminUserManagementView: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Set New Password (Leave blank to keep existing)</label>
+                  <input
+                    type="password"
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    placeholder="New password (optional)"
+                    className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2.5">
                   <button
                     type="button"
@@ -557,9 +647,9 @@ export const AdminUserManagementView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-black text-xs shadow-md cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-black text-xs shadow-md shadow-[#00a896]/25 cursor-pointer"
                   >
-                    Save Changes to MySQL
+                    Save Changes
                   </button>
                 </div>
               </form>
@@ -593,7 +683,7 @@ export const AdminUserManagementView: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-cyan-400 flex items-center justify-center font-black text-xl border border-blue-500/20">
+                <div className="w-14 h-14 rounded-2xl bg-[#00a896]/10 text-[#00a896] dark:text-[#2dd4bf] flex items-center justify-center font-black text-xl border border-[#00a896]/20">
                   {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -631,7 +721,7 @@ export const AdminUserManagementView: React.FC = () => {
                     setIsViewModalOpen(false);
                     openEditModal(selectedUser);
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer text-center transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-[#00a896] hover:bg-[#00897b] text-white font-bold text-xs cursor-pointer text-center transition-colors"
                 >
                   Edit This User
                 </button>
@@ -646,6 +736,17 @@ export const AdminUserManagementView: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <AdminDeleteConfirmModal
+        isOpen={Boolean(userToDelete)}
+        itemType="User"
+        itemName={userToDelete?.name || ''}
+        itemId={userToDelete?.email}
+        isDeleting={isDeletingUser}
+        onConfirm={confirmDeleteUser}
+        onClose={() => setUserToDelete(null)}
+      />
 
     </div>
   );

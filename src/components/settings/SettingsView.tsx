@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '../ui/PageHeader';
 import { Settings } from 'lucide-react';
 import { CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import type {
   UserProfileSettings,
   AccountSettings,
@@ -59,6 +60,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   user: _user,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsSectionKey>('account');
   const [searchQuery, setSearchQuery] = useState('');
@@ -238,25 +240,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-24">
       {/* TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{toastMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4">
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              className="pointer-events-auto select-auto bg-[#00a896] text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-teal-300/30"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 1. PAGE HEADER */}
       <PageHeader
-        title="Settings & Preferences"
-        subtitle="Manage your account, preferences, privacy and healthcare experience."
-        badgeText="Preference Center"
+        title={t('settings.title', 'Settings & Preferences')}
+        subtitle={t('settings.subtitle', 'Manage your account, preferences, privacy and healthcare experience.')}
+        badgeText={t('settings.badge', 'Preference Center')}
         badgeIcon={<Settings className="w-3.5 h-3.5" />}
       />
 

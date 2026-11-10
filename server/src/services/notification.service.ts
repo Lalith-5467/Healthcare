@@ -64,6 +64,16 @@ export class NotificationService {
   }
 
   /**
+   * Delete all notifications for the user
+   */
+  static async deleteAllNotifications(userId: string) {
+    await prisma.notification.deleteMany({
+      where: { userId },
+    });
+    return { success: true };
+  }
+
+  /**
    * Create notification
    */
   static async createNotification(data: CreateNotificationDTO) {

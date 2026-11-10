@@ -194,17 +194,9 @@ export const PartnerLoopSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-8 sm:py-10 bg-white dark:bg-[#0b1120] border-t border-b border-slate-200/80 dark:border-slate-800/80 transition-colors overflow-hidden relative">
+    <section id="partners" className="py-5 sm:py-6 bg-white dark:bg-[#0b1120] border-t border-b border-slate-200/80 dark:border-slate-800/80 transition-colors overflow-hidden relative">
       {/* AMBIENT BACKGROUND GLOW */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-12 bg-teal-500/5 dark:bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-
-      {/* SECTION SUB-HEADING (HIGH-CONTRAST & CLEARLY VISIBLE) */}
-      <div className="text-center mb-5 relative z-10">
-        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 dark:bg-teal-500/15 border border-teal-500/30 text-[#00a896] dark:text-cyan-300 text-xs sm:text-sm font-black uppercase tracking-wider font-mono shadow-xs">
-          <span className="w-2 h-2 rounded-full bg-[#00a896] dark:bg-cyan-400 animate-pulse" />
-          <span>Powering India&apos;s Connected Healthcare Ecosystem</span>
-        </span>
-      </div>
 
       {/* PURE STANDALONE HEALTHCARE LOGO STRIP LOOP */}
       <div className="relative py-1">
@@ -217,6 +209,7 @@ export const PartnerLoopSection: React.FC = () => {
           hoverSpeed={0}
           scaleOnHover={false}
           fadeOut
+          className="healthcare-ecosystem-loop"
           ariaLabel="Trusted Healthcare Ecosystem Brand Logos"
         />
       </div>

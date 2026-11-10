@@ -1,26 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { QrCode, CheckCircle2, Share2, ExternalLink, Copy, Check, ShieldCheck } from 'lucide-react';
 import { QRModal } from './QRModal';
 import { PatientAccessRequestsModal } from './PatientAccessRequestsModal';
 import { ABDMQRCodeSVG } from '../common/ABDMQRCodeSVG';
 import { useLanguage } from '../../context/LanguageContext';
+import { healthShareApi } from '../../services/healthShareApi';
+import { socketService } from '../../services/socketService';
 
 interface HealthAccessCardProps {
   abhaId?: string;
   userName?: string;
+  patientId?: string;
   onToast?: (msg: string) => void;
 }
 
 export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   abhaId = '91-8472-9104-5821@abdm',
   userName,
+  patientId,
   onToast
 }) => {
   const { t } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
   const [requestsModalOpen, setRequestsModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const reqs = await healthShareApi.getPatientRequests();
+        const pending = Array.isArray(reqs) ? reqs.filter((r: any) => r.status === 'PENDING').length : 0;
+        setPendingRequestsCount(pending);
+      } catch {}
+    };
+
+    fetchPendingCount();
+    const intervalId = setInterval(fetchPendingCount, 3000);
+    const handleUpdate = () => fetchPendingCount();
+    window.addEventListener('notifications_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('health-share:request-created', handleUpdate);
+
+    let crossBc: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        crossBc = new BroadcastChannel('health_share_channel');
+        crossBc.onmessage = () => {
+          fetchPendingCount();
+        };
+      } catch {}
+    }
+
+    const unsub = socketService.subscribeToHealthShareEvents(() => {
+      fetchPendingCount();
+    });
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('notifications_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('health-share:request-created', handleUpdate);
+      crossBc?.close();
+      unsub();
+    };
+  }, []);
 
   const effectivePatientName = React.useMemo(() => {
     if (userName && userName !== 'Patient' && !userName.includes('Pharmacist') && !userName.includes('R.Ph') && !userName.includes('Suresh Nair') && userName !== 'Samson L.') {
@@ -52,7 +97,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
   const handleCopy = () => {
     navigator.clipboard.writeText(abhaId);
     setCopied(true);
-    if (onToast) onToast('✓ ABHA Health ID copied to clipboard!');
+    if (onToast) onToast(t('access.copied_toast', '✓ ABHA Health ID copied to clipboard!'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -82,7 +127,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
                 {t('card.my_health_qr', 'My Health QR')}
               </h3>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
-                ABDM Digital Health Vault
+                {t('access.vault_title', 'ABDM Digital Health Vault')}
               </span>
             </div>
           </div>
@@ -111,7 +156,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             onClick={() => setModalOpen(true)}
             className="p-1.5 bg-white dark:bg-slate-900 rounded-2xl border shadow-md cursor-pointer shrink-0 relative overflow-hidden group/qr"
             style={{ borderColor: 'rgba(20,184,166,.2)' }}
-            title="Click to view & scan full size QR Pass"
+            title={t('card.qr_click_view', 'Click to view & scan full size QR Pass')}
           >
             <motion.div
               animate={{ y: [-36, 36, -36] }}
@@ -125,17 +170,29 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         {/* ICON-TRIO ROW (Share / Verified / Filter) — matches reference design */}
         <div className="flex items-center justify-around mb-3 relative z-10">
           {[
-            { icon: ShieldCheck, label: t('card.consent', 'Consents'), color: '#059669', bg: 'rgba(16,185,129,.1)', onClick: () => setRequestsModalOpen(true) },
+            { 
+              icon: ShieldCheck, 
+              label: t('card.consent', 'Consents'), 
+              color: '#059669', 
+              bg: 'rgba(16,185,129,.1)', 
+              badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined,
+              onClick: () => setRequestsModalOpen(true) 
+            },
             { icon: CheckCircle2, label: t('card.verified', 'Verified'), color: '#0891b2', bg: 'rgba(6,182,212,.1)', onClick: () => setModalOpen(true) },
-            { icon: Copy, label: 'Copy ABHA', color: '#7c3aed', bg: 'rgba(124,58,237,.1)', onClick: handleCopy },
-          ].map(({ icon: IconComp, label, color, bg, onClick }) => (
+            { icon: Copy, label: t('access.copy_abha', 'Copy ABHA'), color: '#7c3aed', bg: 'rgba(124,58,237,.1)', onClick: handleCopy },
+          ].map(({ icon: IconComp, label, color, bg, badge, onClick }) => (
             <button 
               key={label} 
               onClick={onClick}
               className="flex flex-col items-center gap-1 cursor-pointer group/ico"
             >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover/ico:scale-110" style={{ background: bg }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover/ico:scale-110 relative" style={{ background: bg }}>
                 <IconComp className="w-4 h-4" style={{ color }} />
+                {badge && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                    {badge}
+                  </span>
+                )}
               </div>
               <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400" style={{ color }}>{label}</span>
             </button>
@@ -159,10 +216,15 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setRequestsModalOpen(true)}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-white text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            className="flex-1 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-white text-xs font-extrabold border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm relative"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>{t('card.access_consents', 'Access Consents')}</span>
+            {pendingRequestsCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-black animate-pulse">
+                {pendingRequestsCount}
+              </span>
+            )}
           </motion.button>
         </div>
       </motion.div>
@@ -172,6 +234,7 @@ export const HealthAccessCard: React.FC<HealthAccessCardProps> = ({
         onClose={() => setModalOpen(false)}
         abhaId={abhaId}
         userName={effectivePatientName}
+        patientId={patientId}
       />
 
       <PatientAccessRequestsModal

@@ -29,7 +29,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
   const isReady = secondsLeft === 0;
 
   const handleJoinCall = () => {
-    onToast('✓ Joining Tele-Consult video room (Demo)...');
+    onToast(t('apt_card.joining_demo', '✓ Joining Tele-Consult video room (Demo)...'));
   };
 
   return (
@@ -61,7 +61,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
               </span>
-              {isReady ? 'Ready to Join' : 'Scheduled Consult'}
+              {isReady ? t('apt_card.ready_to_join', 'Ready to Join') : t('apt_card.scheduled_consult', 'Scheduled Consult')}
             </span>
           </div>
         </div>
@@ -91,10 +91,10 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
             <span className="flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
               style={{ background: 'rgba(16,185,129,.1)', color: '#059669', border: '1px solid rgba(16,185,129,.25)' }}>
               <CheckCircle2 className="w-2.5 h-2.5" />
-              <span>Confirmed</span>
+              <span>{t('apt_card.confirmed', 'Confirmed')}</span>
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Senior General Physician</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t('apt_card.doctor_role', 'Senior General Physician')}</p>
           <div className="flex items-center gap-1.5 text-[10px] font-bold mt-1.5" style={{ color: '#0284c7' }}>
             <Calendar className="w-3 h-3" />
             <span className="font-mono">25 Aug 2026 · 10:30 AM</span>
@@ -111,7 +111,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
           className="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold border transition-all flex items-center justify-center gap-1 cursor-pointer"
           style={{ background: 'rgba(255,255,255,.9)', border: '1.5px solid rgba(14,165,233,.2)', color: '#0369a1', boxShadow: '0 1px 4px rgba(14,165,233,.08)' }}
         >
-          <span>View Details</span>
+          <span>{t('apt_card.view_details', 'View Details')}</span>
           <ChevronRight className="w-4 h-4" />
         </motion.button>
 
@@ -127,7 +127,7 @@ export const UpcomingAppointmentCard: React.FC<UpcomingAppointmentCardProps> = (
           }}
         >
           <Video className="w-4 h-4" />
-          <span>Join Call Now</span>
+          <span>{t('apt_card.join_call', 'Join Call Now')}</span>
         </motion.button>
       </div>
     </motion.div>

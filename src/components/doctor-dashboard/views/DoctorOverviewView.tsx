@@ -7,12 +7,14 @@ import {
 } from 'lucide-react';
 import { getGreeting } from '../../../utils/greeting';
 import { healthShareApi, type AccessRequestItem } from '../../../services/healthShareApi';
+import { socketService } from '../../../services/socketService';
+import { apiClient } from '../../../services/apiClient';
 import { useLanguage } from '../../../context/LanguageContext';
 import { getLocalizedName } from '../../../utils/caregiverDataTranslator';
 
 interface DoctorOverviewViewProps {
   onNavigate: (id: string) => void;
-  onSelectPatient?: (patientId: string) => void;
+  onSelectPatient?: (patientId: string, patientName?: string) => void;
   user?: { name: string; email: string };
 }
 
@@ -59,12 +61,9 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/doctor/dashboard');
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setDashboardData(result.data);
-        }
+      const result = await apiClient.get("/doctor/dashboard");
+      if (result && result.success) {
+        setDashboardData(result.data);
       }
     } catch (err: any) {
       console.warn('Dashboard data fetch error:', err?.message);
@@ -75,7 +74,19 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
     fetchDoctorRequests();
     fetchDashboardData();
     const interval = setInterval(fetchDoctorRequests, 8000);
-    return () => clearInterval(interval);
+
+    const unsubHealth = socketService.subscribeToHealthShareEvents(() => {
+      fetchDoctorRequests();
+    });
+    const unsubNotif = socketService.subscribeToNotifications(() => {
+      fetchDoctorRequests();
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsubHealth();
+      unsubNotif();
+    };
   }, []);
 
   const statistics = dashboardData?.statistics || {
@@ -286,7 +297,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                          {getLocalizedName(req.patientName || 'Ananya Sharma', t)}
+                          {getLocalizedName(req.patientName || 'Patient', t)}
                         </h4>
                         {req.patientAge && (
                           <span className="text-[10px] font-bold text-slate-400 font-mono">
@@ -337,7 +348,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
                           <button
                             onClick={() => {
                               if (req.patientId && onSelectPatient) {
-                                onSelectPatient(req.patientId);
+                                onSelectPatient(req.patientId, req.patientName);
                               } else {
                                 onNavigate('patient-360');
                               }

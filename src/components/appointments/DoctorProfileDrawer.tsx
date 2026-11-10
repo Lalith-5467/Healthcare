@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Star, Award, Users, Globe, Building2, Calendar, Video, CheckCircle2 } from 'lucide-react';
 import type { Doctor } from './appointmentsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface DoctorProfileDrawerProps {
   doctor: Doctor | null;
@@ -17,6 +18,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
   onBookDoctor,
   onBookAppointment,
 }) => {
+  const { t } = useLanguage();
   if (!isOpen || !doctor) return null;
 
   return (
@@ -25,7 +27,7 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 shrink-0">
           <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-cyan-400 font-mono">
-            Doctor Profile
+            {t('apt.doc_profile', 'Doctor Profile')}
           </span>
           <button
             onClick={onClose}
@@ -67,26 +69,26 @@ export const DoctorProfileDrawer: React.FC<DoctorProfileDrawerProps> = ({
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60">
               <Award className="w-4 h-4 text-teal-600 mx-auto mb-1" />
-              <span className="text-[10px] text-slate-500 block">Experience</span>
+              <span className="text-[10px] text-slate-500 block">{t('apt.experience', 'Experience')}</span>
               <strong className="text-slate-800 dark:text-slate-200 text-xs font-mono">{doctor.experienceYears} Yrs</strong>
             </div>
 
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60">
               <Users className="w-4 h-4 text-sky-600 mx-auto mb-1" />
-              <span className="text-[10px] text-slate-500 block">Patients</span>
+              <span className="text-[10px] text-slate-500 block">{t('apt.patients', 'Patients')}</span>
               <strong className="text-slate-800 dark:text-slate-200 text-xs font-mono">{doctor.consultationCount}+</strong>
             </div>
 
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60">
               <Globe className="w-4 h-4 text-purple-600 mx-auto mb-1" />
-              <span className="text-[10px] text-slate-500 block">Languages</span>
+              <span className="text-[10px] text-slate-500 block">{t('apt.languages', 'Languages')}</span>
               <strong className="text-slate-800 dark:text-slate-200 text-xs truncate block">{doctor.languages.join(', ')}</strong>
             </div>
           </div>
 
           {/* ABOUT */}
           <div className="space-y-1">
-            <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">About Doctor</h4>
+            <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">{t('apt.about_doctor', 'About Doctor')}</h4>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               {doctor.about}
             </p>

@@ -27,6 +27,7 @@ import { NotificationPopover } from '../components/dashboard/NotificationPopover
 import { notificationApi } from '../services/dhrApis';
 import { useLanguage } from '../context/LanguageContext';
 import { getLocalizedName } from '../utils/caregiverDataTranslator';
+import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
 
 interface DoctorDashboardPageProps {
   onLogout: () => void;
@@ -75,12 +76,14 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
 
   const handleScanSuccess = (patientId: string) => {
     setScannedPatientId(patientId);
+    setScannedPatientName(undefined);
     setPatient360Tab('summary');
     setActiveNav('patient-360');
   };
 
-  const handleSelectPatient = (patientId: string) => {
+  const handleSelectPatient = (patientId: string, name?: string) => {
     setScannedPatientId(patientId);
+    setScannedPatientName(name);
     setPatient360Tab('summary');
     setActiveNav('patient-360');
   };
@@ -301,6 +304,7 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
         {/* MAIN WORKBENCH VIEWPORT */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-[1600px] mx-auto h-full">
+            <DashboardAnnouncementBanner role="doctor" />
             {renderActiveView()}
           </div>
         </main>
@@ -310,9 +314,18 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
       <NotificationPopover
         isOpen={notificationPopoverOpen}
         onClose={() => setNotificationPopoverOpen(false)}
+        role="doctor"
         onNavigateToNotifications={() => {
           setNotificationPopoverOpen(false);
           setActiveNav('appointments');
+        }}
+        onNavigateToPatient360={(patientId) => {
+          setNotificationPopoverOpen(false);
+          if (patientId) {
+            handleSelectPatient(patientId);
+          } else {
+            setActiveNav('patient-360');
+          }
         }}
       />
     </div>

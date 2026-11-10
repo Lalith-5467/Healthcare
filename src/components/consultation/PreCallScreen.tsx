@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, CameraOff, Mic, MicOff, Volume2, VolumeX, Settings, Video, User, Sparkles, BadgeCheck, Star, Wifi, ShieldCheck, Lock, HeadphonesIcon, CheckCircle2, RotateCw, X, MessageCircle, HeartPulse, Stethoscope } from 'lucide-react';
 import type { ConsultationAppointment } from './consultationData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PreCallScreenProps {
   appointment: ConsultationAppointment;
@@ -27,6 +28,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
   onJoinWaitingRoom,
   onNavigateAppointments,
 }) => {
+  const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [_cameraPermissionError, setCameraPermissionError] = useState(false);
@@ -75,23 +77,23 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <button onClick={onNavigateAppointments} className="text-xs font-semibold text-slate-500 hover:text-teal-600 dark:text-slate-400 dark:hover:text-cyan-400 transition-colors flex items-center gap-1.5 mb-2 cursor-pointer">
-            ← Back to Appointments
+            {t('consultation.back_to_apts', '← Back to Appointments')}
           </button>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Prepare for your consultation</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{t('consultation.prepare_title', 'Prepare for your consultation')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-2xl">
-            Test your camera, microphone, and speakers before joining the consultation room to ensure a smooth experience.
+            {t('consultation.prepare_sub', 'Test your camera, microphone, and speakers before joining the consultation room to ensure a smooth experience.')}
           </p>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-3">
           <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer border border-blue-100 dark:border-blue-800/30">
             <HeadphonesIcon className="w-3.5 h-3.5" />
-            Need Help?
+            {t('consultation.need_help', 'Need Help?')}
           </button>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-3 font-mono">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">ID: {appointment.id}</span>
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {appointment.status}
+              {t(`status.${appointment.status.toLowerCase()}`, appointment.status)}
             </span>
           </div>
         </div>
@@ -119,7 +121,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
           </div>
         </div>
         <button onClick={() => setShowDoctorModal(true)} className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-teal-700 dark:text-cyan-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer whitespace-nowrap self-stretch sm:self-auto shadow-sm hover:shadow">
-          View Doctor Profile
+          {t('consultation.view_doc_profile', 'View Doctor Profile')}
         </button>
       </div>
 
@@ -204,12 +206,12 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 disabled:from-slate-200 disabled:to-slate-200 disabled:dark:from-slate-800 disabled:dark:to-slate-800 disabled:cursor-not-allowed disabled:text-slate-500 dark:text-slate-400 text-slate-900 dark:text-white font-extrabold text-sm uppercase tracking-widest transition-all shadow-lg shadow-teal-500/30 disabled:shadow-none flex items-center justify-center gap-3 cursor-pointer group"
             >
               <Video className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span>Join Waiting Room</span>
+              <span>{t('consultation.join_waiting', 'Join Waiting Room')}</span>
             </button>
 
             <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-blue-50/50 dark:bg-blue-900/10 py-2.5 rounded-xl border border-blue-100/50 dark:border-blue-800/30">
               <Wifi className="w-3.5 h-3.5 text-blue-500" />
-              <span>Please ensure you have a stable internet connection for the best experience.</span>
+              <span>{t('consultation.stable_internet', 'Please ensure you have a stable internet connection for the best experience.')}</span>
             </div>
           </div>
         </div>
@@ -220,10 +222,10 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
           {/* 6. EQUIPMENT STATUS CHECK */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 transition-all hover:shadow-md hover:-translate-y-1 hover:border-teal-500/30 hover:shadow-teal-900/5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Equipment Status</h4>
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{t('consultation.equip_status', 'Equipment Status')}</h4>
               <button onClick={handleRunTest} disabled={isTesting} className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 px-2 py-1.5 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-500/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 <RotateCw className={`w-3 h-3 ${isTesting ? 'animate-spin' : ''}`} />
-                <span>Run Test</span>
+                <span>{t('consultation.run_test', 'Run Test')}</span>
               </button>
             </div>
 
@@ -231,7 +233,7 @@ export const PreCallScreen: React.FC<PreCallScreenProps> = ({
               <div className="flex items-center justify-between group hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors">
                 <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                   <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors"><Camera className="w-3.5 h-3.5" /></div> 
-                  <span>Camera</span>
+                  <span>{t('consultation.camera', 'Camera')}</span>
                 </div>
                 {isTesting ? (
                   <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1 font-bold px-2 py-0.5"><RotateCw className="w-3 h-3 animate-spin" /> Testing</span>

@@ -3,9 +3,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Video, ShieldAlert, CheckCircle2, PlayCircle, Edit,
   Trash2, RotateCcw, AlertTriangle, Plus, Search,
-  X, Filter, Check, Clock, History, Ban, ShieldCheck
+  X, Filter, Check, Clock, History, Ban, ShieldCheck,
+  RefreshCw, Loader2
 } from 'lucide-react';
 import api from '../../../services/api';
+
+const FALLBACK_THUMBNAIL_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="180" viewBox="0 0 120 180" fill="%231e293b"><rect width="120" height="180" fill="%230f172a"/><circle cx="60" cy="80" r="22" fill="%23e11d48" opacity="0.85"/><polygon points="54,71 54,89 71,80" fill="%23ffffff"/><text x="50%" y="125" fill="%2394a3b8" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">YouTube Short</text><text x="50%" y="142" fill="%2364748b" font-size="9" font-family="sans-serif" text-anchor="middle">Preview Unavailable</text></svg>';
+
 interface SuperAdminHealthVideoViewProps {
   currentRole: 'Admin' | 'Super Admin';
 }
@@ -44,6 +48,70 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
   const [addModal, setAddModal] = useState({ isOpen: false, youtubeId: '' });
   const [historyModal, setHistoryModal] = useState<{ isOpen: boolean, videoId: string }>({ isOpen: false, videoId: '' });
   const [historyLogs, setHistoryLogs] = useState<VideoHistory[]>([]);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+    stats?: { discovered: number; inserted: number; updated: number; skipped: number };
+  } | null>(null);
+
+  const handleSync = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncFeedback(null);
+      const res = await api.post('/admin/health/videos/sync') as any;
+      if (res.data?.success || res.success) {
+        const stats = res.data?.stats || res.stats;
+        const message = res.data?.message || res.message || 'YouTube Shorts discovery synchronized successfully.';
+        setSyncFeedback({
+          type: 'success',
+          message,
+          stats
+        });
+        await fetchVideos();
+      } else {
+        setSyncFeedback({
+          type: 'error',
+          message: res.data?.message || res.message || 'Failed to synchronize YouTube Shorts.'
+        });
+      }
+    } catch (err: any) {
+      setSyncFeedback({
+        type: 'error',
+        message: err.message || 'Error communicating with synchronization service.'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const renderDurationBadge = (seconds: number) => {
+    if (!seconds || seconds <= 0) {
+      return (
+        <div>
+          <span className="font-mono text-slate-400">--</span>
+          <span className="block text-[10px] text-amber-500 font-bold">Unverified</span>
+        </div>
+      );
+    }
+    // YouTube Shorts: typically 5s to 3 minutes (180s)
+    const isShort = seconds >= 5 && seconds <= 180;
+    return (
+      <div>
+        <span className="font-mono">{seconds}s</span>
+        {isShort ? (
+          <span className="block text-[10px] text-emerald-500 font-bold">
+            Valid Short {seconds <= 60 ? '(≤60s)' : '(≤3m)'}
+          </span>
+        ) : (
+          <span className="block text-[10px] text-rose-500 font-bold">
+            Exceeds 3m Limit
+          </span>
+        )}
+      </div>
+    );
+  };
 
   useEffect(() => {
     fetchVideos();
@@ -164,7 +232,7 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
 
   const stats = {
     total: videos.length,
-    pending: videos.filter(v => v.status === 'PENDING_REVIEW').length,
+    pending: videos.filter(v => v.status === 'PENDING_REVIEW' || v.status === 'DISCOVERED').length,
     approved: videos.filter(v => v.status === 'APPROVED').length,
     disabled: videos.filter(v => v.status === 'DISABLED').length,
   };
@@ -193,10 +261,43 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
           </h1>
           <p className="text-sm text-slate-500 mt-1">Review, approve, and audit patient educational videos.</p>
         </div>
-        <button onClick={() => setAddModal({ isOpen: true, youtubeId: '' })} className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-sm transition-colors">
-          <Plus className="w-4 h-4" /> Add Manual Video
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 border border-slate-700 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+            title="Synchronize and queue new health shorts from YouTube discovery engine"
+          >
+            <RefreshCw className={`w-4 h-4 text-cyan-400 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing YouTube...' : 'Sync YouTube Shorts'}
+          </button>
+          <button onClick={() => setAddModal({ isOpen: true, youtubeId: '' })} className="px-4 py-2 bg-[#00a896] hover:bg-[#00897b] text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-sm transition-colors cursor-pointer">
+            <Plus className="w-4 h-4" /> Add Manual Video
+          </button>
+        </div>
       </div>
+
+      {/* SYNC FEEDBACK BANNER */}
+      {syncFeedback && (
+        <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs font-bold ${
+          syncFeedback.type === 'success' 
+            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+            : 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+        }`}>
+          <div className="flex items-center gap-2">
+            {syncFeedback.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> : <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />}
+            <span>{syncFeedback.message}</span>
+            {syncFeedback.stats && (
+              <span className="font-mono text-[11px] ml-2 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200">
+                Discovered: {syncFeedback.stats.discovered} | Queued: {syncFeedback.stats.inserted} | Updated: {syncFeedback.stats.updated} | Preserved: {syncFeedback.stats.skipped}
+              </span>
+            )}
+          </div>
+          <button onClick={() => setSyncFeedback(null)} className="p-1 hover:bg-black/10 rounded-lg cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* STATS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -261,23 +362,26 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative w-16 h-24 bg-black rounded-lg overflow-hidden shrink-0 group-hover:ring-2 ring-rose-500/50 transition-all cursor-pointer" onClick={() => setPreviewVideo(video)}>
-                          <img src={`https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" alt="thumb" />
+                          <img 
+                            src={`https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`} 
+                            className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" 
+                            alt={video.title || "thumb"}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = FALLBACK_THUMBNAIL_SVG;
+                            }}
+                          />
                           <PlayCircle className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white drop-shadow-md" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white line-clamp-2">{video.title}</p>
-                          <p className="text-xs text-slate-500 mt-1">{video.channelName}</p>
+                          <p className="text-xs text-slate-500 mt-1">{video.channelName || 'Unknown Channel'}</p>
                           <p className="text-[10px] font-mono text-slate-400 mt-1 bg-slate-100 dark:bg-slate-900 inline-block px-1 rounded">{video.youtubeVideoId}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 font-mono font-bold">
-                      {video.durationSeconds}s
-                      {video.durationSeconds < 5 || video.durationSeconds > 10 ? (
-                        <span className="block text-[10px] text-rose-500">Invalid Duration</span>
-                      ) : (
-                        <span className="block text-[10px] text-emerald-500">Valid Short</span>
-                      )}
+                      {renderDurationBadge(video.durationSeconds)}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={video.status} enabled={video.enabled} />
@@ -297,24 +401,29 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openHistory(video.id)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-100 dark:bg-slate-900 rounded-lg"><History className="w-4 h-4" /></button>
+                        <button onClick={() => openHistory(video.id)} className="p-1.5 text-slate-400 hover:text-blue-500 bg-slate-100 dark:bg-slate-900 rounded-lg cursor-pointer" title="View Audit History"><History className="w-4 h-4" /></button>
 
-                        {video.status === 'PENDING_REVIEW' && (
-                          <button onClick={() => handleApprove(video.id)} className="p-1.5 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg font-bold flex items-center gap-1 text-xs">
-                            <Check className="w-3.5 h-3.5" /> Approve
-                          </button>
+                        {(video.status === 'PENDING_REVIEW' || video.status === 'DISCOVERED') && (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleApprove(video.id)} className="p-1.5 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg font-bold flex items-center gap-1 text-xs cursor-pointer hover:bg-emerald-100 transition-colors" title="Approve Video">
+                              <Check className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            <button onClick={() => handleDisable(video.id)} className="p-1.5 text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-lg font-bold flex items-center gap-1 text-xs cursor-pointer hover:bg-rose-100 transition-colors" title="Reject / Disable Video">
+                              <Ban className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
 
                         {video.status === 'APPROVED' && (
-                          <button onClick={() => handleDisable(video.id)} className="p-1.5 text-amber-500 bg-amber-50 dark:bg-amber-500/10 rounded-lg"><Ban className="w-4 h-4" /></button>
+                          <button onClick={() => handleDisable(video.id)} className="p-1.5 text-amber-500 bg-amber-50 dark:bg-amber-500/10 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors" title="Disable Video"><Ban className="w-4 h-4" /></button>
                         )}
 
                         {video.status === 'DISABLED' && (
-                          <button onClick={() => handleRestore(video.id)} className="p-1.5 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg"><RotateCcw className="w-4 h-4" /></button>
+                          <button onClick={() => handleRestore(video.id)} className="p-1.5 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors" title="Restore Video"><RotateCcw className="w-4 h-4" /></button>
                         )}
 
                         {video.status !== 'DELETED' && (
-                          <button onClick={() => handleDelete(video.id)} className="p-1.5 text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(video.id)} className="p-1.5 text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors" title="Soft Delete Video"><Trash2 className="w-4 h-4" /></button>
                         )}
                       </div>
                     </td>
@@ -412,9 +521,9 @@ export const SuperAdminHealthVideoView: React.FC<SuperAdminHealthVideoViewProps>
                 />
               </div>
               <p className="text-[10px] text-slate-500 italic">
-                The backend will automatically extract title, duration (must be 5-10s), and thumbnails.
+                Supports YouTube Shorts up to 3 minutes (180s). Video will be cataloged and audited.
               </p>
-              <button type="submit" className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors">
+              <button type="submit" className="w-full py-2 bg-[#00a896] hover:bg-[#00897b] text-white font-bold rounded-xl transition-colors cursor-pointer">
                 Save to Database
               </button>
             </form>
@@ -453,7 +562,7 @@ const StatCard = ({ title, value, icon: Icon, color, alert }: any) => {
 };
 
 const StatusBadge = ({ status, enabled }: { status: string, enabled: boolean }) => {
-  if (status === 'PENDING_REVIEW') return <span className="px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-[10px] font-black rounded-lg border border-amber-200 dark:border-amber-800 flex inline-flex items-center gap-1 animate-pulse"><Clock className="w-3 h-3" /> PENDING REVIEW</span>;
+  if (status === 'PENDING_REVIEW' || status === 'DISCOVERED') return <span className="px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-[10px] font-black rounded-lg border border-amber-200 dark:border-amber-800 flex inline-flex items-center gap-1 animate-pulse"><Clock className="w-3 h-3" /> {status === 'DISCOVERED' ? 'DISCOVERED' : 'PENDING REVIEW'}</span>;
   if (status === 'APPROVED') return <span className="px-2 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-black rounded-lg border border-emerald-200 dark:border-emerald-800 flex inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> APPROVED {enabled ? '' : '(DISABLED)'}</span>;
   if (status === 'DISABLED') return <span className="px-2 py-1 bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300 text-[10px] font-black rounded-lg flex inline-flex items-center gap-1"><Ban className="w-3 h-3" /> DISABLED</span>;
   if (status === 'DELETED') return <span className="px-2 py-1 bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 text-[10px] font-black rounded-lg flex inline-flex items-center gap-1"><Trash2 className="w-3 h-3" /> DELETED</span>;

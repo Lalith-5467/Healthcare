@@ -4,6 +4,7 @@ import {
   Building2, MapPin, Phone, ShieldCheck, Search, X, CheckCircle2, 
   Map, Star, Activity, PlusCircle, AlertCircle, Bookmark, ChevronLeft, ChevronRight, Stethoscope
 } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
 
 type Hospital = {
   id: string;
@@ -85,6 +86,7 @@ const HOSPITALS: Hospital[] = [
 ];
 
 export const NetworkHospitalsView: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
   
   // Draft states (bound to inputs)
@@ -139,27 +141,27 @@ export const NetworkHospitalsView: React.FC = () => {
       
       {/* 1. PAGE HEADER & SUMMARY */}
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Network Hospitals</h1>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('Network Hospitals')}</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          Search and manage hospitals available within the MediCare cashless network.
+          {t('Search and manage hospitals available within the MediCare cashless network.')}
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Network Hospitals</p>
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t('Network Hospitals')}</p>
           <p className="text-2xl font-black text-blue-600 dark:text-cyan-400">1,248</p>
         </div>
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Cashless Enabled</p>
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t('Cashless Enabled')}</p>
           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">986</p>
         </div>
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Cities Covered</p>
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t('Cities Covered')}</p>
           <p className="text-2xl font-black text-purple-600 dark:text-purple-400">182</p>
         </div>
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Active Network</p>
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t('Active Network')}</p>
           <p className="text-2xl font-black text-amber-600 dark:text-amber-400">97%</p>
         </div>
       </div>

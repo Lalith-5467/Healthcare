@@ -21,9 +21,23 @@ const promptActions = [
 
 export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
+
+  const liveTelemetry = [
+    { icon: Moon, label: t('ai_card.sleep_stat', 'Sleep +8%'), value: t('score.status_optimal', 'Optimal'), color: '#818cf8', bg: 'rgba(129,140,248,.12)', border: 'rgba(129,140,248,.25)' },
+    { icon: Heart, label: t('card.heart_rate', 'Heart Rate'), value: '72 BPM', color: '#34d399', bg: 'rgba(52,211,153,.12)', border: 'rgba(52,211,153,.25)' },
+    { icon: Droplets, label: t('ai_card.hydration', 'Hydration'), value: t('ai_card.goal_80', 'Goal 80%'), color: '#38bdf8', bg: 'rgba(56,189,248,.12)', border: 'rgba(56,189,248,.25)' },
+    { icon: Brain, label: t('ai_card.focus_vitals', 'Focus Vitals'), value: t('ai_card.score_85', 'Score 85'), color: '#c084fc', bg: 'rgba(192,132,252,.12)', border: 'rgba(192,132,252,.25)' },
+  ];
+
+  const promptActions = [
+    { icon: FileText, label: t('ai_card.prompt_appt', 'Prepare for Appointment'), color: '#7dd3fc', bg: 'rgba(56,189,248,.08)', border: 'rgba(56,189,248,.2)' },
+    { icon: BookOpen, label: t('ai_card.prompt_terms', 'Explain Medical Term'), color: '#d8b4fe', bg: 'rgba(192,132,252,.08)', border: 'rgba(192,132,252,.2)' },
+    { icon: Pill, label: t('ai_card.prompt_side_effects', 'Medicine & Side Effects'), color: '#6ee7b7', bg: 'rgba(52,211,153,.08)', border: 'rgba(52,211,153,.2)' },
+  ];
+
   return (
     <div
-      className="p-5 sm:p-6 rounded-3xl flex flex-col justify-between font-sans space-y-4 relative overflow-hidden text-slate-900 dark:text-white"
+      className="p-5 sm:p-6 rounded-3xl flex flex-col justify-between font-sans space-y-4 relative overflow-hidden text-white"
       style={{
         background: 'linear-gradient(145deg,#131138 0%,#241f5a 35%,#1c1746 70%,#0e1526 100%)',
         border: '1.5px solid rgba(167,139,250,.28)',
@@ -57,11 +71,11 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
             🤖
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
               <span>{t('nav.assistant', 'AI Health Assistant')}</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
             </h3>
-            <p className="text-xs text-purple-200 font-medium">"How can I help your health today?"</p>
+            <p className="text-xs text-purple-100 font-medium">{t('ai_card.greeting', '"How can I help your health today?"')}</p>
           </div>
         </div>
 
@@ -75,13 +89,13 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
           }}
         >
           <Sparkles className="w-3 h-3 text-amber-400" />
-          <span>AI SMART TIP</span>
+          <span>{t('ai_card.badge', 'AI SMART TIP')}</span>
         </span>
       </div>
 
       {/* Description text */}
-      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium relative z-10">
-        Ask symptoms, clarify medical reports in everyday language, analyze drug interactions, or generate customized checklists for your next doctor visit.
+      <p className="text-xs text-slate-100 leading-relaxed font-normal sm:font-medium relative z-10">
+        {t('ai_card.description', 'Ask symptoms, clarify medical reports in everyday language, analyze drug interactions, or generate customized checklists for your next doctor visit.')}
       </p>
 
       {/* ── LIVE TELEMETRY CHIPS ── */}
@@ -96,7 +110,7 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
               <ChipIcon className="w-3.5 h-3.5" style={{ color }} />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] text-slate-600 dark:text-slate-300 font-medium block truncate">{label}</span>
+              <span className="text-[10px] text-slate-200 font-semibold block truncate">{label}</span>
               <span className="text-[11px] font-extrabold block truncate" style={{ color }}>{value}</span>
             </div>
           </div>
@@ -105,8 +119,8 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
 
       {/* ── INTERACTIVE PROMPT BUTTONS ── */}
       <div className="flex flex-wrap items-center gap-2.5 relative z-10">
-        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-300/80 mr-1 font-mono">
-          Quick Ask:
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-200 mr-1 font-mono">
+          {t('ai_card.quick_ask', 'Quick Ask:')}
         </span>
         {promptActions.map(({ icon: ActionIcon, label, color, bg, border }) => (
           <button
@@ -131,16 +145,16 @@ export const AIAssistantDashboardCard: React.FC<AIAssistantDashboardCardProps> =
           className="inline-flex items-center gap-2 font-extrabold text-xs sm:text-sm transition-opacity hover:opacity-80 cursor-pointer"
           style={{ color: '#38bdf8' }}
         >
-          <span>Open AI Health Assistant</span>
+          <span>{t('ai_card.open_assistant', 'Open AI Health Assistant')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 
         <button
           onClick={() => onNavigate('analytics')}
           className="inline-flex items-center gap-1 text-xs font-bold transition-opacity hover:opacity-80 cursor-pointer hover:underline"
-          style={{ color: '#c084fc' }}
+          style={{ color: '#d8b4fe' }}
         >
-          <span>View Health Analytics →</span>
+          <span>{t('ai_card.view_analytics', 'View Health Analytics →')}</span>
         </button>
       </div>
     </div>

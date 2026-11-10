@@ -109,7 +109,7 @@ export const MyPatientsDirectoryView: React.FC<MyPatientsDirectoryViewProps> = (
 
               <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
                 <span className="text-[11px] font-black text-slate-700 dark:text-slate-300 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700">
-                  {p.appointmentTime.includes('Today') ? p.appointmentTime.replace('Today', t("doctor.appointments.today", "Today")) : p.appointmentTime}
+                  {p.appointmentTime ? (p.appointmentTime.includes('Today') ? p.appointmentTime.replace('Today', t("doctor.appointments.today", "Today")) : p.appointmentTime) : 'N/A'}
                 </span>
                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border flex items-center gap-1.5 ${statusColors}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />

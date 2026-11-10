@@ -8,7 +8,7 @@ import { Role } from '@prisma/client';
  */
 export const getPatientHealthTopics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { patientId } = req.params;
+    const patientId = req.params.patientId as string;
     const user = (req as any).user;
 
     // Authorization:
@@ -46,7 +46,7 @@ export const getPatientHealthTopics = async (req: Request, res: Response): Promi
  */
 export const assignPatientHealthTopic = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { patientId } = req.params;
+    const patientId = req.params.patientId as string;
     const { healthTopicId, sourceType, sourceRecordId } = req.body;
     const user = (req as any).user;
 
@@ -103,7 +103,8 @@ export const assignPatientHealthTopic = async (req: Request, res: Response): Pro
  */
 export const removePatientHealthTopic = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { patientId, topicId } = req.params;
+    const patientId = req.params.patientId as string;
+    const topicId = req.params.topicId as string;
     const user = (req as any).user;
 
     // Authorization

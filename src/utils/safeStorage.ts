@@ -8,8 +8,13 @@ const PROTECTED_KEYS = new Set([
   'jwt',
   'app_user',
   'app_is_logged_in',
-  'admin_token',
-  'pharmacist_token'
+  'patient_token',
+  'doctor_token',
+  'pharmacist_token',
+  'nurse_token',
+  'caregiver_token',
+  'insurance_token',
+  'admin_token'
 ]);
 
 // Keys that are large/volatile caches and safe to purge when quota is exceeded

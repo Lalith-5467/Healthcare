@@ -11,14 +11,14 @@ interface RecentRecordsCardProps {
 export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate, onToast }) => {
   const { t } = useLanguage();
   const records = [
-    { id: 1, title: 'Complete Blood Count (CBC)', date: '21 Aug 2026', type: 'Lab Report', status: 'Normal', doctor: 'Dr. Anita Sharma' },
-    { id: 2, title: 'Cardiology Prescription', date: '20 Aug 2026', type: 'Prescription', status: 'Active', doctor: 'Dr. Rajesh Kumar' },
-    { id: 3, title: 'ECG Diagnostics Trace', date: '18 Aug 2026', type: 'Diagnostics', status: 'Normal', doctor: 'Dr. Vikram Sethi' }
+    { id: 1, title: t('records_card.title_cbc', 'Complete Blood Count (CBC)'), date: '21 Aug 2026', type: t('records_card.type_lab', 'Lab Report'), status: t('records_card.status_normal', 'Normal'), doctor: 'Dr. Anita Sharma' },
+    { id: 2, title: t('records_card.title_cardio', 'Cardiology Prescription'), date: '20 Aug 2026', type: t('records_card.type_presc', 'Prescription'), status: t('records_card.status_active', 'Active'), doctor: 'Dr. Rajesh Kumar' },
+    { id: 3, title: t('records_card.title_ecg', 'ECG Diagnostics Trace'), date: '18 Aug 2026', type: t('records_card.type_diag', 'Diagnostics'), status: t('records_card.status_normal', 'Normal'), doctor: 'Dr. Vikram Sethi' }
   ];
 
   const handleDownload = (e: React.MouseEvent, title: string) => {
     e.stopPropagation();
-    onToast(`✓ Downloaded PDF report for ${title}`);
+    onToast(t('records_card.download_toast', '✓ Downloaded PDF report for {{title}}').replace('{{title}}', title));
   };
 
   return (
@@ -37,7 +37,7 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('card.recent_records', 'Recent Health Records')}
             </h3>
-            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">ABDM Vault Encrypted Documents</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">{t('records_card.vault_enc', 'ABDM Vault Encrypted Documents')}</span>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export const RecentRecordsCard: React.FC<RecentRecordsCardProps> = ({ onNavigate
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => handleDownload(e, r.title)}
                 className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors cursor-pointer border border-slate-300 dark:border-slate-700"
-                title="Download PDF"
+                title={t('records_card.download_pdf', 'Download PDF')}
               >
                 <Download className="w-3.5 h-3.5" />
               </motion.button>

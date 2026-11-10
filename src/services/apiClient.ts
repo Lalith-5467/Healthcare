@@ -3,14 +3,16 @@
  * Ensures all requests send the Authorization Bearer token from localStorage
  */
 
-// Use relative path so Vite's dev-server proxy forwards /api/* → localhost:5000/api/*
-// In production, set VITE_API_URL to the deployed backend base URL.
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL ?? '/api';
+// Use direct backend URL on port 5000 in dev, or VITE_API_URL if configured
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
   data: T;
+  videos?: any;
+  nextPageToken?: string;
+  [key: string]: any;
   pagination?: {
     total: number;
     page: number;
@@ -63,7 +65,7 @@ export const getAuthToken = (): string | null => {
     const it = localStorage.getItem('insurance_token');
     if (it) return it;
   } else if (isAdminPortal) {
-    const at = localStorage.getItem('admin_token');
+    const at = localStorage.getItem('super_admin_token') || localStorage.getItem('admin_token');
     if (at) return at;
   }
 
@@ -78,7 +80,7 @@ export const getAuthToken = (): string | null => {
     const role = parseJwtRole(primary);
     // Enforce strict portal token match - do not leak tokens across different role portals
     if (isUserPortal && role && role !== 'PATIENT') {
-      return localStorage.getItem('patient_token') || null;
+      return localStorage.getItem('patient_token') || primary;
     }
     if (isDoctorPortal && role && role !== 'DOCTOR') {
       return localStorage.getItem('doctor_token') || null;
@@ -96,7 +98,7 @@ export const getAuthToken = (): string | null => {
       return localStorage.getItem('insurance_token') || null;
     }
     if (isAdminPortal && role && role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
-      return localStorage.getItem('admin_token') || null;
+      return localStorage.getItem('super_admin_token') || localStorage.getItem('admin_token') || null;
     }
     return primary;
   }
@@ -110,7 +112,14 @@ export const setAuthToken = (token: string): void => {
     safeLocalStorageSet('token', token);
     const role = parseJwtRole(token);
     if (role) {
-      safeLocalStorageSet(`${role.toLowerCase()}_token`, token);
+      if (role === 'INSURANCE_PROVIDER' || role === 'INSURANCE') {
+        safeLocalStorageSet('insurance_token', token);
+      } else if (role === 'SUPER_ADMIN') {
+        safeLocalStorageSet('super_admin_token', token);
+        safeLocalStorageSet('admin_token', token);
+      } else {
+        safeLocalStorageSet(`${role.toLowerCase()}_token`, token);
+      }
     }
   }
 };
@@ -128,97 +137,54 @@ export const clearAuthToken = (): void => {
     safeLocalStorageRemove('caregiver_token');
     safeLocalStorageRemove('insurance_token');
     safeLocalStorageRemove('admin_token');
+    safeLocalStorageRemove('super_admin_token');
   }
 };
-
-let isReauthenticating = false;
-
-async function attemptAutoLogin(): Promise<string | null> {
-  if (isReauthenticating || typeof window === 'undefined') return null;
-  isReauthenticating = true;
-  try {
-    const path = window.location.pathname.toLowerCase();
-    const isDoctorPortal = path.startsWith('/doctor');
-    const isNursePortal = path.startsWith('/nurse');
-    const isPharmaPortal = path.startsWith('/pharmacist');
-    const isCaregiverPortal = path.startsWith('/caregiver');
-    const isInsurancePortal = path.startsWith('/insurance');
-    const isAdminPortal = path.startsWith('/admin');
-    const isUserPortal = path.startsWith('/user') || (!isDoctorPortal && !isNursePortal && !isPharmaPortal && !isCaregiverPortal && !isInsurancePortal && !isAdminPortal);
-
-    let email = 'ananya@health.com';
-    let password = 'Patient@123';
-
-    if (isDoctorPortal) {
-      email = 'dr.arjun.kumar@apollocentral.in';
-      password = 'Doctor@123';
-    } else if (isNursePortal) {
-      email = 'nurse@health.com';
-      password = 'Nurse@123';
-    } else if (isPharmaPortal) {
-      email = 'pharmacist@health.com';
-      password = 'Pharma@123';
-    } else if (isCaregiverPortal) {
-      email = 'caregiver@health.com';
-      password = 'Caregiver@123';
-    } else if (isInsurancePortal) {
-      email = 'insurance@health.com';
-      password = 'Insurance@123';
-    } else if (isAdminPortal) {
-      email = 'admin@health.com';
-      password = 'Admin@123';
-    } else if (isUserPortal) {
-      email = 'ananya@health.com';
-      password = 'Patient@123';
-      const storedUser = localStorage.getItem('app_user') || localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          const r = (parsed.role || '').toLowerCase();
-          if (parsed.email && (r.includes('patient') || !r)) {
-            email = parsed.email;
-          }
-        } catch {}
-      }
-    }
-
-    const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (loginRes.ok) {
-      const resJson = await loginRes.json();
-      const newToken = resJson?.data?.token;
-      if (newToken) {
-        setAuthToken(newToken);
-        return newToken;
-      }
-    }
-  } catch (err) {
-    console.warn('[apiClient] Auto-authentication attempt failed:', err);
-  } finally {
-    isReauthenticating = false;
-  }
-  return null;
-}
 
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit & { _isRetry?: boolean } = {}
 ): Promise<ApiResponse<T>> {
-  let token = getAuthToken();
-
-  // If token is missing, attempt auto-login before sending protected requests
-  if (!token && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
-    token = await attemptAutoLogin();
-  }
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
+
+  const path = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+  const isDoctorPortal = path.startsWith('/doctor');
+  const isNursePortal = path.startsWith('/nurse');
+  const isPharmaPortal = path.startsWith('/pharmacist');
+  const isCaregiverPortal = path.startsWith('/caregiver');
+  const isInsurancePortal = path.startsWith('/insurance');
+  const isAdminPortal = path.startsWith('/admin');
+
+  let portalRole = 'PATIENT';
+  if (isDoctorPortal) portalRole = 'DOCTOR';
+  else if (isNursePortal) portalRole = 'NURSE';
+  else if (isPharmaPortal) portalRole = 'PHARMACIST';
+  else if (isCaregiverPortal) portalRole = 'CAREGIVER';
+  else if (isInsurancePortal) portalRole = 'INSURANCE_PROVIDER';
+  else if (isAdminPortal) portalRole = 'ADMIN';
+
+  headers['x-portal-role'] = headers['x-portal-role'] || portalRole;
+  if (isDoctorPortal) {
+    let docEmail = '';
+    try {
+      const storedDoctorUser = localStorage.getItem('doctor_user') || localStorage.getItem('app_user') || localStorage.getItem('user');
+      if (storedDoctorUser) {
+        const parsed = JSON.parse(storedDoctorUser);
+        if (parsed.email) docEmail = parsed.email;
+      }
+    } catch {}
+    if (docEmail) {
+      headers['x-doctor-email'] = headers['x-doctor-email'] || docEmail;
+    }
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -236,18 +202,9 @@ export async function apiRequest<T = any>(
     throw new Error('Unable to connect to the backend server. Please ensure the backend service is running on port 5000.');
   }
 
-  // If unauthorized (401) or forbidden role mismatch (403) and we haven't retried yet, refresh token for active portal and retry
-  if ((response.status === 401 || response.status === 403) && !options._isRetry && !endpoint.includes('/auth/login')) {
-    const refreshedToken = await attemptAutoLogin();
-    if (refreshedToken) {
-      return apiRequest<T>(endpoint, {
-        ...options,
-        _isRetry: true,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${refreshedToken}`,
-        },
-      });
+  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:session_expired'));
     }
   }
 
@@ -272,9 +229,9 @@ export async function apiRequest<T = any>(
       response.status === 401
         ? (data?.message || 'Invalid credentials. Please verify your email and password.')
         : response.status === 403
-        ? 'Access denied. You do not have permission for this resource.'
+        ? (data?.message || 'Access denied. You do not have permission for this resource.')
         : response.status === 502 || response.status === 504
-        ? 'Backend service is currently unreachable (Port 5000). Please start the backend server.'
+        ? (data?.message || 'Backend service is currently unreachable (Port 5000). Please start the backend server.')
         : (data?.message || `Request failed (Status ${response.status})`);
     throw new Error(errorMsg);
   }

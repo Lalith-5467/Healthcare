@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AbhaLogo } from '../common/AbhaLogo';
 
 
 interface ABHAModalProps {
@@ -30,9 +31,7 @@ export const ABHAModal: React.FC<ABHAModalProps> = ({ isOpen, onClose }) => {
 
           {/* HEADER */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xl">
-              ABHA
-            </div>
+            <AbhaLogo className="w-12 h-12" />
             <div>
               <h3 className="text-xl font-extrabold">ABHA Connection Manager</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">Government ABDM Ecosystem Token</p>

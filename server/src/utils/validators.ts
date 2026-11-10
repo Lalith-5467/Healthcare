@@ -181,4 +181,14 @@ export const updatePharmacyOrderStatusSchema = z.object({
   status: z.string().min(1, 'status is required'),
 });
 
+export const processPaymentSchema = z.object({
+  paymentMethod: z.string().min(1, 'paymentMethod is required'),
+  transactionRef: z.string().max(100).optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const confirmCashPaymentSchema = z.object({
+  notes: z.string().max(500).optional(),
+});
+
 export const createVitalSchema = z.object({ patientId: z.string().optional(), systolicBp: z.number().int().min(0).max(300).optional(), diastolicBp: z.number().int().min(0).max(200).optional(), heartRate: z.number().int().min(0).max(300).optional(), respiratoryRate: z.number().int().min(0).max(100).optional(), oxygenSaturation: z.number().min(0).max(100).optional(), temperature: z.number().min(20).max(50).optional(), bloodSugar: z.number().min(0).max(1500).optional(), weightKg: z.number().min(0).max(500).optional(), notes: z.string().max(2000).optional(), recordedAt: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)).optional() });

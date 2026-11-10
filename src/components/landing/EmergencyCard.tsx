@@ -7,6 +7,24 @@ interface EmergencyCardProps {
 }
 
 export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
+  const patientDisplayName = React.useMemo(() => {
+    try {
+      const custom = localStorage.getItem('patient_user_name');
+      if (custom && custom.trim()) return custom.trim();
+      const prof = localStorage.getItem('user_profile_data');
+      if (prof) {
+        const parsed = JSON.parse(prof);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.name && parsed.name.trim()) return parsed.name.trim();
+      }
+    } catch {}
+    return 'Ragul Kumar';
+  }, []);
+
   return (
     <section id="emergency-sos" className="py-24 bg-red-50/40 dark:bg-[#180d14] relative overflow-hidden transition-colors border-y border-red-100 dark:border-red-950/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,7 +64,7 @@ export const EmergencyCard: React.FC<EmergencyCardProps> = ({ onScanQR }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
             <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-1">
               <p className="text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-widest font-bold">Patient Name</p>
-              <p className="font-extrabold text-base text-slate-900 dark:text-white">Lalith Patel</p>
+              <p className="font-extrabold text-base text-slate-900 dark:text-white">{patientDisplayName}</p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">ABHA: 14-8921-3341</p>
             </div>
 

@@ -15,7 +15,8 @@ import {
   getHealthTopics,
   addHealthTopic,
   updateHealthTopic,
-  deleteHealthTopic
+  deleteHealthTopic,
+  syncHealthVideos
 } from '../controllers/adminHealthVideo.controller';
 
 const router = Router();
@@ -27,6 +28,7 @@ router.use(requireRole(Role.SUPER_ADMIN));
 // Health Video APIs
 router.get('/videos', getHealthVideos);
 router.post('/videos', addHealthVideo);
+router.post('/videos/sync', syncHealthVideos);
 router.put('/videos/:id', updateHealthVideo);
 router.delete('/videos/:id', deleteHealthVideo);
 

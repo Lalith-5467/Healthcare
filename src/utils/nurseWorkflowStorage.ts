@@ -234,7 +234,46 @@ export const useNurseWorkflow = () => {
     window.dispatchEvent(new Event('medicare_sync_nurse'));
   };
 
-  const createBooking = (request: Omit<CareRequest, 'id' | 'status' | 'createdAt'>) => {
+  const createBooking = async (request: Omit<CareRequest, 'id' | 'status' | 'createdAt'>) => {
+    try {
+      const res = await clinicalApi.createNurseCareRequest({
+        serviceType: request.serviceType,
+        careCategory: request.careCategory,
+        scheduledDate: request.scheduledDate || request.prefDate || new Date().toISOString(),
+        scheduledTime: request.time || '10:00 AM',
+        duration: request.duration,
+        bookingType: request.bookingType,
+        repeatFrequency: request.repeatFrequency,
+        endDate: request.endDate,
+        location: request.location,
+        landmark: request.landmark,
+        city: request.city,
+        pincode: request.pincode,
+        locationType: request.locationType,
+        conditionReason: request.conditionReason,
+        mobilityStatus: request.mobilityStatus,
+        currentMedications: request.currentMedications,
+        allergies: request.allergies,
+        medicalEquipment: request.medicalEquipment,
+        specialCareRequirements: request.specialCareRequirements,
+        nurseGenderPreference: request.nurseGenderPreference,
+        preferredExperience: request.preferredExperience,
+        preferredLanguage: request.preferredLanguage,
+        emergencyContactName: request.emergencyContactName,
+        emergencyContactPhone: request.emergencyContactPhone,
+        emergencyInstructions: request.emergencyInstructions,
+        instructions: request.instructions,
+        patientPhone: request.patientPhone,
+        notes: request.notes,
+      });
+      if (res && res.data) {
+        await refreshBookings();
+        triggerSync();
+        return res.data;
+      }
+    } catch (err) {
+      console.error('Failed to create care request via API, falling back to local storage:', err);
+    }
     const newBooking: CareRequest = {
       ...request,
       id: `NR-2026-${Math.floor(1000 + Math.random() * 9000)}`,

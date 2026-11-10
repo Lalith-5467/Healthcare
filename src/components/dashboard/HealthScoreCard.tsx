@@ -88,7 +88,7 @@ export const HealthScoreCard: React.FC = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setShowDetailModal(true)}
                   className="text-slate-500 dark:text-slate-400 hover:text-[#00a896] dark:hover:text-cyan-300 transition-colors cursor-pointer"
-                  title="Score details"
+                  title={t('health_score.score_details', 'Score details')}
                 >
                   <Info className="w-3.5 h-3.5" />
                 </motion.button>
@@ -108,7 +108,7 @@ export const HealthScoreCard: React.FC = () => {
             <button
               onClick={handleRefresh}
               className="p-1.5 rounded-xl bg-teal-50 dark:bg-slate-800 text-teal-600 dark:text-slate-300 hover:text-[#00a896] dark:hover:text-cyan-300 transition-all cursor-pointer border border-teal-200/60 dark:border-slate-700"
-              title="Re-sync Health Vitals"
+              title={t('health_score.resync', 'Re-sync Health Vitals')}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#00a896]' : ''}`} />
             </button>
@@ -276,16 +276,16 @@ export const HealthScoreCard: React.FC = () => {
           <div className="flex items-center justify-between text-xs font-mono">
             <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-extrabold">
               <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span>+4 points from last week</span>
+              <span>{t('score.points_last_week', '+4 points from last week')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">Target: 90+</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">{t('score.target_90', 'Target: 90+')}</span>
               <button
                 onClick={() => setShowDetailModal(true)}
                 className="px-2 py-0.5 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
                 style={{ background: 'rgba(20,184,166,.12)', color: '#0d9488' }}
               >
-                Analysis →
+                {t('score.analysis', 'Analysis →')}
               </button>
             </div>
           </div>
@@ -308,8 +308,8 @@ export const HealthScoreCard: React.FC = () => {
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Health Score Breakdown</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Calculated from wearable telemetry & medical record sync</p>
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{t('score.modal_title', 'Health Score Breakdown')}</h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t('score.modal_desc', 'Calculated from wearable telemetry & medical record sync')}</p>
                   </div>
                 </div>
 
@@ -324,10 +324,10 @@ export const HealthScoreCard: React.FC = () => {
               {/* MODAL SCORE METRICS */}
               <div className="space-y-3 font-mono">
                 {[
-                  { label: 'Cardiovascular Health', score: '92/100', status: 'Optimal', color: 'text-emerald-500' },
-                  { label: 'Metabolic & Blood Glucose', score: '84/100', status: 'Good', color: 'text-teal-500' },
-                  { label: 'Sleep & Recovery Cycle', score: '88/100', status: 'Optimal', color: 'text-cyan-500' },
-                  { label: 'Medication Adherence', score: '100/100', status: 'Perfect', color: 'text-emerald-400' }
+                  { label: t('score.cardiovascular', 'Cardiovascular Health'), score: '92/100', status: t('score.status_optimal', 'Optimal'), color: 'text-emerald-500' },
+                  { label: t('score.metabolic', 'Metabolic & Blood Glucose'), score: '84/100', status: t('score.status_good', 'Good'), color: 'text-teal-500' },
+                  { label: t('score.recovery', 'Sleep & Recovery Cycle'), score: '88/100', status: t('score.status_optimal', 'Optimal'), color: 'text-cyan-500' },
+                  { label: t('score.adherence', 'Medication Adherence'), score: '100/100', status: t('score.status_perfect', 'Perfect'), color: 'text-emerald-400' }
                 ].map((item, idx) => (
                   <div key={idx} className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 font-sans font-bold text-slate-900 dark:text-white">
@@ -345,15 +345,15 @@ export const HealthScoreCard: React.FC = () => {
               </div>
 
               <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs text-slate-700 dark:text-slate-200 space-y-1">
-                <span className="font-extrabold text-[#00a896] dark:text-cyan-300 block">Doctor Recommendation:</span>
-                <p className="font-medium">Maintain your current exercise regime. Consistent 30-minute daily walks will help reach your target score of 90+ next week.</p>
+                <span className="font-extrabold text-[#00a896] dark:text-cyan-300 block">{t('score.doc_rec_title', 'Doctor Recommendation:')}</span>
+                <p className="font-medium">{t('score.doc_rec_text', 'Maintain your current exercise regime. Consistent 30-minute daily walks will help reach your target score of 90+ next week.')}</p>
               </div>
 
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="w-full py-3 rounded-2xl bg-[#00a896] hover:bg-[#00897b] text-white font-extrabold text-xs shadow-md cursor-pointer transition-colors"
               >
-                Close Analysis
+                {t('score.close_analysis', 'Close Analysis')}
               </button>
             </motion.div>
           </div>

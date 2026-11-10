@@ -27,6 +27,7 @@ interface PharmacistSidebarProps {
     email?: string;
     role?: string;
     hospitalAffiliation?: string;
+    pharmacyId?: string;
   };
   onLogout?: () => void;
 }
@@ -52,8 +53,20 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
 
   React.useEffect(() => {
     loadSidebarData();
+
+    const pollInterval = setInterval(() => {
+      loadSidebarData();
+    }, 4000);
+
     const handleUpdate = () => loadSidebarData();
     window.addEventListener('health_workflow_updated', handleUpdate);
+
+    const handleStorageUpdate = (e: StorageEvent) => {
+      if (e.key === 'health_workflow_last_updated' || e.key === 'pharmacy_order_updated') {
+        loadSidebarData();
+      }
+    };
+    window.addEventListener('storage', handleStorageUpdate);
 
     let unsub: any;
     import('../../services/socketService').then(({ socketService }) => {
@@ -64,7 +77,9 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
     });
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('health_workflow_updated', handleUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
       if (unsub) unsub();
     };
   }, []);
@@ -92,6 +107,43 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
     } catch {}
     return user?.name || 'Registered Pharmacist';
   }, [user?.name]);
+
+  const dispensaryName = React.useMemo(() => {
+    if (user?.hospitalAffiliation && user.hospitalAffiliation !== 'Apollo Central Pharmacy Hub') {
+      return user.hospitalAffiliation;
+    }
+    try {
+      const stored = localStorage.getItem('pharmacist_pharmacy_name');
+      if (stored) return stored;
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.hospitalAffiliation || parsed?.pharmacyName) {
+          return parsed.hospitalAffiliation || parsed.pharmacyName;
+        }
+      }
+    } catch {}
+    return user?.hospitalAffiliation || 'Dispensary Hub';
+  }, [user?.hospitalAffiliation]);
+
+  const pharmacyCode = React.useMemo(() => {
+    const rawId = user?.pharmacyId || localStorage.getItem('pharmacist_pharmacy_id');
+    if (rawId) {
+      if (rawId.startsWith('PHARM-')) return rawId;
+      return rawId.length > 8 ? rawId.slice(-7).toUpperCase() : rawId.toUpperCase();
+    }
+    try {
+      const appUser = localStorage.getItem('app_user');
+      if (appUser) {
+        const parsed = JSON.parse(appUser);
+        if (parsed?.pharmacyId) {
+          const pid = parsed.pharmacyId;
+          return pid.startsWith('PHARM-') ? pid : pid.slice(-7).toUpperCase();
+        }
+      }
+    } catch {}
+    return 'RX-HUB';
+  }, [user?.pharmacyId]);
 
   // PROFESSIONAL PHARMACY WORKSTATION NAV GROUPS
   const SECTIONS = [
@@ -161,7 +213,7 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
               Online Dispensary
             </span>
             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-              AP-8941
+              {pharmacyCode}
             </span>
           </div>
 
@@ -175,7 +227,7 @@ export const PharmacistSidebar: React.FC<PharmacistSidebarProps> = ({
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate flex items-center gap-1">
                 <Building2 className="w-3 h-3 text-[#00a896] shrink-0" />
-                <span>Apollo Central Pharmacy Hub</span>
+                <span>{dispensaryName}</span>
               </p>
             </div>
           </div>

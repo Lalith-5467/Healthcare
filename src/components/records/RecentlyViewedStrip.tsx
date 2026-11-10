@@ -1,6 +1,7 @@
 import React from 'react';
 import { History, Eye } from 'lucide-react';
 import type { MedicalRecordItem } from './recordsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RecentlyViewedStripProps {
   recentRecords: MedicalRecordItem[];
@@ -11,6 +12,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
   recentRecords,
   onViewRecord
 }) => {
+  const { t } = useLanguage();
   if (recentRecords.length === 0) return null;
 
   return (
@@ -20,7 +22,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
           <History className="w-3.5 h-3.5" />
         </div>
         <h3 className="text-xs font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">
-          Recently Viewed Records
+          {t('records.recently_viewed', 'Recently Viewed Records')}
         </h3>
       </div>
 

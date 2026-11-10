@@ -41,9 +41,11 @@ export const NurseInventoryView: React.FC = () => {
       
       {/* TOAST */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl bg-[#00a896] text-white font-black text-xs shadow-2xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{toast}</span>
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none select-none max-w-md w-full px-4 animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="pointer-events-auto select-auto px-5 py-3 rounded-2xl bg-[#00a896] text-white font-black text-xs shadow-2xl flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{toast}</span>
+          </div>
         </div>
       )}
 

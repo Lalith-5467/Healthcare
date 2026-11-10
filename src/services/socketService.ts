@@ -11,6 +11,8 @@ export interface OrderStatusUpdatePayload {
   message: string;
   statusTimeline?: Record<string, string | null>;
   totalAmount?: number | string;
+  paymentStatus?: string;
+  paymentMethod?: string | null;
 }
 
 export interface HealthShareEventPayload {
@@ -28,9 +30,11 @@ const SOCKET_SERVER_URL = 'http://localhost:5000';
 class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
+  private currentToken: string | null = null;
   private listeners: Set<(payload: OrderStatusUpdatePayload) => void> = new Set();
   private healthShareListeners: Set<(payload: HealthShareEventPayload) => void> = new Set();
   private notificationListeners: Set<(payload: any) => void> = new Set();
+  private insuranceClaimListeners: Set<(payload: any) => void> = new Set();
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
 
   /**
@@ -42,14 +46,16 @@ class SocketService {
       return null;
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.socket && this.socket.connected && this.currentToken === authToken) {
       return this.socket;
     }
 
     if (this.socket) {
       this.socket.disconnect();
+      this.socket = null;
     }
 
+    this.currentToken = authToken;
     this.socket = io(SOCKET_SERVER_URL, {
       auth: { token: authToken },
       transports: ['websocket', 'polling'],
@@ -119,7 +125,34 @@ class SocketService {
       });
     });
 
+    // Listen for real-time insurance claim events
+    const insuranceEvents = ['insurance:claim-created', 'insurance:claim-updated'];
+    insuranceEvents.forEach((evtName) => {
+      this.socket?.on(evtName, (payload: any) => {
+        this.insuranceClaimListeners.forEach((callback) => {
+          try {
+            callback(payload);
+          } catch (err) {
+            console.error(`Error handling socket insurance claim event (${evtName}):`, err);
+          }
+        });
+      });
+    });
+
     return this.socket;
+  }
+
+  /**
+   * Subscribe to real-time insurance claim updates
+   */
+  public subscribeToInsuranceClaimEvents(callback: (payload: any) => void): () => void {
+    this.insuranceClaimListeners.add(callback);
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('insurance:subscribe');
+    }
+    return () => {
+      this.insuranceClaimListeners.delete(callback);
+    };
   }
 
   /**
@@ -130,6 +163,15 @@ class SocketService {
     return () => {
       this.listeners.delete(callback);
     };
+  }
+
+  /**
+   * Tell server socket to subscribe to a specific order ID room
+   */
+  public subscribeToOrderRoom(orderId: string): void {
+    if (orderId) {
+      this.socket?.emit('order:subscribe', orderId);
+    }
   }
 
   /**
@@ -182,9 +224,11 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.currentToken = null;
       this.notifyConnectionState(false);
     }
   }
 }
 
 export const socketService = new SocketService();
+export default socketService;

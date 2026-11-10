@@ -1,11 +1,13 @@
 import React from 'react';
 import { Gauge, Info } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface BMIVisualizerCardProps {
   bmi?: number;
 }
 
 export const BMIVisualizerCard: React.FC<BMIVisualizerCardProps> = ({ bmi = 23.8 }) => {
+  const { t } = useLanguage();
   // Map BMI (15 to 35) to percentage (0% to 100%)
   const percentage = Math.min(Math.max(((bmi - 15) / (35 - 15)) * 100, 5), 95);
 
@@ -18,16 +20,18 @@ export const BMIVisualizerCard: React.FC<BMIVisualizerCardProps> = ({ bmi = 23.8
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-              BMI Index Visualizer
+              {t('profile.bmi_visualizer', 'BMI Index Visualizer')}
             </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">Body Mass Index Metric</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              {t('profile.bmi_metric', 'Body Mass Index Metric')}
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xl font-black text-slate-900 dark:text-white">{bmi}</span>
           <span className="px-2.5 py-0.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-            Normal Weight
+            {t('profile.normal_weight', 'Normal Weight')}
           </span>
         </div>
       </div>
@@ -46,17 +50,18 @@ export const BMIVisualizerCard: React.FC<BMIVisualizerCardProps> = ({ bmi = 23.8
 
         {/* RANGE LABELS */}
         <div className="grid grid-cols-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center pt-1">
-          <span className="text-blue-400">Underweight (&lt; 18.5)</span>
-          <span className="text-emerald-400">Normal (18.5 - 24.9)</span>
-          <span className="text-amber-400">Overweight (25 - 29.9)</span>
-          <span className="text-rose-400">Obese (30+)</span>
+          <span className="text-blue-400">{t('profile.underweight', 'Underweight (< 18.5)')}</span>
+          <span className="text-emerald-400">{t('profile.normal_range', 'Normal (18.5 - 24.9)')}</span>
+          <span className="text-amber-400">{t('profile.overweight', 'Overweight (25 - 29.9)')}</span>
+          <span className="text-rose-400">{t('profile.obese', 'Obese (30+)')}</span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
         <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-        <span>BMI is presented as a general health metric for tracking, not a formal medical diagnosis.</span>
+        <span>{t('profile.bmi_disclaimer', 'BMI is presented as a general health metric for tracking, not a formal medical diagnosis.')}</span>
       </div>
     </div>
   );
 };
+

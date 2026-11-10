@@ -1,5 +1,6 @@
 import React from 'react';
 import type { HealthPreferencesSettingsState } from './settingsData';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface HealthPreferencesSectionProps {
   preferences: HealthPreferencesSettingsState;
@@ -12,47 +13,66 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
   onUpdatePreferences,
   onShowToast,
 }) => {
+  const { language, setLanguage, t } = useLanguage();
+
   const toggleReminder = (key: keyof HealthPreferencesSettingsState) => {
     const updated = { ...preferences, [key]: !preferences[key] };
     onUpdatePreferences(updated);
-    onShowToast('✓ Health Reminder preference updated');
+    onShowToast(t('pref.reminder_updated', '✓ Health Reminder preference updated'));
   };
+
+  const selectedLanguageValue = language === 'ta' ? 'Tamil' : (preferences.language || 'English');
 
   return (
     <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl text-xs font-sans">
       {/* HEADER */}
       <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Health Preferences</h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Language, measurement units, healthcare focus, and reminder sync</p>
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+            {t('pref.title', 'Health Preferences')}
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+            {t('pref.subtitle', 'Language, measurement units, healthcare focus, and reminder sync')}
+          </p>
         </div>
       </div>
 
       {/* HEALTHCARE TYPE & LANGUAGE */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
         <div>
-          <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">Preferred Healthcare Focus</label>
+          <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">
+            {t('pref.focus', 'Preferred Healthcare Focus')}
+          </label>
           <select
             value={preferences.healthcareType}
             onChange={(e) => {
               onUpdatePreferences({ ...preferences, healthcareType: e.target.value as any });
-              onShowToast('✓ Healthcare type saved');
+              onShowToast(t('pref.healthcare_saved', '✓ Healthcare type saved'));
             }}
             className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-sans font-medium focus:outline-none"
           >
-            <option value="General Care">General Care</option>
-            <option value="Specialist Care">Specialist Care</option>
-            <option value="Preventive Care">Preventive Care</option>
+            <option value="General Care">{t('pref.general_care', 'General Care')}</option>
+            <option value="Specialist Care">{t('pref.specialist_care', 'Specialist Care')}</option>
+            <option value="Preventive Care">{t('pref.preventive_care', 'Preventive Care')}</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">App Language</label>
+          <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider mb-1.5 font-sans">
+            {t('pref.app_language', 'App Language')}
+          </label>
           <select
-            value={preferences.language}
+            value={selectedLanguageValue}
             onChange={(e) => {
-              onUpdatePreferences({ ...preferences, language: e.target.value as any });
-              onShowToast(`Language preference saved to ${e.target.value}`);
+              const val = e.target.value;
+              onUpdatePreferences({ ...preferences, language: val as any });
+              if (val === 'Tamil') {
+                setLanguage('ta');
+              } else if (val === 'English') {
+                setLanguage('en');
+              }
+              const msgTemplate = t('pref.language_saved', 'Language preference saved to {{lang}}');
+              onShowToast(msgTemplate.replace('{{lang}}', val));
             }}
             className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-sans font-medium focus:outline-none"
           >
@@ -67,12 +87,14 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
 
       {/* MEASUREMENT UNITS */}
       <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 font-mono">
-        <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider font-sans">Measurement Units</label>
+        <label className="block text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider font-sans">
+          {t('pref.units', 'Measurement Units')}
+        </label>
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => {
               onUpdatePreferences({ ...preferences, units: 'Metric' as const });
-              onShowToast('✓ Units set to Metric (kg, cm)');
+              onShowToast(t('pref.units_metric_saved', '✓ Units set to Metric (kg, cm)'));
             }}
             className={`p-3.5 rounded-2xl border font-bold text-center font-sans transition-all cursor-pointer ${
               preferences.units === 'Metric'
@@ -80,13 +102,13 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
                 : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
             }`}
           >
-            Metric (kg, cm, °C)
+            {t('pref.metric', 'Metric (kg, cm, °C)')}
           </button>
 
           <button
             onClick={() => {
               onUpdatePreferences({ ...preferences, units: 'Imperial' as const });
-              onShowToast('✓ Units set to Imperial (lbs, ft)');
+              onShowToast(t('pref.units_imperial_saved', '✓ Units set to Imperial (lbs, ft)'));
             }}
             className={`p-3.5 rounded-2xl border font-bold text-center font-sans transition-all cursor-pointer ${
               preferences.units === 'Imperial'
@@ -94,19 +116,21 @@ export const HealthPreferencesSection: React.FC<HealthPreferencesSectionProps> =
                 : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
             }`}
           >
-            Imperial (lbs, ft, °F)
+            {t('pref.imperial', 'Imperial (lbs, ft, °F)')}
           </button>
         </div>
       </div>
 
       {/* HEALTH REMINDER SYNC */}
       <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 font-mono">
-        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">Automated Health Reminders</h4>
+        <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider font-mono">
+          {t('pref.automated_reminders', 'Automated Health Reminders')}
+        </h4>
         <div className="space-y-2">
           {[
-            { key: 'remindersHydration' as const, title: 'Hydration & Water Intake Reminders', desc: 'Alerts to log daily water consumption' },
-            { key: 'remindersCheckUp' as const, title: 'Weekly Vital Sign Logging', desc: 'Prompts to record BP, SPO2 & body weight' },
-            { key: 'remindersMedication' as const, title: 'Immunization & Vaccine Alerts', desc: 'Preventive vaccine due date notifications' }
+            { key: 'remindersHydration' as const, title: t('pref.hydration_title', 'Hydration & Water Intake Reminders'), desc: t('pref.hydration_desc', 'Alerts to log daily water consumption') },
+            { key: 'remindersCheckUp' as const, title: t('pref.vitals_title', 'Weekly Vital Sign Logging'), desc: t('pref.vitals_desc', 'Prompts to record BP, SPO2 & body weight') },
+            { key: 'remindersMedication' as const, title: t('pref.vaccine_title', 'Immunization & Vaccine Alerts'), desc: t('pref.vaccine_desc', 'Preventive vaccine due date notifications') }
           ].map((rem) => {
             const active = preferences[rem.key];
             return (

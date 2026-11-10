@@ -3,63 +3,64 @@ import { motion } from 'framer-motion';
 import { Activity, Calendar, Pill, FileText, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-const activities = [
-  {
-    id: 1,
-    title: 'Appointment Scheduled with Dr. Rajesh Kumar',
-    time: '10 mins ago',
-    category: 'Appointment',
-    icon: Calendar,
-    accent: '#3b82f6',
-    accentBg: 'rgba(59,130,246,.12)',
-    accentBorder: 'rgba(59,130,246,.25)',
-    categoryColor: '#2563eb',
-    itemBg: 'rgba(239,246,255,.8)',
-    itemBorder: 'rgba(59,130,246,.12)',
-  },
-  {
-    id: 2,
-    title: 'Amoxicillin 500mg marked as taken',
-    time: '1 hour ago',
-    category: 'Medication',
-    icon: Pill,
-    accent: '#f59e0b',
-    accentBg: 'rgba(245,158,11,.12)',
-    accentBorder: 'rgba(245,158,11,.25)',
-    categoryColor: '#d97706',
-    itemBg: 'rgba(255,251,235,.8)',
-    itemBorder: 'rgba(245,158,11,.12)',
-  },
-  {
-    id: 3,
-    title: 'CBC & Blood Panel report uploaded to ABDM Vault',
-    time: '3 hours ago',
-    category: 'Records',
-    icon: FileText,
-    accent: '#10b981',
-    accentBg: 'rgba(16,185,129,.12)',
-    accentBorder: 'rgba(16,185,129,.25)',
-    categoryColor: '#059669',
-    itemBg: 'rgba(240,253,244,.8)',
-    itemBorder: 'rgba(16,185,129,.12)',
-  },
-  {
-    id: 4,
-    title: 'Dr. Anita Sharma requested access to Health Profile',
-    time: 'Yesterday',
-    category: 'Consent',
-    icon: ShieldCheck,
-    accent: '#06b6d4',
-    accentBg: 'rgba(6,182,212,.12)',
-    accentBorder: 'rgba(6,182,212,.25)',
-    categoryColor: '#0891b2',
-    itemBg: 'rgba(236,254,255,.8)',
-    itemBorder: 'rgba(6,182,212,.12)',
-  },
-];
-
 export const RecentActivityTimeline: React.FC = () => {
   const { t } = useLanguage();
+
+  const activities = [
+    {
+      id: 1,
+      title: t('activity.act1_title', 'Appointment Scheduled with Dr. Rajesh Kumar'),
+      time: t('activity.10m_ago', '10 mins ago'),
+      category: t('activity.act1_cat', 'Appointment'),
+      icon: Calendar,
+      accent: '#3b82f6',
+      accentBg: 'rgba(59,130,246,.12)',
+      accentBorder: 'rgba(59,130,246,.25)',
+      categoryColor: '#2563eb',
+      itemBg: 'rgba(239,246,255,.8)',
+      itemBorder: 'rgba(59,130,246,.12)',
+    },
+    {
+      id: 2,
+      title: t('activity.act2_title', 'Amoxicillin 500mg marked as taken'),
+      time: t('activity.1h_ago', '1 hour ago'),
+      category: t('activity.act2_cat', 'Medication'),
+      icon: Pill,
+      accent: '#f59e0b',
+      accentBg: 'rgba(245,158,11,.12)',
+      accentBorder: 'rgba(245,158,11,.25)',
+      categoryColor: '#d97706',
+      itemBg: 'rgba(255,251,235,.8)',
+      itemBorder: 'rgba(245,158,11,.12)',
+    },
+    {
+      id: 3,
+      title: t('activity.act3_title', 'CBC & Blood Panel report uploaded to ABDM Vault'),
+      time: t('activity.3h_ago', '3 hours ago'),
+      category: t('activity.act3_cat', 'Records'),
+      icon: FileText,
+      accent: '#10b981',
+      accentBg: 'rgba(16,185,129,.12)',
+      accentBorder: 'rgba(16,185,129,.25)',
+      categoryColor: '#059669',
+      itemBg: 'rgba(240,253,244,.8)',
+      itemBorder: 'rgba(16,185,129,.12)',
+    },
+    {
+      id: 4,
+      title: t('activity.act4_title', 'Dr. Anita Sharma requested access to Health Profile'),
+      time: t('activity.yesterday', 'Yesterday'),
+      category: t('activity.act4_cat', 'Consent'),
+      icon: ShieldCheck,
+      accent: '#06b6d4',
+      accentBg: 'rgba(6,182,212,.12)',
+      accentBorder: 'rgba(6,182,212,.25)',
+      categoryColor: '#0891b2',
+      itemBg: 'rgba(236,254,255,.8)',
+      itemBorder: 'rgba(6,182,212,.12)',
+    },
+  ];
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -81,7 +82,7 @@ export const RecentActivityTimeline: React.FC = () => {
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('card.recent_activity', 'Recent Patient Activity')}
             </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Real-time Portal Audit Feed</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{t('activity.audit_feed', 'Real-time Portal Audit Feed')}</span>
           </div>
         </div>
 
@@ -92,7 +93,7 @@ export const RecentActivityTimeline: React.FC = () => {
               style={{ background: '#00a896' }} />
             <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#00a896' }} />
           </span>
-          Live Feed
+          {t('activity.live_feed', 'Live Feed')}
         </span>
       </div>
 

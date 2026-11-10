@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useInsuranceWorkflow } from '../../../utils/insuranceWorkflowStorage';
 import { getGreeting } from '../../../utils/greeting';
+import { useLanguage } from '../../../context/LanguageContext';
 
 interface InsuranceOverviewViewProps {
   onNavigate: (id: string) => void;
@@ -14,6 +15,7 @@ interface InsuranceOverviewViewProps {
 
 export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ onNavigate, onSelectClaim }) => {
   const { records } = useInsuranceWorkflow();
+  const { t, language } = useLanguage();
 
   const totalActivePolicies = records.filter(r => r.policyStatus === 'Active').length;
   const allCurrentClaims = records.filter(r => r.currentClaim !== null).map(r => ({
@@ -31,6 +33,17 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
   const underReviewCount = allCurrentClaims.filter(c => c.status === 'Under Review').length;
   const approvedCount = allPastClaims.filter(c => c.status === 'Approved' || c.status === 'Settled').length;
   const totalPayout = allPastClaims.reduce((acc, c) => acc + (c.approvedAmount || 0), 0);
+
+  // Sort records so active pending claims (New or Under Review) appear at the TOP of the work queue
+  const sortedRecords = [...records].sort((a, b) => {
+    const aPending = a.currentClaim && (a.currentClaim.status === 'New' || a.currentClaim.status === 'Under Review');
+    const bPending = b.currentClaim && (b.currentClaim.status === 'New' || b.currentClaim.status === 'Under Review');
+    if (aPending && !bPending) return -1;
+    if (!aPending && bPending) return 1;
+    return 0;
+  });
+
+  const mostRecentPending = sortedRecords.find(r => r.currentClaim && (r.currentClaim.status === 'New' || r.currentClaim.status === 'Under Review'));
 
   const handleClaimClick = (insuranceId: string) => {
     if (onSelectClaim) {
@@ -60,18 +73,24 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
         <div className="space-y-3 relative z-10">
           <div className="flex flex-wrap items-center gap-3">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-cyan-400 text-[11px] font-bold uppercase tracking-widest border border-blue-200 dark:border-blue-400/20 shadow-sm dark:shadow-[0_0_15px_rgba(56,189,248,0.15)]">
-              <ShieldCheck className="w-4 h-4" /> IRDAI TPA Clearinghouse 2.0
+              <ShieldCheck className="w-4 h-4" /> {t('insurance.overview.irdai_clearinghouse', 'IRDAI TPA Clearinghouse 2.0')}
             </div>
             <span className="px-3 py-1.5 text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 rounded-full border border-slate-200 dark:border-slate-700/50">
-              IRDAI-Reg: TPA-019/HLT
+              {t('insurance.overview.reg_num', 'IRDAI-Reg: TPA-019/HLT')}
             </span>
           </div>
 
           <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
-            {getGreeting()}, Insurance & Cashless Pre-Auth Desk
+            {language === 'ta' 
+              ? (getGreeting() === 'Good Morning'
+                  ? t('insurance.overview.greeting_morning', 'காலை வணக்கம், காப்பீடு & பணமில்லா முன்-அங்கீகாரப் பிரிவு')
+                  : getGreeting() === 'Good Evening'
+                  ? t('insurance.overview.greeting_evening', 'மாலை வணக்கம், காப்பீடு & பணமில்லா முன்-அங்கீகாரப் பிரிவு')
+                  : t('insurance.overview.greeting_afternoon', 'மதிய வணக்கம், காப்பீடு & பணமில்லா முன்-அங்கீகாரப் பிரிவு'))
+              : `${getGreeting()}, Insurance & Cashless Pre-Auth Desk`}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 font-medium max-w-2xl leading-relaxed">
-            Connected to Ayushman Bharat (ABDM) health records, live hospital billing gateways, e-prescriptions, and cashless discharge adjudication.
+            {t('insurance.overview.desc', 'Connected to Ayushman Bharat (ABDM) health records, live hospital billing gateways, e-prescriptions, and cashless discharge adjudication.')}
           </p>
         </div>
         
@@ -81,7 +100,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-7 py-4 rounded-2xl font-bold text-sm shadow-md dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer"
           >
             <Search className="w-4 h-4" />
-            <span>Search Patient Policy ID</span>
+            <span>{t('insurance.overview.search_patient_policy', 'Search Patient Policy ID')}</span>
           </button>
 
           <button 
@@ -89,7 +108,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-slate-800 dark:text-white px-6 py-4 rounded-2xl font-semibold text-sm border border-slate-200 dark:border-slate-600/50 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
           >
             <IndianRupee className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-            <span>Settlement Ledger</span>
+            <span>{t('insurance.overview.settlement_ledger', 'Settlement Ledger')}</span>
           </button>
         </div>
       </div>
@@ -97,18 +116,19 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
       {/* 2. STATS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Active Policies', value: totalActivePolicies.toString(), icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', borderTop: 'border-t-emerald-500', sparkColor: 'text-emerald-500' },
-          { label: 'New Cashless Claims', value: newClaimsCount.toString(), icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', borderTop: 'border-t-blue-500', sparkColor: 'text-blue-500' },
-          { label: 'Under Review', value: underReviewCount.toString(), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10', borderTop: 'border-t-amber-500', sparkColor: 'text-amber-500' },
-          { label: 'Settled Discharges', value: approvedCount.toString(), icon: CheckCircle2, color: 'text-teal-500', bg: 'bg-teal-500/10', borderTop: 'border-t-teal-500', sparkColor: 'text-teal-500' },
-          { label: 'Total Reimbursed', value: `₹${(totalPayout / 1000).toFixed(1)}k`, icon: IndianRupee, color: 'text-indigo-500', bg: 'bg-indigo-500/10', borderTop: 'border-t-indigo-500', sparkColor: 'text-indigo-500' }
+          { label: 'Active Policies', value: totalActivePolicies.toString(), icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', borderTop: 'border-t-emerald-500', sparkColor: 'text-emerald-500', target: 'policies' },
+          { label: 'New Cashless Claims', value: newClaimsCount.toString(), icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', borderTop: 'border-t-blue-500', sparkColor: 'text-blue-500', target: 'claims' },
+          { label: 'Under Review', value: underReviewCount.toString(), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10', borderTop: 'border-t-amber-500', sparkColor: 'text-amber-500', target: 'claims' },
+          { label: 'Settled Discharges', value: approvedCount.toString(), icon: CheckCircle2, color: 'text-teal-500', bg: 'bg-teal-500/10', borderTop: 'border-t-teal-500', sparkColor: 'text-teal-500', target: 'settlements' },
+          { label: 'Total Reimbursed', value: `₹${(totalPayout / 1000).toFixed(1)}k`, icon: IndianRupee, color: 'text-indigo-500', bg: 'bg-indigo-500/10', borderTop: 'border-t-indigo-500', sparkColor: 'text-indigo-500', target: 'settlements' }
         ].map((stat, i) => (
           <motion.div 
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className={`relative overflow-hidden bg-white dark:bg-[#0b1120] p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 border-t-2 ${stat.borderTop} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`}
+            onClick={() => onNavigate(stat.target)}
+            className={`relative overflow-hidden bg-white dark:bg-[#0b1120] p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 border-t-2 ${stat.borderTop} shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col justify-between group cursor-pointer`}
           >
             {/* Sparkline Background */}
             {renderSparkline(stat.sparkColor)}
@@ -122,11 +142,50 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             
             <div className="relative z-10">
               <p className="text-3xl font-black text-slate-900 dark:text-white leading-none mb-1.5">{stat.value}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{stat.label}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{t(stat.label)}</p>
             </div>
           </motion.div>
         ))}
       </div>
+
+      {/* 2.5 LIVE INCOMING PATIENT CLAIM SPOTLIGHT BANNER */}
+      {mostRecentPending && mostRecentPending.currentClaim && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 border-2 border-amber-500/30 dark:border-amber-500/20 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30 animate-pulse">
+              <Zap className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-md">
+                  {t('insurance.banner.action_required', 'Action Required • Live Incoming Claim')}
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">
+                  {mostRecentPending.currentClaim.claimId}
+                </span>
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                {t(mostRecentPending.patientName)} • ₹{mostRecentPending.currentClaim.submittedAmount.toLocaleString('en-IN')}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                {t(mostRecentPending.currentClaim.hospital)} — {t(mostRecentPending.currentClaim.treatment)}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => handleClaimClick(mostRecentPending.insuranceId)}
+            className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs rounded-xl shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 hover:scale-[1.02]"
+          >
+            <span>{t('insurance.banner.review_approve_btn', 'Review & Approve Claim Now')}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
 
       {/* 3. MAIN WORKSTATION TWO-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -137,21 +196,21 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800/80 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/30">
               <div>
                 <h2 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4 text-blue-500" /> Real-Time Claims Stream
+                  <FileText className="w-4 h-4 text-blue-500" /> {t('insurance.stream.title', 'Real-Time Claims Stream')}
                 </h2>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Select a claim to review billing and approve cashless discharge.</p>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('insurance.stream.subtitle', 'Select a claim to review billing and approve cashless discharge.')}</p>
               </div>
 
               <button
                 onClick={() => onNavigate('search')}
                 className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:text-blue-700 dark:hover:text-cyan-300 flex items-center gap-1 cursor-pointer shrink-0 transition-colors bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg"
               >
-                Search by ID <ChevronRight className="w-3.5 h-3.5" />
+                {t('insurance.stream.search_by_id', 'Search by ID')} <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="p-4 sm:p-6 divide-y divide-slate-100 dark:divide-slate-800/50 flex-1 overflow-y-auto">
-              {records.map((record) => {
+              {sortedRecords.map((record) => {
                 const currentClaim = record.currentClaim;
                 const pastClaim = record.claims[0];
                 const displayClaim = currentClaim || pastClaim;
@@ -178,7 +237,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          <span className="text-slate-700 dark:text-slate-300 font-semibold">{record.patientName}</span> • {displayClaim.treatment} • {displayClaim.hospital}
+                          <span className="text-slate-700 dark:text-slate-300 font-semibold">{t(record.patientName)}</span> • {t(displayClaim.treatment)} • {t(displayClaim.hospital)}
                         </p>
                       </div>
                     </div>
@@ -188,7 +247,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                         <p className="text-sm font-black text-slate-900 dark:text-white">
                           ₹{displayClaim.submittedAmount.toLocaleString('en-IN')}
                         </p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">Claimed</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t('insurance.stream.claimed', 'Claimed')}</p>
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -202,7 +261,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                           {displayClaim.status === 'Under Review' && (
                             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping opacity-75"></span>
                           )}
-                          {displayClaim.status}
+                          {t(displayClaim.status)}
                         </span>
                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
                           <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
@@ -230,16 +289,16 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                   <div className="w-8 h-8 rounded-xl bg-cyan-50 dark:bg-cyan-500/20 flex items-center justify-center border border-cyan-200 dark:border-cyan-500/30">
                     <Zap className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   </div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-wide">Automated Pre-Auth Adjudication</h3>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-wide">{t('insurance.auto.title', 'Automated Pre-Auth Adjudication')}</h3>
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded border border-emerald-200 dark:border-emerald-400/30">
-                  AI Active
+                  {t('insurance.auto.ai_active', 'AI Active')}
                 </span>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
-                  <span>Auto-Approval Rate</span>
+                  <span>{t('Auto-Approval Rate')}</span>
                   <span className="text-cyan-600 dark:text-cyan-400">94%</span>
                 </div>
                 {/* Progress Bar */}
@@ -254,7 +313,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                   </motion.div>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium pt-1">
-                  OCR bill verification active. Standard OPD/ICU requests verified in &lt;15s.
+                  {t('insurance.auto.desc', 'Machine learning policy rules engine instantly validates NABH tariff caps, length of stay, and ABDM clinical tokens.')}
                 </p>
               </div>
 
@@ -262,7 +321,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
                 onClick={() => onNavigate('search')}
                 className="w-full py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-sm border border-slate-200 dark:border-white/10 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
               >
-                Verify Patient Pre-Auth Code <ArrowUpRight className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <span>{t('Verify Patient Pre-Auth Code')}</span> <ArrowUpRight className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               </button>
             </div>
           </div>
@@ -272,10 +331,10 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
               <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-blue-500" />
-                Hospital Clearinghouse Node
+                {t('Hospital Clearinghouse Node')}
               </h3>
               <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">
-                12 Nodes Online
+                {t('12 Nodes Online')}
               </span>
             </div>
 
@@ -287,8 +346,8 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
               ].map((h, idx) => (
                 <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-0.5">{h.name}</h4>
-                    <p className="text-[11px] text-slate-500 font-medium">{h.city} • <span className="text-blue-600 dark:text-cyan-500">{h.speed}</span></p>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-0.5">{t(h.name)}</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">{t(h.city)} • <span className="text-blue-600 dark:text-cyan-500">{t(h.speed)}</span></p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
@@ -301,7 +360,7 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
               onClick={() => onNavigate('hospitals')}
               className="w-full py-2.5 text-xs font-bold text-blue-600 dark:text-cyan-400 hover:text-blue-800 dark:hover:text-cyan-300 text-center cursor-pointer block transition-colors bg-blue-50 dark:bg-blue-900/10 rounded-xl"
             >
-              Manage 850+ Cashless Network Hospitals →
+              {t('Manage 850+ Cashless Network Hospitals →')}
             </button>
           </div>
 
@@ -312,23 +371,23 @@ export const InsuranceOverviewView: React.FC<InsuranceOverviewViewProps> = ({ on
             
             <div className="relative z-10 flex items-center justify-between pb-2">
               <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" /> IRDAI Audit Matrix
+                <ShieldCheck className="w-4 h-4 text-emerald-500" /> {t('IRDAI Audit Matrix')}
               </span>
               <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">
-                Compliant
+                {t('Compliant')}
               </span>
             </div>
             
             <div className="relative z-10 grid grid-cols-2 gap-4 text-center">
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <p className="text-xl font-black text-slate-900 dark:text-white mb-1">99.9%</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ABDM Auto-Audit</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t('ABDM Auto-Audit')}</p>
               </div>
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-1 flex items-center justify-center gap-1">
-                  <Check className="w-5 h-5" /> 0 Flags
+                  <Check className="w-5 h-5" /> {t('0 Flags')}
                 </p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Fraud Score</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t('Fraud Score')}</p>
               </div>
             </div>
           </div>

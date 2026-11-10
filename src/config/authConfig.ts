@@ -7,5 +7,5 @@ export const AUTH_CONFIG = {
    * Default is `false` so users can register without waiting for email verification codes.
    * To enable email verification later, set this flag to `true`.
    */
-  EMAIL_VERIFICATION_ENABLED: false,
+  EMAIL_VERIFICATION_ENABLED: true,
 };

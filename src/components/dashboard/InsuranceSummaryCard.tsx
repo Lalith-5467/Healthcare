@@ -25,7 +25,7 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('card.insurance_policy', 'Insurance Policy Summary')}
             </h3>
-            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">CarePlus Family Floater</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-mono">{t('insurance_card.plan_name', 'CarePlus Family Floater')}</span>
           </div>
         </div>
 
@@ -37,12 +37,12 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
       {/* METRICS */}
       <div className="grid grid-cols-2 gap-3 font-mono">
         <div className="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-0.5">
-          <span className="text-[10px] text-slate-600 dark:text-slate-300 uppercase font-sans font-bold block">Total Coverage</span>
+          <span className="text-[10px] text-slate-600 dark:text-slate-300 uppercase font-sans font-bold block">{t('insurance_card.total_coverage', 'Total Coverage')}</span>
           <strong className="text-lg font-black text-slate-900 dark:text-white font-sans">₹10,00,000</strong>
         </div>
 
         <div className="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-0.5">
-          <span className="text-[10px] text-slate-600 dark:text-slate-300 uppercase font-sans font-bold block">Policy Expiry</span>
+          <span className="text-[10px] text-slate-600 dark:text-slate-300 uppercase font-sans font-bold block">{t('insurance_card.policy_expiry', 'Policy Expiry')}</span>
           <strong className="text-sm font-extrabold text-amber-700 dark:text-amber-300">31 Dec 2026</strong>
         </div>
       </div>
@@ -57,7 +57,7 @@ export const InsuranceSummaryCard: React.FC<InsuranceSummaryCardProps> = ({ onNa
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">100% Cashless</span>
+        <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">{t('insurance_card.cashless', '100% Cashless')}</span>
       </div>
     </motion.div>
   );
