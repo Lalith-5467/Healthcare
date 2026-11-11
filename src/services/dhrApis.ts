@@ -163,8 +163,8 @@ export const authApi = {
   getCurrentUser: () =>
     apiClient.get<UserAccount>('/auth/me'),
 
-  sendOtp: (email: string) =>
-    apiClient.post<{ success: boolean; message: string; previewCode?: string }>('/auth/send-otp', { email }),
+  sendOtp: (email: string, name?: string, role?: string) =>
+    apiClient.post<{ success: boolean; message: string; previewCode?: string }>('/auth/send-otp', { email, name, role }),
 
   verifyOtp: (email: string, otp: string) =>
     apiClient.post<{ success: boolean; message: string }>('/auth/verify-otp', { email, otp }),

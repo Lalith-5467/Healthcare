@@ -107,7 +107,7 @@ export class AuthService {
   /**
    * Send Email Verification OTP (For when email verification is enabled)
    */
-  static async sendEmailOtp(email: string): Promise<{ success: boolean; message: string; previewCode?: string }> {
+  static async sendEmailOtp(email: string, name?: string, role?: string): Promise<{ success: boolean; message: string; previewCode?: string }> {
     const tTotalStart = performance.now();
 
     if (!email || !EMAIL_REGEX.test(email)) {
@@ -145,7 +145,7 @@ export class AuthService {
     // Send OTP via real SMTP email
     const tSmtpStart = performance.now();
     try {
-      await EmailService.sendVerificationOtpEmail(normalizedEmail, code);
+      await EmailService.sendVerificationOtpEmail(normalizedEmail, code, name, role);
     } catch (emailErr: any) {
       console.error(`[Email Verification OTP] Delivery failed for ${normalizedEmail}:`, emailErr.message || emailErr);
       const err: AppError = new Error(`Failed to deliver verification email. Please verify the email address or try again.`);

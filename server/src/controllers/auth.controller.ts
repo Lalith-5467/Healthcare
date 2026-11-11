@@ -65,8 +65,8 @@ export const sendOtpController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email } = req.body;
-    const result = await AuthService.sendEmailOtp(email);
+    const { email, name, role } = req.body;
+    const result = await AuthService.sendEmailOtp(email, name, role);
     res.status(200).json(result);
   } catch (error) {
     next(error);
