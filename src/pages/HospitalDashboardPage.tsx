@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { adminApi, pharmacyApi, insuranceApi } from '../services/dhrApis';
 import { 
   getStoredHospitals, 
   type HospitalAdminRecord, 
@@ -42,6 +43,35 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
   const [selectedHospital, setSelectedHospital] = useState<HospitalAdminRecord | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'nurses' | 'patients' | 'pharmacists' | 'caregivers' | 'insurance'>('overview');
   const [searchFilter, setSearchFilter] = useState('');
+
+  // Live real data counts from database
+  const [liveDoctors, setLiveDoctors] = useState<any[]>([]);
+  const [liveNurses, setLiveNurses] = useState<any[]>([]);
+  const [livePatients, setLivePatients] = useState<any[]>([]);
+  const [livePharmacists, setLivePharmacists] = useState<any[]>([]);
+  const [liveCaregivers, setLiveCaregivers] = useState<any[]>([]);
+  const [liveInsurance, setLiveInsurance] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch live registered users from backend database
+    adminApi.getUsers({ limit: 100 }).then((res) => {
+      if (res && res.data) {
+        const all: any[] = Array.isArray(res.data) ? res.data : (res.data as any).users || [];
+        setLiveDoctors(all.filter((u) => u.role === 'DOCTOR'));
+        setLiveNurses(all.filter((u) => u.role === 'NURSE'));
+        setLivePatients(all.filter((u) => u.role === 'PATIENT'));
+        setLivePharmacists(all.filter((u) => u.role === 'PHARMACIST'));
+        setLiveCaregivers(all.filter((u) => u.role === 'CAREGIVER'));
+        setLiveInsurance(all.filter((u) => u.role === 'INSURANCE_PROVIDER' || u.role === 'INSURANCE'));
+      }
+    }).catch(() => {});
+
+    insuranceApi.getPolicies().then((res) => {
+      if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+        setLiveInsurance(res.data);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const list = getStoredHospitals();
@@ -87,13 +117,13 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
     );
   }
 
-  // Hospital specific calculations
-  const facilityDoctors = INITIAL_DOCTORS.filter((d) => !d.hospital || d.hospital === selectedHospital.name);
-  const facilityNurses = INITIAL_NURSES.filter((n) => !n.hospital || n.hospital === selectedHospital.name);
-  const facilityPatients = INITIAL_PATIENTS.filter((p) => !p.hospital || p.hospital === selectedHospital.name);
-  const facilityPharmacists = INITIAL_PHARMACISTS.filter((ph) => !ph.hospital || ph.hospital === selectedHospital.name);
-  const facilityCaregivers = INITIAL_CAREGIVERS.filter((cg) => !cg.hospital || cg.hospital === selectedHospital.name);
-  const facilityInsurance = INITIAL_INSURANCE_POLICIES.filter((ins) => !ins.hospital || ins.hospital === selectedHospital.name);
+  // Real data calculations (falls back to mock if DB has no records yet)
+  const realDoctors = liveDoctors.length > 0 ? liveDoctors.filter((d) => !d.doctor?.hospital || d.doctor?.hospital === selectedHospital.name) : INITIAL_DOCTORS.filter((d) => !d.hospital || d.hospital === selectedHospital.name);
+  const realNurses = liveNurses.length > 0 ? liveNurses.filter((n) => !n.nurse?.hospital || n.nurse?.hospital === selectedHospital.name) : INITIAL_NURSES.filter((n) => !n.hospital || n.hospital === selectedHospital.name);
+  const realPatients = livePatients.length > 0 ? livePatients.filter((p) => !p.patient?.hospital || p.patient?.hospital === selectedHospital.name) : INITIAL_PATIENTS.filter((p) => !p.hospital || p.hospital === selectedHospital.name);
+  const realPharmacists = livePharmacists.length > 0 ? livePharmacists.filter((ph) => !ph.pharmacist?.hospital || ph.pharmacist?.hospital === selectedHospital.name) : INITIAL_PHARMACISTS.filter((ph) => !ph.hospital || ph.hospital === selectedHospital.name);
+  const realCaregivers = liveCaregivers.length > 0 ? liveCaregivers.filter((cg) => !cg.caregiver?.hospital || cg.caregiver?.hospital === selectedHospital.name) : INITIAL_CAREGIVERS.filter((cg) => !cg.hospital || cg.hospital === selectedHospital.name);
+  const realInsurance = liveInsurance.length > 0 ? liveInsurance : INITIAL_INSURANCE_POLICIES.filter((ins) => !ins.hospital || ins.hospital === selectedHospital.name);
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
@@ -168,12 +198,12 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
       <div className="bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none py-2">
         {[
           { id: 'overview', label: 'Overview & Facility Stats', icon: Activity },
-          { id: 'doctors', label: `Doctors (${facilityDoctors.length})`, icon: Stethoscope },
-          { id: 'nurses', label: `Nurses (${facilityNurses.length})`, icon: HeartPulse },
-          { id: 'patients', label: `Patients (${facilityPatients.length})`, icon: Users },
-          { id: 'pharmacists', label: `Pharmacy (${facilityPharmacists.length})`, icon: Pill },
-          { id: 'caregivers', label: `Caregivers (${facilityCaregivers.length})`, icon: HeartHandshake },
-          { id: 'insurance', label: `Insurance Desk (${facilityInsurance.length})`, icon: ShieldCheck },
+          { id: 'doctors', label: `Doctors (${realDoctors.length})`, icon: Stethoscope },
+          { id: 'nurses', label: `Nurses (${realNurses.length})`, icon: HeartPulse },
+          { id: 'patients', label: `Patients (${realPatients.length})`, icon: Users },
+          { id: 'pharmacists', label: `Pharmacy (${realPharmacists.length})`, icon: Pill },
+          { id: 'caregivers', label: `Caregivers (${realCaregivers.length})`, icon: HeartHandshake },
+          { id: 'insurance', label: `Insurance Desk (${realInsurance.length})`, icon: ShieldCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -243,7 +273,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Doctors</span>
                     <Stethoscope className="w-4 h-4 text-teal-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityDoctors.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realDoctors.length}</span>
                   <span className="text-[10px] text-teal-600 dark:text-teal-400 block mt-0.5">Active Staff</span>
                 </div>
 
@@ -255,7 +285,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Nurses</span>
                     <HeartPulse className="w-4 h-4 text-rose-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityNurses.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realNurses.length}</span>
                   <span className="text-[10px] text-rose-600 dark:text-rose-400 block mt-0.5">Shift Duty</span>
                 </div>
 
@@ -267,7 +297,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Patients</span>
                     <Users className="w-4 h-4 text-cyan-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityPatients.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realPatients.length}</span>
                   <span className="text-[10px] text-cyan-600 dark:text-cyan-400 block mt-0.5">Under Care</span>
                 </div>
 
@@ -279,7 +309,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Pharmacy</span>
                     <Pill className="w-4 h-4 text-amber-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityPharmacists.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realPharmacists.length}</span>
                   <span className="text-[10px] text-amber-600 dark:text-amber-400 block mt-0.5">Dispensing</span>
                 </div>
 
@@ -291,7 +321,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Caregivers</span>
                     <HeartHandshake className="w-4 h-4 text-indigo-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityCaregivers.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realCaregivers.length}</span>
                   <span className="text-[10px] text-indigo-600 dark:text-indigo-400 block mt-0.5">Support</span>
                 </div>
 
@@ -303,7 +333,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
                     <span className="text-[11px] font-bold">Insurance</span>
                     <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{facilityInsurance.length}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{realInsurance.length}</span>
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block mt-0.5">TPA Partners</span>
                 </div>
               </div>
@@ -349,23 +379,23 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
           )}
 
           {activeTab === 'doctors' && (
-            <AdminStaffManagementView type="doctor" />
+            <AdminStaffManagementView type="doctor" defaultHospital={selectedHospital.name} />
           )}
 
           {activeTab === 'nurses' && (
-            <AdminStaffManagementView type="nurse" />
+            <AdminStaffManagementView type="nurse" defaultHospital={selectedHospital.name} />
           )}
 
           {activeTab === 'patients' && (
-            <AdminPatientManagementView />
+            <AdminPatientManagementView defaultHospital={selectedHospital.name} />
           )}
 
           {activeTab === 'pharmacists' && (
-            <AdminStaffManagementView type="pharmacist" />
+            <AdminStaffManagementView type="pharmacist" defaultHospital={selectedHospital.name} />
           )}
 
           {activeTab === 'caregivers' && (
-            <AdminStaffManagementView type="caregiver" />
+            <AdminStaffManagementView type="caregiver" defaultHospital={selectedHospital.name} />
           )}
 
           {activeTab === 'insurance' && (

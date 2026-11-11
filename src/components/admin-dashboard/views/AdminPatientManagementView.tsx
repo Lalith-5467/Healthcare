@@ -32,13 +32,23 @@ export interface PatientRecord {
   address: string;
 }
 
-export const AdminPatientManagementView: React.FC = () => {
+interface AdminPatientManagementViewProps {
+  defaultHospital?: string;
+}
+
+export const AdminPatientManagementView: React.FC<AdminPatientManagementViewProps> = ({ defaultHospital }) => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Disabled'>('All');
-  const [hospitalFilter, setHospitalFilter] = useState<string>('All');
+  const [hospitalFilter, setHospitalFilter] = useState<string>(defaultHospital || 'All');
   const [availableHospitals, setAvailableHospitals] = useState<HospitalAdminRecord[]>([]);
+
+  useEffect(() => {
+    if (defaultHospital) {
+      setHospitalFilter(defaultHospital);
+    }
+  }, [defaultHospital]);
 
   useEffect(() => {
     setAvailableHospitals(getStoredHospitals());

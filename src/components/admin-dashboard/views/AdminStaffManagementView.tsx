@@ -16,6 +16,7 @@ import { AdminDeleteConfirmModal } from '../modals/AdminDeleteConfirmModal';
 
 interface AdminStaffManagementViewProps {
   type: 'doctor' | 'nurse' | 'pharmacist' | 'caregiver';
+  defaultHospital?: string;
 }
 
 export interface StaffMember {
@@ -31,7 +32,7 @@ export interface StaffMember {
   status: 'Active' | 'Suspended';
 }
 
-export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> = ({ type }) => {
+export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> = ({ type, defaultHospital }) => {
   const roleConfigMap = {
     doctor: {
       roleLabel: 'Doctor',
@@ -119,10 +120,16 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Suspended'>('All');
-  const [hospitalFilter, setHospitalFilter] = useState<string>('All');
+  const [hospitalFilter, setHospitalFilter] = useState<string>(defaultHospital || 'All');
   const [availableHospitals, setAvailableHospitals] = useState<HospitalAdminRecord[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (defaultHospital) {
+      setHospitalFilter(defaultHospital);
+    }
+  }, [defaultHospital]);
 
   useEffect(() => {
     setAvailableHospitals(getStoredHospitals());
