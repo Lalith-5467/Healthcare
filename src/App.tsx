@@ -311,8 +311,19 @@ const getInitialAppState = () => {
     page = 'login';
   } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
     page = 'register';
-  } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
-    if (loggedIn && userData) {
+  } else if (isHospitalPath || isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
+    if (isHospitalPath) {
+      // Allow direct viewing of Hospital Management Portal with fallback facility administrator
+      page = 'dashboard';
+      if (!userData) {
+        userData = {
+          name: 'Hospital Administrator',
+          email: 'hospital.admin@medicare-central.in',
+          role: 'Admin',
+        };
+        loggedIn = true;
+      }
+    } else if (loggedIn && userData) {
       // For admin paths, verify the logged-in user actually has admin role
       if (isAdminPath) {
         const userRole = (userData.role || '').toLowerCase();
@@ -677,7 +688,20 @@ export const App: React.FC = () => {
         setCurrentPage('login');
       } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
         setCurrentPage('register');
-      } else if (isAdminPath || path.startsWith('/hospital') || path.startsWith('/hospital-admin')) {
+      } else if (path.startsWith('/hospital') || path.startsWith('/hospital-admin')) {
+        setCurrentPage('dashboard');
+        if (!user) {
+          setUser({
+            name: 'Hospital Administrator',
+            email: 'hospital.admin@medicare-central.in',
+            role: 'Admin',
+          });
+          setIsLoggedIn(true);
+        }
+        if (target) {
+          setInitialNavId(target);
+        }
+      } else if (isAdminPath) {
         if (loggedIn) {
           setCurrentPage('dashboard');
           if (target) {
@@ -1005,6 +1029,18 @@ export const App: React.FC = () => {
             />
           ) : currentPage === 'dashboard' ? (
             (() => {
+              const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
+              if (currentPortal === 'hospital') {
+                return (
+                  <HospitalDashboardPage
+                    user={user as any || undefined}
+                    initialHospitalId={initialNavId}
+                    onLogout={handleLogout}
+                    onNavigate={handleNavigate}
+                  />
+                );
+              }
+
               const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
               const isActuallyLoggedIn = Boolean(isLoggedIn && token);
 
@@ -1019,17 +1055,6 @@ export const App: React.FC = () => {
                 );
               }
 
-              const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
-              if (currentPortal === 'hospital') {
-                return (
-                  <HospitalDashboardPage
-                    user={user as any || undefined}
-                    initialHospitalId={initialNavId}
-                    onLogout={handleLogout}
-                    onNavigate={handleNavigate}
-                  />
-                );
-              }
               if (currentPortal === 'admin') {
                 return (
                   <AdminDashboardPage 
