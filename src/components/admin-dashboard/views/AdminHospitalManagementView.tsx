@@ -257,7 +257,7 @@ export const AdminHospitalManagementView: React.FC<AdminHospitalManagementViewPr
     if (onLaunchHospitalPortal) {
       onLaunchHospitalPortal(h);
     } else {
-      window.location.href = `/hospital-admin?hospitalId=${h.id}`;
+      window.location.href = `/hospital/dashboard?hospitalId=${h.id}`;
     }
   };
 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Menu, X, Bell, Shield, LogOut, ChevronDown, UserCheck, 
-  HelpCircle, Search, ShieldCheck, KeyRound, Sparkles, Check, 
+import {
+  Menu, X, Bell, Shield, LogOut, ChevronDown, UserCheck,
+  HelpCircle, Search, ShieldCheck, KeyRound, Sparkles, Check,
   AlertTriangle, Lock, User
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
@@ -78,7 +78,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       if (res && res.data) {
         setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
       }
-    } catch {}
+    } catch { }
   };
 
   React.useEffect(() => {
@@ -150,8 +150,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               if (onNavigate) {
                 try {
                   localStorage.setItem('active_hospital_portal', JSON.stringify(hospital));
-                } catch {}
-                onNavigate('hospital-admin');
+                } catch { }
+                onNavigate('hospital/dashboard');
               }
             }}
           />
@@ -199,11 +199,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
-      
+
       {/* 1. TOP EXECUTIVE HEADER */}
       <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer lg:hidden"
             onClick={() => setMobileSidebarOpen(true)}
           >
@@ -225,21 +225,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setCurrentRole('Admin')}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                currentRole === 'Admin' 
-                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${currentRole === 'Admin'
+                  ? 'bg-[#00a896] text-white shadow-xs font-black'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Admin
             </button>
             <button
               onClick={() => setCurrentRole('Super Admin')}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                currentRole === 'Super Admin' 
-                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${currentRole === 'Super Admin'
+                  ? 'bg-[#00a896] text-white shadow-xs font-black'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Super Admin
             </button>
@@ -248,7 +246,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           {/* DARK / LIGHT THEME TOGGLE */}
           <ThemeToggle />
 
-          <button 
+          <button
             type="button"
             onClick={() => setNotificationPopoverOpen(true)}
             className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -332,7 +330,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
       {/* 2. BODY LAYOUT WITH SIDEBAR AND MAIN CONTENT */}
       <div className="flex flex-1 overflow-hidden">
-        
+
         {/* DESKTOP SIDEBAR */}
         <div className="hidden lg:block shrink-0">
           <AdminSidebar
@@ -348,11 +346,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         <AnimatePresence>
           {mobileSidebarOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
-              <div 
-                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" 
+              <div
+                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
                 onClick={() => setMobileSidebarOpen(false)}
               />
-              <motion.div 
+              <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
@@ -367,7 +365,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   }}
                   currentRole={currentRole}
                   isCollapsed={false}
-                  onToggleCollapse={() => {}}
+                  onToggleCollapse={() => { }}
                 />
               </motion.div>
             </div>

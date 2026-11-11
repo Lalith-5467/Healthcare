@@ -814,12 +814,12 @@ export const App: React.FC = () => {
 
   const handleNavigate = (id: string) => {
     // 1. Explicit public page destinations
-    if (id === 'hospital-admin' || id === 'hospital') {
+    if (id === 'hospital-admin' || id === 'hospital' || id === 'hospital/dashboard') {
       try {
         window.dispatchEvent(new Event('clear_all_toasts'));
       } catch {}
       setCurrentPage('dashboard');
-      window.history.pushState(null, '', '/hospital-admin');
+      window.history.pushState(null, '', '/hospital/dashboard');
       window.scrollTo({ top: 0, behavior: 'instant' });
       return;
     }
