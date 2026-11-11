@@ -10,6 +10,7 @@ import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { adminApi, pharmacyApi, insuranceApi } from '../services/dhrApis';
 import { 
   getStoredHospitals, 
+  saveStoredHospitals,
   type HospitalAdminRecord 
 } from '../utils/adminMockStorage';
 import { AdminStaffManagementView } from '../components/admin-dashboard/views/AdminStaffManagementView';
@@ -60,9 +61,10 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
       }
     }).catch(() => {});
 
-    insuranceApi.getPolicies().then((res) => {
+    adminApi.getHospitals().then((res) => {
       if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setLiveInsurance(res.data);
+        setHospitals(res.data);
+        saveStoredHospitals(res.data);
       }
     }).catch(() => {});
   }, []);
@@ -112,12 +114,12 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
   }
 
   // Real data calculations - only genuinely registered users from the database are counted
-  const realDoctors = liveDoctors.filter((d) => !d.doctor?.hospital || d.doctor?.hospital === selectedHospital.name);
-  const realNurses = liveNurses.filter((n) => !n.nurse?.hospital || n.nurse?.hospital === selectedHospital.name);
-  const realPatients = livePatients.filter((p) => !p.patient?.hospital || p.patient?.hospital === selectedHospital.name);
-  const realPharmacists = livePharmacists.filter((ph) => !ph.pharmacist?.hospital || ph.pharmacist?.hospital === selectedHospital.name);
-  const realCaregivers = liveCaregivers.filter((cg) => !cg.caregiver?.hospital || cg.caregiver?.hospital === selectedHospital.name);
-  const realInsurance = liveInsurance.filter((ins) => !ins.hospital || ins.hospital === selectedHospital.name);
+  const realDoctors = liveDoctors.filter((d) => !selectedHospital?.name || !d.doctor?.hospital || d.doctor?.hospital.toLowerCase().includes(selectedHospital.name.toLowerCase()) || selectedHospital.name.toLowerCase().includes(d.doctor?.hospital.toLowerCase()));
+  const realNurses = liveNurses.filter((n) => !selectedHospital?.name || !n.nurse?.hospital || n.nurse?.hospital.toLowerCase().includes(selectedHospital.name.toLowerCase()) || selectedHospital.name.toLowerCase().includes(n.nurse?.hospital.toLowerCase()));
+  const realPatients = livePatients;
+  const realPharmacists = livePharmacists.filter((ph) => !selectedHospital?.name || !ph.pharmacist?.pharmacyName || ph.pharmacist?.pharmacyName.toLowerCase().includes(selectedHospital.name.toLowerCase()) || selectedHospital.name.toLowerCase().includes(ph.pharmacist?.pharmacyName.toLowerCase()));
+  const realCaregivers = liveCaregivers;
+  const realInsurance = liveInsurance;
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
@@ -381,7 +383,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
           )}
 
           {activeTab === 'patients' && (
-            <AdminPatientManagementView defaultHospital={selectedHospital.name} />
+            <AdminPatientManagementView defaultHospital="All" />
           )}
 
           {activeTab === 'pharmacists' && (
@@ -389,7 +391,7 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
           )}
 
           {activeTab === 'caregivers' && (
-            <AdminStaffManagementView type="caregiver" defaultHospital={selectedHospital.name} />
+            <AdminStaffManagementView type="caregiver" defaultHospital="All" />
           )}
 
           {activeTab === 'insurance' && (

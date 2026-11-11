@@ -140,7 +140,7 @@ export const AdminPatientManagementView: React.FC<AdminPatientManagementViewProp
             gender: overrides[u.id]?.gender || prof.gender || 'Unspecified',
             phone: overrides[u.id]?.phone || u.phoneNumber || prof.emergencyContactPhone || 'Not registered',
             bloodGroup: overrides[u.id]?.bloodGroup || prof.bloodGroup || 'Unspecified',
-            hospital: overrides[u.id]?.hospital || prof.hospital || 'MediCare Central Hospital',
+            hospital: overrides[u.id]?.hospital || prof.hospital || 'MediCare Central Hub',
             status: overrideStatus || baseStatus,
             createdAt: u.createdAt,
             abhaId: overrides[u.id]?.abhaId || u.abhaId || prof.abhaId || 'Not linked',

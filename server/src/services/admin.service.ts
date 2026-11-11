@@ -1029,6 +1029,125 @@ export class AdminService {
 
   // --- Hospital Management Methods ---
   static async getHospitals() {
+    try {
+      const [docs, nurses, pharm, cg, ins, patients] = await Promise.all([
+        prisma.doctor.findMany({ select: { fullName: true, hospital: true } }),
+        prisma.nurse.findMany({ select: { fullName: true, hospital: true } }),
+        prisma.pharmacist.findMany({ select: { fullName: true, pharmacyName: true } }),
+        prisma.caregiver.findMany({ select: { fullName: true } }),
+        prisma.insuranceProvider.findMany({ select: { providerName: true } }),
+        prisma.patient.findMany({
+          select: {
+            fullName: true,
+            appointments: { select: { doctor: { select: { hospital: true } } } },
+            medicalRecords: { select: { hospital: true } },
+          },
+        }),
+      ]);
+
+      const hospMap = new Map<string, HospitalRecord>();
+
+      // Pre-seed known hospitals with actual locations
+      const knownHospitals = [
+        { name: 'Apollo Multispeciality Hospitals, Chennai', code: 'APO-CHN', city: 'Chennai', state: 'Tamil Nadu', address: '21 Greams Lane, Thousand Lights, Chennai 600006' },
+        { name: 'Apollo Medical Centre', code: 'APO-MED', city: 'Chennai', state: 'Tamil Nadu', address: 'Kotturpuram, Chennai 600085' },
+        { name: 'Fortis Healthcare, Adyar', code: 'FOR-ADY', city: 'Chennai', state: 'Tamil Nadu', address: 'Adyar, Chennai 600020' },
+        { name: 'Kauvery Hospital, Alwarpet', code: 'KAU-ALW', city: 'Chennai', state: 'Tamil Nadu', address: '81 TTK Road, Alwarpet, Chennai 600018' },
+        { name: 'Apollo Childrens Hospital, Thousand Lights', code: 'APO-CHD', city: 'Chennai', state: 'Tamil Nadu', address: 'Thousand Lights, Chennai 600006' },
+        { name: 'MGM Healthcare, Nelson Manickam Road', code: 'MGM-CHN', city: 'Chennai', state: 'Tamil Nadu', address: 'Nelson Manickam Road, Aminjikarai, Chennai 600029' },
+        { name: 'Apollo Ortho Centre, Chennai', code: 'APO-ORT', city: 'Chennai', state: 'Tamil Nadu', address: 'Chennai, Tamil Nadu' },
+        { name: 'SRM hospitals', code: 'SRM-CHN', city: 'Chennai', state: 'Tamil Nadu', address: 'SRM Nagar, Potheri, Chennai 603203' },
+        { name: 'CMC', code: 'CMC-VEL', city: 'Vellore', state: 'Tamil Nadu', address: 'Ida Scudder Road, Vellore 632004' },
+        { name: 'JIMS Hospital', code: 'JIM-CHN', city: 'Chennai', state: 'Tamil Nadu', address: 'Chennai, Tamil Nadu' },
+        { name: 'Apollo Home Care Division', code: 'APO-HMC', city: 'Chennai', state: 'Tamil Nadu', address: 'Chennai, Tamil Nadu' },
+        { name: 'Kauvery Home Health Care', code: 'KAU-HMC', city: 'Chennai', state: 'Tamil Nadu', address: 'Alwarpet, Chennai 600018' },
+        { name: 'Fortis Malar Hospital, Chennai', code: 'FOR-MLR', city: 'Chennai', state: 'Tamil Nadu', address: '52 1st Main Rd, Gandhi Nagar, Adyar, Chennai 600020' },
+      ];
+
+      const getOrInitHospital = (hospName: string): HospitalRecord => {
+        const key = hospName.trim();
+        if (hospMap.has(key)) return hospMap.get(key)!;
+
+        const known = knownHospitals.find((k) => k.name.toLowerCase() === key.toLowerCase());
+        const code = known?.code || (key.length >= 3 ? key.slice(0, 3).toUpperCase() : 'HOS');
+        const city = known?.city || 'Chennai';
+        const state = known?.state || 'Tamil Nadu';
+        const address = known?.address || `${key}, ${city}, ${state}`;
+        const nextId = hospMap.size + 1;
+
+        const record: HospitalRecord = {
+          id: `HOSP-${String(nextId).padStart(2, '0')}`,
+          hospitalId: `HOSP-${code}-${String(nextId).padStart(3, '0')}`,
+          name: key,
+          code,
+          city,
+          state,
+          address,
+          contactPhone: '+91 44 2800 0000',
+          email: `admin@${key.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+          adminName: 'Medical Director',
+          adminEmail: `director@${key.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+          bedCapacity: 450,
+          activeDoctors: 0,
+          activeNurses: 0,
+          activePatients: 0,
+          activePharmacists: 0,
+          activeCaregivers: cg.length,
+          insurancePartnersCount: ins.length,
+          status: 'Active',
+          establishedYear: 2012,
+          accreditation: 'NABH & JCI Accredited',
+          departments: ['Emergency & Trauma', 'General Medicine', 'Outpatient OPD', 'Inpatient Ward', 'Cardiology', 'ICU Care'],
+        };
+        hospMap.set(key, record);
+        return record;
+      };
+
+      // Register hospitals associated with doctors
+      docs.forEach((d) => {
+        if (d.hospital) {
+          const h = getOrInitHospital(d.hospital);
+          h.activeDoctors++;
+        }
+      });
+
+      // Register hospitals associated with nurses
+      nurses.forEach((n) => {
+        if (n.hospital) {
+          const h = getOrInitHospital(n.hospital);
+          h.activeNurses++;
+        }
+      });
+
+      // Register pharmacies
+      pharm.forEach((p) => {
+        if (p.pharmacyName) {
+          const h = getOrInitHospital(p.pharmacyName);
+          h.activePharmacists++;
+        }
+      });
+
+      // Register patient hospital associations
+      patients.forEach((pt) => {
+        const ptHospitals = new Set([
+          ...pt.appointments.map((a) => a.doctor?.hospital),
+          ...pt.medicalRecords.map((m) => m.hospital),
+        ].filter(Boolean) as string[]);
+
+        ptHospitals.forEach((hName) => {
+          const h = getOrInitHospital(hName);
+          h.activePatients++;
+        });
+      });
+
+      const liveList = Array.from(hospMap.values());
+      if (liveList.length > 0) {
+        hospitalRegistryStore = liveList;
+        return liveList;
+      }
+    } catch (e: any) {
+      console.warn('Could not derive dynamic hospitals from DB, using fallback:', e?.message);
+    }
     return hospitalRegistryStore;
   }
 
