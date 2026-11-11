@@ -8,7 +8,11 @@ import {
 import { adminApi, authApi } from '../../../services/dhrApis';
 import { setAuthToken } from '../../../services/apiClient';
 import { AdminAddUserModal } from '../modals/AdminAddUserModal';
-import { INITIAL_ADMIN_USERS } from '../../../utils/adminMockStorage';
+import { 
+  INITIAL_ADMIN_USERS, 
+  getStoredHospitals, 
+  type HospitalAdminRecord 
+} from '../../../utils/adminMockStorage';
 import { AdminToast } from '../common/AdminToast';
 import type { AdminToastType } from '../common/AdminToast';
 import { AdminDeleteConfirmModal } from '../modals/AdminDeleteConfirmModal';
@@ -21,6 +25,7 @@ export interface DbUserItem {
   role: string;
   rawRole: string;
   department: string;
+  hospital?: string;
   status: 'Active' | 'Inactive';
   abhaId?: string | null;
   lastLogin: string;
@@ -56,6 +61,15 @@ export const AdminUserManagementView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [hospitalFilter, setHospitalFilter] = useState<string>('All');
+  const [availableHospitals, setAvailableHospitals] = useState<HospitalAdminRecord[]>([]);
+
+  useEffect(() => {
+    setAvailableHospitals(getStoredHospitals());
+    const handleHospUpdate = () => setAvailableHospitals(getStoredHospitals());
+    window.addEventListener('admin_hospitals_updated', handleHospUpdate);
+    return () => window.removeEventListener('admin_hospitals_updated', handleHospUpdate);
+  }, []);
   
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -109,6 +123,8 @@ export const AdminUserManagementView: React.FC = () => {
                        u.role === 'INSURANCE_PROVIDER' ? 'Claims & TPA' :
                        u.role === 'CAREGIVER' ? 'Family Care' : 'General OPD';
 
+          const hosp = profile.hospital || 'MediCare Central Hospital';
+
           return {
             id: u.id,
             name,
@@ -117,6 +133,7 @@ export const AdminUserManagementView: React.FC = () => {
             role: roleMapToDisplay[u.role] || u.role,
             rawRole: u.role,
             department: dept,
+            hospital: hosp,
             status: u.status === 'ACTIVE' || u.isActive ? 'Active' : 'Inactive',
             abhaId: u.abhaId || null,
             lastLogin: 'Active session',
@@ -139,6 +156,7 @@ export const AdminUserManagementView: React.FC = () => {
             role: u.role,
             rawRole: displayToRoleMap[u.role] || 'PATIENT',
             department: u.department,
+            hospital: u.hospital || 'MediCare Central Hospital',
             status: (u.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
             abhaId: u.abhaId || null,
             lastLogin: u.lastLogin,
@@ -263,7 +281,8 @@ export const AdminUserManagementView: React.FC = () => {
                           (u.abhaId && u.abhaId.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesRole = roleFilter === 'All' || u.role === roleFilter;
     const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
+    const matchesHospital = hospitalFilter === 'All' || u.hospital === hospitalFilter;
+    return matchesSearch && matchesRole && matchesStatus && matchesHospital;
   });
 
   return (
@@ -329,6 +348,20 @@ export const AdminUserManagementView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          {/* Hospital Scope Filter */}
+          <select
+            value={hospitalFilter}
+            onChange={(e) => setHospitalFilter(e.target.value)}
+            className="h-9.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00a896]/20 cursor-pointer transition-all"
+          >
+            <option value="All">All Hospitals ({availableHospitals.length})</option>
+            {availableHospitals.map((hosp) => (
+              <option key={hosp.id} value={hosp.name}>
+                {hosp.name}
+              </option>
+            ))}
+          </select>
+
           {/* Role Filter */}
           <select
             value={roleFilter}

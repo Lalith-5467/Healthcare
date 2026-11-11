@@ -10,7 +10,133 @@ export interface UserQueryOptions {
   role?: string;
   status?: string;
   search?: string;
+  hospital?: string;
 }
+
+export interface HospitalRecord {
+  id: string;
+  hospitalId: string;
+  name: string;
+  code: string;
+  city: string;
+  state: string;
+  address: string;
+  contactPhone: string;
+  email: string;
+  adminName: string;
+  adminEmail: string;
+  bedCapacity: number;
+  activeDoctors: number;
+  activeNurses: number;
+  activePatients: number;
+  activePharmacists: number;
+  activeCaregivers: number;
+  insurancePartnersCount: number;
+  status: 'Active' | 'Under Review' | 'Suspended';
+  establishedYear: number;
+  accreditation: string;
+  departments: string[];
+}
+
+// In-memory persistent hospital store fallback for smooth zero-lock operations
+let hospitalRegistryStore: HospitalRecord[] = [
+  {
+    id: 'HOSP-01',
+    hospitalId: 'HOSP-MC-001',
+    name: 'MediCare Central Hospital',
+    code: 'MC-BLR',
+    city: 'Bengaluru',
+    state: 'Karnataka',
+    address: '42 Health City Boulevard, Electronic City Phase 1, Bengaluru 560100',
+    contactPhone: '+91 80 2841 0000',
+    email: 'info@medicare-central.in',
+    adminName: 'Dr. Ramesh Narayan',
+    adminEmail: 'hospital.admin@medicare-central.in',
+    bedCapacity: 450,
+    activeDoctors: 48,
+    activeNurses: 92,
+    activePatients: 310,
+    activePharmacists: 14,
+    activeCaregivers: 22,
+    insurancePartnersCount: 16,
+    status: 'Active',
+    establishedYear: 2012,
+    accreditation: 'NABH & JCI Accredited',
+    departments: ['Cardiology', 'Pulmonology & Chest Medicine', 'Endocrinology', 'Emergency & Trauma ICU', 'Pediatrics', 'Neurology', 'Central Pharmacy'],
+  },
+  {
+    id: 'HOSP-02',
+    hospitalId: 'HOSP-APO-002',
+    name: 'Apollo Central Hub',
+    code: 'APO-CHN',
+    city: 'Chennai',
+    state: 'Tamil Nadu',
+    address: '21 Greams Lane, Thousand Lights, Chennai 600006',
+    contactPhone: '+91 44 2829 0200',
+    email: 'contact@apollocentral.in',
+    adminName: 'Kavita Sundaram',
+    adminEmail: 'admin.kavita@apollocentral.in',
+    bedCapacity: 600,
+    activeDoctors: 64,
+    activeNurses: 130,
+    activePatients: 480,
+    activePharmacists: 18,
+    activeCaregivers: 30,
+    insurancePartnersCount: 22,
+    status: 'Active',
+    establishedYear: 2008,
+    accreditation: 'NABH Gold Standard',
+    departments: ['Oncology', 'Organ Transplant', 'Cardiology', 'Pulmonology', 'Critical Care', 'Orthopedics', 'Outpatient Pharmacy'],
+  },
+  {
+    id: 'HOSP-03',
+    hospitalId: 'HOSP-FOR-003',
+    name: 'Fortis Memorial Healthcare',
+    code: 'FOR-DEL',
+    city: 'New Delhi',
+    state: 'Delhi NCR',
+    address: 'Sector 44, Institutional Area, Opp HUDA City Centre, Gurugram 122002',
+    contactPhone: '+91 124 496 2200',
+    email: 'care@fortismemorial.in',
+    adminName: 'Sanjay Deshmukh',
+    adminEmail: 'admin@fortismemorial.in',
+    bedCapacity: 380,
+    activeDoctors: 36,
+    activeNurses: 78,
+    activePatients: 240,
+    activePharmacists: 10,
+    activeCaregivers: 15,
+    insurancePartnersCount: 18,
+    status: 'Active',
+    establishedYear: 2015,
+    accreditation: 'NABH Accredited & ISO 9001:2015',
+    departments: ['Neurosurgery', 'Cardiology', 'Pediatrics & Neonatology', 'Emergency & Trauma', 'Robotic Surgery'],
+  },
+  {
+    id: 'HOSP-04',
+    hospitalId: 'HOSP-MAN-004',
+    name: 'Manipal Multi-Specialty Hospital',
+    code: 'MAN-HYD',
+    city: 'Hyderabad',
+    state: 'Telangana',
+    address: 'Road No. 2, Banjara Hills, Hyderabad 500034',
+    contactPhone: '+91 40 2338 8888',
+    email: 'info@manipalhyderabad.in',
+    adminName: 'Dr. Priya Venu',
+    adminEmail: 'admin@manipalhyderabad.in',
+    bedCapacity: 500,
+    activeDoctors: 52,
+    activeNurses: 110,
+    activePatients: 390,
+    activePharmacists: 15,
+    activeCaregivers: 20,
+    insurancePartnersCount: 20,
+    status: 'Active',
+    establishedYear: 2011,
+    accreditation: 'NABH & NABL Accredited',
+    departments: ['Gastroenterology', 'Nephrology & Dialysis', 'Cardiology', 'General OPD', 'Trauma Care'],
+  },
+];
 
 export class AdminService {
   /**
@@ -899,5 +1025,64 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  // --- Hospital Management Methods ---
+  static async getHospitals() {
+    return hospitalRegistryStore;
+  }
+
+  static async getHospitalById(id: string) {
+    const hospital = hospitalRegistryStore.find((h) => h.id === id || h.hospitalId === id);
+    if (!hospital) throw new AppError('Hospital record not found', 404);
+    return hospital;
+  }
+
+  static async createHospital(data: Partial<HospitalRecord>) {
+    const nextIndex = hospitalRegistryStore.length + 1;
+    const newHospital: HospitalRecord = {
+      id: `HOSP-${String(nextIndex).padStart(2, '0')}`,
+      hospitalId: data.hospitalId || `HOSP-REG-${1000 + nextIndex}`,
+      name: data.name || 'New Facility Hospital',
+      code: data.code || `HOSP-${nextIndex}`,
+      city: data.city || 'Metro City',
+      state: data.state || 'Karnataka',
+      address: data.address || 'Health City Campus',
+      contactPhone: data.contactPhone || '+91 80 0000 0000',
+      email: data.email || 'contact@hospital.in',
+      adminName: data.adminName || 'Hospital Administrator',
+      adminEmail: data.adminEmail || 'admin@hospital.in',
+      bedCapacity: Number(data.bedCapacity) || 200,
+      activeDoctors: Number(data.activeDoctors) || 0,
+      activeNurses: Number(data.activeNurses) || 0,
+      activePatients: Number(data.activePatients) || 0,
+      activePharmacists: Number(data.activePharmacists) || 0,
+      activeCaregivers: Number(data.activeCaregivers) || 0,
+      insurancePartnersCount: Number(data.insurancePartnersCount) || 0,
+      status: data.status || 'Active',
+      establishedYear: Number(data.establishedYear) || new Date().getFullYear(),
+      accreditation: data.accreditation || 'NABH Accredited',
+      departments: data.departments && data.departments.length > 0 ? data.departments : ['General OPD', 'Emergency & Trauma', 'Internal Medicine'],
+    };
+    hospitalRegistryStore.unshift(newHospital);
+    return newHospital;
+  }
+
+  static async updateHospital(id: string, updates: Partial<HospitalRecord>) {
+    const index = hospitalRegistryStore.findIndex((h) => h.id === id || h.hospitalId === id);
+    if (index === -1) throw new AppError('Hospital record not found', 404);
+    hospitalRegistryStore[index] = {
+      ...hospitalRegistryStore[index],
+      ...updates,
+      id: hospitalRegistryStore[index].id, // protect immutable id
+    };
+    return hospitalRegistryStore[index];
+  }
+
+  static async deleteHospital(id: string) {
+    const index = hospitalRegistryStore.findIndex((h) => h.id === id || h.hospitalId === id);
+    if (index === -1) throw new AppError('Hospital record not found', 404);
+    const removed = hospitalRegistryStore.splice(index, 1)[0];
+    return removed;
   }
 }

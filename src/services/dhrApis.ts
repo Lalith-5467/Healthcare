@@ -300,7 +300,7 @@ export const clinicalApi = {
 };
 
 export const adminApi = {
-  getUsers: (params?: { page?: number; limit?: number; role?: string; status?: string; search?: string }) => {
+  getUsers: (params?: { page?: number; limit?: number; role?: string; status?: string; search?: string; hospital?: string }) => {
     const query = new URLSearchParams(params as any).toString();
     return apiClient.get<any[]>(`/admin/users?${query}`);
   },
@@ -315,6 +315,11 @@ export const adminApi = {
     const query = new URLSearchParams(params as any).toString();
     return apiClient.get<any>(`/admin/audit-logs?${query}`);
   },
+  // Hospitals Management APIs
+  getHospitals: () => apiClient.get<any[]>('/admin/hospitals'),
+  createHospital: (hospitalData: any) => apiClient.post<any>('/admin/hospitals', hospitalData),
+  updateHospital: (id: string, hospitalData: any) => apiClient.put<any>(`/admin/hospitals/${id}`, hospitalData),
+  deleteHospital: (id: string) => apiClient.delete<any>(`/admin/hospitals/${id}`),
 };
 
 export interface BrandingConfig {

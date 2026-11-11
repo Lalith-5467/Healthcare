@@ -3,7 +3,8 @@ import {
   LayoutDashboard, Users, UserCheck, Stethoscope, HeartPulse, Pill, 
   HeartHandshake, ShieldCheck, ShieldAlert, KeyRound, FileText, 
   ShoppingBag, Calendar, Activity, Bell, FileSpreadsheet, 
-  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock, Video, Sliders
+  BarChart3, Settings, Shield, Server, Database, ChevronRight, Lock, Video, Sliders,
+  Building2
 } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { dashboardApi } from '../../services/dhrApis';
@@ -86,6 +87,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'Core Administration',
       items: [
         { id: 'dashboard', label: 'Dashboard Home', icon: LayoutDashboard },
+        { 
+          id: 'hospitals', 
+          label: 'Hospital Directory', 
+          icon: Building2 
+        },
         { 
           id: 'users', 
           label: 'User Management', 

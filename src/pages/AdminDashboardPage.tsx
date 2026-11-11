@@ -11,6 +11,7 @@ import { AdminSidebar } from '../components/admin-dashboard/AdminSidebar';
 
 // SUB-VIEWS
 import { AdminDashboardHomeView } from '../components/admin-dashboard/views/AdminDashboardHomeView';
+import { AdminHospitalManagementView } from '../components/admin-dashboard/views/AdminHospitalManagementView';
 import { AdminUserManagementView } from '../components/admin-dashboard/views/AdminUserManagementView';
 import { AdminRolesPermissionsView } from '../components/admin-dashboard/views/AdminRolesPermissionsView';
 import { SuperAdminManagementView } from '../components/admin-dashboard/views/SuperAdminManagementView';
@@ -142,6 +143,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     switch (activeNavId) {
       case 'dashboard':
         return <AdminDashboardHomeView onNavigate={handleSelectNav} currentRole={currentRole} />;
+      case 'hospitals':
+        return (
+          <AdminHospitalManagementView
+            onLaunchHospitalPortal={(hospital) => {
+              if (onNavigate) {
+                try {
+                  localStorage.setItem('active_hospital_portal', JSON.stringify(hospital));
+                } catch {}
+                onNavigate('hospital-admin');
+              }
+            }}
+          />
+        );
       case 'users':
         return <AdminUserManagementView />;
       case 'patients':
