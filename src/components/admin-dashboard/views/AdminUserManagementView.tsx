@@ -9,7 +9,6 @@ import { adminApi, authApi } from '../../../services/dhrApis';
 import { setAuthToken } from '../../../services/apiClient';
 import { AdminAddUserModal } from '../modals/AdminAddUserModal';
 import { 
-  INITIAL_ADMIN_USERS, 
   getStoredHospitals, 
   type HospitalAdminRecord 
 } from '../../../utils/adminMockStorage';
@@ -146,47 +145,16 @@ export const AdminUserManagementView: React.FC = () => {
           showToast(`Successfully refreshed ${mapped.length} user records from database`, 'success');
         }
       } else {
-        setUsers(prev => {
-          if (prev.length > 0) return prev;
-          return INITIAL_ADMIN_USERS.map(u => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            phone: u.phone,
-            role: u.role,
-            rawRole: displayToRoleMap[u.role] || 'PATIENT',
-            department: u.department,
-            hospital: u.hospital || 'MediCare Central Hospital',
-            status: (u.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
-            abhaId: u.abhaId || null,
-            lastLogin: u.lastLogin,
-            createdDate: u.createdDate,
-          }));
-        });
+        setUsers([]);
         if (isManual) {
-          showToast('Database records refreshed successfully', 'success');
+          showToast('No registered user records found', 'info');
         }
       }
     } catch (err: any) {
       console.error('Failed to load users:', err);
-      setUsers(prev => {
-        if (prev.length > 0) return prev;
-        return INITIAL_ADMIN_USERS.map(u => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          phone: u.phone,
-          role: u.role,
-          rawRole: displayToRoleMap[u.role] || 'PATIENT',
-          department: u.department,
-          status: (u.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
-          abhaId: u.abhaId || null,
-          lastLogin: u.lastLogin,
-          createdDate: u.createdDate,
-        }));
-      });
+      setUsers([]);
       if (isManual) {
-        showToast('Database records refreshed', 'info');
+        showToast('Failed to load users from database', 'info');
       }
     } finally {
       setLoading(false);

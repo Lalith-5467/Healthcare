@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../../../services/dhrApis';
 import { 
-  INITIAL_PATIENTS, 
   getStoredHospitals, 
   type HospitalAdminRecord 
 } from '../../../utils/adminMockStorage';
@@ -154,55 +153,16 @@ export const AdminPatientManagementView: React.FC<AdminPatientManagementViewProp
           showToast(`Successfully refreshed ${mapped.length} patient records.`, 'success');
         }
       } else {
-        // Fallback to initial patient records if empty
-        setPatients(prev => {
-          if (prev.length > 0) return prev;
-          return INITIAL_PATIENTS.map((p) => {
-            const ov = overrides[p.id] || {};
-            return {
-              id: p.id,
-              patientId: p.patientId,
-              name: ov.name || p.name,
-              email: ov.email || `${p.name.toLowerCase().replace(/\s+/g, '.')}@medicare.in`,
-              age: p.age,
-              gender: ov.gender || p.gender,
-              phone: ov.phone || p.phone,
-              bloodGroup: ov.bloodGroup || p.bloodGroup,
-              hospital: ov.hospital || p.hospital || 'MediCare Central Hospital',
-              status: ov.status || (p.status === 'Active' ? 'Active' : 'Disabled'),
-              abhaId: ov.abhaId || p.abhaId,
-              address: ov.address || p.admittedWard || 'Chennai, Tamil Nadu',
-            };
-          });
-        });
+        setPatients([]);
         if (isManual) {
-          showToast('Patient database synchronized', 'success');
+          showToast('No registered patient records found', 'info');
         }
       }
     } catch (err: any) {
       console.error('Failed to load patient management data:', err?.message);
-      const overrides = getMockOverrides();
-      setPatients(prev => {
-        if (prev.length > 0) return prev;
-        return INITIAL_PATIENTS.map((p) => {
-          const ov = overrides[p.id] || {};
-          return {
-            id: p.id,
-            patientId: p.patientId,
-            name: ov.name || p.name,
-            email: ov.email || `${p.name.toLowerCase().replace(/\s+/g, '.')}@medicare.in`,
-            age: p.age,
-            gender: ov.gender || p.gender,
-            phone: ov.phone || p.phone,
-            bloodGroup: ov.bloodGroup || p.bloodGroup,
-            status: ov.status || (p.status === 'Active' ? 'Active' : 'Disabled'),
-            abhaId: ov.abhaId || p.abhaId,
-            address: ov.address || p.admittedWard || 'Chennai, Tamil Nadu',
-          };
-        });
-      });
+      setPatients([]);
       if (isManual) {
-        showToast('Patient database synchronized', 'info');
+        showToast('Failed to load patient database records', 'info');
       }
     } finally {
       setLoading(false);

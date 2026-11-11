@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../../../services/dhrApis';
 import { 
-  INITIAL_DOCTORS, INITIAL_NURSES, INITIAL_PHARMACISTS, INITIAL_CAREGIVERS,
   getStoredHospitals, type HospitalAdminRecord 
 } from '../../../utils/adminMockStorage';
 import { AdminToast } from '../common/AdminToast';
@@ -266,138 +265,16 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
           showToast(`Successfully refreshed ${mapped.length} ${roleLabel.toLowerCase()} records.`, 'success');
         }
       } else {
-        // Fallback to initial records if empty
-        if (type === 'doctor') {
-          setStaffList(INITIAL_DOCTORS.map(d => {
-            const ov = overrides[d.id] || {};
-            const isDocActive = d.status === 'Active';
-            return {
-              id: d.id,
-              name: ov.name || d.name,
-              email: ov.email || d.email,
-              phone: ov.phone || d.phone,
-              specialization: ov.specialization || d.specialization,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || d.nmcRegNo,
-              status: ov.status || (isDocActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else if (type === 'nurse') {
-          setStaffList(INITIAL_NURSES.map(n => {
-            const ov = overrides[n.id] || {};
-            const isNurseActive = n.status === 'On Duty';
-            return {
-              id: n.id,
-              name: ov.name || n.name,
-              email: ov.email || n.email,
-              phone: ov.phone || n.phone,
-              department: ov.department || n.department,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || n.councilRegNo,
-              status: ov.status || (isNurseActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else if (type === 'pharmacist') {
-          setStaffList(INITIAL_PHARMACISTS.map(p => {
-            const ov = overrides[p.id] || {};
-            const isPharmActive = p.status === 'Active';
-            return {
-              id: p.id,
-              name: ov.name || p.name,
-              email: ov.email || p.email,
-              phone: ov.phone || p.phone,
-              specialization: ov.specialization || p.dispensary,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || p.councilRegNo,
-              status: ov.status || (isPharmActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else {
-          setStaffList(INITIAL_CAREGIVERS.map(c => {
-            const ov = overrides[c.id] || {};
-            const isCgActive = c.status === 'Active';
-            return {
-              id: c.id,
-              name: ov.name || c.name,
-              email: ov.email || c.email,
-              phone: ov.phone || c.phone,
-              department: ov.department || c.specialty,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || c.certificationId,
-              status: ov.status || (isCgActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        }
+        setStaffList([]);
         if (isManual) {
-          showToast(`${roleLabel} database records synchronized`, 'success');
+          showToast(`No registered ${roleLabel.toLowerCase()} records found`, 'info');
         }
       }
     } catch (err: any) {
       console.error(`Failed to load ${roleLabel.toLowerCase()} roster:`, err?.message);
-      const overrides = getMockOverrides();
-      if (type === 'doctor') {
-        setStaffList(INITIAL_DOCTORS.map(d => {
-          const ov = overrides[d.id] || {};
-          const isDocActive = d.status === 'Active';
-          return {
-            id: d.id,
-            name: ov.name || d.name,
-            email: ov.email || d.email,
-            phone: ov.phone || d.phone,
-            specialization: ov.specialization || d.specialization,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || d.nmcRegNo,
-            status: ov.status || (isDocActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else if (type === 'nurse') {
-        setStaffList(INITIAL_NURSES.map(n => {
-          const ov = overrides[n.id] || {};
-          const isNurseActive = n.status === 'On Duty';
-          return {
-            id: n.id,
-            name: ov.name || n.name,
-            email: ov.email || n.email,
-            phone: ov.phone || n.phone,
-            department: ov.department || n.department,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || n.councilRegNo,
-            status: ov.status || (isNurseActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else if (type === 'pharmacist') {
-        setStaffList(INITIAL_PHARMACISTS.map(p => {
-          const ov = overrides[p.id] || {};
-          const isPharmActive = p.status === 'Active';
-          return {
-            id: p.id,
-            name: ov.name || p.name,
-            email: ov.email || p.email,
-            phone: ov.phone || p.phone,
-            specialization: ov.specialization || p.dispensary,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || p.councilRegNo,
-            status: ov.status || (isPharmActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else {
-        setStaffList(INITIAL_CAREGIVERS.map(c => {
-          const ov = overrides[c.id] || {};
-          const isCgActive = c.status === 'Active';
-          return {
-            id: c.id,
-            name: ov.name || c.name,
-            email: ov.email || c.email,
-            phone: ov.phone || c.phone,
-            department: ov.department || c.specialty,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || c.certificationId,
-            status: ov.status || (isCgActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      }
+      setStaffList([]);
       if (isManual) {
-        showToast(`${roleLabel} database records synchronized`, 'info');
+        showToast(`Failed to load ${roleLabel.toLowerCase()} records`, 'info');
       }
     } finally {
       setLoading(false);

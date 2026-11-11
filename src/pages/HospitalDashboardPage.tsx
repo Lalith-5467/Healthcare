@@ -10,13 +10,7 @@ import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { adminApi, pharmacyApi, insuranceApi } from '../services/dhrApis';
 import { 
   getStoredHospitals, 
-  type HospitalAdminRecord, 
-  INITIAL_DOCTORS, 
-  INITIAL_NURSES, 
-  INITIAL_PATIENTS, 
-  INITIAL_PHARMACISTS, 
-  INITIAL_CAREGIVERS, 
-  INITIAL_INSURANCE_POLICIES 
+  type HospitalAdminRecord 
 } from '../utils/adminMockStorage';
 import { AdminStaffManagementView } from '../components/admin-dashboard/views/AdminStaffManagementView';
 import { AdminPatientManagementView } from '../components/admin-dashboard/views/AdminPatientManagementView';
@@ -117,13 +111,13 @@ export const HospitalDashboardPage: React.FC<HospitalDashboardPageProps> = ({
     );
   }
 
-  // Real data calculations (falls back to mock if DB has no records yet)
-  const realDoctors = liveDoctors.length > 0 ? liveDoctors.filter((d) => !d.doctor?.hospital || d.doctor?.hospital === selectedHospital.name) : INITIAL_DOCTORS.filter((d) => !d.hospital || d.hospital === selectedHospital.name);
-  const realNurses = liveNurses.length > 0 ? liveNurses.filter((n) => !n.nurse?.hospital || n.nurse?.hospital === selectedHospital.name) : INITIAL_NURSES.filter((n) => !n.hospital || n.hospital === selectedHospital.name);
-  const realPatients = livePatients.length > 0 ? livePatients.filter((p) => !p.patient?.hospital || p.patient?.hospital === selectedHospital.name) : INITIAL_PATIENTS.filter((p) => !p.hospital || p.hospital === selectedHospital.name);
-  const realPharmacists = livePharmacists.length > 0 ? livePharmacists.filter((ph) => !ph.pharmacist?.hospital || ph.pharmacist?.hospital === selectedHospital.name) : INITIAL_PHARMACISTS.filter((ph) => !ph.hospital || ph.hospital === selectedHospital.name);
-  const realCaregivers = liveCaregivers.length > 0 ? liveCaregivers.filter((cg) => !cg.caregiver?.hospital || cg.caregiver?.hospital === selectedHospital.name) : INITIAL_CAREGIVERS.filter((cg) => !cg.hospital || cg.hospital === selectedHospital.name);
-  const realInsurance = liveInsurance.length > 0 ? liveInsurance : INITIAL_INSURANCE_POLICIES.filter((ins) => !ins.hospital || ins.hospital === selectedHospital.name);
+  // Real data calculations - only genuinely registered users from the database are counted
+  const realDoctors = liveDoctors.filter((d) => !d.doctor?.hospital || d.doctor?.hospital === selectedHospital.name);
+  const realNurses = liveNurses.filter((n) => !n.nurse?.hospital || n.nurse?.hospital === selectedHospital.name);
+  const realPatients = livePatients.filter((p) => !p.patient?.hospital || p.patient?.hospital === selectedHospital.name);
+  const realPharmacists = livePharmacists.filter((ph) => !ph.pharmacist?.hospital || ph.pharmacist?.hospital === selectedHospital.name);
+  const realCaregivers = liveCaregivers.filter((cg) => !cg.caregiver?.hospital || cg.caregiver?.hospital === selectedHospital.name);
+  const realInsurance = liveInsurance.filter((ins) => !ins.hospital || ins.hospital === selectedHospital.name);
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
