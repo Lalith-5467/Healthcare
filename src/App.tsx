@@ -404,6 +404,9 @@ export const App: React.FC = () => {
 
   // Session Restoration & Backend User Validation on Mount
   React.useEffect(() => {
+    const pathLower = window.location.pathname.toLowerCase();
+    const isHospitalPath = pathLower.startsWith('/hospital') || pathLower.startsWith('/hospital-admin');
+
     const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('patient_token');
     if (token) {
       authApi.getCurrentUser()
@@ -412,7 +415,6 @@ export const App: React.FC = () => {
             const u = res.data;
             const profile: any = u.profile || {};
             const normalizedRole = normalizeRole(u.role);
-            const pathLower = window.location.pathname.toLowerCase();
             if (pathLower.startsWith('/pharmacist') && normalizedRole !== 'Pharmacist') return;
             if (pathLower.startsWith('/doctor') && normalizedRole !== 'Doctor') return;
             if (pathLower.startsWith('/nurse') && normalizedRole !== 'Nurse') return;
@@ -452,12 +454,14 @@ export const App: React.FC = () => {
         })
         .catch((err) => {
           console.warn('Session verification failed, resetting session:', err?.message);
-          handleLogout();
+          if (!isHospitalPath) {
+            handleLogout();
+          }
         });
 
       // Connect Socket.IO for global authenticated features (like real-time notifications)
       socketService.connect(token);
-    } else if (isLoggedIn) {
+    } else if (isLoggedIn && !isHospitalPath) {
       handleLogout();
     }
   }, []);
