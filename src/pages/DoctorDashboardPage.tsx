@@ -19,6 +19,7 @@ import { ConsultationView } from '../components/doctor-dashboard/views/Consultat
 import { MyPatientsDirectoryView } from '../components/doctor-dashboard/views/MyPatientsDirectoryView';
 import { ConsultationDetailsView } from '../components/doctor-dashboard/views/ConsultationDetailsView';
 import { ConsultationWorkspaceView } from '../components/doctor-dashboard/views/ConsultationWorkspaceView';
+import { DoctorVideoConsultationView } from '../components/doctor-dashboard/views/DoctorVideoConsultationView';
 import { DoctorAppointmentsScheduleView } from '../components/doctor-dashboard/views/DoctorAppointmentsScheduleView';
 import { ClinicalNotesPrescriptionsView } from '../components/doctor-dashboard/views/ClinicalNotesPrescriptionsView';
 import { DoctorProfileSettingsView } from '../components/doctor-dashboard/views/DoctorProfileSettingsView';
@@ -28,6 +29,9 @@ import { notificationApi } from '../services/dhrApis';
 import { useLanguage } from '../context/LanguageContext';
 import { getLocalizedName } from '../utils/caregiverDataTranslator';
 import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
+import { IncomingCallModal } from '../components/common/IncomingCallModal';
+import { socketService } from '../services/socketService';
+import { getAuthToken } from '../services/apiClient';
 
 interface DoctorDashboardPageProps {
   onLogout: () => void;
@@ -66,6 +70,14 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   };
 
   React.useEffect(() => {
+    // Ensure socket connection is active on Doctor Dashboard with valid doctor auth token
+    const token = getAuthToken();
+    if (token) {
+      socketService.connect(token);
+    } else {
+      socketService.connect();
+    }
+
     loadUnreadCount();
     const handleUpdate = () => loadUnreadCount();
     window.addEventListener('notifications_updated', handleUpdate);
@@ -136,6 +148,9 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
         return <Patient360View patientId={scannedPatientId || '1'} patientName={scannedPatientName} onNavigate={setActiveNav} initialTab={patient360Tab} />;
       case 'consultation-details':
         return <ConsultationDetailsView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
+      case 'video-consultation':
+      case 'teleconsult':
+        return <DoctorVideoConsultationView user={user} patientId={scannedPatientId} onNavigate={setActiveNav} />;
       case 'consultation-workspace':
       case 'consultations':
         return <ConsultationWorkspaceView patientId={scannedPatientId || '1'} onNavigate={setActiveNav} />;
@@ -153,37 +168,37 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 shadow-xs">
+        {/* LEFT SECTION: BRANDING & ROLE PILL */}
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <button 
-            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer"
+            className="lg:hidden p-2 -ml-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
           
           <div className="flex items-center gap-3">
             <Logo />
-            <div className="hidden sm:flex items-center gap-2 pl-3 ml-3 border-l border-slate-200 dark:border-slate-700">
-              <span className="text-xs font-black uppercase tracking-wider text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-900/30 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-teal-500/20">
-                <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400" /> {t('doctor.portal.title', 'Doctor Portal')}
+            <div className="hidden sm:flex items-center gap-2 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">
+              <span className="text-xs font-bold text-teal-700 dark:text-cyan-300 bg-teal-500/10 dark:bg-cyan-950/40 px-2.5 py-1 rounded-lg border border-teal-500/20 flex items-center gap-1.5 whitespace-nowrap">
+                <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-cyan-400 shrink-0" />
+                <span>{t('doctor.portal.title', 'Doctor Portal')}</span>
               </span>
-            </div>
-            
-            <div className="hidden md:flex items-center gap-1.5 pl-4 ml-4 border-l border-slate-200 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" /> {t('doctor.portal.abdm_console', 'ABDM Practitioner Console')}
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* RIGHT SECTION: ACTIONS, CONTROLS & PROFILE */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* SEARCH BAR */}
-          <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-48 xl:w-64 transition-colors focus-within:border-teal-500 dark:focus-within:border-cyan-500">
+          <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 w-44 lg:w-56 xl:w-64 transition-all focus-within:border-teal-500 dark:focus-within:border-cyan-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:shadow-xs">
             <Search className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
             <input 
               type="text" 
               placeholder={t('doctor.header.search_placeholder', 'Search patients, meds...')} 
-              className="bg-transparent text-xs font-bold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400"
+              className="bg-transparent text-xs font-semibold text-slate-900 dark:text-white w-full focus:outline-none placeholder:text-slate-400 placeholder:font-normal"
               onClick={() => setActiveNav('patients')}
             />
           </div>
@@ -193,21 +208,21 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
             <button
               type="button"
               onClick={() => setLanguage('en')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'en' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'en' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               EN
             </button>
             <button
               type="button"
               onClick={() => setLanguage('ta')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'ta' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${language === 'ta' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-cyan-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
             >
               தமிழ்
             </button>
           </div>
 
           {/* THEME TOGGLE */}
-          <div className="flex items-center">
+          <div className="flex items-center shrink-0">
             <ThemeToggle />
           </div>
 
@@ -215,13 +230,13 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           <button 
             type="button"
             onClick={() => setNotificationPopoverOpen(true)}
-            className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
+            className="relative p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
             title="Doctor Notifications"
           >
-            <Bell className="w-5 h-5 text-teal-600 dark:text-cyan-400" />
+            <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
             {unreadNotificationsCount > 0 && (
-              <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-black bg-rose-500 text-white rounded-full min-w-[16px] text-center leading-none shadow-xs animate-pulse">
-                {unreadNotificationsCount}
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-xs">
+                {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
               </span>
             )}
           </button>
@@ -230,30 +245,36 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           <button
             type="button"
             onClick={() => setActiveNav('scan')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-teal-200 dark:border-teal-800/60 shadow-2xs"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-cyan-300 text-xs font-bold transition-all cursor-pointer border border-teal-200 dark:border-teal-800/60 shadow-2xs shrink-0 active:scale-95"
           >
-            <Stethoscope className="w-3.5 h-3.5" />
-            <span>{t('doctor.sidebar.scan_qr', 'Scan QR')}</span>
+            <Stethoscope className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">{t('doctor.sidebar.scan_qr', 'Scan Patient QR')}</span>
           </button>
 
-          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 shrink-0"></div>
 
-          {/* User Display Pill */}
-          <div className="hidden md:flex items-center gap-2 py-1 px-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
-            <div className="w-7 h-7 rounded-xl bg-teal-500/20 text-[#00a896] dark:text-cyan-300 font-extrabold text-xs flex items-center justify-center font-mono">
-              {doctorName.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+          {/* Doctor Profile Pill */}
+          <button
+            type="button"
+            onClick={() => setActiveNav('settings')}
+            className="flex items-center gap-2 py-1 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60 transition-colors cursor-pointer shrink-0"
+            title="View Profile & Settings"
+          >
+            <div className="w-7 h-7 rounded-lg bg-[#00a896] text-white font-extrabold text-xs flex items-center justify-center font-mono shadow-xs shrink-0">
+              {doctorName.replace('Dr. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'DR'}
             </div>
-            <span className="text-xs font-black text-slate-800 dark:text-slate-200">{getLocalizedName(doctorName, t)}</span>
-          </div>
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap max-w-[140px] truncate">{getLocalizedName(doctorName, t)}</span>
+          </button>
 
+          {/* Logout Button */}
           <button 
             type="button"
             onClick={onLogout}
-            className="px-3 py-1.5 text-slate-500 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-900/30 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer font-bold text-xs"
+            className="px-3 py-2 text-slate-600 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/40 border border-slate-200/60 dark:border-slate-700/60 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer font-bold text-xs shrink-0 active:scale-95"
             title={t('doctor.header.logout', 'Logout')}
           >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('doctor.header.logout', 'Logout')}</span>
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden xl:inline">{t('doctor.header.logout', 'Logout')}</span>
           </button>
         </div>
       </header>
@@ -309,6 +330,14 @@ export const DoctorDashboardPage: React.FC<DoctorDashboardPageProps> = ({ onLogo
           </div>
         </main>
       </div>
+
+      {/* REAL-TIME INCOMING VIDEO CALL MODAL */}
+      <IncomingCallModal 
+        currentDoctorName={user?.name}
+        onAcceptCall={(_session) => {
+          setActiveNav('video-consultation');
+        }}
+      />
 
       {/* NOTIFICATIONS POPOVER */}
       <NotificationPopover

@@ -25,6 +25,23 @@ export interface HealthShareEventPayload {
   data?: any;
 }
 
+export interface VideoConsultationCallPayload {
+  event:
+    | 'call:incoming'
+    | 'call:accepted'
+    | 'call:declined'
+    | 'call:cancelled'
+    | 'call:ended'
+    | 'call:status-changed';
+  consultationId: string;
+  patientId: string;
+  doctorId: string;
+  roomId?: string | null;
+  status: string;
+  consultation?: any;
+  timestamp: string;
+}
+
 const SOCKET_SERVER_URL = 'http://localhost:5000';
 
 class SocketService {
@@ -35,6 +52,7 @@ class SocketService {
   private healthShareListeners: Set<(payload: HealthShareEventPayload) => void> = new Set();
   private notificationListeners: Set<(payload: any) => void> = new Set();
   private insuranceClaimListeners: Set<(payload: any) => void> = new Set();
+  private videoCallListeners: Set<(payload: VideoConsultationCallPayload) => void> = new Set();
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
 
   /**
@@ -139,6 +157,27 @@ class SocketService {
       });
     });
 
+    // Listen for real-time video consultation call events
+    const videoCallEvents = [
+      'call:incoming',
+      'call:accepted',
+      'call:declined',
+      'call:cancelled',
+      'call:ended',
+      'call:status-changed',
+    ];
+    videoCallEvents.forEach((evtName) => {
+      this.socket?.on(evtName, (payload: VideoConsultationCallPayload) => {
+        this.videoCallListeners.forEach((callback) => {
+          try {
+            callback(payload);
+          } catch (err) {
+            console.error(`Error handling socket video call event (${evtName}):`, err);
+          }
+        });
+      });
+    });
+
     return this.socket;
   }
 
@@ -191,6 +230,102 @@ class SocketService {
     this.notificationListeners.add(callback);
     return () => {
       this.notificationListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to video consultation call events
+   */
+  public subscribeToVideoCallEvents(callback: (payload: VideoConsultationCallPayload) => void): () => void {
+    this.videoCallListeners.add(callback);
+    return () => {
+      this.videoCallListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Join an authorized consultation room via Socket.IO
+   */
+  public joinCallRoom(consultationId: string, roomId?: string): void {
+    if (this.socket && consultationId) {
+      this.socket.emit('call:join-room', { consultationId, roomId });
+    }
+  }
+
+  /**
+   * Send WebRTC offer to peer via server
+   */
+  public sendWebRtcOffer(consultationId: string, offer: RTCSessionDescriptionInit): void {
+    if (this.socket && consultationId) {
+      this.socket.emit('webrtc:offer', { consultationId, offer });
+    }
+  }
+
+  /**
+   * Send WebRTC answer to peer via server
+   */
+  public sendWebRtcAnswer(consultationId: string, answer: RTCSessionDescriptionInit): void {
+    if (this.socket && consultationId) {
+      this.socket.emit('webrtc:answer', { consultationId, answer });
+    }
+  }
+
+  /**
+   * Send WebRTC ICE candidate to peer via server
+   */
+  public sendWebRtcIceCandidate(consultationId: string, candidate: RTCIceCandidateInit): void {
+    if (this.socket && consultationId) {
+      this.socket.emit('webrtc:ice-candidate', { consultationId, candidate });
+    }
+  }
+
+  /**
+   * Listen for WebRTC signaling events
+   */
+  public onWebRtcOffer(callback: (data: { consultationId: string; offer: RTCSessionDescriptionInit; senderUserId: string }) => void): () => void {
+    this.socket?.on('webrtc:offer', callback);
+    return () => {
+      this.socket?.off('webrtc:offer', callback);
+    };
+  }
+
+  public onWebRtcAnswer(callback: (data: { consultationId: string; answer: RTCSessionDescriptionInit; senderUserId: string }) => void): () => void {
+    this.socket?.on('webrtc:answer', callback);
+    return () => {
+      this.socket?.off('webrtc:answer', callback);
+    };
+  }
+
+  public onWebRtcIceCandidate(callback: (data: { consultationId: string; candidate: RTCIceCandidateInit; senderUserId: string }) => void): () => void {
+    this.socket?.on('webrtc:ice-candidate', callback);
+    return () => {
+      this.socket?.off('webrtc:ice-candidate', callback);
+    };
+  }
+
+  public onParticipantJoined(callback: (data: { consultationId: string; userId: string; role: string }) => void): () => void {
+    this.socket?.on('call:participant-joined', callback);
+    return () => {
+      this.socket?.off('call:participant-joined', callback);
+    };
+  }
+
+  /**
+   * Send real-time chat message to participants in a consultation
+   */
+  public sendConsultationChatMessage(consultationId: string, message: any): void {
+    if (this.socket && consultationId) {
+      this.socket.emit('call:chat-message', { consultationId, message });
+    }
+  }
+
+  /**
+   * Listen for real-time consultation chat messages
+   */
+  public onConsultationChatMessage(callback: (data: { consultationId: string; message: any }) => void): () => void {
+    this.socket?.on('call:chat-message', callback);
+    return () => {
+      this.socket?.off('call:chat-message', callback);
     };
   }
 

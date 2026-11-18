@@ -107,7 +107,7 @@ export class AuthService {
   /**
    * Send Email Verification OTP (For when email verification is enabled)
    */
-  static async sendEmailOtp(email: string): Promise<{ success: boolean; message: string; previewCode?: string }> {
+  static async sendEmailOtp(email: string, name?: string, role?: string): Promise<{ success: boolean; message: string; previewCode?: string }> {
     const tTotalStart = performance.now();
 
     if (!email || !EMAIL_REGEX.test(email)) {
@@ -145,7 +145,7 @@ export class AuthService {
     // Send OTP via real SMTP email
     const tSmtpStart = performance.now();
     try {
-      await EmailService.sendVerificationOtpEmail(normalizedEmail, code);
+      await EmailService.sendVerificationOtpEmail(normalizedEmail, code, name, role);
     } catch (emailErr: any) {
       console.error(`[Email Verification OTP] Delivery failed for ${normalizedEmail}:`, emailErr.message || emailErr);
       const err: AppError = new Error(`Failed to deliver verification email. Please verify the email address or try again.`);
@@ -430,6 +430,249 @@ export class AuthService {
         vitals: result.vitalData,
       },
       token,
+    };
+  }
+
+  /**
+   * Authenticate a hospital facility administrator against MySQL Hospital model
+   */
+  static async loginHospital(data: { email: string; password?: string }) {
+    const { email } = data;
+    if (!email || !email.trim()) {
+      const err: AppError = new Error('Hospital administrator email is required');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const normEmail = email.trim().toLowerCase();
+
+    // 1. Look up hospital in MySQL table
+    const hospital = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { adminEmail: normEmail },
+          { email: normEmail },
+        ],
+      },
+    });
+
+    if (!hospital) {
+      const err: AppError = new Error('No hospital found registered under this administrator email. Please register your facility.');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // 2. Enforce status access control
+    if (hospital.status === 'UNDER_REVIEW') {
+      const err: AppError = new Error('Your facility registration is pending verification by the Super Admin Directorate. Please check back after approval.');
+      err.statusCode = 403;
+      throw err;
+    }
+
+    if (hospital.status === 'SUSPENDED' || hospital.status === 'REJECTED') {
+      const reasonMsg = hospital.rejectionReason ? ` Reason: ${hospital.rejectionReason}` : '';
+      const err: AppError = new Error(`This hospital account registration has been rejected or temporarily suspended by regulatory administration.${reasonMsg}`);
+      err.statusCode = 403;
+      throw err;
+    }
+
+    if (hospital.status !== 'ACTIVE') {
+      const err: AppError = new Error('Your facility registration is pending verification by the Super Admin Directorate. Please check back after approval.');
+      err.statusCode = 403;
+      throw err;
+    }
+
+    // 3. Status is ACTIVE - generate hospital admin JWT
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: hospital.adminEmail },
+          { email: hospital.email },
+        ],
+      },
+    });
+
+    // If no User record exists yet for this hospital administrator, provision one with Role.ADMIN
+    if (!user) {
+      const randomPassword = data.password || 'Hospital@123';
+      const passwordHash = await this.hashPassword(randomPassword);
+      user = await prisma.user.create({
+        data: {
+          email: hospital.adminEmail,
+          passwordHash,
+          role: Role.ADMIN,
+          isActive: true,
+        },
+      });
+    }
+
+    const token = this.generateToken({ id: user.id, email: user.email, role: user.role });
+
+    let depts = ['General OPD', 'Emergency Care', 'In-Patient Ward'];
+    if (hospital.departments) {
+      try { depts = JSON.parse(hospital.departments); } catch {}
+    }
+
+    const hospitalPayload = {
+      id: hospital.id,
+      hospitalId: `HOSP-${hospital.code}-${hospital.id.slice(-4).toUpperCase()}`,
+      name: hospital.name,
+      code: hospital.code,
+      city: hospital.city,
+      state: hospital.state,
+      address: hospital.address || '',
+      contactPhone: hospital.contactPhone || '',
+      email: hospital.email,
+      adminName: hospital.adminName,
+      adminEmail: hospital.adminEmail,
+      bedCapacity: hospital.bedCapacity,
+      activeDoctors: 0,
+      activeNurses: 0,
+      activePatients: 0,
+      activePharmacists: 0,
+      activeCaregivers: 0,
+      insurancePartnersCount: 0,
+      status: 'Active' as const,
+      establishedYear: hospital.createdAt.getFullYear(),
+      accreditation: hospital.accreditation || 'NABH Accredited',
+      departments: depts,
+    };
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+      hospital: hospitalPayload,
+    };
+  }
+
+  /**
+   * Public self-registration for hospitals (saves to MySQL with status UNDER_REVIEW)
+   */
+  static async registerHospital(data: any) {
+    const {
+      name,
+      code,
+      city = 'Chennai',
+      state = 'Tamil Nadu',
+      address,
+      contactPhone = '+91 80 0000 0000',
+      adminName = 'Medical Director',
+      adminEmail,
+      email,
+      bedCapacity = 0,
+      accreditation = 'NABH & JCI Accredited',
+    } = data;
+
+    if (!name || !name.trim()) {
+      const err: AppError = new Error('Hospital or Medical Center Name is required');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (!adminEmail || !adminEmail.trim()) {
+      const err: AppError = new Error('Administrator Email is required');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const normName = name.trim();
+    const normAdminEmail = adminEmail.trim().toLowerCase();
+    const normEmail = (email?.trim() || normAdminEmail).toLowerCase();
+    const finalCode = (code?.trim() || normName.slice(0, 3).toUpperCase() + '-' + Math.floor(100 + Math.random() * 900)).toUpperCase();
+
+    // Check existing
+    const existing = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { email: normEmail },
+          { adminEmail: normAdminEmail },
+          { code: finalCode },
+          { name: normName },
+        ],
+      },
+    });
+
+    if (existing) {
+      const err: AppError = new Error(`Facility "${existing.name}" is already registered in the national health database.`);
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const created = await prisma.hospital.create({
+      data: {
+        name: normName,
+        code: finalCode,
+        city: city.trim(),
+        state: state.trim(),
+        address: address?.trim() || `${normName}, ${city.trim()}`,
+        contactPhone: contactPhone.trim(),
+        email: normEmail,
+        adminName: adminName.trim(),
+        adminEmail: normAdminEmail,
+        bedCapacity: Number(bedCapacity) || 0,
+        accreditation: accreditation.trim(),
+        status: 'UNDER_REVIEW',
+        departments: JSON.stringify(['General OPD', 'Emergency Care', 'In-Patient Ward', 'Diagnostic Lab']),
+      },
+    });
+
+    return {
+      id: created.id,
+      hospitalId: `HOSP-${created.code}-${created.id.slice(-4).toUpperCase()}`,
+      name: created.name,
+      code: created.code,
+      city: created.city,
+      state: created.state,
+      address: created.address,
+      contactPhone: created.contactPhone,
+      email: created.email,
+      adminName: created.adminName,
+      adminEmail: created.adminEmail,
+      bedCapacity: created.bedCapacity,
+      status: 'Under Review',
+      accreditation: created.accreditation,
+    };
+  }
+
+  /**
+   * Get public status of a hospital by email or id
+   */
+  static async getHospitalStatus(identifier: string) {
+    const clean = identifier.trim().toLowerCase();
+    const hosp = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { id: clean },
+          { code: clean.toUpperCase() },
+          { adminEmail: clean },
+          { email: clean },
+        ],
+      },
+    });
+
+    if (!hosp) {
+      const err: AppError = new Error('Hospital not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let uiStatus = 'Under Review';
+    if (hosp.status === 'ACTIVE') uiStatus = 'Active';
+    else if (hosp.status === 'SUSPENDED' || hosp.status === 'REJECTED') uiStatus = 'Suspended';
+
+    return {
+      id: hosp.id,
+      code: hosp.code,
+      name: hosp.name,
+      adminEmail: hosp.adminEmail,
+      status: hosp.status,
+      uiStatus,
+      rejectionReason: hosp.rejectionReason,
     };
   }
 

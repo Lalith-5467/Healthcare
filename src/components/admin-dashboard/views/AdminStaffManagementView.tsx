@@ -6,13 +6,16 @@ import {
   Plus, RefreshCw, X, Check, Award
 } from 'lucide-react';
 import { adminApi } from '../../../services/dhrApis';
-import { INITIAL_DOCTORS, INITIAL_NURSES, INITIAL_PHARMACISTS, INITIAL_CAREGIVERS } from '../../../utils/adminMockStorage';
+import { 
+  getStoredHospitals, type HospitalAdminRecord 
+} from '../../../utils/adminMockStorage';
 import { AdminToast } from '../common/AdminToast';
 import type { AdminToastType } from '../common/AdminToast';
 import { AdminDeleteConfirmModal } from '../modals/AdminDeleteConfirmModal';
 
 interface AdminStaffManagementViewProps {
   type: 'doctor' | 'nurse' | 'pharmacist' | 'caregiver';
+  defaultHospital?: string;
 }
 
 export interface StaffMember {
@@ -28,7 +31,7 @@ export interface StaffMember {
   status: 'Active' | 'Suspended';
 }
 
-export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> = ({ type }) => {
+export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> = ({ type, defaultHospital }) => {
   const roleConfigMap = {
     doctor: {
       roleLabel: 'Doctor',
@@ -116,8 +119,23 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Suspended'>('All');
+  const [hospitalFilter, setHospitalFilter] = useState<string>(defaultHospital || 'All');
+  const [availableHospitals, setAvailableHospitals] = useState<HospitalAdminRecord[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (defaultHospital) {
+      setHospitalFilter(defaultHospital);
+    }
+  }, [defaultHospital]);
+
+  useEffect(() => {
+    setAvailableHospitals(getStoredHospitals());
+    const handleHospUpdate = () => setAvailableHospitals(getStoredHospitals());
+    window.addEventListener('admin_hospitals_updated', handleHospUpdate);
+    return () => window.removeEventListener('admin_hospitals_updated', handleHospUpdate);
+  }, []);
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -247,138 +265,16 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
           showToast(`Successfully refreshed ${mapped.length} ${roleLabel.toLowerCase()} records.`, 'success');
         }
       } else {
-        // Fallback to initial records if empty
-        if (type === 'doctor') {
-          setStaffList(INITIAL_DOCTORS.map(d => {
-            const ov = overrides[d.id] || {};
-            const isDocActive = d.status === 'Active';
-            return {
-              id: d.id,
-              name: ov.name || d.name,
-              email: ov.email || d.email,
-              phone: ov.phone || d.phone,
-              specialization: ov.specialization || d.specialization,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || d.nmcRegNo,
-              status: ov.status || (isDocActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else if (type === 'nurse') {
-          setStaffList(INITIAL_NURSES.map(n => {
-            const ov = overrides[n.id] || {};
-            const isNurseActive = n.status === 'On Duty';
-            return {
-              id: n.id,
-              name: ov.name || n.name,
-              email: ov.email || n.email,
-              phone: ov.phone || n.phone,
-              department: ov.department || n.department,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || n.councilRegNo,
-              status: ov.status || (isNurseActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else if (type === 'pharmacist') {
-          setStaffList(INITIAL_PHARMACISTS.map(p => {
-            const ov = overrides[p.id] || {};
-            const isPharmActive = p.status === 'Active';
-            return {
-              id: p.id,
-              name: ov.name || p.name,
-              email: ov.email || p.email,
-              phone: ov.phone || p.phone,
-              specialization: ov.specialization || p.dispensary,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || p.councilRegNo,
-              status: ov.status || (isPharmActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        } else {
-          setStaffList(INITIAL_CAREGIVERS.map(c => {
-            const ov = overrides[c.id] || {};
-            const isCgActive = c.status === 'Active';
-            return {
-              id: c.id,
-              name: ov.name || c.name,
-              email: ov.email || c.email,
-              phone: ov.phone || c.phone,
-              department: ov.department || c.specialty,
-              hospital: ov.hospital || 'MediCare Central Hospital',
-              licenseNumber: ov.licenseNumber || c.certificationId,
-              status: ov.status || (isCgActive ? 'Active' : 'Suspended'),
-            };
-          }));
-        }
+        setStaffList([]);
         if (isManual) {
-          showToast(`${roleLabel} database records synchronized`, 'success');
+          showToast(`No registered ${roleLabel.toLowerCase()} records found`, 'info');
         }
       }
     } catch (err: any) {
       console.error(`Failed to load ${roleLabel.toLowerCase()} roster:`, err?.message);
-      const overrides = getMockOverrides();
-      if (type === 'doctor') {
-        setStaffList(INITIAL_DOCTORS.map(d => {
-          const ov = overrides[d.id] || {};
-          const isDocActive = d.status === 'Active';
-          return {
-            id: d.id,
-            name: ov.name || d.name,
-            email: ov.email || d.email,
-            phone: ov.phone || d.phone,
-            specialization: ov.specialization || d.specialization,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || d.nmcRegNo,
-            status: ov.status || (isDocActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else if (type === 'nurse') {
-        setStaffList(INITIAL_NURSES.map(n => {
-          const ov = overrides[n.id] || {};
-          const isNurseActive = n.status === 'On Duty';
-          return {
-            id: n.id,
-            name: ov.name || n.name,
-            email: ov.email || n.email,
-            phone: ov.phone || n.phone,
-            department: ov.department || n.department,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || n.councilRegNo,
-            status: ov.status || (isNurseActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else if (type === 'pharmacist') {
-        setStaffList(INITIAL_PHARMACISTS.map(p => {
-          const ov = overrides[p.id] || {};
-          const isPharmActive = p.status === 'Active';
-          return {
-            id: p.id,
-            name: ov.name || p.name,
-            email: ov.email || p.email,
-            phone: ov.phone || p.phone,
-            specialization: ov.specialization || p.dispensary,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || p.councilRegNo,
-            status: ov.status || (isPharmActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      } else {
-        setStaffList(INITIAL_CAREGIVERS.map(c => {
-          const ov = overrides[c.id] || {};
-          const isCgActive = c.status === 'Active';
-          return {
-            id: c.id,
-            name: ov.name || c.name,
-            email: ov.email || c.email,
-            phone: ov.phone || c.phone,
-            department: ov.department || c.specialty,
-            hospital: ov.hospital || 'MediCare Central Hospital',
-            licenseNumber: ov.licenseNumber || c.certificationId,
-            status: ov.status || (isCgActive ? 'Active' : 'Suspended'),
-          };
-        }));
-      }
+      setStaffList([]);
       if (isManual) {
-        showToast(`${roleLabel} database records synchronized`, 'info');
+        showToast(`Failed to load ${roleLabel.toLowerCase()} records`, 'info');
       }
     } finally {
       setLoading(false);
@@ -569,7 +465,10 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
     const matchesStatus = 
       statusFilter === 'All' ? true : s.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesHospital = 
+      hospitalFilter === 'All' ? true : s.hospital === hospitalFilter;
+
+    return matchesSearch && matchesStatus && matchesHospital;
   });
 
   return (
@@ -629,21 +528,42 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Status:</span>
-          {(['All', 'Active', 'Suspended'] as const).map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                statusFilter === status
-                  ? 'bg-[#00a896] text-white border-[#00a896] shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200'
-              }`}
+        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          {/* Hospital Scope Filter */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Building2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <select
+              value={hospitalFilter}
+              onChange={(e) => setHospitalFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-[#00a896] cursor-pointer"
             >
-              {status}
-            </button>
-          ))}
+              <option value="All">All Hospitals ({availableHospitals.length})</option>
+              {availableHospitals.map((hosp) => (
+                <option key={hosp.id} value={hosp.name}>
+                  {hosp.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Status:</span>
+            {(['All', 'Active', 'Suspended'] as const).map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  statusFilter === status
+                    ? 'bg-[#00a896] text-white border-[#00a896] shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -1064,3 +984,6 @@ export const AdminStaffManagementView: React.FC<AdminStaffManagementViewProps> =
     </div>
   );
 };
+
+export default AdminStaffManagementView;
+

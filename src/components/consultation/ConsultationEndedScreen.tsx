@@ -9,6 +9,7 @@ interface ConsultationEndedScreenProps {
   onNavigateRecords: () => void;
   onNavigateAppointments: () => void;
   onNavigateDashboard: () => void;
+  onStartNewConsultation?: () => void;
 }
 
 export const ConsultationEndedScreen: React.FC<ConsultationEndedScreenProps> = ({
@@ -18,6 +19,7 @@ export const ConsultationEndedScreen: React.FC<ConsultationEndedScreenProps> = (
   onNavigateRecords,
   onNavigateAppointments,
   onNavigateDashboard,
+  onStartNewConsultation,
 }) => {
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState('');
@@ -131,6 +133,16 @@ export const ConsultationEndedScreen: React.FC<ConsultationEndedScreenProps> = (
             <Calendar className="w-4 h-4" />
             <span>Book Follow-up</span>
           </button>
+
+          {onStartNewConsultation && (
+            <button
+              onClick={onStartNewConsultation}
+              className="p-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold border border-teal-500/30 flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <span>New Consultation</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={onNavigateDashboard}

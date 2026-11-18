@@ -185,6 +185,7 @@ export const Header: React.FC<HeaderProps> = ({
         { id: 'services', label: 'Services', isMega: true },
         { id: 'features', label: 'Features' },
         { id: 'doctors', label: 'Doctors' },
+        { id: 'hospital-admin', label: 'Hospitals' },
         { id: 'abha', label: 'ABHA' },
       ];
 

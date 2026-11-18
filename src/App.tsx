@@ -21,7 +21,9 @@ import { NurseDashboardPage } from './pages/NurseDashboardPage';
 import { InsuranceDashboardPage } from './pages/InsuranceDashboardPage';
 import { CaregiverDashboardPage } from './pages/CaregiverDashboardPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { HospitalDashboardPage } from './pages/HospitalDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { HospitalAuthPage } from './pages/HospitalAuthPage';
 
 import { ABHAModal } from './components/modals/ABHAModal';
 import { ConsentModal } from './components/modals/ConsentModal';
@@ -32,6 +34,7 @@ import { clearAuthToken } from './services/apiClient';
 import { socketService } from './services/socketService';
 import { showGlobalToast } from './components/common/GlobalToastManager';
 import { GlobalNotificationListener } from './components/common/GlobalNotificationListener';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useSiteConfig } from './context/ConfigContext';
 
 const NAV_MAP: Record<string, string> = {
@@ -128,8 +131,9 @@ export const normalizeRole = (role?: string): string => {
   }
 };
 
-export const getPortalFromPathOrRole = (path: string, userRole: string = 'Patient'): 'admin' | 'pharmacist' | 'doctor' | 'nurse' | 'insurance' | 'caregiver' | 'user' => {
+export const getPortalFromPathOrRole = (path: string, userRole: string = 'Patient'): 'admin' | 'hospital' | 'pharmacist' | 'doctor' | 'nurse' | 'insurance' | 'caregiver' | 'user' => {
   const p = path.toLowerCase();
+  if (p.startsWith('/hospital') || p.startsWith('/hospital-admin')) return 'hospital';
   if (p.startsWith('/admin')) return 'admin';
   if (p.startsWith('/doctor')) return 'doctor';
   if (p.startsWith('/pharmacist')) return 'pharmacist';
@@ -150,7 +154,12 @@ export const getPortalFromPathOrRole = (path: string, userRole: string = 'Patien
 
 const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Patient', currentPath: string = '') => {
   if (page === 'about') return '/about';
-  const pathLower = (currentPath || window.location.pathname).toLowerCase();
+  const pathLower = (currentPath || (typeof window !== 'undefined' ? window.location.pathname : '')).toLowerCase();
+
+  // If user is already on a hospital management portal route, keep the current hospital route exactly
+  if (pathLower.startsWith('/hospital') || pathLower.startsWith('/hospital-admin')) {
+    return currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/hospital/dashboard');
+  }
 
   if (page === 'login') {
     if (pathLower.startsWith('/admin')) return '/admin/login';
@@ -175,6 +184,7 @@ const getURLPathForRoute = (page: string, navId?: string, userRole: string = 'Pa
     const nav = navId || 'dashboard';
     const portal = getPortalFromPathOrRole(pathLower, userRole);
 
+    if (portal === 'hospital') return `/hospital/${nav}`;
     if (portal === 'admin') return `/admin/${nav}`;
     if (portal === 'doctor') return `/doctor/${nav}`;
     if (portal === 'pharmacist') return `/pharmacist/${nav}`;
@@ -208,6 +218,7 @@ const getInitialAppState = () => {
   const rawHash = window.location.hash.replace('#', '').replace('/', '').toLowerCase();
 
   const isAdminPath = path.startsWith('/admin');
+  const isHospitalPath = path.startsWith('/hospital') || path.startsWith('/hospital-admin');
   const isUserPath = path.startsWith('/user');
   const isPharmacistPath = path.startsWith('/pharmacist');
   const isDoctorPath = path.startsWith('/doctor');
@@ -215,7 +226,8 @@ const getInitialAppState = () => {
   const isInsurancePath = path.startsWith('/insurance');
   const isCaregiverPath = path.startsWith('/caregiver');
 
-  const target = isAdminPath ? path.replace('/admin/', '').replace('/admin', '')
+  const target = isHospitalPath ? path.replace('/hospital-admin', '').replace('/hospital/', '').replace('/hospital', '')
+    : isAdminPath ? path.replace('/admin/', '').replace('/admin', '')
     : isUserPath ? path.replace('/user/', '').replace('/user', '')
     : isPharmacistPath ? path.replace('/pharmacist/', '').replace('/pharmacist', '')
     : isDoctorPath ? path.replace('/doctor/', '').replace('/doctor', '')
@@ -302,12 +314,27 @@ const getInitialAppState = () => {
     page = 'home';
   } else if (path === '/about') {
     page = 'about';
+  } else if (path === '/hospital/login' || path === '/hospital-login') {
+    page = 'login';
+  } else if (path === '/hospital/register' || path === '/hospital-register') {
+    page = 'register';
   } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login' || path === '/admin/login') {
     page = 'login';
   } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
     page = 'register';
-  } else if (isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
-    if (loggedIn && userData) {
+  } else if (isHospitalPath || isAdminPath || isDoctorPath || isNursePath || isInsurancePath || isCaregiverPath || isPharmacistPath || isUserPath || (target && NAV_MAP[target]) || path === '/emergency' || path === '/sos' || path === '/abha' || path === '/features' || path === '/doctors' || path === '/services') {
+    if (isHospitalPath) {
+      if (path === '/hospital/login' || path === '/hospital-login') {
+        page = 'login';
+      } else if (path === '/hospital/register' || path === '/hospital-register') {
+        page = 'register';
+      } else if (loggedIn && userData) {
+        page = 'dashboard';
+        if (target) nav = target;
+      } else {
+        page = 'login';
+      }
+    } else if (loggedIn && userData) {
       // For admin paths, verify the logged-in user actually has admin role
       if (isAdminPath) {
         const userRole = (userData.role || '').toLowerCase();
@@ -342,7 +369,7 @@ export const App: React.FC = () => {
   const initialState = getInitialAppState();
 
   // Page & User States
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'login' | 'register' | 'dashboard'>(initialState.page);
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'login' | 'register' | 'dashboard' | 'hospital-login' | 'hospital-register'>(initialState.page as any);
   const [selectedAuthRole, setSelectedAuthRole] = useState<'patient' | 'doctor' | 'caregiver' | 'pharmacist' | 'nurse' | 'insurance'>(initialState.targetRole);
   const [isLoggedIn, setIsLoggedIn] = useState(initialState.loggedIn);
   const [user, setUser] = useState<{
@@ -388,6 +415,10 @@ export const App: React.FC = () => {
 
   // Session Restoration & Backend User Validation on Mount
   React.useEffect(() => {
+    const pathLower = window.location.pathname.toLowerCase();
+    const isHospitalPath = pathLower.startsWith('/hospital') || pathLower.startsWith('/hospital-admin');
+    const isAdminPath = pathLower.startsWith('/admin');
+
     const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('patient_token');
     if (token) {
       authApi.getCurrentUser()
@@ -396,7 +427,6 @@ export const App: React.FC = () => {
             const u = res.data;
             const profile: any = u.profile || {};
             const normalizedRole = normalizeRole(u.role);
-            const pathLower = window.location.pathname.toLowerCase();
             if (pathLower.startsWith('/pharmacist') && normalizedRole !== 'Pharmacist') return;
             if (pathLower.startsWith('/doctor') && normalizedRole !== 'Doctor') return;
             if (pathLower.startsWith('/nurse') && normalizedRole !== 'Nurse') return;
@@ -436,12 +466,14 @@ export const App: React.FC = () => {
         })
         .catch((err) => {
           console.warn('Session verification failed, resetting session:', err?.message);
-          handleLogout();
+          if (!isHospitalPath && !isAdminPath) {
+            handleLogout();
+          }
         });
 
       // Connect Socket.IO for global authenticated features (like real-time notifications)
       socketService.connect(token);
-    } else if (isLoggedIn) {
+    } else if (isLoggedIn && !isHospitalPath && !isAdminPath) {
       handleLogout();
     }
   }, []);
@@ -668,10 +700,23 @@ export const App: React.FC = () => {
         setCurrentPage('home');
       } else if (path === '/about') {
         setCurrentPage('about');
+      } else if (path === '/hospital/login' || path === '/hospital-login') {
+        setCurrentPage('hospital-login');
+      } else if (path === '/hospital/register' || path === '/hospital-register') {
+        setCurrentPage('hospital-register');
       } else if (path === '/login' || path === '/doctor/login' || path === '/nurse/login' || path === '/pharmacist/login' || path === '/insurance/login' || path === '/caregiver/login' || path === '/user/login' || path === '/admin/login') {
         setCurrentPage('login');
       } else if (path === '/register' || path === '/doctor/register' || path === '/nurse/register' || path === '/pharmacist/register' || path === '/insurance/register' || path === '/caregiver/register' || path === '/user/register') {
         setCurrentPage('register');
+      } else if (path.startsWith('/hospital') || path.startsWith('/hospital-admin')) {
+        if (loggedIn) {
+          setCurrentPage('dashboard');
+          if (target) {
+            setInitialNavId(target);
+          }
+        } else {
+          setCurrentPage('hospital-login');
+        }
       } else if (isAdminPath) {
         if (loggedIn) {
           setCurrentPage('dashboard');
@@ -749,9 +794,25 @@ export const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    // If currently logging out from the hospital management portal, route back to hospital login
+    const isHospitalPath = window.location.pathname.toLowerCase().startsWith('/hospital');
+
     clearAuthToken();
     setIsLoggedIn(false);
     setUser(null);
+
+    if (isHospitalPath) {
+      setCurrentPage('hospital-login');
+      setInitialNavId('dashboard');
+      localStorage.removeItem('app_user');
+      localStorage.setItem('app_is_logged_in', 'false');
+      localStorage.setItem('app_current_page', 'hospital-login');
+      localStorage.setItem('app_active_nav_id', 'dashboard');
+      window.history.pushState(null, '', '/hospital/login');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+
     setCurrentPage('home');
     setInitialNavId('dashboard');
     localStorage.removeItem('app_user');
@@ -781,6 +842,42 @@ export const App: React.FC = () => {
 
   const handleNavigate = (id: string) => {
     // 1. Explicit public page destinations
+    if (id === 'hospital-login' || id === 'hospital/login') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('hospital-login');
+      window.history.pushState(null, '', '/hospital/login');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+    if (id === 'hospital-register' || id === 'hospital/register') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('hospital-register');
+      window.history.pushState(null, '', '/hospital/register');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+    if (id === 'hospital-admin' || id === 'hospital' || id === 'hospital/dashboard') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('dashboard');
+      window.history.pushState(null, '', '/hospital/dashboard');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
+    if (id === 'admin') {
+      try {
+        window.dispatchEvent(new Event('clear_all_toasts'));
+      } catch {}
+      setCurrentPage('dashboard');
+      window.history.pushState(null, '', '/admin/dashboard');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return;
+    }
     if (id === 'login') {
       try {
         window.dispatchEvent(new Event('clear_all_toasts'));
@@ -930,7 +1027,13 @@ export const App: React.FC = () => {
 
   const activeRole = normalizeRole(user?.role);
   const isPharmacist = activeRole === 'Pharmacist';
-  const showHeaderAndFooter = currentPage !== 'dashboard' && currentPage !== 'login' && currentPage !== 'register';
+  const showHeaderAndFooter = 
+    currentPage !== 'dashboard' && 
+    currentPage !== 'login' && 
+    currentPage !== 'register' && 
+    currentPage !== 'hospital-login' && 
+    currentPage !== 'hospital-register' &&
+    !window.location.pathname.toLowerCase().startsWith('/hospital');
 
   return (
     <LanguageProvider>
@@ -958,6 +1061,24 @@ export const App: React.FC = () => {
               onStartJourney={handleOpenAuth}
               onExploreFeatures={() => handleNavigate('features')}
             />
+          ) : currentPage === 'hospital-login' || (currentPage === 'login' && window.location.pathname.toLowerCase().startsWith('/hospital')) ? (
+            <HospitalAuthPage
+              initialMode="login"
+              onNavigateHome={() => handleNavigate('home')}
+              onNavigate={handleNavigate}
+              onSuccessLogin={(hospital) => {
+                handleNavigate('hospital/dashboard');
+              }}
+            />
+          ) : currentPage === 'hospital-register' || (currentPage === 'register' && window.location.pathname.toLowerCase().startsWith('/hospital')) ? (
+            <HospitalAuthPage
+              initialMode="register"
+              onNavigateHome={() => handleNavigate('home')}
+              onNavigate={handleNavigate}
+              onSuccessLogin={(hospital) => {
+                handleNavigate('hospital/dashboard');
+              }}
+            />
           ) : currentPage === 'login' ? (
             window.location.pathname.toLowerCase().startsWith('/admin') ? (
               <AdminLoginPage
@@ -982,10 +1103,33 @@ export const App: React.FC = () => {
             />
           ) : currentPage === 'dashboard' ? (
             (() => {
+              const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
+              if (currentPortal === 'hospital') {
+                return (
+                  <ErrorBoundary>
+                    <HospitalDashboardPage
+                      user={user as any || undefined}
+                      initialHospitalId={initialNavId}
+                      onLogout={handleLogout}
+                      onNavigate={handleNavigate}
+                    />
+                  </ErrorBoundary>
+                );
+              }
+
               const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
               const isActuallyLoggedIn = Boolean(isLoggedIn && token);
 
               if (!isActuallyLoggedIn) {
+                if (currentPortal === 'admin' || window.location.pathname.toLowerCase().startsWith('/admin')) {
+                  return (
+                    <AdminLoginPage 
+                      onNavigateHome={() => handleNavigate('home')}
+                      onNavigate={handleNavigate}
+                      onSuccessLogin={(userData) => handleSuccessLogin(userData as any)}
+                    />
+                  );
+                }
                 return (
                   <LoginPage 
                     initialRole={selectedAuthRole}
@@ -996,15 +1140,16 @@ export const App: React.FC = () => {
                 );
               }
 
-              const currentPortal = getPortalFromPathOrRole(window.location.pathname, user?.role || 'Patient');
               if (currentPortal === 'admin') {
                 return (
-                  <AdminDashboardPage 
-                    user={user as any || undefined} 
-                    initialNavId={initialNavId}
-                    onLogout={handleLogout} 
-                    onNavigate={handleNavigate}
-                  />
+                  <ErrorBoundary>
+                    <AdminDashboardPage 
+                      user={user as any || undefined} 
+                      initialNavId={initialNavId}
+                      onLogout={handleLogout} 
+                      onNavigate={handleNavigate}
+                    />
+                  </ErrorBoundary>
                 );
               }
               if (currentPortal === 'pharmacist') {

@@ -145,7 +145,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
           </button>
 
           <button 
-            onClick={() => onNavigate('consultations')}
+            onClick={() => onNavigate('video-consultation')}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-900 dark:text-white px-5 py-3.5 rounded-2xl font-bold text-sm border border-slate-200/60 dark:border-white/15 backdrop-blur-md shadow-sm dark:shadow-none transition-all cursor-pointer"
           >
             <Video className="w-4 h-4 text-cyan-600 dark:text-cyan-300" />
@@ -335,9 +335,14 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
 
                     <div className="flex flex-col sm:items-end gap-2 shrink-0">
                       {req.status === 'PENDING' && (
-                        <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300/50 animate-pulse">
-                          {t("doctor.overview.waiting_approval", "Waiting for approval")}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300/50 animate-pulse">
+                            {t("doctor.overview.waiting_approval", "Waiting for approval")}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium italic text-right max-w-[200px]">
+                            Awaiting patient consent on {req.patientName ? req.patientName.split(' ')[0] : 'patient'}'s app
+                          </span>
+                        </div>
                       )}
 
                       {req.status === 'APPROVED' && (
@@ -405,7 +410,7 @@ export const DoctorOverviewView: React.FC<DoctorOverviewViewProps> = ({
               </button>
 
               <button 
-                onClick={() => onNavigate('consultations')}
+                onClick={() => onNavigate('video-consultation')}
                 className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 border border-slate-200 dark:border-slate-700 hover:border-cyan-500/30 text-left transition-all group cursor-pointer"
               >
                 <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">

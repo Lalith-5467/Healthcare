@@ -37,25 +37,62 @@ export interface SharedDocument {
   fileName: string;
 }
 
-export const MOCK_CONSULTATION_DOCTOR: ConsultationDoctor = {
-  id: 'DOC-101',
-  name: 'Dr. Rajesh Kumar',
-  speciality: 'General Physician & Cardiologist',
-  rating: 4.8,
-  experienceYears: 12,
-  languages: ['English', 'Tamil', 'Hindi'],
-  hospital: 'Apollo Hospital, Chennai',
-  avatarUrl: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
-  bio: 'Senior Consultant Physician specializing in preventive health checkups, cardiovascular wellness, and chronic disease management.'
-};
+export const AVAILABLE_CONSULTATION_DOCTORS: ConsultationDoctor[] = [
+  {
+    id: 'DOC-101',
+    name: 'Dr. Jim',
+    speciality: 'Senior Consultant Physician & Cardiologist',
+    rating: 4.9,
+    experienceYears: 14,
+    languages: ['English', 'Tamil', 'Hindi'],
+    hospital: 'Medicare Multi-Specialty Hospital',
+    avatarUrl: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?auto=format&fit=crop&w=600&q=80',
+    bio: 'Lead physician specializing in preventive cardiology, hypertension control, and digital health consultation.'
+  },
+  {
+    id: 'DOC-102',
+    name: 'Dr. Priya Sharma',
+    speciality: 'Senior Interventional Cardiologist',
+    rating: 4.95,
+    experienceYears: 16,
+    languages: ['English', 'Hindi'],
+    hospital: 'Fortis Healthcare, Adyar',
+    avatarUrl: 'https://images.unsplash.com/photo-1594824813566-88855ce78947?auto=format&fit=crop&w=600&q=80',
+    bio: 'Lead Interventional Cardiologist specializing in preventive cardiology, angioplasty, and heart rhythm wellness.'
+  },
+  {
+    id: 'DOC-103',
+    name: 'Dr. Rajesh Kumar',
+    speciality: 'Senior General Physician',
+    rating: 4.85,
+    experienceYears: 15,
+    languages: ['English', 'Tamil', 'Hindi'],
+    hospital: 'Apollo Hospital, Greams Road',
+    avatarUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+    bio: 'Renowned General Physician with 15+ years of clinical experience in diabetes, fever, and routine healthcare.'
+  },
+  {
+    id: 'DOC-104',
+    name: 'Dr. Meena Swaminathan',
+    speciality: 'Senior Pediatrician & Child Health Specialist',
+    rating: 4.9,
+    experienceYears: 12,
+    languages: ['English', 'Tamil'],
+    hospital: 'Child Health Care Hospital, Egmore',
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80',
+    bio: 'Specialist in child development, adolescent medicine, immunizations, and preventive pediatric health.'
+  }
+];
+
+export const MOCK_CONSULTATION_DOCTOR: ConsultationDoctor = AVAILABLE_CONSULTATION_DOCTORS[0];
 
 export const MOCK_CONSULTATION_APPOINTMENT: ConsultationAppointment = {
   id: 'APT-2026-00482',
   doctor: MOCK_CONSULTATION_DOCTOR,
-  date: 'Today · 23 Aug 2026',
-  time: '10:30 AM',
+  date: 'Today · Live Session',
+  time: '11:30 AM',
   type: 'Video Consultation',
-  status: 'Confirmed',
+  status: 'In Progress',
   reason: 'Routine quarterly health checkup & blood sugar review'
 };
 
@@ -63,25 +100,25 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
   {
     id: 'MSG-1',
     sender: 'Doctor',
-    senderName: 'Dr. Rajesh Kumar',
-    text: 'Hello Samson! Welcome to your digital video consultation. How are you feeling today?',
-    timestamp: '10:30 AM',
+    senderName: 'Dr. Jim',
+    text: 'Hello Helen! Welcome to your digital video consultation. How are you feeling today?',
+    timestamp: '11:30 AM',
     isRead: true
   },
   {
     id: 'MSG-2',
     sender: 'Patient',
-    senderName: 'Samson L.',
-    text: "Good morning Doctor. I'm doing well! I wanted to review my recent fasting blood sugar report.",
-    timestamp: '10:31 AM',
+    senderName: 'Helen Persia',
+    text: "Good morning Dr. Jim. I'm doing well! I wanted to review my recent vitals and blood sugar reports.",
+    timestamp: '11:31 AM',
     isRead: true
   },
   {
     id: 'MSG-3',
     sender: 'Doctor',
-    senderName: 'Dr. Rajesh Kumar',
-    text: "Excellent. I have your lab records open. Let's go over the parameters together.",
-    timestamp: '10:32 AM',
+    senderName: 'Dr. Jim',
+    text: "Excellent Helen. I have your patient 360 records open on my console. Let's go over the parameters together.",
+    timestamp: '11:32 AM',
     isRead: true
   }
 ];

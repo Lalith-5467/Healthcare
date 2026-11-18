@@ -5,7 +5,6 @@ import {
   Calendar, FileText, ArrowUpRight, Loader2
 } from 'lucide-react';
 import { pharmacyApi, insuranceApi } from '../../../services/dhrApis';
-import { INITIAL_PHARMACY_ORDERS, INITIAL_INSURANCE_POLICIES } from '../../../utils/adminMockStorage';
 
 interface AdminOperationsViewProps {
   type: 'pharmacy' | 'insurance';
@@ -26,15 +25,15 @@ export const AdminOperationsView: React.FC<AdminOperationsViewProps> = ({ type }
       pharmacyApi.getPharmacyOrders()
         .then((res) => {
           if (!isMounted) return;
-          if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          if (res && res.data && Array.isArray(res.data)) {
             setOrders(res.data);
           } else {
-            setOrders(INITIAL_PHARMACY_ORDERS);
+            setOrders([]);
           }
         })
         .catch((err) => {
           console.error('Failed to load pharmacy orders:', err);
-          if (isMounted) setOrders(INITIAL_PHARMACY_ORDERS);
+          if (isMounted) setOrders([]);
         })
         .finally(() => {
           if (isMounted) setLoading(false);
@@ -43,15 +42,15 @@ export const AdminOperationsView: React.FC<AdminOperationsViewProps> = ({ type }
       insuranceApi.getPolicies()
         .then((res) => {
           if (!isMounted) return;
-          if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          if (res && res.data && Array.isArray(res.data)) {
             setPolicies(res.data);
           } else {
-            setPolicies(INITIAL_INSURANCE_POLICIES);
+            setPolicies([]);
           }
         })
         .catch((err) => {
           console.error('Failed to load insurance policies:', err);
-          if (isMounted) setPolicies(INITIAL_INSURANCE_POLICIES);
+          if (isMounted) setPolicies([]);
         })
         .finally(() => {
           if (isMounted) setLoading(false);

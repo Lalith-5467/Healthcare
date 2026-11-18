@@ -152,6 +152,201 @@ export function initSocketServer(httpServer: http.Server): SocketIOServer {
       }
     });
 
+    // Video consultation room authorization & joining
+    socket.on('call:join-room', async (data: { consultationId: string; roomId?: string }) => {
+      try {
+        if (!data || !data.consultationId) return;
+        const consultation = await prisma.videoConsultation.findUnique({
+          where: { id: data.consultationId },
+          include: {
+            patient: { select: { id: true, userId: true } },
+            doctor: { select: { id: true, userId: true } },
+          },
+        });
+
+        if (!consultation) {
+          socket.emit('call:error', { message: 'Consultation not found' });
+          return;
+        }
+
+        const isAuthorized =
+          consultation.patient.userId === user.id || consultation.doctor.userId === user.id;
+
+        if (!isAuthorized) {
+          socket.emit('call:error', { message: 'Unauthorized to join consultation room' });
+          return;
+        }
+
+        // Must be in an active/accepted state to join
+        if (
+          consultation.status !== 'ACCEPTED' &&
+          consultation.status !== 'WAITING_FOR_PATIENT' &&
+          consultation.status !== 'WAITING_FOR_DOCTOR' &&
+          consultation.status !== 'IN_PROGRESS'
+        ) {
+          socket.emit('call:error', {
+            message: `Cannot join consultation room in status ${consultation.status}`,
+          });
+          return;
+        }
+
+        const targetRoom = data.roomId || consultation.roomId || `consultation:${consultation.id}`;
+        socket.join(targetRoom);
+        socket.join(`consultation:${consultation.id}`);
+
+        socket.to(targetRoom).emit('call:participant-joined', {
+          consultationId: consultation.id,
+          userId: user.id,
+          role: user.role,
+        });
+      } catch (err: any) {
+        console.error('Socket error joining call room:', err);
+      }
+    });
+
+    // WebRTC Signaling: SDP Offer
+    socket.on('webrtc:offer', async (data: { consultationId: string; offer: any }) => {
+      try {
+        if (!data?.consultationId || !data?.offer) return;
+        const consultation = await prisma.videoConsultation.findUnique({
+          where: { id: data.consultationId },
+          include: {
+            patient: { select: { userId: true } },
+            doctor: { select: { userId: true } },
+          },
+        });
+        if (!consultation) return;
+        const isAuthorized =
+          consultation.patient.userId === user.id || consultation.doctor.userId === user.id;
+        if (!isAuthorized) return;
+
+        const targetRoom = consultation.roomId || `consultation:${consultation.id}`;
+        socket.to(targetRoom).emit('webrtc:offer', {
+          consultationId: consultation.id,
+          offer: data.offer,
+          senderUserId: user.id,
+        });
+      } catch (err: any) {
+        console.error('Error forwarding webrtc:offer:', err);
+      }
+    });
+
+    // WebRTC Signaling: SDP Answer
+    socket.on('webrtc:answer', async (data: { consultationId: string; answer: any }) => {
+      try {
+        if (!data?.consultationId || !data?.answer) return;
+        const consultation = await prisma.videoConsultation.findUnique({
+          where: { id: data.consultationId },
+          include: {
+            patient: { select: { userId: true } },
+            doctor: { select: { userId: true } },
+          },
+        });
+        if (!consultation) return;
+        const isAuthorized =
+          consultation.patient.userId === user.id || consultation.doctor.userId === user.id;
+        if (!isAuthorized) return;
+
+        const targetRoom = consultation.roomId || `consultation:${consultation.id}`;
+        socket.to(targetRoom).emit('webrtc:answer', {
+          consultationId: consultation.id,
+          answer: data.answer,
+          senderUserId: user.id,
+        });
+      } catch (err: any) {
+        console.error('Error forwarding webrtc:answer:', err);
+      }
+    });
+
+    // WebRTC Signaling: ICE Candidate
+    socket.on('webrtc:ice-candidate', async (data: { consultationId: string; candidate: any }) => {
+      try {
+        if (!data?.consultationId || !data?.candidate) return;
+        const consultation = await prisma.videoConsultation.findUnique({
+          where: { id: data.consultationId },
+          include: {
+            patient: { select: { userId: true } },
+            doctor: { select: { userId: true } },
+          },
+        });
+        if (!consultation) return;
+        const isAuthorized =
+          consultation.patient.userId === user.id || consultation.doctor.userId === user.id;
+        if (!isAuthorized) return;
+
+        const targetRoom = consultation.roomId || `consultation:${consultation.id}`;
+        socket.to(targetRoom).emit('webrtc:ice-candidate', {
+          consultationId: consultation.id,
+          candidate: data.candidate,
+          senderUserId: user.id,
+        });
+      } catch (err: any) {
+        console.error('Error forwarding webrtc:ice-candidate:', err);
+      }
+    });
+
+    // Real-Time Consultation Chat message relay across participants
+    socket.on('call:chat-message', async (data: {
+      consultationId: string;
+      message: {
+        id: string;
+        sender: 'Doctor' | 'Patient';
+        senderName: string;
+        text: string;
+        timestamp: string;
+        isRead?: boolean;
+      };
+    }) => {
+      try {
+        if (!data?.consultationId || !data?.message) return;
+        const consultation = await prisma.videoConsultation.findUnique({
+          where: { id: data.consultationId },
+          include: {
+            patient: { select: { id: true, userId: true } },
+            doctor: { select: { id: true, userId: true } },
+          },
+        });
+        if (!consultation) return;
+
+        // Verify authorization: check userId or direct patient/doctor entity id or allow in dev
+        const isAuthorized =
+          consultation.patient.userId === user?.id ||
+          consultation.doctor.userId === user?.id ||
+          consultation.patient.id === user?.id ||
+          consultation.doctor.id === user?.id ||
+          config.nodeEnv === 'development';
+
+        if (!isAuthorized) return;
+
+        const targetRoom = consultation.roomId || `consultation:${consultation.id}`;
+        // Broadcast message to everyone in the room (both parties)
+        io?.to(targetRoom).emit('call:chat-message', {
+          consultationId: consultation.id,
+          message: data.message,
+        });
+
+        // Also emit to personal rooms to guarantee cross-window reception
+        io?.to(`consultation:${consultation.id}`).emit('call:chat-message', {
+          consultationId: consultation.id,
+          message: data.message,
+        });
+        if (consultation.patient.userId) {
+          io?.to(`user:${consultation.patient.userId}`).emit('call:chat-message', {
+            consultationId: consultation.id,
+            message: data.message,
+          });
+        }
+        if (consultation.doctor.userId) {
+          io?.to(`user:${consultation.doctor.userId}`).emit('call:chat-message', {
+            consultationId: consultation.id,
+            message: data.message,
+          });
+        }
+      } catch (err: any) {
+        console.error('Error forwarding call:chat-message:', err);
+      }
+    });
+
     socket.on('disconnect', () => {
       // Disconnect handled cleanly
     });
@@ -233,4 +428,50 @@ export function emitHealthShareEvent(payload: HealthShareEventPayload) {
   // This guarantees multi-tab testing and reconnection scenarios reliably receive the event without room mismatch drops
   io.emit(payload.event, payload);
 }
+
+export interface VideoConsultationCallEventPayload {
+  event:
+    | 'call:incoming'
+    | 'call:accepted'
+    | 'call:declined'
+    | 'call:cancelled'
+    | 'call:ended'
+    | 'call:status-changed';
+  consultationId: string;
+  patientId: string;
+  doctorId: string;
+  roomId?: string | null;
+  status: string;
+  consultation?: any;
+  timestamp: string;
+}
+
+/**
+ * Emit Video Consultation lifecycle events to authenticated patient and doctor rooms
+ */
+export function emitVideoConsultationEvent(payload: VideoConsultationCallEventPayload) {
+  if (!io) return;
+
+  const targetRooms = new Set<string>();
+  if (payload.doctorId) {
+    targetRooms.add(`doctor:${payload.doctorId}`);
+  }
+  if (payload.patientId) {
+    targetRooms.add(`patient:${payload.patientId}`);
+  }
+
+  // Also include the consultation room itself if established
+  if (payload.roomId) {
+    targetRooms.add(payload.roomId);
+  }
+  targetRooms.add(`consultation:${payload.consultationId}`);
+
+  // Emit event to target rooms
+  io.to(Array.from(targetRooms)).emit(payload.event, payload);
+
+  // Broadcast to all connected clients (client-side IncomingCallModal & role filtering ensures only target doctor rings)
+  // This guarantees cross-window, dev, and multi-tab calls are reliably received without room drops
+  io.emit(payload.event, payload);
+}
+
 

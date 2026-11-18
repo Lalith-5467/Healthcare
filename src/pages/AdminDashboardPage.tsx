@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Menu, X, Bell, Shield, LogOut, ChevronDown, UserCheck, 
-  HelpCircle, Search, ShieldCheck, KeyRound, Sparkles, Check, 
+import {
+  Menu, X, Bell, Shield, LogOut, ChevronDown, UserCheck,
+  HelpCircle, Search, ShieldCheck, KeyRound, Sparkles, Check,
   AlertTriangle, Lock, User
 } from 'lucide-react';
 import { Logo } from '../components/ui/Logo';
@@ -11,6 +11,7 @@ import { AdminSidebar } from '../components/admin-dashboard/AdminSidebar';
 
 // SUB-VIEWS
 import { AdminDashboardHomeView } from '../components/admin-dashboard/views/AdminDashboardHomeView';
+import { AdminHospitalManagementView } from '../components/admin-dashboard/views/AdminHospitalManagementView';
 import { AdminUserManagementView } from '../components/admin-dashboard/views/AdminUserManagementView';
 import { AdminRolesPermissionsView } from '../components/admin-dashboard/views/AdminRolesPermissionsView';
 import { SuperAdminManagementView } from '../components/admin-dashboard/views/SuperAdminManagementView';
@@ -21,8 +22,10 @@ import { AdminOperationsView } from '../components/admin-dashboard/views/AdminOp
 import { AdminSecurityAuditView } from '../components/admin-dashboard/views/AdminSecurityAuditView';
 import { AdminSystemSettingsView } from '../components/admin-dashboard/views/AdminSystemSettingsView';
 import { AdminReportsAnalyticsView } from '../components/admin-dashboard/views/AdminReportsAnalyticsView';
+import { AdminProfileSettingsView } from '../components/admin-dashboard/views/AdminProfileSettingsView';
 import { NotificationPopover } from '../components/dashboard/NotificationPopover';
 import { DashboardAnnouncementBanner } from '../components/common/DashboardAnnouncementBanner';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { notificationApi } from '../services/dhrApis';
 import { getAuthToken, parseJwtRole } from '../services/apiClient';
 
@@ -77,7 +80,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       if (res && res.data) {
         setUnreadNotificationsCount(res.data.filter((n: any) => !n.isRead).length);
       }
-    } catch {}
+    } catch { }
   };
 
   React.useEffect(() => {
@@ -87,8 +90,52 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     return () => window.removeEventListener('notifications_updated', handleUpdate);
   }, []);
 
-  const adminName = user?.name || (user?.email ? user.email.split('@')[0] : (currentRole === 'Super Admin' ? 'Super Administrator' : 'Administrator'));
-  const adminEmail = user?.email || (currentRole === 'Super Admin' ? 'superadmin@dhr-medicare.in' : 'admin@dhr-medicare.in');
+  const [currentAdminUser, setCurrentAdminUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('app_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.name) return parsed;
+      }
+    } catch {}
+    return user;
+  });
+
+  React.useEffect(() => {
+    const handleUserUpdated = () => {
+      try {
+        const stored = localStorage.getItem('app_user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.name) {
+            setCurrentAdminUser((prev: any) => ({
+              ...(prev || {}),
+              ...parsed
+            }));
+          }
+        }
+      } catch {}
+    };
+    window.addEventListener('app_user_updated', handleUserUpdated);
+    return () => window.removeEventListener('app_user_updated', handleUserUpdated);
+  }, []);
+
+  const resolveAdminDisplayName = (u?: any, role?: string) => {
+    if (u?.name && u.name.trim() && u.name.toLowerCase() !== 'superadmin' && u.name.toLowerCase() !== 'admin') {
+      return u.name;
+    }
+    const emailLower = (u?.email || '').toLowerCase();
+    if (emailLower === 'superadmin@dhr-medicare.in' || (role && role.includes('Super'))) {
+      return 'Vikramaditya Rao';
+    }
+    if (emailLower === 'admin.kavita@dhr-medicare.in' || emailLower === 'admin@health.com') {
+      return 'Kavita Sundaram';
+    }
+    return role === 'Super Admin' ? 'Vikramaditya Rao' : 'Administrator';
+  };
+
+  const adminName = resolveAdminDisplayName(currentAdminUser || user, currentRole);
+  const adminEmail = currentAdminUser?.email || user?.email || (currentRole === 'Super Admin' ? 'superadmin@dhr-medicare.in' : 'admin@dhr-medicare.in');
 
   const SUPER_ADMIN_ONLY_VIEWS = [
     'admin-management',
@@ -142,6 +189,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     switch (activeNavId) {
       case 'dashboard':
         return <AdminDashboardHomeView onNavigate={handleSelectNav} currentRole={currentRole} />;
+      case 'hospitals':
+        return (
+          <ErrorBoundary>
+            <AdminHospitalManagementView
+              onLaunchHospitalPortal={(hospital) => {
+                if (onNavigate) {
+                  try {
+                    localStorage.setItem('active_hospital_portal', JSON.stringify(hospital));
+                  } catch { }
+                  onNavigate('hospital/dashboard');
+                }
+              }}
+            />
+          </ErrorBoundary>
+        );
       case 'users':
         return <AdminUserManagementView />;
       case 'patients':
@@ -175,6 +237,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         return <AdminSecurityAuditView currentRole={currentRole} />;
       case 'reports-analytics':
         return <AdminReportsAnalyticsView />;
+      case 'profile':
+      case 'profile-settings':
+        return <AdminProfileSettingsView user={user} currentRole={currentRole} />;
       case 'system-config':
       case 'settings':
         return <AdminSystemSettingsView currentRole={currentRole} />;
@@ -185,11 +250,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-[#070c18] text-slate-900 dark:text-white font-sans flex flex-col select-none">
-      
+
       {/* 1. TOP EXECUTIVE HEADER */}
       <header className="sticky top-0 z-50 bg-white dark:bg-[#0b1120] border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer lg:hidden"
             onClick={() => setMobileSidebarOpen(true)}
           >
@@ -207,34 +272,10 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* DEMO ROLE SWITCHER PILL */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <button
-              onClick={() => setCurrentRole('Admin')}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                currentRole === 'Admin' 
-                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => setCurrentRole('Super Admin')}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                currentRole === 'Super Admin' 
-                  ? 'bg-[#00a896] text-white shadow-xs font-black' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Super Admin
-            </button>
-          </div>
-
           {/* DARK / LIGHT THEME TOGGLE */}
           <ThemeToggle />
 
-          <button 
+          <button
             type="button"
             onClick={() => setNotificationPopoverOpen(true)}
             className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -278,7 +319,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
                   <button
                     onClick={() => {
-                      handleSelectNav('settings');
+                      handleSelectNav('profile');
                       setIsProfileDropdownOpen(false);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
@@ -318,7 +359,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
       {/* 2. BODY LAYOUT WITH SIDEBAR AND MAIN CONTENT */}
       <div className="flex flex-1 overflow-hidden">
-        
+
         {/* DESKTOP SIDEBAR */}
         <div className="hidden lg:block shrink-0">
           <AdminSidebar
@@ -334,11 +375,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         <AnimatePresence>
           {mobileSidebarOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
-              <div 
-                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" 
+              <div
+                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
                 onClick={() => setMobileSidebarOpen(false)}
               />
-              <motion.div 
+              <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
@@ -353,7 +394,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   }}
                   currentRole={currentRole}
                   isCollapsed={false}
-                  onToggleCollapse={() => {}}
+                  onToggleCollapse={() => { }}
                 />
               </motion.div>
             </div>

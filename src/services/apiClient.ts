@@ -42,7 +42,7 @@ export const getAuthToken = (): string | null => {
   const isPharmaPortal = path.startsWith('/pharmacist');
   const isCaregiverPortal = path.startsWith('/caregiver');
   const isInsurancePortal = path.startsWith('/insurance');
-  const isAdminPortal = path.startsWith('/admin');
+  const isAdminPortal = path.startsWith('/admin') || path.startsWith('/hospital');
   const isUserPortal = path.startsWith('/user') || (!isDoctorPortal && !isNursePortal && !isPharmaPortal && !isCaregiverPortal && !isInsurancePortal && !isAdminPortal);
 
   // Check role-specific token first
@@ -161,7 +161,7 @@ export async function apiRequest<T = any>(
   const isPharmaPortal = path.startsWith('/pharmacist');
   const isCaregiverPortal = path.startsWith('/caregiver');
   const isInsurancePortal = path.startsWith('/insurance');
-  const isAdminPortal = path.startsWith('/admin');
+  const isAdminPortal = path.startsWith('/admin') || path.startsWith('/hospital');
 
   let portalRole = 'PATIENT';
   if (isDoctorPortal) portalRole = 'DOCTOR';

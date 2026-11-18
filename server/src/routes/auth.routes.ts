@@ -6,6 +6,9 @@ import {
   getMeController,
   sendOtpController,
   verifyOtpController,
+  hospitalLoginController,
+  hospitalRegisterController,
+  hospitalStatusController,
 } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
@@ -17,6 +20,12 @@ router.post('/register', registerController);
 router.post('/login', loginController);
 router.post('/send-otp', sendOtpController);
 router.post('/verify-otp', verifyOtpController);
+
+// Hospital Management Authentication & Registration
+router.post('/hospital/login', hospitalLoginController);
+router.post('/hospital/register', hospitalRegisterController);
+router.get('/hospital/status', hospitalStatusController);
+router.get('/hospital/status/:identifier', hospitalStatusController);
 
 // Protected routes (Requires valid JWT)
 router.get('/me', authenticate, getMeController);

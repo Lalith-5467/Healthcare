@@ -129,160 +129,92 @@ export const healthShareApi = {
 
   // 4. Patient gets pending requests
   getPatientRequests: async (): Promise<AccessRequestItem[]> => {
-    let serverRequests: AccessRequestItem[] = [];
     try {
       const res = await apiClient.get<AccessRequestItem[]>('/health-share/access-requests/patient');
       if (Array.isArray(res.data)) {
-        serverRequests = res.data;
+        return res.data;
       }
     } catch (e) {
-      console.warn('API getPatientRequests fallback:', e);
+      console.warn('API getPatientRequests error:', e);
     }
-
-    // Merge any pending requests stored in localStorage for multi-tab testing
-    try {
-      const localRaw = localStorage.getItem('pending_patient_access_requests');
-      if (localRaw) {
-        const localList: AccessRequestItem[] = JSON.parse(localRaw);
-        if (Array.isArray(localList)) {
-          localList.forEach((lr) => {
-            const exists = serverRequests.some((sr) => sr.id === lr.id);
-            if (!exists) {
-              serverRequests.unshift(lr);
-            }
-          });
-        }
-      }
-    } catch {}
-
-    return serverRequests;
+    return [];
   },
 
   // 5. Doctor gets access requests
   getDoctorRequests: async (): Promise<AccessRequestItem[]> => {
-    let docRequests: AccessRequestItem[] = [];
     try {
       const res = await apiClient.get<AccessRequestItem[]>('/health-share/access-requests/doctor');
       if (Array.isArray(res.data)) {
-        docRequests = res.data;
+        return res.data;
       }
     } catch (e) {
-      console.warn('API getDoctorRequests fallback:', e);
+      console.warn('API getDoctorRequests error:', e);
     }
-
-    // Also merge from local storage cache if any
-    try {
-      const localRaw = localStorage.getItem('pending_patient_access_requests');
-      if (localRaw) {
-        const localList: AccessRequestItem[] = JSON.parse(localRaw);
-        if (Array.isArray(localList)) {
-          localList.forEach((lr) => {
-            const matchIndex = docRequests.findIndex((dr) => dr.id === lr.id);
-            if (matchIndex === -1) {
-              docRequests.unshift(lr);
-            } else if (lr.status && lr.status !== docRequests[matchIndex].status) {
-              docRequests[matchIndex].status = lr.status;
-            }
-          });
-        }
-      }
-    } catch {}
-
-    return docRequests;
+    return [];
   },
 
   // 6. Patient approves request
   approveRequest: async (requestId: string, permissionScope?: string[], durationMinutes = 60) => {
-    // Update local storage items for instant tab sync
-    try {
-      const nowStr = new Date().toISOString();
-      const expiresStr = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
-      const localRaw = localStorage.getItem('pending_patient_access_requests');
-      if (localRaw) {
-        const localList = JSON.parse(localRaw);
-        if (Array.isArray(localList)) {
-          const updated = localList.map((r: any) =>
-            r.id === requestId
-              ? {
-                  ...r,
-                  status: 'APPROVED',
-                  grantedAt: nowStr,
-                  expiresAt: expiresStr,
-                  permissionScope: permissionScope || r.permissionScope,
-                }
-              : r
-          );
-          localStorage.setItem('pending_patient_access_requests', JSON.stringify(updated));
-        }
-      }
-      if (typeof BroadcastChannel !== 'undefined') {
+    const res = await apiClient.post(`/health-share/access-requests/${requestId}/approve`, {
+      permissionScope,
+      durationMinutes,
+    });
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
         const bc = new BroadcastChannel('health_share_channel');
         bc.postMessage({
           type: 'health-share:request-approved',
           event: 'health-share:request-approved',
           requestId,
           status: 'APPROVED',
-          grantedAt: nowStr,
-          expiresAt: expiresStr,
+          grantedAt: res.data?.grantedAt || new Date().toISOString(),
+          expiresAt: res.data?.expiresAt,
         });
         bc.close();
-      }
-    } catch {}
+      } catch {}
+    }
 
-    const res = await apiClient.post(`/health-share/access-requests/${requestId}/approve`, {
-      permissionScope,
-      durationMinutes,
-    });
     return res.data;
   },
 
   // 7. Patient rejects request
   rejectRequest: async (requestId: string) => {
-    try {
-      const nowStr = new Date().toISOString();
-      const localRaw = localStorage.getItem('pending_patient_access_requests');
-      if (localRaw) {
-        const localList = JSON.parse(localRaw);
-        if (Array.isArray(localList)) {
-          const updated = localList.map((r: any) =>
-            r.id === requestId ? { ...r, status: 'REJECTED', revokedAt: nowStr } : r
-          );
-          localStorage.setItem('pending_patient_access_requests', JSON.stringify(updated));
-        }
-      }
-      if (typeof BroadcastChannel !== 'undefined') {
-        const bc = new BroadcastChannel('health_share_channel');
-        bc.postMessage({ type: 'health-share:request-rejected', event: 'health-share:request-rejected', requestId, status: 'REJECTED' });
-        bc.close();
-      }
-    } catch {}
-
     const res = await apiClient.post(`/health-share/access-requests/${requestId}/reject`);
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('health_share_channel');
+        bc.postMessage({
+          type: 'health-share:request-rejected',
+          event: 'health-share:request-rejected',
+          requestId,
+          status: 'REJECTED',
+        });
+        bc.close();
+      } catch {}
+    }
+
     return res.data;
   },
 
   // 8. Patient revokes active session
   revokeSession: async (requestId: string) => {
-    try {
-      const nowStr = new Date().toISOString();
-      const localRaw = localStorage.getItem('pending_patient_access_requests');
-      if (localRaw) {
-        const localList = JSON.parse(localRaw);
-        if (Array.isArray(localList)) {
-          const updated = localList.map((r: any) =>
-            r.id === requestId ? { ...r, status: 'REVOKED', revokedAt: nowStr } : r
-          );
-          localStorage.setItem('pending_patient_access_requests', JSON.stringify(updated));
-        }
-      }
-      if (typeof BroadcastChannel !== 'undefined') {
-        const bc = new BroadcastChannel('health_share_channel');
-        bc.postMessage({ type: 'health-share:session-revoked', event: 'health-share:session-revoked', requestId, status: 'REVOKED' });
-        bc.close();
-      }
-    } catch {}
-
     const res = await apiClient.post(`/health-share/access-sessions/${requestId}/revoke`);
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('health_share_channel');
+        bc.postMessage({
+          type: 'health-share:session-revoked',
+          event: 'health-share:session-revoked',
+          requestId,
+          status: 'REVOKED',
+        });
+        bc.close();
+      } catch {}
+    }
+
     return res.data;
   },
 

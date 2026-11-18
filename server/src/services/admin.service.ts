@@ -10,7 +10,37 @@ export interface UserQueryOptions {
   role?: string;
   status?: string;
   search?: string;
+  hospital?: string;
 }
+
+export interface HospitalRecord {
+  id: string;
+  hospitalId: string;
+  name: string;
+  code: string;
+  city: string;
+  state: string;
+  address: string;
+  contactPhone: string;
+  email: string;
+  adminName: string;
+  adminEmail: string;
+  bedCapacity: number;
+  activeDoctors: number;
+  activeNurses: number;
+  activePatients: number;
+  activePharmacists: number;
+  activeCaregivers: number;
+  insurancePartnersCount: number;
+  status: 'Active' | 'Under Review' | 'Suspended';
+  establishedYear: number;
+  accreditation: string;
+  departments: string[];
+}
+
+// Dynamic persistent hospital store
+let customRegisteredHospitals: HospitalRecord[] = [];
+let hospitalRegistryStore: HospitalRecord[] = [];
 
 export class AdminService {
   /**
@@ -899,5 +929,462 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  // --- Database-Backed Hospital Management Methods ---
+  static async getHospitals() {
+    try {
+      // 1. Fetch hospitals permanently stored in MySQL
+      const dbHospitals = await prisma.hospital.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // 2. Fetch associated practitioners and patients to compute live metrics per hospital
+      const [docs, nurses, pharm, cg, ins, patients] = await Promise.all([
+        prisma.doctor.findMany({ select: { fullName: true, hospital: true } }),
+        prisma.nurse.findMany({ select: { fullName: true, hospital: true } }),
+        prisma.pharmacist.findMany({ select: { fullName: true, pharmacyName: true } }),
+        prisma.caregiver.findMany({ select: { fullName: true } }),
+        prisma.insuranceProvider.findMany({ select: { providerName: true } }),
+        prisma.patient.findMany({
+          select: {
+            fullName: true,
+            appointments: { select: { doctor: { select: { hospital: true } } } },
+            medicalRecords: { select: { hospital: true } },
+          },
+        }),
+      ]);
+
+      const hospMap = new Map<string, HospitalRecord>();
+
+      // Populate map with database-backed hospitals first
+      for (const h of dbHospitals) {
+        let depts: string[] = ['General OPD', 'Emergency Care', 'In-Patient Ward', 'Diagnostic Lab'];
+        if (h.departments) {
+          try {
+            depts = JSON.parse(h.departments);
+          } catch {}
+        }
+
+        // Map HospitalStatus to UI string
+        let uiStatus: 'Active' | 'Under Review' | 'Suspended' = 'Under Review';
+        if (h.status === 'ACTIVE') uiStatus = 'Active';
+        else if (h.status === 'SUSPENDED' || h.status === 'REJECTED') uiStatus = 'Suspended';
+
+        const record: HospitalRecord = {
+          id: h.id,
+          hospitalId: `HOSP-${h.code}-${h.id.slice(-4).toUpperCase()}`,
+          name: h.name,
+          code: h.code,
+          city: h.city,
+          state: h.state,
+          address: h.address || `${h.city}, ${h.state}`,
+          contactPhone: h.contactPhone || '+91 80 0000 0000',
+          email: h.email,
+          adminName: h.adminName,
+          adminEmail: h.adminEmail,
+          bedCapacity: h.bedCapacity || 0,
+          activeDoctors: 0,
+          activeNurses: 0,
+          activePatients: 0,
+          activePharmacists: 0,
+          activeCaregivers: 0,
+          insurancePartnersCount: 0,
+          status: uiStatus,
+          establishedYear: h.createdAt.getFullYear(),
+          accreditation: h.accreditation || 'NABH Accredited',
+          departments: depts,
+        };
+        hospMap.set(h.name.trim().toLowerCase(), record);
+      }
+
+      // Also ensure any affiliated hospitals from existing doctors/nurses are present
+      const getOrInitHospital = (hospName: string): HospitalRecord => {
+        const key = hospName.trim().toLowerCase();
+        if (hospMap.has(key)) return hospMap.get(key)!;
+
+        const code = hospName.trim().length >= 3 ? hospName.trim().slice(0, 3).toUpperCase() : 'HOS';
+        const nextId = hospMap.size + 1;
+
+        const record: HospitalRecord = {
+          id: `HOSP-${String(nextId).padStart(2, '0')}`,
+          hospitalId: `HOSP-${code}-${String(nextId).padStart(3, '0')}`,
+          name: hospName.trim(),
+          code,
+          city: 'Chennai',
+          state: 'Tamil Nadu',
+          address: `${hospName.trim()}, Tamil Nadu`,
+          contactPhone: '+91 44 2800 0000',
+          email: `admin@${hospName.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+          adminName: 'Medical Director',
+          adminEmail: `director@${hospName.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+          bedCapacity: 0,
+          activeDoctors: 0,
+          activeNurses: 0,
+          activePatients: 0,
+          activePharmacists: 0,
+          activeCaregivers: 0,
+          insurancePartnersCount: 0,
+          status: 'Active',
+          establishedYear: new Date().getFullYear(),
+          accreditation: 'NABH Accredited',
+          departments: ['General OPD', 'Emergency Care', 'In-Patient Ward'],
+        };
+        hospMap.set(key, record);
+        return record;
+      };
+
+      // Tally practitioner affiliations
+      docs.forEach((d) => {
+        if (d.hospital) {
+          const h = getOrInitHospital(d.hospital);
+          h.activeDoctors++;
+        }
+      });
+
+      nurses.forEach((n) => {
+        if (n.hospital) {
+          const h = getOrInitHospital(n.hospital);
+          h.activeNurses++;
+        }
+      });
+
+      pharm.forEach((p) => {
+        if (p.pharmacyName) {
+          const h = getOrInitHospital(p.pharmacyName);
+          h.activePharmacists++;
+        }
+      });
+
+      patients.forEach((pt) => {
+        const ptHospitals = new Set([
+          ...pt.appointments.map((a) => a.doctor?.hospital),
+          ...pt.medicalRecords.map((m) => m.hospital),
+        ].filter(Boolean) as string[]);
+
+        ptHospitals.forEach((hName) => {
+          const h = getOrInitHospital(hName);
+          h.activePatients++;
+        });
+      });
+
+      const liveList = Array.from(hospMap.values());
+      hospitalRegistryStore = liveList;
+      return liveList;
+    } catch (e: any) {
+      console.warn('Error reading hospitals from database:', e?.message);
+      return hospitalRegistryStore;
+    }
+  }
+
+  static async getHospitalById(id: string) {
+    const cleanId = String(id).trim();
+    // Try database by id, code, or email
+    const dbHosp = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { id: cleanId },
+          { code: cleanId },
+          { email: cleanId.toLowerCase() },
+          { adminEmail: cleanId.toLowerCase() },
+          { name: cleanId },
+        ],
+      },
+    });
+
+    if (dbHosp) {
+      let uiStatus: 'Active' | 'Under Review' | 'Suspended' = 'Under Review';
+      if (dbHosp.status === 'ACTIVE') uiStatus = 'Active';
+      else if (dbHosp.status === 'SUSPENDED' || dbHosp.status === 'REJECTED') uiStatus = 'Suspended';
+
+      let depts = ['General OPD', 'Emergency Care', 'In-Patient Ward'];
+      if (dbHosp.departments) {
+        try { depts = JSON.parse(dbHosp.departments); } catch {}
+      }
+
+      return {
+        id: dbHosp.id,
+        hospitalId: `HOSP-${dbHosp.code}-${dbHosp.id.slice(-4).toUpperCase()}`,
+        name: dbHosp.name,
+        code: dbHosp.code,
+        city: dbHosp.city,
+        state: dbHosp.state,
+        address: dbHosp.address || '',
+        contactPhone: dbHosp.contactPhone || '',
+        email: dbHosp.email,
+        adminName: dbHosp.adminName,
+        adminEmail: dbHosp.adminEmail,
+        bedCapacity: dbHosp.bedCapacity,
+        activeDoctors: 0,
+        activeNurses: 0,
+        activePatients: 0,
+        activePharmacists: 0,
+        activeCaregivers: 0,
+        insurancePartnersCount: 0,
+        status: uiStatus,
+        establishedYear: dbHosp.createdAt.getFullYear(),
+        accreditation: dbHosp.accreditation || 'NABH Accredited',
+        departments: depts,
+      };
+    }
+
+    const inMemory = hospitalRegistryStore.find((h) => h.id === id || h.hospitalId === id || h.name.toLowerCase() === cleanId.toLowerCase());
+    if (inMemory) return inMemory;
+
+    throw new AppError('Hospital record not found', 404);
+  }
+
+  static async createHospital(data: Partial<HospitalRecord>) {
+    if (!data.name?.trim()) throw new AppError('Hospital name is required', 400);
+    if (!data.adminEmail?.trim()) throw new AppError('Administrator email is required', 400);
+
+    const normName = data.name.trim();
+    const normAdminEmail = data.adminEmail.trim().toLowerCase();
+    const normEmail = (data.email?.trim() || normAdminEmail).toLowerCase();
+    const code = (data.code?.trim() || normName.slice(0, 3).toUpperCase() + '-' + Math.floor(100 + Math.random() * 900)).toUpperCase();
+
+    // Check duplicate in MySQL
+    const existing = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { email: normEmail },
+          { adminEmail: normAdminEmail },
+          { code },
+          { name: normName },
+        ],
+      },
+    });
+
+    let dbStatus: 'UNDER_REVIEW' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' = 'UNDER_REVIEW';
+    if (data.status === 'Active') dbStatus = 'ACTIVE';
+    else if (data.status === 'Suspended') dbStatus = 'SUSPENDED';
+
+    const deptsJson = JSON.stringify(data.departments && data.departments.length > 0 ? data.departments : ['General OPD', 'Emergency Care', 'In-Patient Ward', 'Diagnostic Lab']);
+
+    let record: any;
+    if (existing) {
+      // Update existing record safely
+      record = await prisma.hospital.update({
+        where: { id: existing.id },
+        data: {
+          name: normName,
+          city: data.city?.trim() || existing.city,
+          state: data.state?.trim() || existing.state,
+          address: data.address?.trim() || existing.address,
+          contactPhone: data.contactPhone?.trim() || existing.contactPhone,
+          adminName: data.adminName?.trim() || existing.adminName,
+          bedCapacity: Number(data.bedCapacity) || existing.bedCapacity,
+          accreditation: data.accreditation?.trim() || existing.accreditation,
+          status: dbStatus,
+          departments: deptsJson,
+        },
+      });
+    } else {
+      // Create new hospital row in MySQL
+      record = await prisma.hospital.create({
+        data: {
+          name: normName,
+          code,
+          city: data.city?.trim() || 'Chennai',
+          state: data.state?.trim() || 'Tamil Nadu',
+          address: data.address?.trim() || `${normName}, Tamil Nadu`,
+          contactPhone: data.contactPhone?.trim() || '+91 80 0000 0000',
+          email: normEmail,
+          adminName: data.adminName?.trim() || 'Hospital Administrator',
+          adminEmail: normAdminEmail,
+          bedCapacity: Number(data.bedCapacity) || 0,
+          accreditation: data.accreditation?.trim() || 'NABH Accredited',
+          status: dbStatus,
+          departments: deptsJson,
+        },
+      });
+    }
+
+    let uiStatus: 'Active' | 'Under Review' | 'Suspended' = 'Under Review';
+    if (record.status === 'ACTIVE') uiStatus = 'Active';
+    else if (record.status === 'SUSPENDED' || record.status === 'REJECTED') uiStatus = 'Suspended';
+
+    const newHospital: HospitalRecord = {
+      id: record.id,
+      hospitalId: `HOSP-${record.code}-${record.id.slice(-4).toUpperCase()}`,
+      name: record.name,
+      code: record.code,
+      city: record.city,
+      state: record.state,
+      address: record.address || '',
+      contactPhone: record.contactPhone || '',
+      email: record.email,
+      adminName: record.adminName,
+      adminEmail: record.adminEmail,
+      bedCapacity: record.bedCapacity,
+      activeDoctors: 0,
+      activeNurses: 0,
+      activePatients: 0,
+      activePharmacists: 0,
+      activeCaregivers: 0,
+      insurancePartnersCount: 0,
+      status: uiStatus,
+      establishedYear: record.createdAt.getFullYear(),
+      accreditation: record.accreditation || 'NABH Accredited',
+      departments: ['General OPD', 'Emergency Care', 'In-Patient Ward', 'Diagnostic Lab'],
+    };
+
+    return newHospital;
+  }
+
+  static async updateHospital(id: string, updates: Partial<HospitalRecord>) {
+    const cleanId = String(id).trim();
+
+    // Map status from UI string to DB enum
+    let dbStatus: 'UNDER_REVIEW' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | undefined;
+    if (updates.status) {
+      const s = String(updates.status).toUpperCase();
+      if (s === 'ACTIVE') dbStatus = 'ACTIVE';
+      else if (s === 'UNDER REVIEW' || s === 'UNDER_REVIEW' || s === 'PENDING') dbStatus = 'UNDER_REVIEW';
+      else if (s === 'SUSPENDED') dbStatus = 'SUSPENDED';
+      else if (s === 'REJECTED') dbStatus = 'REJECTED';
+    }
+
+    // Find in database by id, code, email, adminEmail, or name
+    let existing = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { id: cleanId },
+          { code: cleanId },
+          { adminEmail: cleanId.toLowerCase() },
+          { email: cleanId.toLowerCase() },
+          { name: cleanId },
+        ],
+      },
+    });
+
+    if (!existing && updates.name) {
+      existing = await prisma.hospital.findFirst({
+        where: { name: updates.name.trim() },
+      });
+    }
+
+    if (existing) {
+      const updated = await prisma.hospital.update({
+        where: { id: existing.id },
+        data: {
+          ...(updates.name ? { name: updates.name.trim() } : {}),
+          ...(updates.city ? { city: updates.city.trim() } : {}),
+          ...(updates.state ? { state: updates.state.trim() } : {}),
+          ...(updates.address ? { address: updates.address.trim() } : {}),
+          ...(updates.contactPhone ? { contactPhone: updates.contactPhone.trim() } : {}),
+          ...(updates.adminName ? { adminName: updates.adminName.trim() } : {}),
+          ...(updates.bedCapacity !== undefined ? { bedCapacity: Number(updates.bedCapacity) } : {}),
+          ...(updates.accreditation ? { accreditation: updates.accreditation.trim() } : {}),
+          ...(dbStatus ? { status: dbStatus } : {}),
+          ...(updates.departments ? { departments: JSON.stringify(updates.departments) } : {}),
+        },
+      });
+
+      let uiStatus: 'Active' | 'Under Review' | 'Suspended' = 'Under Review';
+      if (updated.status === 'ACTIVE') uiStatus = 'Active';
+      else if (updated.status === 'SUSPENDED' || updated.status === 'REJECTED') uiStatus = 'Suspended';
+
+      let depts = ['General OPD', 'Emergency Care', 'In-Patient Ward'];
+      if (updated.departments) {
+        try { depts = JSON.parse(updated.departments); } catch {}
+      }
+
+      return {
+        id: updated.id,
+        hospitalId: `HOSP-${updated.code}-${updated.id.slice(-4).toUpperCase()}`,
+        name: updated.name,
+        code: updated.code,
+        city: updated.city,
+        state: updated.state,
+        address: updated.address || '',
+        contactPhone: updated.contactPhone || '',
+        email: updated.email,
+        adminName: updated.adminName,
+        adminEmail: updated.adminEmail,
+        bedCapacity: updated.bedCapacity,
+        activeDoctors: updates.activeDoctors || 0,
+        activeNurses: updates.activeNurses || 0,
+        activePatients: updates.activePatients || 0,
+        activePharmacists: updates.activePharmacists || 0,
+        activeCaregivers: updates.activeCaregivers || 0,
+        insurancePartnersCount: updates.insurancePartnersCount || 0,
+        status: uiStatus,
+        establishedYear: updated.createdAt.getFullYear(),
+        accreditation: updated.accreditation || 'NABH Accredited',
+        departments: depts,
+      };
+    }
+
+    // If record did not exist in MySQL yet (e.g. legacy name), create it directly
+    const name = updates.name || cleanId;
+    const code = updates.code || name.slice(0, 3).toUpperCase() + '-' + Math.floor(100 + Math.random() * 900);
+    const created = await prisma.hospital.create({
+      data: {
+        name,
+        code,
+        city: updates.city || 'Chennai',
+        state: updates.state || 'Tamil Nadu',
+        address: updates.address || `${name}, Tamil Nadu`,
+        contactPhone: updates.contactPhone || '+91 80 0000 0000',
+        email: updates.email || updates.adminEmail || `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+        adminName: updates.adminName || 'Hospital Administrator',
+        adminEmail: updates.adminEmail || updates.email || `director@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
+        bedCapacity: updates.bedCapacity || 0,
+        accreditation: updates.accreditation || 'NABH Accredited',
+        status: dbStatus || 'ACTIVE',
+        departments: JSON.stringify(updates.departments || ['General OPD', 'Emergency Care', 'In-Patient Ward']),
+      },
+    });
+
+    return {
+      id: created.id,
+      hospitalId: `HOSP-${created.code}-${created.id.slice(-4).toUpperCase()}`,
+      name: created.name,
+      code: created.code,
+      city: created.city,
+      state: created.state,
+      address: created.address || '',
+      contactPhone: created.contactPhone || '',
+      email: created.email,
+      adminName: created.adminName,
+      adminEmail: created.adminEmail,
+      bedCapacity: created.bedCapacity,
+      activeDoctors: 0,
+      activeNurses: 0,
+      activePatients: 0,
+      activePharmacists: 0,
+      activeCaregivers: 0,
+      insurancePartnersCount: 0,
+      status: created.status === 'ACTIVE' ? 'Active' : 'Suspended',
+      establishedYear: created.createdAt.getFullYear(),
+      accreditation: created.accreditation || 'NABH Accredited',
+      departments: updates.departments || ['General OPD', 'Emergency Care', 'In-Patient Ward'],
+    };
+  }
+
+  static async deleteHospital(id: string) {
+    const cleanId = String(id).trim();
+    const existing = await prisma.hospital.findFirst({
+      where: {
+        OR: [
+          { id: cleanId },
+          { code: cleanId },
+          { adminEmail: cleanId.toLowerCase() },
+          { email: cleanId.toLowerCase() },
+          { name: cleanId },
+        ],
+      },
+    });
+
+    if (existing) {
+      await prisma.hospital.delete({ where: { id: existing.id } });
+      return { id: existing.id, name: existing.name };
+    }
+
+    const index = hospitalRegistryStore.findIndex((h) => h.id === id || h.hospitalId === id);
+    if (index === -1) throw new AppError('Hospital record not found', 404);
+    const removed = hospitalRegistryStore.splice(index, 1)[0];
+    return removed;
   }
 }

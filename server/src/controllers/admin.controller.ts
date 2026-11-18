@@ -206,3 +206,72 @@ export const getAuditLogsController = async (
     next(error);
   }
 };
+
+export const getHospitalsController = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await AdminService.getHospitals();
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createHospitalController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const data = await AdminService.createHospital(req.body);
+    res.status(201).json({
+      success: true,
+      message: 'Hospital registered successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateHospitalController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await AdminService.updateHospital(id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Hospital details updated successfully',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteHospitalController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const data = await AdminService.deleteHospital(id);
+    res.status(200).json({
+      success: true,
+      message: 'Hospital removed from directory',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

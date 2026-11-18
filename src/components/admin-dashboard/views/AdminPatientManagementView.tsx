@@ -7,7 +7,10 @@ import {
   Phone, Mail, MapPin, Shield, Check
 } from 'lucide-react';
 import { adminApi } from '../../../services/dhrApis';
-import { INITIAL_PATIENTS } from '../../../utils/adminMockStorage';
+import { 
+  getStoredHospitals, 
+  type HospitalAdminRecord 
+} from '../../../utils/adminMockStorage';
 import { AdminToast } from '../common/AdminToast';
 import type { AdminToastType } from '../common/AdminToast';
 import { AdminDeleteConfirmModal } from '../modals/AdminDeleteConfirmModal';
@@ -21,17 +24,37 @@ export interface PatientRecord {
   gender: string;
   phone: string;
   bloodGroup: string;
+  hospital?: string;
   status: 'Active' | 'Disabled';
   createdAt?: string;
   abhaId: string;
   address: string;
 }
 
-export const AdminPatientManagementView: React.FC = () => {
+interface AdminPatientManagementViewProps {
+  defaultHospital?: string;
+}
+
+export const AdminPatientManagementView: React.FC<AdminPatientManagementViewProps> = ({ defaultHospital }) => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Disabled'>('All');
+  const [hospitalFilter, setHospitalFilter] = useState<string>(defaultHospital || 'All');
+  const [availableHospitals, setAvailableHospitals] = useState<HospitalAdminRecord[]>([]);
+
+  useEffect(() => {
+    if (defaultHospital) {
+      setHospitalFilter(defaultHospital);
+    }
+  }, [defaultHospital]);
+
+  useEffect(() => {
+    setAvailableHospitals(getStoredHospitals());
+    const handleHospUpdate = () => setAvailableHospitals(getStoredHospitals());
+    window.addEventListener('admin_hospitals_updated', handleHospUpdate);
+    return () => window.removeEventListener('admin_hospitals_updated', handleHospUpdate);
+  }, []);
 
   // Modals
   const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null);
@@ -117,6 +140,7 @@ export const AdminPatientManagementView: React.FC = () => {
             gender: overrides[u.id]?.gender || prof.gender || 'Unspecified',
             phone: overrides[u.id]?.phone || u.phoneNumber || prof.emergencyContactPhone || 'Not registered',
             bloodGroup: overrides[u.id]?.bloodGroup || prof.bloodGroup || 'Unspecified',
+            hospital: overrides[u.id]?.hospital || prof.hospital || 'MediCare Central Hub',
             status: overrideStatus || baseStatus,
             createdAt: u.createdAt,
             abhaId: overrides[u.id]?.abhaId || u.abhaId || prof.abhaId || 'Not linked',
@@ -129,54 +153,16 @@ export const AdminPatientManagementView: React.FC = () => {
           showToast(`Successfully refreshed ${mapped.length} patient records.`, 'success');
         }
       } else {
-        // Fallback to initial patient records if empty
-        setPatients(prev => {
-          if (prev.length > 0) return prev;
-          return INITIAL_PATIENTS.map((p) => {
-            const ov = overrides[p.id] || {};
-            return {
-              id: p.id,
-              patientId: p.patientId,
-              name: ov.name || p.name,
-              email: ov.email || `${p.name.toLowerCase().replace(/\s+/g, '.')}@medicare.in`,
-              age: p.age,
-              gender: ov.gender || p.gender,
-              phone: ov.phone || p.phone,
-              bloodGroup: ov.bloodGroup || p.bloodGroup,
-              status: ov.status || (p.status === 'Active' ? 'Active' : 'Disabled'),
-              abhaId: ov.abhaId || p.abhaId,
-              address: ov.address || p.admittedWard || 'Chennai, Tamil Nadu',
-            };
-          });
-        });
+        setPatients([]);
         if (isManual) {
-          showToast('Patient database synchronized', 'success');
+          showToast('No registered patient records found', 'info');
         }
       }
     } catch (err: any) {
       console.error('Failed to load patient management data:', err?.message);
-      const overrides = getMockOverrides();
-      setPatients(prev => {
-        if (prev.length > 0) return prev;
-        return INITIAL_PATIENTS.map((p) => {
-          const ov = overrides[p.id] || {};
-          return {
-            id: p.id,
-            patientId: p.patientId,
-            name: ov.name || p.name,
-            email: ov.email || `${p.name.toLowerCase().replace(/\s+/g, '.')}@medicare.in`,
-            age: p.age,
-            gender: ov.gender || p.gender,
-            phone: ov.phone || p.phone,
-            bloodGroup: ov.bloodGroup || p.bloodGroup,
-            status: ov.status || (p.status === 'Active' ? 'Active' : 'Disabled'),
-            abhaId: ov.abhaId || p.abhaId,
-            address: ov.address || p.admittedWard || 'Chennai, Tamil Nadu',
-          };
-        });
-      });
+      setPatients([]);
       if (isManual) {
-        showToast('Patient database synchronized', 'info');
+        showToast('Failed to load patient database records', 'info');
       }
     } finally {
       setLoading(false);
@@ -359,7 +345,10 @@ export const AdminPatientManagementView: React.FC = () => {
     const matchesStatus = 
       statusFilter === 'All' ? true : p.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesHospital =
+      hospitalFilter === 'All' ? true : p.hospital === hospitalFilter;
+
+    return matchesSearch && matchesStatus && matchesHospital;
   });
 
   return (
@@ -419,21 +408,42 @@ export const AdminPatientManagementView: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Status:</span>
-          {(['All', 'Active', 'Disabled'] as const).map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                statusFilter === status
-                  ? 'bg-[#00a896] text-white border-[#00a896] shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200'
-              }`}
+        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          {/* Hospital Scope Filter */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Stethoscope className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <select
+              value={hospitalFilter}
+              onChange={(e) => setHospitalFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-[#00a896] cursor-pointer"
             >
-              {status}
-            </button>
-          ))}
+              <option value="All">All Hospitals ({availableHospitals.length})</option>
+              {availableHospitals.map((hosp) => (
+                <option key={hosp.id} value={hosp.name}>
+                  {hosp.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Status:</span>
+            {(['All', 'Active', 'Disabled'] as const).map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  statusFilter === status
+                    ? 'bg-[#00a896] text-white border-[#00a896] shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -1012,3 +1022,6 @@ export const AdminPatientManagementView: React.FC = () => {
     </div>
   );
 };
+
+export default AdminPatientManagementView;
+

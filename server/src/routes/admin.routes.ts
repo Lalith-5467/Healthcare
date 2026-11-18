@@ -12,6 +12,10 @@ import {
   updateUserRoleController,
   resetUserPasswordController,
   getAuditLogsController,
+  getHospitalsController,
+  createHospitalController,
+  updateHospitalController,
+  deleteHospitalController,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -102,5 +106,11 @@ router.post('/users/:id/reset-password', requireRole(Role.ADMIN, Role.SUPER_ADMI
 
 // 10. Audit Logs Stream (ADMIN & SUPER_ADMIN)
 router.get('/audit-logs', requireRole(Role.ADMIN, Role.SUPER_ADMIN), getAuditLogsController);
+
+// 11. Hospital Management APIs (ADMIN & SUPER_ADMIN)
+router.get('/hospitals', requireRole(Role.ADMIN, Role.SUPER_ADMIN), getHospitalsController);
+router.post('/hospitals', requireRole(Role.ADMIN, Role.SUPER_ADMIN), createHospitalController);
+router.put('/hospitals/:id', requireRole(Role.ADMIN, Role.SUPER_ADMIN), updateHospitalController);
+router.delete('/hospitals/:id', requireRole(Role.ADMIN, Role.SUPER_ADMIN), deleteHospitalController);
 
 export default router;

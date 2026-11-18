@@ -30,7 +30,7 @@ export const authenticate = async (
           else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
           else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
           else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
-          else if (referer.includes('/admin')) targetRole = 'ADMIN';
+          else if (referer.includes('/admin') || referer.includes('/hospital')) targetRole = 'ADMIN';
         }
 
         let fallbackUser: any = null;
@@ -90,7 +90,7 @@ export const authenticate = async (
           else if (referer.includes('/pharmacist')) targetRole = 'PHARMACIST';
           else if (referer.includes('/caregiver')) targetRole = 'CAREGIVER';
           else if (referer.includes('/insurance')) targetRole = 'INSURANCE_PROVIDER';
-          else if (referer.includes('/admin')) targetRole = 'ADMIN';
+          else if (referer.includes('/admin') || referer.includes('/hospital')) targetRole = 'ADMIN';
         }
 
         let fallbackUser: any = null;

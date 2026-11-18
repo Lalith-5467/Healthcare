@@ -18,6 +18,7 @@ import healthShareRoutes from './healthShare.routes';
 import insuranceRoutes from './insurance.routes';
 import caregiverRoutes from './caregiver.routes';
 import consultationRoutes from './consultation.routes';
+import videoConsultationRoutes from './videoConsultation.routes';
 import doctorDashboardRoutes from './doctorDashboard.routes';
 import nutritionRoutes from './nutrition.routes';
 import dietRoutes from './diet.routes';
@@ -101,6 +102,7 @@ router.use('/caregiver', caregiverRoutes);
 
 // Consultation APIs
 router.use('/consultations', consultationRoutes);
+router.use('/video-consultations', videoConsultationRoutes);
 
 // Doctor Dashboard APIs
 router.use('/doctor/dashboard', doctorDashboardRoutes);

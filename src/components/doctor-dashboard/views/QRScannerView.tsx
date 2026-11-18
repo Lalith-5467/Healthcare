@@ -417,17 +417,14 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (stage === 'SCANNING') {
-      startCamera();
-    } else {
-      stopCamera();
-    }
+    // Do not aggressively auto-request camera on initial mount to avoid NotReadableError / track collisions across tabs.
+    // The user can click 'Start Camera' or use 'Test Sample QR' / 'Upload QR' / 'Manual Token'.
 
     return () => {
       isMountedRef.current = false;
       stopCamera();
     };
-  }, [stage, startCamera, stopCamera]);
+  }, [stopCamera]);
 
   // Continuous QR detection loop
   useEffect(() => {
@@ -676,7 +673,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
     setIsScanning(true);
     setErrorMessage(null);
     try {
-      const genRes = await healthShareApi.generateQRToken(30);
+      // Generate active QR token for primary testing patient Helen Persia
+      const genRes = await healthShareApi.generateQRToken(30, {
+        patientName: 'Helen Persia',
+      });
       await handleValidateToken(genRes.token);
     } catch (e: any) {
       setErrorMessage(e.message || 'Could not validate test patient QR token');
@@ -761,70 +761,33 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({
       setRequestStatus('PENDING');
       setStage('WAITING_APPROVAL');
 
-      // Sync to localStorage and BroadcastChannel so patient portal in any open tab sees it immediately
-      const doctorUser = validationData.doctor || {};
-      const newRequestItem = {
-        id: reqId,
-        doctorId: doctorUser.id || 'doc-1',
-        doctorName: doctorUser.fullName || 'Dr. Arjun Kumar',
-        doctorHospital: doctorUser.hospital || 'Apollo Multispeciality Hospitals, Chennai',
-        doctorSpeciality: doctorUser.speciality || 'General Medicine',
-        doctorLicense: doctorUser.licenseNumber || 'TN-MED-48291',
-        doctorQualification: doctorUser.qualification || 'MBBS, MD',
-        purpose: selectedPurpose,
-        permissionScope: selectedScopes,
-        status: 'PENDING' as const,
-        requestedAt: new Date().toISOString(),
-      };
+      const doctorUser: any = validationData.doctor || {};
 
-      try {
-        const existing = JSON.parse(localStorage.getItem('pending_patient_access_requests') || '[]');
-        const filtered = Array.isArray(existing) ? existing.filter((x: any) => x.id !== reqId) : [];
-        filtered.unshift(newRequestItem);
-        localStorage.setItem('pending_patient_access_requests', JSON.stringify(filtered));
-
-        // Add to medicare_notifications so it shows in the notification bell immediately
-        const notifs = JSON.parse(localStorage.getItem('medicare_notifications') || '[]');
-        notifs.unshift({
-          id: reqId,
-          title: '🔔 Medical Record Access Request',
-          message: `${doctorUser.fullName || 'Doctor'} has requested access to your health records for ${selectedPurpose}.`,
-          type: 'ACCESS_REQUEST',
-          category: 'Clinical Access',
-          relatedModule: 'health-share',
-          createdAt: new Date().toISOString(),
-          isRead: false,
-        });
-        localStorage.setItem('medicare_notifications', JSON.stringify(notifs));
-
-        // Broadcast cross-tab event
-        if (typeof BroadcastChannel !== 'undefined') {
-          const crossBc = new BroadcastChannel('health_share_channel');
-          crossBc.postMessage({
-            type: 'health-share:request-created',
-            event: 'health-share:request-created',
+      // Broadcast cross-tab event
+      if (typeof BroadcastChannel !== 'undefined') {
+        const crossBc = new BroadcastChannel('health_share_channel');
+        crossBc.postMessage({
+          type: 'health-share:request-created',
+          event: 'health-share:request-created',
+          requestId: reqId,
+          status: 'PENDING',
+          data: {
+            id: reqId,
             requestId: reqId,
-            status: 'PENDING',
-            data: {
-              id: reqId,
-              requestId: reqId,
-              doctor: doctorUser,
-              doctorName: doctorUser.fullName,
-              doctorHospital: doctorUser.hospital,
-              doctorSpeciality: doctorUser.speciality,
-              purpose: selectedPurpose,
-              permissionScope: selectedScopes,
-              requestedAt: new Date().toISOString(),
-            },
-          });
-          crossBc.close();
-        }
-
-        window.dispatchEvent(new CustomEvent('health-share:request-created', { detail: newRequestItem }));
-        window.dispatchEvent(new Event('notifications_updated'));
-      } catch (e) {
-        console.warn('Cross-tab sync error:', e);
+            doctor: doctorUser,
+            doctorName: doctorUser.fullName,
+            doctorHospital: doctorUser.hospital,
+            doctorSpeciality: doctorUser.speciality,
+            purpose: selectedPurpose,
+            permissionScope: selectedScopes,
+            requestedAt: new Date().toISOString(),
+          },
+        });
+        crossBc.close();
       }
+
+      window.dispatchEvent(new CustomEvent('health-share:request-created', { detail: { id: reqId, doctor: doctorUser } }));
+      window.dispatchEvent(new Event('notifications_updated'));
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to send access request to patient');
     } finally {

@@ -34,7 +34,7 @@ export const DoctorSidebar: React.FC<DoctorSidebarProps> = ({ activeNav, onNavig
     },
     { id: 'patients', label: t('doctor.sidebar.clinical_patients', 'Clinical Patients'), icon: Users },
     { id: 'appointments', label: t('doctor.sidebar.opd_schedule', 'OPD & Schedule'), icon: Calendar },
-    { id: 'consultations', label: t('doctor.sidebar.active_consultation', 'Active Consultation'), icon: Video, urgent: true },
+    { id: 'video-consultation', label: t('doctor.sidebar.active_consultation', 'Active Consultation'), icon: Video, urgent: true },
     { id: 'patient-360', label: t('doctor.sidebar.patient_360', 'Patient 360° & AI'), icon: Brain },
     { id: 'prescriptions', label: t('doctor.sidebar.prescriptions_notes', 'Prescriptions & Notes'), icon: Pill },
     

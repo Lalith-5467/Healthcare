@@ -30,7 +30,7 @@ export const QRModal: React.FC<QRModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Resolved display name
-  const effectiveUserName = userName || 'Lalith Velarasi';
+  const effectiveUserName = userName || 'Patient';
 
   const fetchSecureToken = async () => {
     setIsRefreshing(true);

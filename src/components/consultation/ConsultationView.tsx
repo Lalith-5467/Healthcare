@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import type { ConsultationAppointment } from './consultationData';
-import { MOCK_CONSULTATION_APPOINTMENT } from './consultationData';
+import React, { useState, useEffect } from 'react';
+import type { ConsultationAppointment, ConsultationDoctor } from './consultationData';
+import { MOCK_CONSULTATION_APPOINTMENT, AVAILABLE_CONSULTATION_DOCTORS } from './consultationData';
 import { PreCallScreen } from './PreCallScreen';
 import { WaitingRoom } from './WaitingRoom';
 import { ActiveConsultationRoom } from './ActiveConsultationRoom';
@@ -8,6 +8,9 @@ import { ConsultationEndedScreen } from './ConsultationEndedScreen';
 import { DeviceSettingsDrawer } from './DeviceSettingsDrawer';
 import { TechnicalIssueModal } from './TechnicalIssueModal';
 import { ConfirmLeaveModal } from './ConfirmLeaveModal';
+import { teleConsultationService } from '../../services/teleConsultationService';
+import { globalNotificationService } from '../../services/globalNotificationService';
+import { videoConsultationApi } from '../../services/videoConsultationApi';
 
 interface UserProfile {
   name: string;
@@ -24,14 +27,44 @@ interface ConsultationViewProps {
 }
 
 export const ConsultationView: React.FC<ConsultationViewProps> = ({
-  user: _user,
+  user,
   onNavigate,
 }) => {
   // WORKFLOW STAGES: 'preCall' | 'waiting' | 'active' | 'ended'
   const [stage, setStage] = useState<'preCall' | 'waiting' | 'active' | 'ended'>('preCall');
 
-  // APPOINTMENT DATA
-  const [appointment] = useState<ConsultationAppointment>(MOCK_CONSULTATION_APPOINTMENT);
+  const patientName = user?.name || 'Helen Persia';
+
+  // APPOINTMENT DATA - Selectable Doctor State
+  const [availableDoctors, setAvailableDoctors] = useState<ConsultationDoctor[]>(AVAILABLE_CONSULTATION_DOCTORS);
+  const [selectedDoctor, setSelectedDoctor] = useState<ConsultationDoctor>(AVAILABLE_CONSULTATION_DOCTORS[0]);
+  const [appointment, setAppointment] = useState<ConsultationAppointment>({
+    ...MOCK_CONSULTATION_APPOINTMENT,
+    doctor: AVAILABLE_CONSULTATION_DOCTORS[0]
+  });
+  const [currentConsultationId, setCurrentConsultationId] = useState<string | null>(null);
+
+  // Load real registered doctors from database
+  useEffect(() => {
+    videoConsultationApi.getAvailableDoctors().then((docs) => {
+      if (docs && docs.length > 0) {
+        setAvailableDoctors(docs);
+        setSelectedDoctor(docs[0]);
+        setAppointment((prev) => ({
+          ...prev,
+          doctor: docs[0],
+        }));
+      }
+    });
+  }, []);
+
+  const handleSelectDoctor = (doctor: ConsultationDoctor) => {
+    setSelectedDoctor(doctor);
+    setAppointment((prev) => ({
+      ...prev,
+      doctor
+    }));
+  };
 
   // DEVICE STATES
   const [cameraEnabled, setCameraEnabled] = useState(true);
@@ -48,11 +81,68 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
   const [leaveModalType, setLeaveModalType] = useState<'waiting' | 'active'>('waiting');
 
+  // Listen for doctor answer via real-time teleConsultationService
+  useEffect(() => {
+    const unsubscribe = teleConsultationService.subscribe((session) => {
+      if (session && session.status === 'connected') {
+        setStage('active');
+      } else if (session && session.status === 'rejected') {
+        setStage('preCall');
+      } else if (session && session.status === 'ended') {
+        setStage('ended');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleJoinWaitingRoom = async () => {
+    // 1. Move to waiting room
+    setStage('waiting');
+
+    let consultationId: string | undefined;
+
+    // 2. Persist consultation request in MySQL backend using authenticated user
+    try {
+      const res = await videoConsultationApi.createRequest(appointment.doctor.id, 'Video Consultation');
+      consultationId = res?.id;
+      setCurrentConsultationId(consultationId || null);
+    } catch (err) {
+      console.warn('Backend consultation request error:', err);
+    }
+
+    // 3. Transmit real-time teleconsultation request to selected doctor
+    teleConsultationService.initiateCall({
+      consultationId,
+      patientId: user?.abhaId || 'ABHA-9941-02',
+      patientName: patientName,
+      patientAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+      doctorId: appointment.doctor.id,
+      doctorName: appointment.doctor.name,
+      doctorSpeciality: appointment.doctor.speciality,
+      doctorAvatar: appointment.doctor.avatarUrl,
+    });
+
+    // 3. Post notification to doctor role
+    globalNotificationService.dispatchNotification({
+      id: `call-${Date.now()}`,
+      title: 'Incoming Video Consultation Call',
+      message: `${patientName} is calling for an instant video consultation with ${appointment.doctor.name}.`,
+      recipientRole: 'DOCTOR',
+      type: 'VIDEO_CALL',
+      priority: 'EMERGENCY',
+      timestamp: new Date().toISOString(),
+      read: false,
+      relatedRoute: '/doctor/dashboard',
+    });
+  };
+
   const handleEndCallConfirmed = (durationSeconds: number, notesText: string) => {
     setEndedDurationSeconds(durationSeconds);
     setFinalNotesText(notesText);
 
-    // Save mock consultation record to localStorage
+    teleConsultationService.endCall();
+
     try {
       const existing = localStorage.getItem('user_medical_records');
       const records = existing ? JSON.parse(existing) : [];
@@ -64,8 +154,8 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
         doctor: appointment.doctor.name,
         hospital: appointment.doctor.hospital,
         date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        notes: notesText || 'Video consultation completed successfully.',
-        tags: ['Teleconsultation', 'General Physician', 'Video Call']
+        notes: notesText || `Video consultation with ${appointment.doctor.name} completed successfully.`,
+        tags: ['Teleconsultation', appointment.doctor.speciality, 'Video Call']
       };
       localStorage.setItem('user_medical_records', JSON.stringify([newConsultationRecord, ...records]));
     } catch (e) {
@@ -89,8 +179,9 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             onToggleMic={() => setMicEnabled(!micEnabled)}
             onToggleSpeaker={() => setSpeakerEnabled(!speakerEnabled)}
             onOpenDeviceSettings={() => setDeviceSettingsOpen(true)}
-            onJoinWaitingRoom={() => setStage('waiting')}
+            onJoinWaitingRoom={handleJoinWaitingRoom}
             onNavigateAppointments={() => onNavigate('appointments')}
+            onSelectDoctor={handleSelectDoctor}
           />
         </div>
       )}
@@ -105,15 +196,19 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             onToggleCamera={() => setCameraEnabled(!cameraEnabled)}
             onToggleMic={() => setMicEnabled(!micEnabled)}
             onLeaveWaitingRoom={() => {
+              teleConsultationService.rejectCall();
               setLeaveModalType('waiting');
               setConfirmLeaveOpen(true);
             }}
-            onDoctorJoined={() => setStage('active')}
+            onDoctorJoined={() => {
+              teleConsultationService.acceptCall();
+              setStage('active');
+            }}
           />
         </div>
       )}
 
-      {/* 3. ACTIVE CONSULTATION ROOM STAGE */}
+      {/* 3. ACTIVE CONSULTATION ROOM STAGE (Patient view: Doctor in center, Patient in self video) */}
       {stage === 'active' && (
         <ActiveConsultationRoom
           appointment={appointment}
@@ -132,6 +227,11 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             setConfirmLeaveOpen(true);
           }}
           onNavigateRecords={() => onNavigate('records')}
+          currentRole="Patient"
+          currentUserName={patientName}
+          remoteUserName={appointment.doctor.name}
+          remoteUserAvatar={appointment.doctor.avatarUrl}
+          remoteUserRoleTitle={`${appointment.doctor.speciality} · ${appointment.doctor.hospital}`}
         />
       )}
 
@@ -145,6 +245,7 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
             onNavigateRecords={() => onNavigate('records')}
             onNavigateAppointments={() => onNavigate('appointments')}
             onNavigateDashboard={() => onNavigate('dashboard')}
+            onStartNewConsultation={() => setStage('preCall')}
           />
         </div>
       )}
@@ -163,18 +264,25 @@ export const ConsultationView: React.FC<ConsultationViewProps> = ({
 
       <ConfirmLeaveModal
         isOpen={confirmLeaveOpen}
-        title={leaveModalType === 'waiting' ? 'Leave Waiting Room?' : 'End Video Consultation?'}
+        title={leaveModalType === 'waiting' ? 'Leave Waiting Room?' : 'End Consultation?'}
         message={
           leaveModalType === 'waiting'
-            ? 'Are you sure you want to exit the waiting room? You can rejoin anytime.'
-            : 'Are you sure you want to end this active consultation call?'
+            ? 'Leaving the waiting room will cancel your current slot in line.'
+            : 'Are you sure you want to exit? Your consultation summary and notes will be safely saved.'
         }
-        confirmLabel={leaveModalType === 'waiting' ? 'Leave Waiting Room' : 'End Consultation'}
+        confirmLabel={leaveModalType === 'waiting' ? 'Leave Queue' : 'End Call'}
         onClose={() => setConfirmLeaveOpen(false)}
         onConfirm={() => {
           if (leaveModalType === 'waiting') {
-            onNavigate('appointments');
+            if (currentConsultationId) {
+              videoConsultationApi.cancelRequest(currentConsultationId).catch(console.error);
+            }
+            teleConsultationService.rejectCall();
+            setStage('preCall');
           } else {
+            if (currentConsultationId) {
+              videoConsultationApi.endConsultation(currentConsultationId).catch(console.error);
+            }
             handleEndCallConfirmed(endedDurationSeconds, finalNotesText);
           }
         }}

@@ -51,6 +51,18 @@ enum ConsultationStatus {
   CANCELLED
 }
 
+enum VideoConsultationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+  WAITING_FOR_PATIENT
+  WAITING_FOR_DOCTOR
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
 enum PrescriptionStatus {
   PENDING_REVIEW
   REVIEWED
@@ -169,6 +181,7 @@ model Patient {
   // Linked Caregivers (M:N)
   caregivers    Caregiver[]    @relation("PatientCaregivers")
   consultations Consultation[]
+  videoConsultations VideoConsultation[]
   dietMeals     DietMeal[]
 
   @@map("patients")
@@ -195,6 +208,7 @@ model Doctor {
   medicalRecords        MedicalRecord[]
   patientAccessRequests PatientAccessRequest[]
   consultations         Consultation[]
+  videoConsultations    VideoConsultation[]
 
   @@map("doctors")
 }
@@ -406,6 +420,27 @@ model Consultation {
   @@index([patientId])
   @@index([doctorId])
   @@map("consultations")
+}
+
+model VideoConsultation {
+  id            String                  @id @default(cuid())
+  patientId     String
+  patient       Patient                 @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId      String
+  doctor        Doctor                  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  status        VideoConsultationStatus @default(PENDING)
+  reason        String?                 @db.Text
+  roomId        String?                 @unique
+  acceptedAt    DateTime?
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@map("video_consultations")
 }
 
 model Vital {
@@ -620,6 +655,37 @@ enum AccessRequestStatus {
   REJECTED
   EXPIRED
   REVOKED
+}
+
+enum HospitalStatus {
+  UNDER_REVIEW
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+model Hospital {
+  id              String         @id @default(cuid())
+  code            String         @unique
+  name            String
+  city            String
+  state           String
+  address         String?        @db.Text
+  contactPhone    String?
+  email           String         @unique
+  adminName       String
+  adminEmail      String         @unique
+  bedCapacity     Int            @default(0)
+  accreditation   String?        @default("NABH & JCI Accredited")
+  status          HospitalStatus @default(UNDER_REVIEW)
+  rejectionReason String?        @db.Text
+  departments     String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([adminEmail])
+  @@map("hospitals")
 }
 
 model HealthShareToken {

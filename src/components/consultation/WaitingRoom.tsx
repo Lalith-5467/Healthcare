@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Camera, CameraOff, Mic, MicOff, Sparkles, LogOut } from 'lucide-react';
+import { Clock, Camera, CameraOff, Mic, MicOff, Sparkles, LogOut, PhoneCall, Stethoscope } from 'lucide-react';
 import type { ConsultationAppointment } from './consultationData';
 
 interface WaitingRoomProps {
@@ -21,7 +21,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
   onLeaveWaitingRoom,
   onDoctorJoined,
 }) => {
-  const [secondsRemaining, setSecondsRemaining] = useState(135); // 02:15 countdown
+  const [secondsRemaining, setSecondsRemaining] = useState(120); // 02:00 countdown
   const [isJoiningTransition, setIsJoiningTransition] = useState(false);
 
   // Countdown timer simulation
@@ -61,23 +61,31 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden text-slate-900 dark:text-white">
-          <div className="w-16 h-16 rounded-full bg-teal-500/15 border border-teal-500/30 flex items-center justify-center mx-auto text-[#00a896] dark:text-cyan-400">
-            <Clock className="w-8 h-8 animate-pulse" />
+          <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-teal-500/20 animate-ping" />
+            <img 
+              src={appointment.doctor.avatarUrl} 
+              alt={appointment.doctor.name} 
+              className="w-20 h-20 rounded-full object-cover border-2 border-teal-500 shadow-md relative z-10" 
+            />
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#00a896] dark:text-cyan-400 font-mono">
-              Virtual Waiting Room
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20 font-mono">
+              <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+              Calling Doctor's Console
             </span>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Waiting for Doctor to join</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white pt-1">
+              Ringing {appointment.doctor.name}...
+            </h2>
             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto font-medium">
-              You are next in queue. <strong className="text-slate-900 dark:text-white">{appointment.doctor.name}</strong> will connect with you shortly.
+              Call notification has been dispatched to <strong className="text-slate-900 dark:text-white">{appointment.doctor.name}</strong>. The video stream will start as soon as the doctor answers.
             </p>
           </div>
 
           {/* TIMER BANNER */}
           <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 inline-block font-mono text-center">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block uppercase font-sans">Estimated Wait Time</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block uppercase font-sans">Queue Wait Time</span>
             <span className="text-3xl font-extrabold text-[#00a896] dark:text-cyan-400">{formatCountdown(secondsRemaining)}</span>
           </div>
 
@@ -104,7 +112,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
               className="px-4 py-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-400 font-extrabold text-xs border border-rose-500/30 flex items-center gap-1.5 cursor-pointer font-sans"
             >
               <LogOut className="w-4 h-4" />
-              <span>Leave Waiting Room</span>
+              <span>Cancel Call</span>
             </button>
           </div>
         </div>

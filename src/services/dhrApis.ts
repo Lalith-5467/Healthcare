@@ -163,8 +163,8 @@ export const authApi = {
   getCurrentUser: () =>
     apiClient.get<UserAccount>('/auth/me'),
 
-  sendOtp: (email: string) =>
-    apiClient.post<{ success: boolean; message: string; previewCode?: string }>('/auth/send-otp', { email }),
+  sendOtp: (email: string, name?: string, role?: string) =>
+    apiClient.post<{ success: boolean; message: string; previewCode?: string }>('/auth/send-otp', { email, name, role }),
 
   verifyOtp: (email: string, otp: string) =>
     apiClient.post<{ success: boolean; message: string }>('/auth/verify-otp', { email, otp }),
@@ -300,7 +300,7 @@ export const clinicalApi = {
 };
 
 export const adminApi = {
-  getUsers: (params?: { page?: number; limit?: number; role?: string; status?: string; search?: string }) => {
+  getUsers: (params?: { page?: number; limit?: number; role?: string; status?: string; search?: string; hospital?: string }) => {
     const query = new URLSearchParams(params as any).toString();
     return apiClient.get<any[]>(`/admin/users?${query}`);
   },
@@ -315,6 +315,20 @@ export const adminApi = {
     const query = new URLSearchParams(params as any).toString();
     return apiClient.get<any>(`/admin/audit-logs?${query}`);
   },
+  // Hospitals Management APIs
+  getHospitals: () => apiClient.get<any[]>('/admin/hospitals'),
+  createHospital: (hospitalData: any) => apiClient.post<any>('/admin/hospitals', hospitalData),
+  updateHospital: (id: string, hospitalData: any) => apiClient.put<any>(`/admin/hospitals/${id}`, hospitalData),
+  deleteHospital: (id: string) => apiClient.delete<any>(`/admin/hospitals/${id}`),
+};
+
+export const hospitalAuthApi = {
+  login: (credentials: { email: string; password?: string }) =>
+    apiClient.post<{ token: string; user: any; hospital: any }>('/auth/hospital/login', credentials),
+  register: (facilityData: any) =>
+    apiClient.post<any>('/auth/hospital/register', facilityData),
+  getStatus: (identifier: string) =>
+    apiClient.get<any>(`/auth/hospital/status/${encodeURIComponent(identifier)}`),
 };
 
 export interface BrandingConfig {
